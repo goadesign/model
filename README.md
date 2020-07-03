@@ -31,12 +31,12 @@ var _ = Workspace("Getting Started", "This is a model of my software system.", f
             AutoLayout()
         })
         Styles(func() {
-            Element(System, func() { // Element("Software System", ...) also works
+            Element(System, func() {
                 Background("#1168bd")
                 Color("#ffffff")
              })
-            Element(User, func() { // Element("User", ...) also works
-                Shape("Person")
+            Element(User, func() {
+                Shape(ShapePerson)
                 Background("#08427b")
                 Color("#ffffff")
             })
@@ -75,12 +75,12 @@ var _ = Workspace("Getting Started", "This is a model of my software system.", f
             AutoLayout()
         })
         Styles(func() {
-            Element(System, func() { // Element("Software System", ...) also works
+            Element(System, func() {
                 Background("#1168bd")
                 Color("#ffffff")
              })
-            Element(User, func() { // Element("User", ...) also works
-                Shape("Person")
+            Element(User, func() {
+                Shape("ShapePerson")
                 Background("#08427b")
                 Color("#ffffff")
             })
@@ -97,11 +97,12 @@ func main() {
         os.Exit(1)
     }
 
-    // Upload the model, the Structurizr account API key and secret must be set
-    // in the STRUCTURIZR_KEY and STRUCTURIZR_SECRET environment variables
-    // respectively and the workspace ID in STRUCTURIZR_WORKSPACE_ID.
+    // Upload the model to the Structurizr service. 
+    // The API key and secret must be set in the STRUCTURIZR_KEY and
+    // STRUCTURIZR_SECRET environment variables respectively. The 
+    // workspace ID must be set in STRUCTURIZR_WORKSPACE_ID.
     var (
-        key = os.Getenv("STRUCTURIZR_KEY"
+        key = os.Getenv("STRUCTURIZR_KEY")
         secret = os.Getenv("STRUCTURIZR_SECRET")
         wid = os.Getenv("STRUCTURIZR_WORKSPACE_ID")
     )
@@ -331,10 +332,10 @@ var _ = Workspace("[name]", "[description]", func() {
             
             // PaperSize defines the paper size that should be used to render
             // the view. The possible values for the argument follow the
-            // patterns A[0-6]_[Portrait|Landscape], Letter_[Portrait|Landscape]
-            // or Legal_[Portrait_Landscape]. Alternatively the argument may be
-            // one of Slide_4_3, Slide_16_9 or Slide_16_10.
-            PaperSize(Slide_4_3)
+            // patterns SizeA[0-6][Portrait|Landscape], SizeLetter[Portrait|Landscape]
+            // or SizeLegal[Portrait_Landscape]. Alternatively the argument may be
+            // one of SizeSlide4X3, SizeSlide16X9 or SizeSlide16X10.
+            PaperSize(SizeSlide4X3)
 
             // Make enterprise boundary visible to differentiate internal
             // elements from external elements on the resulting diagram.
@@ -407,10 +408,10 @@ var _ = Workspace("[name]", "[description]", func() {
 
             // PaperSize defines the paper size that should be used to render
             // the view. The possible values for the argument follow the
-            // patterns A[0-6]_[Portrait|Landscape], Letter_[Portrait|Landscape]
-            // or Legal_[Portrait_Landscape]. Alternatively the argument may be
-            // one of Slide_4_3, Slide_16_9 or Slide_16_10.
-            PaperSize(Slide_4_3)
+            // patterns SizeA[0-6][Portrait|Landscape], SizeLetter[Portrait|Landscape]
+            // or SizeLegal[Portrait_Landscape]. Alternatively the argument may be
+            // one of SizeSlide4X3, SizeSlide16X9 or SizeSlide16X10.
+            PaperSize(SizeSlide4X3)
 
             // Sequence of relationships that make up dynamic diagram.
             Relationship(Identifier, Identifier)
@@ -465,8 +466,8 @@ var _ = Workspace("[name]", "[description]", func() {
             Vertices(10, 20, 10, 40)
 
             // Routing algorithm used when rendering relationship, one of
-            // Direct, Curved or Orthogonal.
-            Routing(Orthogonal)
+            // RoutingDirect, RoutingCurved or RoutingOrthogonal.
+            Routing(RoutingOrthogonal)
 
             // Position of annotation along line; 0 (start) to 100 (end).
             Position(50)
@@ -480,7 +481,8 @@ var _ = Workspace("[name]", "[description]", func() {
             // icon, etc) are optional, see Structurizr - Notation for more
             // details.
             Element("<tag>", func() {
-                Shape("<Box|RoundedBox|Circle|Ellipse|Hexagon|Cylinder|Pipe|Person|Robot|Folder|WebBrowser|MobileDevicePortrait|MobileDeviceLandscape|Component>")
+                Shape(ShapeBox) // ShapeBox, ShapeRoundedBox, ShapeCircle, ShapeEllipse, ShapeHexagon, ShapeCylinder, ShapePipe, ShapePerson
+                                // ShapeRobot, ShapeFolder, ShapeWebBrowser, ShapeMobileDevicePortrait, ShapeMobileDeviceLandscape, ShapeComponent
                 Icon("<file>")
                 Width(42)
                 Height(42)
@@ -488,7 +490,7 @@ var _ = Workspace("[name]", "[description]", func() {
                 Color("#<rrggbb>")
                 Stroke("#<rrggbb>")
                 FontSize(42)
-                Boder("<Solid|Dashed|Dotted>")
+                Boder(BorderSolid) // BorderSolid, BorderDashed, BorderDotted
                 Opacity(42) // Between 0 and 100
                 Metadata(true)
                 Description(true)
@@ -501,7 +503,7 @@ var _ = Workspace("[name]", "[description]", func() {
                 Thickness(42)
                 Color("#<rrggbb>")
                 Dashed(true)
-                Routing("<Direct|Orthogonal|Curved>")
+                Routing(RoutingDirect) // RoutingDirect, RoutingOrthogonal, RoutingCurved
                 FontSize(42)
                 Width(42)
                 Position(42) // Between 0 and 100
