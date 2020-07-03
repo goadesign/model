@@ -6,9 +6,10 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
-	"reflect"
 	"testing"
 
+	"github.com/hashicorp/go-getter/helper/url"
+	"github.com/kylelemons/godebug/diff"
 	"goa.design/structurizr/expr"
 )
 
@@ -27,14 +28,32 @@ func TestGet(t *testing.T) {
 	}))
 	defer server.Close()
 
+	// Substitute structurizr service host and scheme for tests.
+	host := Host
+	defer func() { Host = host }()
+	u, err := url.Parse(server.URL)
+	if err != nil {
+		t.Fatalf("failed to parse test server URL %q: %s", server.URL, err)
+	}
+	Host = u.Host
+	scheme := Scheme
+	defer func() { Scheme = scheme }()
+	Scheme = "http"
+
 	c := NewClient("key", "secret")
 	wk, err := c.Get(wID)
 
 	if err != nil {
 		t.Errorf("Get failed with %s", err)
 	}
-	if !reflect.DeepEqual(wkspc, wk) {
-		t.Errorf("invalid response content")
+	js, err := json.MarshalIndent(wk, "", "   ")
+	if err != nil {
+		t.Fatalf("failed to marshal response for comparison: %s", err)
+	}
+	js2, _ := json.MarshalIndent(wkspc, "", "   ")
+	dif := diff.Diff(string(js), string(js2))
+	if dif != "" {
+		t.Errorf("invalid response content, got vs. expected:\n%s", dif)
 	}
 }
 
@@ -73,8 +92,7 @@ func config(t *testing.T) (workspaceID, key, secret string) {
 
 // Serialized workspace taken from
 // https://raw.githubusercontent.com/structurizr/json/master/examples/big-bank-plc.json
-var bigBankPLC = `
-{
+var bigBankPLC = `{
     "name": "Big Bank plc",
     "description": "This is an example workspace to illustrate the key features of Structurizr, based around a fictional online banking system.",
     "model": {

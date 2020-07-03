@@ -1,6 +1,9 @@
 package expr
 
-import "bytes"
+import (
+	"bytes"
+	"encoding/json"
+)
 
 type (
 	// Views defines one or more views.
@@ -193,40 +196,40 @@ type (
 )
 
 const (
-	A6_Portrait PaperSizeKind = iota + 1
-	A6_Landscape
-	A5_Portrait
-	A5_Landscape
-	A4_Portrait
-	A4_Landscape
-	A3_Portrait
-	A3_Landscape
-	A2_Portrait
-	A2_Landscape
-	A1_Portrait
-	A1_Landscape
-	A0_Portrait
-	A0_Landscape
-	Letter_Portrait
-	Letter_Landscape
-	Legal_Portrait
-	Legal_Landscape
-	Slide_4_3
-	Slide_16_9
-	Slide_16_10
+	SizeA6Portrait PaperSizeKind = iota + 1
+	SizeA6Landscape
+	SizeA5Portrait
+	SizeA5Landscape
+	SizeA4Portrait
+	SizeA4Landscape
+	SizeA3Portrait
+	SizeA3Landscape
+	SizeA2Portrait
+	SizeA2Landscape
+	SizeA1Portrait
+	SizeA1Landscape
+	SizeA0Portrait
+	SizeA0Landscape
+	SizeLetterPortrait
+	SizeLetterLandscape
+	SizeLegalPortrait
+	SizeLegalLandscape
+	SizeSlide43
+	SizeSlide169
+	SizeSlide1610
 )
 
 const (
-	Direct RoutingKind = iota + 1
-	Curved
-	Orthogonal
+	RoutingDirect RoutingKind = iota + 1
+	RoutingCurved
+	RoutingOrthogonal
 )
 
 const (
-	TopBottom RankDirectionKind = iota + 1
-	BottomTop
-	LeftRight
-	RightLeft
+	DirectionTopBottom RankDirectionKind = iota + 1
+	DirectionBottomTop
+	DirectionLeftRight
+	DirectionRightLeft
 )
 
 // MarshalJSON replaces the constant value with the proper structurizr schema
@@ -234,51 +237,104 @@ const (
 func (p PaperSizeKind) MarshalJSON() ([]byte, error) {
 	buf := bytes.NewBufferString(`"`)
 	switch p {
-	case A6_Portrait:
+	case SizeA6Portrait:
 		buf.WriteString("A6_Portrait")
-	case A6_Landscape:
+	case SizeA6Landscape:
 		buf.WriteString("A6_Landscape")
-	case A5_Portrait:
+	case SizeA5Portrait:
 		buf.WriteString("A5_Portrait")
-	case A5_Landscape:
+	case SizeA5Landscape:
 		buf.WriteString("A5_Landscape")
-	case A4_Portrait:
+	case SizeA4Portrait:
 		buf.WriteString("A4_Portrait")
-	case A4_Landscape:
+	case SizeA4Landscape:
 		buf.WriteString("A4_Landscape")
-	case A3_Portrait:
+	case SizeA3Portrait:
 		buf.WriteString("A3_Portrait")
-	case A3_Landscape:
+	case SizeA3Landscape:
 		buf.WriteString("A3_Landscape")
-	case A2_Portrait:
+	case SizeA2Portrait:
 		buf.WriteString("A2_Portrait")
-	case A2_Landscape:
+	case SizeA2Landscape:
 		buf.WriteString("A2_Landscape")
-	case A1_Portrait:
+	case SizeA1Portrait:
 		buf.WriteString("A1_Portrait")
-	case A1_Landscape:
+	case SizeA1Landscape:
 		buf.WriteString("A1_Landscape")
-	case A0_Portrait:
+	case SizeA0Portrait:
 		buf.WriteString("A0_Portrait")
-	case A0_Landscape:
+	case SizeA0Landscape:
 		buf.WriteString("A0_Landscape")
-	case Letter_Portrait:
+	case SizeLetterPortrait:
 		buf.WriteString("Letter_Portrait")
-	case Letter_Landscape:
+	case SizeLetterLandscape:
 		buf.WriteString("Letter_Landscape")
-	case Legal_Portrait:
+	case SizeLegalPortrait:
 		buf.WriteString("Legal_Portrait")
-	case Legal_Landscape:
+	case SizeLegalLandscape:
 		buf.WriteString("Legal_Landscape")
-	case Slide_4_3:
+	case SizeSlide43:
 		buf.WriteString("Slide_4_3")
-	case Slide_16_9:
+	case SizeSlide169:
 		buf.WriteString("Slide_16_9")
-	case Slide_16_10:
+	case SizeSlide1610:
 		buf.WriteString("Slide_16_10")
 	}
 	buf.WriteString(`"`)
 	return buf.Bytes(), nil
+}
+
+// UnmarshalJSON sets the constant from its JSON representation.
+func (p *PaperSizeKind) UnmarshalJSON(data []byte) error {
+	var val string
+	if err := json.Unmarshal(data, &val); err != nil {
+		return err
+	}
+	switch val {
+	case "A6_Portrait":
+		*p = SizeA6Portrait
+	case "A6_Landscape":
+		*p = SizeA6Landscape
+	case "A5_Portrait":
+		*p = SizeA5Portrait
+	case "A5_Landscape":
+		*p = SizeA5Landscape
+	case "A4_Portrait":
+		*p = SizeA4Portrait
+	case "A4_Landscape":
+		*p = SizeA4Landscape
+	case "A3_Portrait":
+		*p = SizeA3Portrait
+	case "A3_Landscape":
+		*p = SizeA3Landscape
+	case "A2_Portrait":
+		*p = SizeA2Portrait
+	case "A2_Landscape":
+		*p = SizeA2Landscape
+	case "A1_Portrait":
+		*p = SizeA1Portrait
+	case "A1_Landscape":
+		*p = SizeA1Landscape
+	case "A0_Portrait":
+		*p = SizeA0Portrait
+	case "A0_Landscape":
+		*p = SizeA0Landscape
+	case "Letter_Portrait":
+		*p = SizeLetterPortrait
+	case "Letter_Landscape":
+		*p = SizeLetterLandscape
+	case "Legal_Portrait":
+		*p = SizeLegalPortrait
+	case "Legal_Landscape":
+		*p = SizeLegalLandscape
+	case "Slide_4_3":
+		*p = SizeSlide43
+	case "Slide_16_9":
+		*p = SizeSlide169
+	case "Slide_16_10":
+		*p = SizeSlide1610
+	}
+	return nil
 }
 
 // MarshalJSON replaces the constant value with the proper structurizr schema
@@ -286,15 +342,32 @@ func (p PaperSizeKind) MarshalJSON() ([]byte, error) {
 func (r RoutingKind) MarshalJSON() ([]byte, error) {
 	buf := bytes.NewBufferString(`"`)
 	switch r {
-	case Direct:
+	case RoutingDirect:
 		buf.WriteString("Direct")
-	case Curved:
+	case RoutingCurved:
 		buf.WriteString("Curved")
-	case Orthogonal:
+	case RoutingOrthogonal:
 		buf.WriteString("Orthogonal")
 	}
 	buf.WriteString(`"`)
 	return buf.Bytes(), nil
+}
+
+// UnmarshalJSON sets the constant from its JSON representation.
+func (r *RoutingKind) UnmarshalJSON(data []byte) error {
+	var val string
+	if err := json.Unmarshal(data, &val); err != nil {
+		return err
+	}
+	switch val {
+	case "Direct":
+		*r = RoutingDirect
+	case "Curved":
+		*r = RoutingCurved
+	case "Orthogonal":
+		*r = RoutingOrthogonal
+	}
+	return nil
 }
 
 // MarshalJSON replaces the constant value with the proper structurizr schema
@@ -302,15 +375,34 @@ func (r RoutingKind) MarshalJSON() ([]byte, error) {
 func (r RankDirectionKind) MarshalJSON() ([]byte, error) {
 	buf := bytes.NewBufferString(`"`)
 	switch r {
-	case TopBottom:
+	case DirectionTopBottom:
 		buf.WriteString("TopBottom")
-	case BottomTop:
+	case DirectionBottomTop:
 		buf.WriteString("BottomTop")
-	case LeftRight:
+	case DirectionLeftRight:
 		buf.WriteString("LeftRight")
-	case RightLeft:
+	case DirectionRightLeft:
 		buf.WriteString("RightLeft")
 	}
 	buf.WriteString(`"`)
 	return buf.Bytes(), nil
+}
+
+// UnmarshalJSON sets the constant from its JSON representation.
+func (r *RankDirectionKind) UnmarshalJSON(data []byte) error {
+	var val string
+	if err := json.Unmarshal(data, &val); err != nil {
+		return err
+	}
+	switch val {
+	case "TopBottom":
+		*r = DirectionTopBottom
+	case "BottomTop":
+		*r = DirectionBottomTop
+	case "LeftRight":
+		*r = DirectionLeftRight
+	case "RightLeft":
+		*r = DirectionRightLeft
+	}
+	return nil
 }

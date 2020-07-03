@@ -1,6 +1,9 @@
 package expr
 
-import "bytes"
+import (
+	"bytes"
+	"encoding/json"
+)
 
 type (
 	// Configuration associated with a set of views.
@@ -129,35 +132,35 @@ type (
 )
 
 const (
-	SquareBrackets SymbolKind = iota + 1
-	RoundBrackets
-	CurlyBrackets
-	AngleBrackets
-	DoubleAngleBrackets
-	None
+	SymbolSquareBrackets SymbolKind = iota + 1
+	SymbolRoundBrackets
+	SymbolCurlyBrackets
+	SymbolAngleBrackets
+	SymbolDoubleAngleBrackets
+	SymbolNone
 )
 
 const (
-	Box ShapeKind = iota + 1
-	RoundedBox
-	Component
-	Circle
-	Ellipse
-	Hexagon
-	Folder
-	Cylinder
-	Pipe
-	WebBrowser
-	MobileDevicePortrait
-	MobileDeviceLandscape
-	PersonShape
-	Robot
+	ShapeBox ShapeKind = iota + 1
+	ShapeRoundedBox
+	ShapeComponent
+	ShapeCircle
+	ShapeEllipse
+	ShapeHexagon
+	ShapeFolder
+	ShapeCylinder
+	ShapePipe
+	ShapeWebBrowser
+	ShapeMobileDevicePortrait
+	ShapeMobileDeviceLandscape
+	ShapePerson
+	ShapeRobot
 )
 
 const (
-	Solid BorderKind = iota + 1
-	Dashed
-	Dotted
+	BorderSolid BorderKind = iota + 1
+	BorderDashed
+	BorderDotted
 )
 
 // MarshalJSON replaces the constant value with the proper structurizr schema
@@ -165,21 +168,44 @@ const (
 func (s SymbolKind) MarshalJSON() ([]byte, error) {
 	buf := bytes.NewBufferString(`"`)
 	switch s {
-	case SquareBrackets:
+	case SymbolSquareBrackets:
 		buf.WriteString("SquareBrackets")
-	case RoundBrackets:
+	case SymbolRoundBrackets:
 		buf.WriteString("RoundBrackets")
-	case CurlyBrackets:
+	case SymbolCurlyBrackets:
 		buf.WriteString("CurlyBrackets")
-	case AngleBrackets:
+	case SymbolAngleBrackets:
 		buf.WriteString("AngleBrackets")
-	case DoubleAngleBrackets:
+	case SymbolDoubleAngleBrackets:
 		buf.WriteString("DoubleAngleBrackets")
-	case None:
+	case SymbolNone:
 		buf.WriteString("None")
 	}
 	buf.WriteString(`"`)
 	return buf.Bytes(), nil
+}
+
+// UnmarshalJSON sets the constant from its JSON representation.
+func (s *SymbolKind) UnmarshalJSON(data []byte) error {
+	var val string
+	if err := json.Unmarshal(data, &val); err != nil {
+		return err
+	}
+	switch val {
+	case "SquareBrackets":
+		*s = SymbolSquareBrackets
+	case "RoundBrackets":
+		*s = SymbolRoundBrackets
+	case "CurlyBrackets":
+		*s = SymbolCurlyBrackets
+	case "AngleBrackets":
+		*s = SymbolAngleBrackets
+	case "DoubleAngleBrackets":
+		*s = SymbolDoubleAngleBrackets
+	case "None":
+		*s = SymbolNone
+	}
+	return nil
 }
 
 // MarshalJSON replaces the constant value with the proper structurizr schema
@@ -187,37 +213,76 @@ func (s SymbolKind) MarshalJSON() ([]byte, error) {
 func (s ShapeKind) MarshalJSON() ([]byte, error) {
 	buf := bytes.NewBufferString(`"`)
 	switch s {
-	case Box:
+	case ShapeBox:
 		buf.WriteString("Box")
-	case RoundedBox:
+	case ShapeRoundedBox:
 		buf.WriteString("RoundedBox")
-	case Component:
+	case ShapeComponent:
 		buf.WriteString("Component")
-	case Circle:
+	case ShapeCircle:
 		buf.WriteString("Circle")
-	case Ellipse:
+	case ShapeEllipse:
 		buf.WriteString("Ellipse")
-	case Hexagon:
+	case ShapeHexagon:
 		buf.WriteString("Hexagon")
-	case Folder:
+	case ShapeFolder:
 		buf.WriteString("Folder")
-	case Cylinder:
+	case ShapeCylinder:
 		buf.WriteString("Cylinder")
-	case Pipe:
+	case ShapePipe:
 		buf.WriteString("Pipe")
-	case WebBrowser:
+	case ShapeWebBrowser:
 		buf.WriteString("WebBrowser")
-	case MobileDevicePortrait:
+	case ShapeMobileDevicePortrait:
 		buf.WriteString("MobileDevicePortrait")
-	case MobileDeviceLandscape:
+	case ShapeMobileDeviceLandscape:
 		buf.WriteString("MobileDeviceLandscape")
-	case PersonShape:
+	case ShapePerson:
 		buf.WriteString("Person")
-	case Robot:
+	case ShapeRobot:
 		buf.WriteString("Robot")
 	}
 	buf.WriteString(`"`)
 	return buf.Bytes(), nil
+}
+
+// UnmarshalJSON sets the constant from its JSON representation.
+func (s *ShapeKind) UnmarshalJSON(data []byte) error {
+	var val string
+	if err := json.Unmarshal(data, &val); err != nil {
+		return err
+	}
+	switch val {
+	case "Box":
+		*s = ShapeBox
+	case "RoundedBox":
+		*s = ShapeRoundedBox
+	case "Component":
+		*s = ShapeComponent
+	case "Circle":
+		*s = ShapeCircle
+	case "Ellipse":
+		*s = ShapeEllipse
+	case "Hexagon":
+		*s = ShapeHexagon
+	case "Folder":
+		*s = ShapeFolder
+	case "Cylinder":
+		*s = ShapeCylinder
+	case "Pipe":
+		*s = ShapePipe
+	case "WebBrowser":
+		*s = ShapeWebBrowser
+	case "MobileDevicePortrait":
+		*s = ShapeMobileDevicePortrait
+	case "MobileDeviceLandscape":
+		*s = ShapeMobileDeviceLandscape
+	case "Person":
+		*s = ShapePerson
+	case "Robot":
+		*s = ShapeRobot
+	}
+	return nil
 }
 
 // MarshalJSON replaces the constant value with the proper structurizr schema
@@ -225,13 +290,30 @@ func (s ShapeKind) MarshalJSON() ([]byte, error) {
 func (b BorderKind) MarshalJSON() ([]byte, error) {
 	buf := bytes.NewBufferString(`"`)
 	switch b {
-	case Solid:
+	case BorderSolid:
 		buf.WriteString("Solid")
-	case Dashed:
+	case BorderDashed:
 		buf.WriteString("Dashed")
-	case Dotted:
+	case BorderDotted:
 		buf.WriteString("Dotted")
 	}
 	buf.WriteString(`"`)
 	return buf.Bytes(), nil
+}
+
+// UnmarshalJSON sets the constant from its JSON representation.
+func (b *BorderKind) UnmarshalJSON(data []byte) error {
+	var val string
+	if err := json.Unmarshal(data, &val); err != nil {
+		return err
+	}
+	switch val {
+	case "Solid":
+		*b = BorderSolid
+	case "Dashed":
+		*b = BorderDashed
+	case "Dotted":
+		*b = BorderDotted
+	}
+	return nil
 }

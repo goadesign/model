@@ -22,8 +22,13 @@ import (
 	"goa.design/structurizr/expr"
 )
 
-// Host is the Structurizr API host.
-const Host = "api.structurizr.com"
+var (
+	// Host is the Structurizr API host (var for testing).
+	Host = "api.structurizr.com"
+
+	// Scheme is the HTTP scheme used to make requests to the Structurizr service.
+	Scheme = "https"
+)
 
 // UserAgent is the user agent used by this package.
 const UserAgent = "structurizr-go/1.0"
@@ -60,7 +65,7 @@ func NewClient(key, secret string) *Client {
 
 // Get retrieves the given workspace.
 func (c *Client) Get(id string) (*expr.Workspace, error) {
-	u := &url.URL{Scheme: "https", Host: Host, Path: fmt.Sprintf("/workspace/%s", id)}
+	u := &url.URL{Scheme: Scheme, Host: Host, Path: fmt.Sprintf("/workspace/%s", id)}
 	req, _ := http.NewRequest("GET", u.String(), nil)
 	c.sign(req, "", "")
 	resp, err := c.HTTP.Do(req)
@@ -81,7 +86,7 @@ func (c *Client) Get(id string) (*expr.Workspace, error) {
 
 // Put stores the given workspace.
 func (c *Client) Put(id string, w *expr.Workspace) error {
-	u := &url.URL{Scheme: "https", Host: Host, Path: fmt.Sprintf("/workspace/%s", id)}
+	u := &url.URL{Scheme: Scheme, Host: Host, Path: fmt.Sprintf("/workspace/%s", id)}
 	body, _ := json.Marshal(w)
 	req, _ := http.NewRequest("PUT", u.String(), bytes.NewReader(body))
 	ct := "application/json; charset=UTF-8"
@@ -107,7 +112,7 @@ func (c *Client) Unlock(id string) (*Response, error) { return c.lockUnlock(id, 
 
 // lockUnlock implements the Lock and Unlock calls.
 func (c *Client) lockUnlock(id string, lock bool) (*Response, error) {
-	u := &url.URL{Scheme: "https", Host: Host, Path: fmt.Sprintf("/workspace/%s/lock", id)}
+	u := &url.URL{Scheme: Scheme, Host: Host, Path: fmt.Sprintf("/workspace/%s/lock", id)}
 	verb := "PUT"
 	if !lock {
 		verb = "DELETE"

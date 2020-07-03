@@ -1,6 +1,9 @@
 package expr
 
-import "bytes"
+import (
+	"bytes"
+	"encoding/json"
+)
 
 type (
 	// Documentation associated with software architecture model.
@@ -76,16 +79,16 @@ type (
 )
 
 const (
-	Markdown DocFormatKind = iota + 1
-	ASCIIDoc
+	FormatMarkdown DocFormatKind = iota + 1
+	FormatASCIIDoc
 )
 
 const (
-	Proposed DecisionStatusKind = iota + 1
-	Accepted
-	Superseded
-	Deprecated
-	Rejected
+	DecisionProposed DecisionStatusKind = iota + 1
+	DecisionAccepted
+	DecisionSuperseded
+	DecisionDeprecated
+	DecisionRejected
 )
 
 // MarshalJSON replaces the constant value with the proper structurizr schema
@@ -93,13 +96,28 @@ const (
 func (d DocFormatKind) MarshalJSON() ([]byte, error) {
 	buf := bytes.NewBufferString(`"`)
 	switch d {
-	case Markdown:
-		buf.WriteString("Markown")
-	case ASCIIDoc:
+	case FormatMarkdown:
+		buf.WriteString("Markdown")
+	case FormatASCIIDoc:
 		buf.WriteString("AsciiDoc")
 	}
 	buf.WriteString(`"`)
 	return buf.Bytes(), nil
+}
+
+// UnmarshalJSON sets the constant from its JSON representation.
+func (d *DocFormatKind) UnmarshalJSON(data []byte) error {
+	var val string
+	if err := json.Unmarshal(data, &val); err != nil {
+		return err
+	}
+	switch val {
+	case "Markdown":
+		*d = FormatMarkdown
+	case "AsciiDoc":
+		*d = FormatASCIIDoc
+	}
+	return nil
 }
 
 // MarshalJSON replaces the constant value with the proper structurizr schema
@@ -107,17 +125,38 @@ func (d DocFormatKind) MarshalJSON() ([]byte, error) {
 func (d DecisionStatusKind) MarshalJSON() ([]byte, error) {
 	buf := bytes.NewBufferString(`"`)
 	switch d {
-	case Proposed:
+	case DecisionProposed:
 		buf.WriteString("Proposed")
-	case Accepted:
+	case DecisionAccepted:
 		buf.WriteString("Accepted")
-	case Superseded:
+	case DecisionSuperseded:
 		buf.WriteString("Superseded")
-	case Deprecated:
+	case DecisionDeprecated:
 		buf.WriteString("Deprecated")
-	case Rejected:
+	case DecisionRejected:
 		buf.WriteString("Rejected")
 	}
 	buf.WriteString(`"`)
 	return buf.Bytes(), nil
+}
+
+// UnmarshalJSON sets the constant from its JSON representation.
+func (d *DecisionStatusKind) UnmarshalJSON(data []byte) error {
+	var val string
+	if err := json.Unmarshal(data, &val); err != nil {
+		return err
+	}
+	switch val {
+	case "Proposed":
+		*d = DecisionProposed
+	case "Accepted":
+		*d = DecisionAccepted
+	case "Superseded":
+		*d = DecisionSuperseded
+	case "Deprecated":
+		*d = DecisionDeprecated
+	case "Rejected":
+		*d = DecisionRejected
+	}
+	return nil
 }

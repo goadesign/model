@@ -11,8 +11,8 @@ type (
 		Name string `json:"name"`
 		// Description of person if any.
 		Description string `json:"description,omitempty"`
-		// Tags attached to person if any.
-		Tags []string `json:"tags,omitempty"`
+		// Tags attached to person as comma separated list if any.
+		Tags string `json:"tags,omitempty"`
 		// URL where more information about this person can be found.
 		URL string `json:"url,omitempty"`
 		// Location of element.
