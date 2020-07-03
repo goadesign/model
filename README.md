@@ -9,11 +9,9 @@ The repository defines a Go DSL that makes it convenient to describe the
 software architecture model so that it can be uploaded to the Structurizr
 service.
 
-The DSL is implemented as a [Goa](https://github.com/goadesign/goa)
+This library also provides a [Goa](https://github.com/goadesign/goa)
 plugin so that the design of APIs and microservices written in Goa can be
-augmented with a description of the corresponding software architecture. Note
-however that this library can be used for services written in any language and
-any framework.
+augmented with a description of the corresponding software architecture.
 
 ## Example
 
@@ -63,24 +61,7 @@ package main
 include "goa.design/structurizr/eval"
 include "goa.design/structurizr/client"
 
-// Executes the DSL and uploads the corresponding workspace to Structurizr.
-func main() {
-    // Run the model DSL
-    w, err := eval.RunDSL()
-    if err != nil {
-        fmt.Fprintf(os.Stderr, "invalid model: %s", err.String())
-        os.Exit(1)
-    }
-
-    // Upload the model, the Structurizr account API key and secret must be set
-    // in the STRUCTURIZR_KEY and STRUCTURIZR_SECRET environment variables
-    // respectively.
-    c := service.NewClient(os.Env("STRUCTURIZR_KEY", os.Env("STRUCTURIZR_SECRET"))
-    if err := c.Put(w.ID, w); err != nil {
-        fmt.Fprintf(os.Stderr, "failed to store workspace: %s", err.String())
-    }
-}
-
+// DSL that describes software architecture model.
 var _ = Workspace("Getting Started", "This is a model of my software system.", func() {
     var System = SoftwareSystem("Software System", "My software system.")
 
@@ -106,6 +87,24 @@ var _ = Workspace("Getting Started", "This is a model of my software system.", f
         })
     })
 })
+
+// Executes the DSL and uploads the corresponding workspace to Structurizr.
+func main() {
+    // Run the model DSL
+    w, err := eval.RunDSL()
+    if err != nil {
+        fmt.Fprintf(os.Stderr, "invalid model: %s", err.String())
+        os.Exit(1)
+    }
+
+    // Upload the model, the Structurizr account API key and secret must be set
+    // in the STRUCTURIZR_KEY and STRUCTURIZR_SECRET environment variables
+    // respectively and the workspace ID in STRUCTURIZR_WORKSPACE_ID.
+    c := service.NewClient(os.Env("STRUCTURIZR_KEY", os.Env("STRUCTURIZR_SECRET"))
+    if err := c.Put(os.Env("STRUCTURIZR_WORKSPACE_ID"), w); err != nil {
+        fmt.Fprintf(os.Stderr, "failed to store workspace: %s", err.String())
+    }
+}
 ```
 
 ## Goa Plugin
@@ -139,7 +138,7 @@ The code snippet below describes the entire syntax of the DSL.
 var _ = Workspace("[name]", "[description]", func() {
 
     // Version number.
-    Version("1.0")
+    Version("<version>")
 
     // Enterprise provides a way to define a named "enterprise" (e.g. an
     // organisation). On System Landscape and System Context diagrams, an
@@ -484,7 +483,7 @@ var _ = Workspace("[name]", "[description]", func() {
                 Color("#<rrggbb>")
                 Stroke("#<rrggbb>")
                 FontSize(42)
-                Boder("<solid|dashed|dotted>")
+                Boder("<Solid|Dashed|Dotted>")
                 Opacity(42) // Between 0 and 100
                 Metadata(true)
                 Description(true)
@@ -507,7 +506,7 @@ var _ = Workspace("[name]", "[description]", func() {
 
         // Themes specifies one or more themes that should be used when
         // rendering diagrams. See Structurizr - Themes for more details.
-        Themes("<ThemeURL>", "[ThemeURL]") // as many theme URLs as needed
+        Themes("<theme URL>", "[theme URL]") // as many theme URLs as needed
 
         // Branding defines custom branding that should be used when rendering
         // diagrams and documentation. See Structurizr - Branding for more

@@ -80,8 +80,8 @@ func (c *Client) Get(id string) (*expr.Workspace, error) {
 }
 
 // Put stores the given workspace.
-func (c *Client) Put(w *expr.Workspace) error {
-	u := &url.URL{Scheme: "https", Host: Host, Path: fmt.Sprintf("/workspace/%s", w.ID)}
+func (c *Client) Put(id string, w *expr.Workspace) error {
+	u := &url.URL{Scheme: "https", Host: Host, Path: fmt.Sprintf("/workspace/%s", id)}
 	body, _ := json.Marshal(w)
 	req, _ := http.NewRequest("PUT", u.String(), bytes.NewReader(body))
 	ct := "application/json; charset=UTF-8"
