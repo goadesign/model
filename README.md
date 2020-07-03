@@ -100,8 +100,13 @@ func main() {
     // Upload the model, the Structurizr account API key and secret must be set
     // in the STRUCTURIZR_KEY and STRUCTURIZR_SECRET environment variables
     // respectively and the workspace ID in STRUCTURIZR_WORKSPACE_ID.
-    c := service.NewClient(os.Env("STRUCTURIZR_KEY", os.Env("STRUCTURIZR_SECRET"))
-    if err := c.Put(os.Env("STRUCTURIZR_WORKSPACE_ID"), w); err != nil {
+    var (
+        key = os.Getenv("STRUCTURIZR_KEY"
+        secret = os.Getenv("STRUCTURIZR_SECRET")
+        wid = os.Getenv("STRUCTURIZR_WORKSPACE_ID")
+    )
+    c := service.NewClient(key, secret)
+    if err := c.Put(wid, w); err != nil {
         fmt.Fprintf(os.Stderr, "failed to store workspace: %s", err.String())
     }
 }
