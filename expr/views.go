@@ -3,26 +3,26 @@ package expr
 import "bytes"
 
 type (
-	// ViewsExpr defines one or more views.
-	ViewsExpr struct {
+	// Views defines one or more views.
+	Views struct {
 		// LandscapeViewss describe the system landscape views.
-		LandscapeViews []*LandscapeViewExpr `json:"systemLandscapeViews,omitempty"`
+		LandscapeViews []*LandscapeView `json:"systemLandscapeViews,omitempty"`
 		// ContextViews lists the system context views.
-		ContextViews []*ContextViewExpr `json:"systemContextViews,omitempty"`
+		ContextViews []*ContextView `json:"systemContextViews,omitempty"`
 		// ContainerViews lists the container views.
-		ContainerViews []*ContainerViewExpr `json:"containerViews,omitempty"`
+		ContainerViews []*ContainerView `json:"containerViews,omitempty"`
 		// ComponentViews lists the component views.
-		ComponentViews []*ComponentViewExpr `json:"componentViews,omitempty"`
+		ComponentViews []*ComponentView `json:"componentViews,omitempty"`
 		// DynamicViews lists the dynamic views.
-		DynamicViews []*DynamicViewExpr `json:"dynamicViews,omitempty"`
+		DynamicViews []*DynamicView `json:"dynamicViews,omitempty"`
 		// DeploymentViews lists the deployment views.
-		DeploymentViews []*DeploymentViewExpr `json:"deploymentViews,omitempty`
+		DeploymentViews []*DeploymentView `json:"deploymentViews,omitempty"`
 		// FilteredViews lists the filtered views.
-		FilteredViews []*FilteredViewExpr `json:"filteredViews,omitempty"`
+		FilteredViews []*FilteredView `json:"filteredViews,omitempty"`
 	}
 
-	// ViewExpr describes a view.
-	ViewExpr struct {
+	// View describes a view.
+	View struct {
 		// Title of the view.
 		Title string `json:"title,omitempty"`
 		// Description of view.
@@ -33,78 +33,78 @@ type (
 		PaperSize PaperSizeKind `json:"paperSize,omitempty"`
 		// Layout describes the automatic layout mode for the diagram if
 		// defined.
-		Layout *LayoutExpr `json:"automaticLayout,omitempty"`
+		Layout *Layout `json:"automaticLayout,omitempty"`
 		// Elements list the elements included in the view.
-		Elements []*ElementViewExpr `json:"elements,omitempty"`
+		Elements []*ElementView `json:"elements,omitempty"`
 		// Rels list the relationships included in the view.
-		Relationships []*RelationshipExpr `json:"relationships,omitempty"`
+		Relationships []*Relationship `json:"relationships,omitempty"`
 		// AnimationSteps describes the animation steps if any.
-		AnimationSteps []*AnimationStepExpr `json:"animationSteps,omitempty"`
+		AnimationSteps []*AnimationStep `json:"animationSteps,omitempty"`
 	}
 
-	// LandscapeViewExpr describes a system landscape view.
-	LandscapeViewExpr struct {
-		ViewExpr
+	// LandscapeView describes a system landscape view.
+	LandscapeView struct {
+		View
 		// EnterpriseBoundaryVisible specifies whether the enterprise boundary
 		// (to differentiate internal elements from external elements) should be
 		// visible on the resulting diagram.
-		EnterpriseBoundaryVisible bool `json:"enterpriseBoundaryVisible`
+		EnterpriseBoundaryVisible bool `json:"enterpriseBoundaryVisible"`
 	}
 
-	// ContextViewExpr describes a system context view.
-	ContextViewExpr struct {
-		ViewExpr
+	// ContextView describes a system context view.
+	ContextView struct {
+		View
 		// EnterpriseBoundaryVisible specifies whether the enterprise boundary
 		// (to differentiate internal elements from external elements) should be
 		// visible on the resulting diagram.
-		EnterpriseBoundaryVisible bool `json:"enterpriseBoundaryVisible`
+		EnterpriseBoundaryVisible bool `json:"enterpriseBoundaryVisible"`
 		// SoftwareSystemID is the ID of the software system this view with is
 		// associated with.
-		SoftwareSystemID string `json:"softwareSystemId`
+		SoftwareSystemID string `json:"softwareSystemId"`
 	}
 
-	// ContainerViewExpr describes a container view for a specific software
+	// ContainerView describes a container view for a specific software
 	// system.
-	ContainerViewExpr struct {
-		ViewExpr
+	ContainerView struct {
+		View
 		// Specifies whether software system boundaries should be visible for
 		// "external" containers (those outside the software system in scope).
-		ExternalSoftwareSystemBoundariesVisible bool `json:"externalSoftwareSystemBoundariesVisible`
+		ExternalSoftwareSystemBoundariesVisible bool `json:"externalSoftwareSystemBoundariesVisible"`
 		// SoftwareSystemID is the ID of the software system this view with is
 		// associated with.
-		SoftwareSystemID string `json:"softwareSystemId`
+		SoftwareSystemID string `json:"softwareSystemId"`
 	}
 
-	// ComponentViewExpr describes a component view for a specific container.
-	ComponentViewExpr struct {
-		ViewExpr
+	// ComponentView describes a component view for a specific container.
+	ComponentView struct {
+		View
 		// Specifies whether container boundaries should be visible for
 		// "external" containers (those outside the container in scope).
-		ExternalContainerBoundariesVisible bool `json:"externalContainersBoundariesVisible`
+		ExternalContainerBoundariesVisible bool `json:"externalContainersBoundariesVisible"`
 		// The ID of the container this view is associated with.
-		ContainerID string `json:"containerID`
+		ContainerID string `json:"containerID"`
 	}
 
-	// DynamicViewExpr describes a dynamic view for a specified scope.
-	DynamicViewExpr struct {
-		ViewExpr
+	// DynamicView describes a dynamic view for a specified scope.
+	DynamicView struct {
+		View
 		// ElementID is the identifier of the element this view is associated with.
 		ElementID string
 	}
 
-	// DeploymentViewExpr describes a deployment view.
-	DeploymentViewExpr struct {
-		ViewExpr
+	// DeploymentView describes a deployment view.
+	DeploymentView struct {
+		View
 		// SoftwareSystemID is the ID of the software system this view with is
 		// associated with.
-		SoftwareSystemID string `json:"softwareSystemId`
+		SoftwareSystemID string `json:"softwareSystemId"`
 		// The name of the environment that this deployment view is for (e.g.
 		// "Development", "Live", etc).
 		Environment string `json:"environment"`
 	}
 
-	// FilteredViewExpr describes a filtered view on top of a specified view.
-	FilteredViewExpr struct {
+	// FilteredView describes a filtered view on top of a specified view.
+	FilteredView struct {
 		// Title of the view.
 		Title string `json:"title,omitempty"`
 		// Description of view.
@@ -112,7 +112,7 @@ type (
 		// Key used to refer to the view.
 		Key string `json:"key"`
 		// BaseKey is the key of the view on which this filtered view is based.
-		BaseKey string `json:"baseViewKey`
+		BaseKey string `json:"baseViewKey"`
 		// Whether elements/relationships are being included ("Include") or
 		// excluded ("Exclude") based upon the set of tags.
 		Mode string `json:"mode"`
@@ -121,9 +121,9 @@ type (
 		Tags []string `json:"tags"`
 	}
 
-	// ElementViewExpr describes an instance of a model element (Person,
+	// ElementView describes an instance of a model element (Person,
 	// Software System, Container or Component) in a View.
-	ElementViewExpr struct {
+	ElementView struct {
 		// ID of element.
 		ID string `json:"id"`
 		// Horizontal position of element when rendered.
@@ -132,9 +132,9 @@ type (
 		Y int `json:"y"`
 	}
 
-	// RelationshipViewExpr describes an instance of a model relationship in a
+	// RelationshipView describes an instance of a model relationship in a
 	// view.
-	RelationshipViewExpr struct {
+	RelationshipView struct {
 		// ID of relationship.
 		ID string `json:"id"`
 		// Description of relationship used in dynamic views.
@@ -142,23 +142,23 @@ type (
 		// Order of relationship in dynamic views.
 		Order string `json:"order"`
 		// Set of vertices used to render relationship
-		Vertices []*VertexExpr `json:"vertices"`
+		Vertices []*Vertex `json:"vertices"`
 		// Routing algorithm used to render relationship.
 		Routing RoutingKind `json:"routing"`
 		// Position of annotation along line; 0 (start) to 100 (end).
 		Position int `json:"position"`
 	}
 
-	// VertexExpr describes the x and y coordinate of a bend in a line.
-	VertexExpr struct {
+	// Vertex describes the x and y coordinate of a bend in a line.
+	Vertex struct {
 		// Horizontal position of vertex when rendered.
 		X int `json:"x"`
 		// Vertical position of vertex when rendered.
 		Y int `json:"y"`
 	}
 
-	// AnimationStepExpr represents an animation step.
-	AnimationStepExpr struct {
+	// AnimationStep represents an animation step.
+	AnimationStep struct {
 		// Order of animation step.
 		Order string `json:"order"`
 		// Set of element IDs that should be included.
@@ -167,8 +167,8 @@ type (
 		Relationships []string `json:"relationships,omitempty"`
 	}
 
-	// LayoutExpr describes an automatic layout.
-	LayoutExpr struct {
+	// Layout describes an automatic layout.
+	Layout struct {
 		// Algorithm rank direction.
 		RankDirection RankDirectionKind `json:"rankDirection"`
 		// RankSep defines the separation between ranks in pixels.

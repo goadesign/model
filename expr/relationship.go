@@ -3,14 +3,14 @@ package expr
 import "bytes"
 
 type (
-	// RelationshipExpr describes a uni-directional relationship between two elements.
-	RelationshipExpr struct {
+	// Relationship describes a uni-directional relationship between two elements.
+	Relationship struct {
 		// Description of relationship if any.
 		Description string `json:"description"`
 		// SourceID is the ID of the source element.
 		SourceID string `json:"sourceId"`
 		// Target is the relationship target.
-		Target *ElementExpr
+		Target *Element
 		// Tags attached to relationship if any.
 		Tags []string `json:"tags"`
 		// InteractionStyle describes whether the interaction is synchronous or asynchronous

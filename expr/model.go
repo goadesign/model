@@ -1,27 +1,27 @@
 package expr
 
 type (
-	// EnterpriseExpr describes a named enterprise / organization.
-	EnterpriseExpr struct {
+	// Enterprise describes a named enterprise / organization.
+	Enterprise struct {
 		// Name of enterprise.
 		Name string `json:"name"`
 	}
 
-	// ModelExpr describes a software architecture model.
-	ModelExpr struct {
+	// Model describes a software architecture model.
+	Model struct {
 		// Enterprise associated with model if any.
-		Enterprise *EnterpriseExpr `json:"enterprise"`
+		Enterprise *Enterprise `json:"enterprise"`
 		// People lists Person elements.
-		People []*PersonExpr `json:"people"`
+		People []*Person `json:"people"`
 		// Systems lists Software System elements.
-		Systems []*SystemExpr `json:"softwareSystems"`
+		Systems []*System `json:"softwareSystems"`
 		// DeploymentNodes list the deployment nodes.
-		DeploymentNodes []*DeploymentNodeExpr `json:"deploymentNodes"`
+		DeploymentNodes []*DeploymentNode `json:"deploymentNodes"`
 	}
 )
 
 // EvalName is the qualified name of the DSL expression e.g. "service
 // bottle".
-func (m *ModelExpr) EvalName() string {
+func (m *Model) EvalName() string {
 	return "model"
 }

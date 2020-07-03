@@ -3,8 +3,8 @@ package expr
 import "fmt"
 
 type (
-	// PersonExpr represents a person who uses a software system.
-	PersonExpr struct {
+	// Person represents a person who uses a software system.
+	Person struct {
 		// ID of person.
 		ID string `json:"id"`
 		// Name of person.
@@ -18,13 +18,13 @@ type (
 		// Location of element.
 		Location LocationKind `json:"location"`
 		// Rels is the set of relationships from this element to other elements.
-		Rels []*RelationshipExpr `json:"relationships,omitempty"`
+		Rels []*Relationship `json:"relationships,omitempty"`
 	}
 )
 
 // EvalName is the qualified name of the DSL expression e.g. "service
 // bottle".
-func (p *PersonExpr) EvalName() string {
+func (p *Person) EvalName() string {
 	if p.Name == "" {
 		return "unnamed person"
 	}

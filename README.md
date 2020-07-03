@@ -1,9 +1,9 @@
 # Structurizr for Go
 
-This GitHub repository is a client library for the
+This GitHub repository is a non-official client library for the
 [Structurizr](https://structurizr.com/) cloud service and on-premises
 installation, both of which are web-based publishing platforms for software
-architecture models based upon the C4 model.
+architecture models based upon the [C4 model](https://c4model.com).
 
 The repository defines a Go DSL that makes it convenient to describe the
 software architecture model so that it can be uploaded to the Structurizr
@@ -15,7 +15,9 @@ augmented with a description of the corresponding software architecture. Note
 however that this library can be used for services written in any language and
 any framework.
 
-## Example:
+## Example
+
+Here is a complete and correct DSL for an architecture model:
 
 ```Go
 var _ = Workspace("Getting Started", "This is a model of my software system.", func() {
@@ -45,12 +47,71 @@ var _ = Workspace("Getting Started", "This is a model of my software system.", f
 })
 ```
 
-This code creates a model containing elements and relationships, creates a single view and adds some styling.
+This code creates a model containing elements and relationships, creates a
+single view and adds some styling.
 ![Getting Started Diagram](https://structurizr.com/static/img/getting-started.png)
 
-## Usage
+## Standalone Usage
 
-Simply include the plugin DSL package in your design:
+The [eval](https://github.com/goadesign/structurizr/tree/master/eval) package
+makes it convenient to run the DSL above. Here is a complete example that
+uploads the workspace described in the DSL to the Structurizr service:
+
+```Go
+package main
+
+include "goa.design/structurizr/eval"
+include "goa.design/structurizr/client"
+
+// Executes the DSL and uploads the corresponding workspace to Structurizr.
+func main() {
+    // Run the model DSL
+    w, err := eval.RunDSL()
+    if err != nil {
+        fmt.Fprintf(os.Stderr, "invalid model: %s", err.String())
+        os.Exit(1)
+    }
+
+    // Upload the model, the Structurizr account API key and secret must be set
+    // in the STRUCTURIZR_KEY and STRUCTURIZR_SECRET environment variables
+    // respectively.
+    c := service.NewClient(os.Env("STRUCTURIZR_KEY", os.Env("STRUCTURIZR_SECRET"))
+    if err := c.Put(w.ID, w); err != nil {
+        fmt.Fprintf(os.Stderr, "failed to store workspace: %s", err.String())
+    }
+}
+
+var _ = Workspace("Getting Started", "This is a model of my software system.", func() {
+    var System = SoftwareSystem("Software System", "My software system.")
+
+    var User = Person("User", "A user of my software system.", func() {
+        Uses(System, "Uses")
+    })
+
+    Views(func() {
+        SystemContext(MySystem, "SystemContext", "An example of a System Context diagram.", func() {
+            IncludeAll()
+            AutoLayout()
+        })
+        Styles(func() {
+            Element(System, func() { // Element("Software System", ...) also works
+                Background("#1168bd")
+                Color("#ffffff")
+             })
+            Element(User, func() { // Element("User", ...) also works
+                Shape("Person")
+                Background("#08427b")
+                Color("#ffffff")
+            })
+        })
+    })
+})
+```
+
+## Goa Plugin
+
+This package can also be used as a Goa plugin by including the DSL package in
+the Goa design:
 
 ```Go
 package design
@@ -58,20 +119,27 @@ package design
 import . "goa.design/goa/v3/dsl"
 import . "goa.design/plugins/structurizr/dsl"
 
-// ...
+// ... DSL describing API, services and architecture model
 ```
 
 Running `goa gen` creates a `structurizr.json` file in the `gen` folder. This
 file follows the
-[structurizr JSON schema](https://github.com/structurizr/json). 
+[structurizr JSON schema](https://github.com/structurizr/json) and can be
+uploaded to the Structurizr service for example using the
+[Structurizr CLI](https://github.com/structurizr/cli).
 
-## Complete syntax:
+## DSL Syntax
+
+The code snippet below describes the entire syntax of the DSL.
 
 ```Go
 // Workspace defines the workspace containing the models and views. Workspace
 // must appear exactly once in a given design. A name must be provided if a
 // description is.
 var _ = Workspace("[name]", "[description]", func() {
+
+    // Version number.
+    Version("1.0")
 
     // Enterprise provides a way to define a named "enterprise" (e.g. an
     // organisation). On System Landscape and System Context diagrams, an

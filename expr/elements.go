@@ -3,8 +3,8 @@ package expr
 import "bytes"
 
 type (
-	// ElementExpr describes an element.
-	ElementExpr struct {
+	// Element describes an element.
+	Element struct {
 		// ID of element.
 		ID string `json:"id"`
 		// Name of element.
@@ -20,25 +20,25 @@ type (
 		// Location of element.
 		Location LocationKind `json:"location"`
 		// Rels is the set of relationships from this element to other elements.
-		Rels []*RelationshipExpr `json:"relationships,omitempty"`
+		Rels []*Relationship `json:"relationships,omitempty"`
 	}
 
-	// SystemExpr represents a software system.
-	SystemExpr struct {
-		ElementExpr
+	// System represents a software system.
+	System struct {
+		Element
 		// Containers list the containers within the software system.
-		Containers []*ElementExpr `json:"containers,omitempty"`
+		Containers []*Element `json:"containers,omitempty"`
 	}
 
-	// ContainerExpr represents a container.
-	ContainerExpr struct {
-		ElementExpr
+	// Container represents a container.
+	Container struct {
+		Element
 		// Components list the components within the container.
-		Components []*ElementExpr `json:"components,omitempty"`
+		Components []*Element `json:"components,omitempty"`
 	}
 
-	// DeploymentNodeExpr describes a single deployment node.
-	DeploymentNodeExpr struct {
+	// DeploymentNode describes a single deployment node.
+	DeploymentNode struct {
 		// ID of deployment node.
 		ID string `json:"id"`
 		// Name of deployment node.
@@ -56,21 +56,21 @@ type (
 		// URL where more information about this deployment node can be found.
 		URL string `json:"url"`
 		// Children describe the child deployment nodes if any.
-		Children []*DeploymentNodeExpr
+		Children []*DeploymentNode
 		// InfrastructureNodes describe the infrastructure nodes (load
 		// balancers, firewall etc.)
-		InfrastructureNodes []*ElementExpr `json:"infrastrctureNodes"`
+		InfrastructureNodes []*Element `json:"infrastrctureNodes"`
 		// ContainerInstances describe instances of containers deployed in
 		// deployment node.
-		ContainerInstances []*ContainerInstanceExpr `json:"containerInstances"`
+		ContainerInstances []*ContainerInstance `json:"containerInstances"`
 		// Rels is the set of relationships from this deployment node to other elements.
-		Rels []*RelationshipExpr `json:"relationships"`
+		Rels []*Relationship `json:"relationships"`
 	}
 
-	// ContainerInstanceExpr describes an instance of a container.
-	ContainerInstanceExpr struct {
+	// ContainerInstance describes an instance of a container.
+	ContainerInstance struct {
 		// Container that is instantiated.
-		Container *ElementExpr
+		Container *Element
 		// Tags attached to container instance if any.
 		Tags []string
 	}
@@ -89,7 +89,7 @@ const (
 )
 
 // EvalName returns the generic expression name used in error messages.
-func (w *WorkspaceExpr) EvalName() string { return "Structurizr workspace" }
+func (w *Workspace) EvalName() string { return "Structurizr workspace" }
 
 // MarshalJSON replaces the constant value with the proper structurizr schema
 // string value.
