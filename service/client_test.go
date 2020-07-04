@@ -57,6 +57,15 @@ func TestGet(t *testing.T) {
 	}
 }
 
+func TestAuth(t *testing.T) {
+	wid, key, secret := config(t)
+	c := NewClient(key, secret)
+	_, err := c.Get(wid)
+	if err != nil {
+		t.Errorf("failed to retrieve workspace: %s", err)
+	}
+}
+
 func validateHeaders(t *testing.T, req *http.Request) {
 	if req.Header.Get("nonce") == "" {
 		t.Errorf("missing nonce header")

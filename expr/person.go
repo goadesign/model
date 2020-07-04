@@ -17,6 +17,8 @@ type (
 		URL string `json:"url,omitempty"`
 		// Location of element.
 		Location LocationKind `json:"location"`
+		// Set of arbitrary name-value properties (shown in diagram tooltips).
+		Properties map[string]string `json:"properties"`
 		// Rels is the set of relationships from this element to other elements.
 		Rels []*Relationship `json:"relationships,omitempty"`
 	}

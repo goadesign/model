@@ -14,7 +14,7 @@ type (
 		// People lists Person elements.
 		People []*Person `json:"people"`
 		// Systems lists Software System elements.
-		Systems []*System `json:"softwareSystems"`
+		Systems []*SoftwareSystem `json:"softwareSystems"`
 		// DeploymentNodes list the deployment nodes.
 		DeploymentNodes []*DeploymentNode `json:"deploymentNodes"`
 	}

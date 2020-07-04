@@ -146,10 +146,9 @@ var _ = Workspace("[name]", "[description]", func() {
     // Version number.
     Version("<version>")
 
-    // Enterprise provides a way to define a named "enterprise" (e.g. an
-    // organisation). On System Landscape and System Context diagrams, an
-    // enterprise is represented as a dashed box. Only a single enterprise
-    // can be defined within a model.
+    // Enterprise defines a named "enterprise" (e.g. an organisation). On System
+    // Landscape and System Context diagrams, an enterprise is represented as a
+    // dashed box. Only a single enterprise can be defined within a model.
     Enterprise("<name>")
 
     // Person defines a person (user, actor, role or persona).
@@ -162,11 +161,20 @@ var _ = Workspace("[name]", "[description]", func() {
         // External indicates the person is external to the enterprise.
         External()
 
+        // Properties define an arbitrary set of associated key-value pairs.
+        Properties(func() {
+            Prop("<name>", "<value">)
+        })
+
         // Adds a uni-directional relationship between this person and the given element.
-        Uses(ElementIdentifier, "<description>", "[technology]", Synchronous) /* or Asynchronous */)
+        Uses(ElementIdentifier, "<description>", "[technology]", Synchronous /* or Asynchronous */, func() {
+            Tag("<name>", "[name]") // as many tags as needed
+        })
 
         // Adds an interaction between this person and another.
-        InteractsWith(PersonIdentifier, "<description>", "[technology]", Synchronous) /* or Asynchronous */)
+        InteractsWith(PersonIdentifier, "<description>", "[technology]", Synchronous /* or Asynchronous */, func() {
+            Tag("<name>", "[name]") // as many tags as needed
+        })
     })
 
     // SoftwareSystem defines a software system.
@@ -180,11 +188,20 @@ var _ = Workspace("[name]", "[description]", func() {
         // External indicates the software system is external to the enterprise.
         External()
 
+        // Properties define an arbitrary set of associated key-value pairs.
+        Properties(func() {
+            Prop("<name>", "<value">)
+        })
+
         // Adds a uni-directional relationship between this software system and the given element.
-        Uses(ElementIdentifier, "<description>", "[technology]", Synchronous) /* or Asynchronous */)
+        Uses(ElementIdentifier, "<description>", "[technology]", Synchronous /* or Asynchronous */, func() {
+            Tag("<name>", "[name]") // as many tags as needed
+        })
 
         // Adds an interaction between this software system and a person.
-        Delivers(PersonIdentifier, "<description>", "[technology]", Synchronous) /* or Asynchronous */)
+        Delivers(PersonIdentifier, "<description>", "[technology]", Synchronous /* or Asynchronous */, func() {
+            Tag("<name>", "[name]") // as many tags as needed
+        })
     })
 
     // Container defines a container within a software system.
@@ -194,11 +211,20 @@ var _ = Workspace("[name]", "[description]", func() {
         // URL where more information about this container can be found.
         URL("<url>")
 
+        // Properties define an arbitrary set of associated key-value pairs.
+        Properties(func() {
+            Prop("<name>", "<value">)
+        })
+
         // Adds a uni-directional relationship between this container and the given element.
-        Uses(ElementIdentifier, "<description>", "[technology]", Synchronous) /* or Asynchronous */
+        Uses(ElementIdentifier, "<description>", "[technology]", Synchronous /* or Asynchronous */, func () {
+            Tag("<name>", "[name]") // as many tags as needed
+        })
 
         // Adds an interaction between this container and a person.
-        Delivers(PersonIdentifier, "<description>", "[technology]", Synchronous) /* or Asynchronous */
+        Delivers(PersonIdentifier, "<description>", "[technology]", Synchronous /* or Asynchronous */, func() {
+            Tag("<name>", "[name]") // as many tags as needed
+        })
     })
 
     // Container may also refer to a Goa service in which case the name
@@ -212,11 +238,23 @@ var _ = Workspace("[name]", "[description]", func() {
     var ComponentIdentifier = Component(ContainerIdentifier, "<name>",  "[description]",  "[technology]",  func() { // optional
         Tag("<name>",  "[name]") // as many tags as neede
 
+        // URL where more information about this container can be found.
+        URL("<url>")
+
+        // Properties define an arbitrary set of associated key-value pairs.
+        Properties(func() {
+            Prop("<name>", "<value">)
+        })
+
         // Adds a uni-directional relationship between this component and the given element.
-        Uses(ElementIdentifier, "<description>", "[technology]", Synchronous /* or Asynchronous */)
+        Uses(ElementIdentifier, "<description>", "[technology]", Synchronous /* or Asynchronous */, func() {
+            Tag("<name>", "[name]") // as many tags as needed
+        })
 
         // Adds an interaction between this component and a person.
-        Delivers(PersonIdentifier, "<description>", "[technology]", Synchronous /* or Asynchronous */)
+        Delivers(PersonIdentifier, "<description>", "[technology]", Synchronous /* or Asynchronous */, func() {
+            Tag("<name>", "[name]") // as many tags as needed
+        })
     })
 
     // DeploymentEnvironment provides a way to define a deployment
@@ -237,8 +275,15 @@ var _ = Workspace("[name]", "[description]", func() {
             // found.
             URL("<url>") 
 
+            // Properties define an arbitrary set of associated key-value pairs.
+            Properties(func() {
+                Prop("<name>", "<value">)
+            })
+
             // Adds a uni-directional relationship between this and another deployment node.
-            Uses(DeploymentNodeIdentifier, "<description>", "[technology]", Synchronous /* or Asynchronous */)
+            Uses(DeploymentNodeIdentifier, "<description>", "[technology]", Synchronous /* or Asynchronous */, func() {
+                Tag("<name>", "[name]") // as many tags as needed
+            })
         })
 
         // InfrastructureNode defines an infrastructure node, typically
@@ -250,10 +295,17 @@ var _ = Workspace("[name]", "[description]", func() {
             // found.
             URL("<url>") 
 
+            // Properties define an arbitrary set of associated key-value pairs.
+            Properties(func() {
+                Prop("<name>", "<value">)
+            })
+
             // Adds a uni-directional relationship between this and
             // another deployment element (deployment node,
             // infrastructure node, or container instance).
-            Uses(DeploymentElementIdentifier, "<description>", "[technology]", Synchronous /* or Asynchronous */)
+            Uses(DeploymentElementIdentifier, "<description>", "[technology]", Synchronous /* or Asynchronous */, func() {
+                Tag("<name>", "[name]") // as many tags as needed
+            })
         })
 
         // ContainerInstance defines an instance of the specified
@@ -261,14 +313,20 @@ var _ = Workspace("[name]", "[description]", func() {
         var ContainerInstanceIdentifier = ContainerInstance(identifier, func() { // optional
             Tag("<name>",  "[name]") // as many tags as needed
 
-            // URL where more information about this container node can be
-            // found.
-            URL("<url>") 
+            // Sets instance number or index.
+            InstanceID(1)
+            
+            // Properties define an arbitrary set of associated key-value pairs.
+            Properties(func() {
+                Prop("<name>", "<value">)
+            })
 
             // Adds a uni-directional relationship between this and
             // another deployment element (deployment node,
             // infrastructure node, or container instance).
-            Uses(DeploymentElementIdentifier, "<description>", "[technology]", Synchronous /* or Asynchronous */)
+            Uses(DeploymentElementIdentifier, "<description>", "[technology]", Synchronous /* or Asynchronous */, func() {
+                Tag("<name>", "[name]") // as many tags as needed
+            })
 
             // HealthCheck defines a HTTP-based health check for this
             // container instance.
@@ -369,9 +427,10 @@ var _ = Workspace("[name]", "[description]", func() {
         Filtered("<base key>", func() {
             // Set of tags to include or exclude (if Exclude() is used)
             // elements/relationships when rendering this filtered view.
-            Tag("<tag>", "[tag]") // as many as needed
+            FilterTag("<tag>", "[tag]") // as many as needed
 
-            // Exclude elements and relationships with the given tags.
+            // Exclude elements and relationships with the given tags instead of
+            // including.
             Exclude()
         }) 
 
@@ -511,9 +570,9 @@ var _ = Workspace("[name]", "[description]", func() {
             })
         })
 
-        // Themes specifies one or more themes that should be used when
+        // Theme specifies one or more themes that should be used when
         // rendering diagrams. See Structurizr - Themes for more details.
-        Themes("<theme URL>", "[theme URL]") // as many theme URLs as needed
+        Theme("<theme URL>", "[theme URL]") // as many theme URLs as needed
 
         // Branding defines custom branding that should be used when rendering
         // diagrams and documentation. See Structurizr - Branding for more

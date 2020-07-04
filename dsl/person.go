@@ -2,7 +2,7 @@ package dsl
 
 import (
 	"goa.design/goa/v3/eval"
-	"goa.design/plugins/v3/structurizr/expr"
+	"goa.design/structurizr/expr"
 )
 
 // Person defines a person (user, actor, role or persona).
@@ -36,34 +36,46 @@ import (
 //        })
 //    })
 //
-func Person(args ...interface{}) {
-	w, ok := eval.Current().(*expr.WorkspaceExpr)
+func Person(name string, args ...interface{}) {
+	w, ok := eval.Current().(*expr.Workspace)
 	if !ok {
 		eval.IncompatibleDSL()
 		return
 	}
-	if len(args) == 0 {
-		eval.ReportError("missing argument")
-		return
-	}
 	var (
-		name, desc string
-		dsl        func()
+		desc string
+		dsl  func()
 	)
-	{
-		name, ok = args[0].(string)
-		if !ok {
-			eval.InvalidArgError("name", args[0])
-			return
+	if len(args) > 0 {
+		switch a := args[0].(type) {
+		case string:
+			desc = a
+		case func():
+			dsl = a
+		default:
+			eval.InvalidArgError("description or DSL function", args[0])
 		}
 		if len(args) > 1 {
-			desc, ok = args[1].(string)
+			if dsl != nil {
+				eval.ReportError("DSL function must be last argument")
+			}
+			dsl, ok = args[1].(func())
+			if !ok {
+				eval.InvalidArgError("DSL function", args[1])
+			}
+			if len(args) > 2 {
+				eval.ReportError("too many arguments")
+			}
 		}
-		dsl, ok = args[len(args)-1].(func())
 	}
-	p := &expr.PersonExpr{Name: name, Description: desc}
-	if dsl != nil && !eval.Execute(dsl, p) {
-		return
+	p := &expr.Person{
+		ID:          expr.NewID(),
+		Name:        name,
+		Description: desc,
+		Location:    expr.LocationInternal,
+	}
+	if dsl != nil {
+		eval.Execute(dsl, p)
 	}
 	w.Model.People = append(w.Model.People, p)
 }

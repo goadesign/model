@@ -3,6 +3,7 @@ package expr
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 )
 
 type (
@@ -22,61 +23,28 @@ type (
 		URL string `json:"url,omitempty"`
 		// Location of element.
 		Location LocationKind `json:"location"`
+		// Set of arbitrary name-value properties (shown in diagram tooltips).
+		Properties map[string]string `json:"properties"`
 		// Rels is the set of relationships from this element to other elements.
 		Rels []*Relationship `json:"relationships,omitempty"`
 	}
 
 	// System represents a software system.
-	System struct {
+	SoftwareSystem struct {
 		Element
 		// Containers list the containers within the software system.
-		Containers []*Element `json:"containers,omitempty"`
+		Containers []*Container `json:"containers,omitempty"`
 	}
 
 	// Container represents a container.
 	Container struct {
 		Element
 		// Components list the components within the container.
-		Components []*Element `json:"components,omitempty"`
+		Components []*Component `json:"components,omitempty"`
 	}
 
-	// DeploymentNode describes a single deployment node.
-	DeploymentNode struct {
-		// ID of deployment node.
-		ID string `json:"id"`
-		// Name of deployment node.
-		Name string `json:"name"`
-		// Description of deployment node if any.
-		Description string `json:"description"`
-		// Technology used by deployment node if any.
-		Technology string `json:"technology"`
-		// Environment is the deployment environment in which this deployment node resides (e.g. "Development", "Live", etc).
-		Environment string `json:"environment"`
-		// Instances is the number of instances.
-		Instances int `json:"instances"`
-		// Tags attached to deployment node as comma separated list if any.
-		Tags string `json:"tags"`
-		// URL where more information about this deployment node can be found.
-		URL string `json:"url"`
-		// Children describe the child deployment nodes if any.
-		Children []*DeploymentNode `json:"children"`
-		// InfrastructureNodes describe the infrastructure nodes (load
-		// balancers, firewall etc.)
-		InfrastructureNodes []*Element `json:"infrastrctureNodes"`
-		// ContainerInstances describe instances of containers deployed in
-		// deployment node.
-		ContainerInstances []*ContainerInstance `json:"containerInstances"`
-		// Rels is the set of relationships from this deployment node to other elements.
-		Rels []*Relationship `json:"relationships"`
-	}
-
-	// ContainerInstance describes an instance of a container.
-	ContainerInstance struct {
-		// Container that is instantiated.
-		Container *Element
-		// Tags attached to container instance as comma separated list if any.
-		Tags string `json:"tags"`
-	}
+	// Component represents a component.
+	Component Element
 
 	// LocationKind is the enum for possible locations.
 	LocationKind int
@@ -93,6 +61,15 @@ const (
 
 // EvalName returns the generic expression name used in error messages.
 func (w *Workspace) EvalName() string { return "Structurizr workspace" }
+
+// EvalName returns the generic expression name used in error messages.
+func (s *SoftwareSystem) EvalName() string { return fmt.Sprintf("system %q", s.Name) }
+
+// EvalName returns the generic expression name used in error messages.
+func (s *Container) EvalName() string { return fmt.Sprintf("container %q", s.Name) }
+
+// EvalName returns the generic expression name used in error messages.
+func (s *Component) EvalName() string { return fmt.Sprintf("component %q", s.Name) }
 
 // MarshalJSON replaces the constant value with the proper structurizr schema
 // string value.

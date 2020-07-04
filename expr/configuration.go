@@ -26,10 +26,10 @@ type (
 
 	// Styles describe styles associated with set of views.
 	Styles struct {
-		// Set of element styles.
-		elements []*ElementStyle `json:"elements"`
-		// Set of relationship styles.
-		Relationships []*RelationshipStyle `json:"relationships`
+		// Elements is the set of element styles.
+		Elements []*ElementStyle `json:"elements"`
+		// Relationships is the set of relationship styles.
+		Relationships []*RelationshipStyle `json:"relationships"`
 	}
 
 	// Branding is a wrapper for font and logo for diagram/documentation

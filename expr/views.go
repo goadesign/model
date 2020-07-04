@@ -214,9 +214,9 @@ const (
 	SizeLetterLandscape
 	SizeLegalPortrait
 	SizeLegalLandscape
-	SizeSlide43
-	SizeSlide169
-	SizeSlide1610
+	SizeSlide4X3
+	SizeSlide16X9
+	SizeSlide16X10
 )
 
 const (
@@ -226,10 +226,10 @@ const (
 )
 
 const (
-	DirectionTopBottom RankDirectionKind = iota + 1
-	DirectionBottomTop
-	DirectionLeftRight
-	DirectionRightLeft
+	RankTopBottom RankDirectionKind = iota + 1
+	RankBottomTop
+	RankLeftRight
+	RankRightLeft
 )
 
 // MarshalJSON replaces the constant value with the proper structurizr schema
@@ -273,11 +273,11 @@ func (p PaperSizeKind) MarshalJSON() ([]byte, error) {
 		buf.WriteString("Legal_Portrait")
 	case SizeLegalLandscape:
 		buf.WriteString("Legal_Landscape")
-	case SizeSlide43:
+	case SizeSlide4X3:
 		buf.WriteString("Slide_4_3")
-	case SizeSlide169:
+	case SizeSlide16X9:
 		buf.WriteString("Slide_16_9")
-	case SizeSlide1610:
+	case SizeSlide16X10:
 		buf.WriteString("Slide_16_10")
 	}
 	buf.WriteString(`"`)
@@ -328,11 +328,11 @@ func (p *PaperSizeKind) UnmarshalJSON(data []byte) error {
 	case "Legal_Landscape":
 		*p = SizeLegalLandscape
 	case "Slide_4_3":
-		*p = SizeSlide43
+		*p = SizeSlide4X3
 	case "Slide_16_9":
-		*p = SizeSlide169
+		*p = SizeSlide16X9
 	case "Slide_16_10":
-		*p = SizeSlide1610
+		*p = SizeSlide16X10
 	}
 	return nil
 }
@@ -375,13 +375,13 @@ func (r *RoutingKind) UnmarshalJSON(data []byte) error {
 func (r RankDirectionKind) MarshalJSON() ([]byte, error) {
 	buf := bytes.NewBufferString(`"`)
 	switch r {
-	case DirectionTopBottom:
+	case RankTopBottom:
 		buf.WriteString("TopBottom")
-	case DirectionBottomTop:
+	case RankBottomTop:
 		buf.WriteString("BottomTop")
-	case DirectionLeftRight:
+	case RankLeftRight:
 		buf.WriteString("LeftRight")
-	case DirectionRightLeft:
+	case RankRightLeft:
 		buf.WriteString("RightLeft")
 	}
 	buf.WriteString(`"`)
@@ -396,13 +396,13 @@ func (r *RankDirectionKind) UnmarshalJSON(data []byte) error {
 	}
 	switch val {
 	case "TopBottom":
-		*r = DirectionTopBottom
+		*r = RankTopBottom
 	case "BottomTop":
-		*r = DirectionBottomTop
+		*r = RankBottomTop
 	case "LeftRight":
-		*r = DirectionLeftRight
+		*r = RankLeftRight
 	case "RightLeft":
-		*r = DirectionRightLeft
+		*r = RankRightLeft
 	}
 	return nil
 }
