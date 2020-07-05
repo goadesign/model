@@ -1,6 +1,7 @@
 package dsl
 
 import (
+	"net/url"
 	"strings"
 
 	"goa.design/goa/v3/eval"
@@ -180,11 +181,12 @@ func Tag(first string, t ...string) {
 }
 
 // URL where more information about this element can be found.
+// Or URL of health check when used within a HealthCheck expression.
 //
 // URL may appear in Person, SoftwareSystem, Container, Component,
-// DeploymentNode or InfrastructureNode.
+// DeploymentNode, InfrastructureNode or HealthCheck.
 //
-// URL takes exactly one argument: the document URL.
+// URL takes exactly one argument: a valid URL.
 //
 // Example:
 //
@@ -195,6 +197,9 @@ func Tag(first string, t ...string) {
 //    })
 //
 func URL(u string) {
+	if _, err := url.Parse(u); err != nil {
+		eval.ReportError("invalid URL %q: %s", u, err.Error())
+	}
 	switch e := eval.Current().(type) {
 	case *expr.Person:
 		e.URL = u
@@ -207,6 +212,8 @@ func URL(u string) {
 	case *expr.DeploymentNode:
 		e.URL = u
 	case *expr.InfrastructureNode:
+		e.URL = u
+	case *expr.HealthCheck:
 		e.URL = u
 	default:
 		eval.IncompatibleDSL()

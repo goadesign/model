@@ -226,7 +226,7 @@ func Delivers(p *expr.Person, desc string, args ...interface{}) {
 
 // uses adds a relationship between the given source and destination. The caller
 // must make sure that the relationship is valid.
-func uses(srcID, destID string, desc string, args ...interface{}) {
+func uses(srcID, destID string, desc string, args ...interface{}) *expr.Relationship {
 	var (
 		technology string
 		style      expr.InteractionStyleKind
@@ -268,7 +268,6 @@ func uses(srcID, destID string, desc string, args ...interface{}) {
 		}
 	}
 	rel := &expr.Relationship{
-		ID:               expr.NewID(),
 		Description:      desc,
 		SourceID:         srcID,
 		DestinationID:    destID,
@@ -278,6 +277,7 @@ func uses(srcID, destID string, desc string, args ...interface{}) {
 	if dsl != nil {
 		eval.Execute(dsl, rel)
 	}
+	expr.Identify(rel)
 
 	switch e := eval.Current().(type) {
 	case *expr.Person:
@@ -297,4 +297,5 @@ func uses(srcID, destID string, desc string, args ...interface{}) {
 	default:
 		panic(fmt.Sprintf("unexpected expression type %T", eval.Current())) // bug
 	}
+	return rel
 }

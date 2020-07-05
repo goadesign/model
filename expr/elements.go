@@ -15,7 +15,7 @@ type (
 		Name string `json:"name"`
 		// Description of element if any.
 		Description string `json:"description,omitempty"`
-		// Technology used by element if any.
+		// Technology used by element if any - not applicable to Person.
 		Technology string `json:"technology,omitempty"`
 		// Tags attached to element as comma separated list if any.
 		Tags string `json:"tags,omitempty"`
@@ -29,7 +29,7 @@ type (
 		Rels []*Relationship `json:"relationships,omitempty"`
 	}
 
-	// System represents a software system.
+	// SoftwareSystem represents a software system.
 	SoftwareSystem struct {
 		Element
 		// Containers list the containers within the software system.
@@ -46,6 +46,9 @@ type (
 	// Component represents a component.
 	Component Element
 
+	// Person represents a person.
+	Person Element
+
 	// LocationKind is the enum for possible locations.
 	LocationKind int
 )
@@ -60,16 +63,51 @@ const (
 )
 
 // EvalName returns the generic expression name used in error messages.
-func (w *Workspace) EvalName() string { return "Structurizr workspace" }
+func (w *Workspace) EvalName() string {
+	return "Structurizr workspace"
+}
 
 // EvalName returns the generic expression name used in error messages.
-func (s *SoftwareSystem) EvalName() string { return fmt.Sprintf("system %q", s.Name) }
+func (s *SoftwareSystem) EvalName() string {
+	if s.Name == "" {
+		return "unnamed software system"
+	}
+	return fmt.Sprintf("software system %q", s.Name)
+}
+
+// ContainerElements returns all the softare system containers as a slice of
+// *Element.
+func (s *SoftwareSystem) ContainerElements() []*Element {
+	res := make([]*Element, len(s.Containers))
+	for i, c := range s.Containers {
+		res[i] = &c.Element
+	}
+	return res
+}
 
 // EvalName returns the generic expression name used in error messages.
-func (s *Container) EvalName() string { return fmt.Sprintf("container %q", s.Name) }
+func (c *Container) EvalName() string {
+	if c.Name == "" {
+		return "unnamed container"
+	}
+	return fmt.Sprintf("container %q", c.Name)
+}
 
 // EvalName returns the generic expression name used in error messages.
-func (s *Component) EvalName() string { return fmt.Sprintf("component %q", s.Name) }
+func (c *Component) EvalName() string {
+	if c.Name == "" {
+		return "unnamed component"
+	}
+	return fmt.Sprintf("component %q", c.Name)
+}
+
+// EvalName returns the generic expression name used in error messages.
+func (p *Person) EvalName() string {
+	if p.Name == "" {
+		return "unnamed person"
+	}
+	return fmt.Sprintf("person %q", p.Name)
+}
 
 // MarshalJSON replaces the constant value with the proper structurizr schema
 // string value.

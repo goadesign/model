@@ -69,7 +69,6 @@ func Person(name string, args ...interface{}) {
 		}
 	}
 	p := &expr.Person{
-		ID:          expr.NewID(),
 		Name:        name,
 		Description: desc,
 		Location:    expr.LocationInternal,
@@ -77,5 +76,6 @@ func Person(name string, args ...interface{}) {
 	if dsl != nil {
 		eval.Execute(dsl, p)
 	}
+	expr.Identify(p)
 	w.Model.People = append(w.Model.People, p)
 }

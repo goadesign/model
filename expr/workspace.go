@@ -47,23 +47,13 @@ func init() {
 	eval.Register(Root)
 }
 
-// WalkSets iterates over the model and then the views.
+// WalkSets iterates over the views, elements are completely evaluated during
+// init.
 func (w *Workspace) WalkSets(walk eval.SetWalker) {
-	if w.Model == nil {
-		return
-	}
-	walk(eval.ToExpressionSet(w.Model.Systems))
-	walk(eval.ToExpressionSet(w.Model.DeploymentNodes))
 	if w.Views == nil {
 		return
 	}
-	walk(eval.ToExpressionSet(w.Views.LandscapeViews))
-	walk(eval.ToExpressionSet(w.Views.ContextViews))
-	walk(eval.ToExpressionSet(w.Views.ContainerViews))
-	walk(eval.ToExpressionSet(w.Views.ComponentViews))
-	walk(eval.ToExpressionSet(w.Views.DynamicViews))
-	walk(eval.ToExpressionSet(w.Views.FilteredViews))
-	walk(eval.ToExpressionSet(w.Views.DeploymentViews))
+	walk([]eval.Expression{w.Views})
 }
 
 // DependsOn tells the eval engine to run the goa DSL first.

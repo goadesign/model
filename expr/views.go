@@ -3,6 +3,7 @@ package expr
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 )
 
 type (
@@ -22,6 +23,8 @@ type (
 		DeploymentViews []*DeploymentView `json:"deploymentViews,omitempty"`
 		// FilteredViews lists the filtered views.
 		FilteredViews []*FilteredView `json:"filteredViews,omitempty"`
+		// DSL to be run once all elements have been evaluated.
+		DSL func() `json:"-"`
 	}
 
 	// View describes a view.
@@ -40,7 +43,7 @@ type (
 		// Elements list the elements included in the view.
 		Elements []*ElementView `json:"elements,omitempty"`
 		// Rels list the relationships included in the view.
-		Relationships []*Relationship `json:"relationships,omitempty"`
+		Relationships []*RelationshipView `json:"relationships,omitempty"`
 		// AnimationSteps describes the animation steps if any.
 		AnimationSteps []*AnimationStep `json:"animationSteps,omitempty"`
 	}
@@ -231,6 +234,97 @@ const (
 	RankLeftRight
 	RankRightLeft
 )
+
+// EvalName returns the generic expression name used in error messages.
+func (v *Views) EvalName() string {
+	return "views"
+}
+
+// Merge merges the given element views into the parent view.
+func (v *View) Merge(evs []*ElementView) {
+	for _, ev := range evs {
+		var old *ElementView
+		for _, e := range v.Elements {
+			if e.ID == ev.ID {
+				old = e
+				break
+			}
+		}
+		if old != nil {
+			if ev.X > 0 {
+				old.X = ev.X
+			}
+			if ev.Y > 0 {
+				old.Y = ev.Y
+			}
+		} else {
+			v.Elements = append(v.Elements, ev)
+		}
+	}
+}
+
+// EvalName returns the generic expression name used in error messages.
+func (v *LandscapeView) EvalName() string {
+	var suffix string
+	if v.Key != "" {
+		suffix = fmt.Sprintf(" with key %q", v.Key)
+	}
+	return fmt.Sprintf("system landscape view%s", suffix)
+}
+
+// EvalName returns the generic expression name used in error messages.
+func (v *ContextView) EvalName() string {
+	var suffix string
+	if v.Key != "" {
+		suffix = fmt.Sprintf(" with key %q", v.Key)
+	}
+	return fmt.Sprintf("system context view%s", suffix)
+}
+
+// EvalName returns the generic expression name used in error messages.
+func (v *ContainerView) EvalName() string {
+	var suffix string
+	if v.Key != "" {
+		suffix = fmt.Sprintf(" with key %q", v.Key)
+	}
+	return fmt.Sprintf("container view%s", suffix)
+}
+
+// EvalName returns the generic expression name used in error messages.
+func (v *ComponentView) EvalName() string {
+	var suffix string
+	if v.Key != "" {
+		suffix = fmt.Sprintf(" with key %q", v.Key)
+	}
+	return fmt.Sprintf("component view%s", suffix)
+}
+
+// EvalName returns the generic expression name used in error messages.
+func (v *FilteredView) EvalName() string {
+	var suffix string
+	if v.Key != "" {
+		suffix = fmt.Sprintf(" with base key %q", v.Key)
+	}
+	return fmt.Sprintf("filtered view%s", suffix)
+}
+
+// EvalName returns the generic expression name used in error messages.
+func (v *DynamicView) EvalName() string {
+	var suffix string
+	if v.Key != "" {
+		suffix = fmt.Sprintf(" with key %q", v.Key)
+	}
+	return fmt.Sprintf("dynamic view%s", suffix)
+}
+
+// EvalName returns the generic expression name used in error messages.
+func (v *DeploymentView) EvalName() string {
+	var suffix string
+	if v.Key != "" {
+		suffix = fmt.Sprintf(" with key %q", v.Key)
+	}
+	return fmt.Sprintf("deployment view%s", suffix)
+}
 
 // MarshalJSON replaces the constant value with the proper structurizr schema
 // string value.

@@ -100,5 +100,14 @@ func (i *InfrastructureNode) EvalName() string { return fmt.Sprintf("infrastruct
 
 // EvalName returns the generic expression name used in error messages.
 func (c *ContainerInstance) EvalName() string {
-	return fmt.Sprintf("instance %d of container with ID %s", c.InstanceID, c.ContainerID)
+	n := "unknown container"
+	if cn, ok := Registry[c.ContainerID]; ok {
+		n = fmt.Sprintf("container %q", cn.(*Container).Name)
+	}
+	return fmt.Sprintf("instance %d of %s", c.InstanceID, n)
+}
+
+// EvalName returns the generic expression name used in error messages.
+func (hc *HealthCheck) EvalName() string {
+	return fmt.Sprintf("health check %q", hc.Name)
 }

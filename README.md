@@ -27,15 +27,15 @@ var _ = Workspace("Getting Started", "This is a model of my software system.", f
 
     Views(func() {
         SystemContext(MySystem, "SystemContext", "An example of a System Context diagram.", func() {
-            IncludeAll()
+            AddAll()
             AutoLayout()
         })
         Styles(func() {
-            Element(System, func() {
+            ElementStyle(System, func() {
                 Background("#1168bd")
                 Color("#ffffff")
              })
-            Element(User, func() {
+            ElementStyle(User, func() {
                 Shape(ShapePerson)
                 Background("#08427b")
                 Color("#ffffff")
@@ -71,15 +71,15 @@ var _ = Workspace("Getting Started", "This is a model of my software system.", f
 
     Views(func() {
         SystemContext(MySystem, "SystemContext", "An example of a System Context diagram.", func() {
-            IncludeAll()
+            AddAll()
             AutoLayout()
         })
         Styles(func() {
-            Element(System, func() {
+            ElementStyle(System, func() {
                 Background("#1168bd")
                 Color("#ffffff")
              })
-            Element(User, func() {
+            ElementStyle(User, func() {
                 Shape("ShapePerson")
                 Background("#08427b")
                 Color("#ffffff")
@@ -152,7 +152,7 @@ var _ = Workspace("[name]", "[description]", func() {
     Enterprise("<name>")
 
     // Person defines a person (user, actor, role or persona).
-    var PersonIdentifier = Person("<name>", "[description]", func() { // optional
+    var Person = Person("<name>", "[description]", func() { // optional
         Tag("<name>", "[name]") // as many tags as needed
 
         // URL where more information about this system can be found.
@@ -167,18 +167,18 @@ var _ = Workspace("[name]", "[description]", func() {
         })
 
         // Adds a uni-directional relationship between this person and the given element.
-        Uses(ElementIdentifier, "<description>", "[technology]", Synchronous /* or Asynchronous */, func() {
+        Uses(Element, "<description>", "[technology]", Synchronous /* or Asynchronous */, func() {
             Tag("<name>", "[name]") // as many tags as needed
         })
 
         // Adds an interaction between this person and another.
-        InteractsWith(PersonIdentifier, "<description>", "[technology]", Synchronous /* or Asynchronous */, func() {
+        InteractsWith(Person, "<description>", "[technology]", Synchronous /* or Asynchronous */, func() {
             Tag("<name>", "[name]") // as many tags as needed
         })
     })
 
     // SoftwareSystem defines a software system.
-    var SoftwareSystemIdentifier = SoftwareSystem("<name>", "[description]", func() { // optional
+    var SoftwareSystem = SoftwareSystem("<name>", "[description]", func() { // optional
         Tag("<name>",  "[name]") // as many tags as needed
 
         // URL where more information about this software system can be
@@ -194,18 +194,18 @@ var _ = Workspace("[name]", "[description]", func() {
         })
 
         // Adds a uni-directional relationship between this software system and the given element.
-        Uses(ElementIdentifier, "<description>", "[technology]", Synchronous /* or Asynchronous */, func() {
+        Uses(Element, "<description>", "[technology]", Synchronous /* or Asynchronous */, func() {
             Tag("<name>", "[name]") // as many tags as needed
         })
 
         // Adds an interaction between this software system and a person.
-        Delivers(PersonIdentifier, "<description>", "[technology]", Synchronous /* or Asynchronous */, func() {
+        Delivers(Person, "<description>", "[technology]", Synchronous /* or Asynchronous */, func() {
             Tag("<name>", "[name]") // as many tags as needed
         })
     })
 
     // Container defines a container within a software system.
-    var ContainerIdentifier = Container(SoftwareSystemIdentifier, "<name>",  "[description]",  "[technology]",  func() { // optional
+    var Container = Container(SoftwareSystem, "<name>",  "[description]",  "[technology]",  func() { // optional
         Tag("<name>",  "[name]") // as many tags as neede
 
         // URL where more information about this container can be found.
@@ -217,12 +217,12 @@ var _ = Workspace("[name]", "[description]", func() {
         })
 
         // Adds a uni-directional relationship between this container and the given element.
-        Uses(ElementIdentifier, "<description>", "[technology]", Synchronous /* or Asynchronous */, func () {
+        Uses(Element, "<description>", "[technology]", Synchronous /* or Asynchronous */, func () {
             Tag("<name>", "[name]") // as many tags as needed
         })
 
         // Adds an interaction between this container and a person.
-        Delivers(PersonIdentifier, "<description>", "[technology]", Synchronous /* or Asynchronous */, func() {
+        Delivers(Person, "<description>", "[technology]", Synchronous /* or Asynchronous */, func() {
             Tag("<name>", "[name]") // as many tags as needed
         })
     })
@@ -230,12 +230,12 @@ var _ = Workspace("[name]", "[description]", func() {
     // Container may also refer to a Goa service in which case the name
     // and description are taken from the given service definition and
     // the technology is set to "Go and Goa v3".
-    var ContainerIdentifier = Container(SoftwareSystemIdentifier, GoaServiceIdentifier, func() {
+    var Container = Container(SoftwareSystem, GoaService, func() {
         // ... see above
     })
 
     // Component defines a component within a container.
-    var ComponentIdentifier = Component(ContainerIdentifier, "<name>",  "[description]",  "[technology]",  func() { // optional
+    var Component = Component(Container, "<name>",  "[description]",  "[technology]",  func() { // optional
         Tag("<name>",  "[name]") // as many tags as neede
 
         // URL where more information about this container can be found.
@@ -247,12 +247,12 @@ var _ = Workspace("[name]", "[description]", func() {
         })
 
         // Adds a uni-directional relationship between this component and the given element.
-        Uses(ElementIdentifier, "<description>", "[technology]", Synchronous /* or Asynchronous */, func() {
+        Uses(Element, "<description>", "[technology]", Synchronous /* or Asynchronous */, func() {
             Tag("<name>", "[name]") // as many tags as needed
         })
 
         // Adds an interaction between this component and a person.
-        Delivers(PersonIdentifier, "<description>", "[technology]", Synchronous /* or Asynchronous */, func() {
+        Delivers(Person, "<description>", "[technology]", Synchronous /* or Asynchronous */, func() {
             Tag("<name>", "[name]") // as many tags as needed
         })
     })
@@ -265,7 +265,7 @@ var _ = Workspace("[name]", "[description]", func() {
         // nested, so a deployment node can contain other deployment nodes.
         // A deployment node can also contain InfrastructureNode and
         // ContainerInstance elements.
-        var DeploymentNodeIdentifier = DeploymentNode("<name>",  "[description]",  "[technology]",  func() { // optional
+        var DeploymentNode = DeploymentNode("<name>",  "[description]",  "[technology]",  func() { // optional
             Tag("<name>",  "[name]") // as many tags as needed
 
             // Instances sets the number of instances, defaults to 1.
@@ -281,14 +281,14 @@ var _ = Workspace("[name]", "[description]", func() {
             })
 
             // Adds a uni-directional relationship between this and another deployment node.
-            Uses(DeploymentNodeIdentifier, "<description>", "[technology]", Synchronous /* or Asynchronous */, func() {
+            Uses(DeploymentNode, "<description>", "[technology]", Synchronous /* or Asynchronous */, func() {
                 Tag("<name>", "[name]") // as many tags as needed
             })
         })
 
         // InfrastructureNode defines an infrastructure node, typically
         // something like a load balancer, firewall, DNS service, etc.
-        var InfrastructureNodeIdentifier = InfrastructureNode(DeploymentNodeIdentifier, "<name>", "[description]", "[technology]", func() { // optional
+        var InfrastructureNode = InfrastructureNode(DeploymentNode, "<name>", "[description]", "[technology]", func() { // optional
             Tag("<name>",  "[name]") // as many tags as needed
 
             // URL where more information about this infrastructure node can be
@@ -303,14 +303,14 @@ var _ = Workspace("[name]", "[description]", func() {
             // Adds a uni-directional relationship between this and
             // another deployment element (deployment node,
             // infrastructure node, or container instance).
-            Uses(DeploymentElementIdentifier, "<description>", "[technology]", Synchronous /* or Asynchronous */, func() {
+            Uses(DeploymentElement, "<description>", "[technology]", Synchronous /* or Asynchronous */, func() {
                 Tag("<name>", "[name]") // as many tags as needed
             })
         })
 
         // ContainerInstance defines an instance of the specified
         // container that is deployed on the parent deployment node.
-        var ContainerInstanceIdentifier = ContainerInstance(identifier, func() { // optional
+        var ContainerInstance = ContainerInstance(identifier, func() { // optional
             Tag("<name>",  "[name]") // as many tags as needed
 
             // Sets instance number or index.
@@ -324,7 +324,7 @@ var _ = Workspace("[name]", "[description]", func() {
             // Adds a uni-directional relationship between this and
             // another deployment element (deployment node,
             // infrastructure node, or container instance).
-            Uses(DeploymentElementIdentifier, "<description>", "[technology]", Synchronous /* or Asynchronous */, func() {
+            Uses(DeploymentElement, "<description>", "[technology]", Synchronous /* or Asynchronous */, func() {
                 Tag("<name>", "[name]") // as many tags as needed
             })
 
@@ -352,20 +352,65 @@ var _ = Workspace("[name]", "[description]", func() {
     // Views is optional and defines one or more views.
     Views(func() {
         
-        // SystemLandscape defines a System Landscape view.
-        SystemLandscape("[key]", "[description]", func() {
+        // SystemLandscapeView defines a System Landscape view.
+        SystemLandscapeView("[key]", "[description]", func() {
 
             // Title of this view.
             Title("<title>")
 
-            // Include all people and software systems.
-            IncludeAll()
+            // Add given person or element in view and render at given
+            // coordinates. If person or element was already in view (e.g. via
+            // AddAll()) then overrides coordinates. X and Y are optional and
+            // only required if AutoLayout isn't used. If NoRelationships is
+            // specified then relationships are not rendered.
+            Add(PersonOrElement, X, Y, NoRelationships)
 
-            // Include given elements and relationships in view.
-            Include(Identifier, Identifier) // as many identifiers as needed
+            // Add given relationship in view. If relationship was already added
+            // implictely (e.g. via AddAll()) then overrides how the
+            // relationship is rendered.
+            Add(Source, Destination, func() {
 
-            // Exclude given elements or relationships.
-            Exclude(Identifier, Identifier)) // as many identifiers as needed
+                // Vertices lists the x and y coordinate of the vertices used to
+                // render the relationship. The number of arguments must be even.
+                Vertices(10, 20, 10, 40)
+    
+                // Routing algorithm used when rendering relationship, one of
+                // RoutingDirect, RoutingCurved or RoutingOrthogonal.
+                Routing(RoutingOrthogonal)
+    
+                // Position of annotation along line; 0 (start) to 100 (end).
+                Position(50)
+    
+                // Description used in dynamic views.
+                Description("<description>")
+    
+                // Order of relationship in dynamic views, e.g. 1.0, 1.1, 2.0
+                Order("<order>")
+            })
+
+            // Add all elements and people  in scope to view.
+            AddAll()
+
+            // Add all elements that are directly connected to given person
+            // or element.
+            AddNeighbors(PersonOrElement)
+
+            // Remove given element or person from view.
+            Remove(ElementOrPerson)
+
+            // Remove given relationship from view.
+            Remove(Source, Destination)
+
+            // Remove elements and relationships with given tag.
+            Remove("<tag>")
+
+            // Remove all elements and people that cannot be reached by
+            // traversing the graph of relationships starting with given element
+            // or person.
+            RemoveUnreachable(ElementOrPerson)
+
+            // Remove all elements that have no relationships to other elements.
+            RemoveUnrelated()
 
             // AutoLayout enables automatic layout mode for the diagram. The
             // first argument indicates the rank direction, it must be one of
@@ -385,8 +430,9 @@ var _ = Workspace("[name]", "[description]", func() {
                 Vertices()
             }) 
 
-            // AnimationStep defines an animation step consisting of the specified elements.
-            AnimationStep(Identifier, Identifier)
+            // AnimationStep defines an animation step consisting of the
+            // specified elements.
+            AnimationStep(Element, Element/*, ...*/)
             
             // PaperSize defines the paper size that should be used to render
             // the view. The possible values for the argument follow the
@@ -400,31 +446,33 @@ var _ = Workspace("[name]", "[description]", func() {
             EnterpriseBoundaryVisible()
         })
 
-        SystemContext(SoftwareSystemIdentifier, "[key]", "[description]", func() {
-            // ... same usage as SystemLandscape.
+        SystemContextView(SoftwareSystem, "[key]", "[description]", func() {
+            // ... same usage as SystemLandscapeView.
         })
         
-        Container(SoftwareSystemIdentifier, "[key]", "[description]", func() {
-            // ... same usage as SystemLandscape without EnterpriseBoundaryVisible.
+        ContainerView(SoftwareSystem, "[key]", "[description]", func() {
+            // ... same usage as SystemLandscapeView without EnterpriseBoundaryVisible.
+
+            // All all containers to view.
+            AddContainers()
 
             // Make software system boundaries visible for "external" containers
             // (those outside the software system in scope).
             SystemBoundariesVisible()
         })
 
-        Component(ContainerIdentifier, "[key]", "[description]", func() {
-            // ... same usage as SystemLandscape without EnterpriseBoundaryVisible.
+        ComponentView(Container, "[key]", "[description]", func() {
+            // ... same usage as SystemLandscapeView without EnterpriseBoundaryVisible.
 
             // Make container boundaries visible for "external" components
             // (those outside the container in scope).
             ContainerBoundariesVisible()
         })
 
-        // Filtered defines a Filtered view on top of the specified view. The
-        // base key specifies the key of the System Landscape, System Context,
-        // Container, or Component view on which this filtered view should be
-        // based.
-        Filtered("<base key>", func() {
+        // FilteredView defines a Filtered view on top of the specified view.
+        // The given view must be a System Landscape, System Context, Container,
+        // or Component view on which this filtered view should be based.
+        FilteredView(View, func() {
             // Set of tags to include or exclude (if Exclude() is used)
             // elements/relationships when rendering this filtered view.
             FilterTag("<tag>", "[tag]") // as many as needed
@@ -434,15 +482,16 @@ var _ = Workspace("[name]", "[description]", func() {
             Exclude()
         }) 
 
-        // Dynamic defines a Dynamic view for the specified scope. The first
-        // argument defines the scope of the view, and therefore what can be
-        // added to the view, as follows: 
-        //  * Global scope: People and software systems.
-        //  * Software system scope: People, other software systems, and
-        //    containers belonging to the software system.
-        //  * Container scope: People, other software systems, other
-        //    containers, and components belonging to the container.
-        Dynamic(Global, "[key]", "[description]", func() {
+        // DynamicView defines a Dynamic view for the specified scope. The
+        // first argument defines the scope of the view, and therefore what can
+        // be added to the view, as follows: 
+        //
+        //   * Global scope: People and software systems.
+        //   * Software system scope: People, other software systems, and
+        //     containers belonging to the software system.
+        //   * Container scope: People, other software systems, other
+        //     containers, and components belonging to the container.
+        DynamicView(Global, "[key]", "[description]", func() {
 
             // Title of this view.
             Title("<title>")
@@ -472,19 +521,18 @@ var _ = Workspace("[name]", "[description]", func() {
             // one of SizeSlide4X3, SizeSlide16X9 or SizeSlide16X10.
             PaperSize(SizeSlide4X3)
 
-            // Sequence of relationships that make up dynamic diagram.
-            Relationship(Identifier, Identifier)
-            Relationship(Identifier, Identifier)
+            // Set of relationships that make up dynamic diagram.
+            Show(Source, Destination)
             // ...
         })
           
-        // Dynamic view on software system or container uses the corresponding
+        // DynamicView on software system or container uses the corresponding
         // identifier as first argument.
-        Dynamic(SoftwareSystemOrContainerIdentifier, "[key]", "[description]", func() {
+        DynamicView(SoftwareSystemOrContainer, "[key]", "[description]", func() {
             // see usage above
         })
 
-        // Deployment defines a Deployment view for the specified scope and
+        // DeploymentView defines a Deployment view for the specified scope and
         // deployment environment. The first argument defines the scope of the
         // view, and the second property defines the deployment environment. The
         // combination of these two arguments determines what can be added to
@@ -494,52 +542,24 @@ var _ = Workspace("[name]", "[description]", func() {
         //  * Software system scope: All deployment nodes and infrastructure
         //    nodes within the deployment environment. Container instances within
         //    the deployment environment that belong to the software system.
-        Deployment(Global, "<environment name>", "[key]", "[description]", func() {
+        DeploymentView(Global, "<environment name>", "[key]", "[description]", func() {
             // ... same usage as SystemLandscape without EnterpriseBoundaryVisible.
         })
 
-        // Deployment on a software system uses the software system as first
+        // DeploymentView on a software system uses the software system as first
         // argument.
-        Deployment(SoftwareSystemIdentifier, "<environment name>", "[key]", "[description]", func() {
+        DeploymentView(SoftwareSystem, "<environment name>", "[key]", "[description]", func() {
             // see usage above
-        })
-
-        // Element describes the position of an instance of a model element
-        // (Person, Software System, Container or Component) in a View. The
-        // first argument represents the x value, the second argument the y
-        // value.
-        Element(Identifier, 42, 42)
-
-        // Relationship describes an instance of a model relationship in a View.
-        // The SourceIdentifier and TargetIdentifier are used to identify the relationship.
-        Relationship(SourceIdentifier, TargetIdentifier, func() {
-
-            // Description used in dynamic views.
-            Description("<description>")
-
-            // Order of relationship in dynamic views, e.g. 1.0, 1.1, 2.0
-            Order("<order>")
-
-            // Vertices lists the x and y coordinate of the vertices used to
-            // render the relationship. The number of arguments must be even.
-            Vertices(10, 20, 10, 40)
-
-            // Routing algorithm used when rendering relationship, one of
-            // RoutingDirect, RoutingCurved or RoutingOrthogonal.
-            Routing(RoutingOrthogonal)
-
-            // Position of annotation along line; 0 (start) to 100 (end).
-            Position(50)
         })
 
         // Styles is a wrapper for one or more element/relationship styles,
         // which are used when rendering diagrams.
         Styles(func() {
 
-            // Element defines an element style. All nested properties (shape,
-            // icon, etc) are optional, see Structurizr - Notation for more
-            // details.
-            Element("<tag>", func() {
+            // ElementStyle defines an element style. All nested properties
+            // (shape, icon, etc) are optional, see Structurizr - Notation for
+            // more details.
+            ElementStyle("<tag>", func() {
                 Shape(ShapeBox) // ShapeBox, ShapeRoundedBox, ShapeCircle, ShapeEllipse, ShapeHexagon, ShapeCylinder, ShapePipe, ShapePerson
                                 // ShapeRobot, ShapeFolder, ShapeWebBrowser, ShapeMobileDevicePortrait, ShapeMobileDeviceLandscape, ShapeComponent
                 Icon("<file>")
@@ -555,10 +575,10 @@ var _ = Workspace("[name]", "[description]", func() {
                 Description(true)
             })
 
-            // Relationship defines a relationship style. All nested properties
-            // (thickness, color, etc) are optional, see Structurizr - Notation
-            // for more details.
-            Relationship("<tag>", func() {
+            // RelationshipStyle defines a relationship style. All nested
+            // properties (thickness, color, etc) are optional, see Structurizr
+            // - Notation for more details.
+            RelationshipStyle("<tag>", func() {
                 Thickness(42)
                 Color("#<rrggbb>")
                 Dashed(true)

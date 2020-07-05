@@ -46,7 +46,6 @@ func SoftwareSystem(name string, args ...interface{}) {
 	description, _, dsl := parseElementArgs(args...)
 	s := &expr.SoftwareSystem{
 		Element: expr.Element{
-			ID:          expr.NewID(),
 			Name:        name,
 			Description: description,
 			Location:    expr.LocationInternal,
@@ -55,6 +54,7 @@ func SoftwareSystem(name string, args ...interface{}) {
 	if dsl != nil {
 		eval.Execute(dsl, s)
 	}
+	expr.Identify(s)
 	w.Model.Systems = append(w.Model.Systems, s)
 }
 
@@ -147,7 +147,6 @@ func Container(system *expr.SoftwareSystem, args ...interface{}) {
 
 	c := &expr.Container{
 		Element: expr.Element{
-			ID:          expr.NewID(),
 			Name:        name,
 			Description: description,
 			Technology:  technology,
@@ -155,6 +154,7 @@ func Container(system *expr.SoftwareSystem, args ...interface{}) {
 	if dsl != nil {
 		eval.Execute(dsl, c)
 	}
+	expr.Identify(c)
 	system.Containers = append(system.Containers, c)
 }
 
@@ -202,7 +202,6 @@ func Component(container *expr.Container, name string, args ...interface{}) {
 	}
 	description, technology, dsl := parseElementArgs(args...)
 	c := &expr.Component{
-		ID:          expr.NewID(),
 		Name:        name,
 		Description: description,
 		Technology:  technology,
@@ -210,6 +209,7 @@ func Component(container *expr.Container, name string, args ...interface{}) {
 	if dsl != nil {
 		eval.Execute(dsl, c)
 	}
+	expr.Identify(c)
 	container.Components = append(container.Components, c)
 }
 

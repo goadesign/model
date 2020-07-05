@@ -24,72 +24,70 @@ general shape of the DSL is:
 
     Workspace                           Workspace
     ├── Version                         └── Views
-    ├── Enterprise                          ├── SystemLandscape
+    ├── Enterprise                          ├── SystemLandscapeView
     ├── Person                              │   ├── Title
-    │   ├── Tag                             │   ├── IncludeAll
-    │   ├── URL                             │   ├── Include
-    │   ├── External                        │   ├── Exclude
+    │   ├── Tag                             │   ├── Add
+    │   ├── URL                             │   ├── AddAll
+    │   ├── External                        │   ├── AddNeighbors
+    │   ├── Properties                      │   ├── AddContainers
+    │   ├── Uses                            │   ├── Remove
+    │   │   └── Tag                         │   ├── RemoveUnreachable
+    │   └── InteractsWith                   │   ├── RemoveUnrelated
+    │       └── Tag                         │   ├── AutoLayout
+    ├── SoftwareSystem                      │   │   ├── RankSeparation
+    │   ├── Tag                             │   │   ├── NodeSeparation
+    │   ├── URL                             │   │   ├── EdgeSeparation
+    │   ├── External                        │   │   └── Vertices
+    │   ├── Properties                      │   ├── AnimationStep
+    │   ├── Uses                            │   ├── PaperSize
+    │   │   └── Tag                         │   └── EnterpriseBoundaryVisible
+    │   └── Delivers                        ├── SystemContextView
+    │       └── Tag                         │   └──  ... same as SystemLandsapeView*
+    ├── Container                           ├── ContainerView
+    │   ├── Tag                             │   ├── SystemBoundariesVisible
+    │   ├── URL                             │   └── ... same as SystemLandscapeView*
+    │   ├── Properties                      ├── ComponentView
+    │   ├── Uses                            │   ├── ContainerBoundariesVisible
+    │   │   └── Tag                         │   └── ... same as SystemLandscapeView*
+    │   └── Delivers                        ├── FilteredView
+    │       └── Tag                         │   ├── FilterTag
+    ├── Component                           │   └── Exclude
+    │   ├── Tag                             ├── DynamicView
+    │   ├── URL                             │   ├── Title
     │   ├── Properties                      │   ├── AutoLayout
     │   ├── Uses                            │   │   ├── RankSeparation
     │   │   └── Tag                         │   │   ├── NodeSeparation
-    │   └── InteractsWith                   │   │   ├── EdgeSeparation
+    │   └── Delivers                        │   │   ├── EdgeSeparation
     │       └── Tag                         │   │   └── Vertices
-    ├── SoftwareSystem                      │   ├── AnimationStep
-    │   ├── Tag                             │   ├── PaperSize
-    │   ├── URL                             │   └── EnterpriseBoundaryVisible
-    │   ├── External                        ├── SystemContext
-    │   ├── Properties                      │   └──  ... same as SystemLandsape
-    │   ├── Uses                            ├── Container
-    │   │   └── Tag                         │   ├── SystemBoundariesVisible
-    │   └── Delivers                        │   └── ... same as SystemLandscape
-    │       └── Tag                         ├── Component
-    ├── Container                           │   ├── ContainerBoundariesVisible
-    │   ├── Tag                             │   └── ... same as SystemLandscape
-    │   ├── URL                             ├── Filtered
-    │   ├── Properties                      │   ├── FilterTag
-    │   ├── Uses                            │   └── Exclude
-    │   │   └── Tag                         ├── Dynamic
-    │   └── Delivers                        │   ├── Title
-    │       └── Tag                         │   ├── AutoLayout
-    ├── Component                           │   │   ├── RankSeparation
-    │   ├── Tag                             │   │   ├── NodeSeparation
-    │   ├── URL                             │   │   ├── EdgeSeparation
-    │   ├── Properties                      │   │   └── Vertices
-    │   ├── Uses                            │   ├── PaperSize
-    │   │   └── Tag                         │   └── Relationship
-    │   └── Delivers                        ├── Deployment
-    │       └── Tag                         │   └── ... same as SystemLandscape
-    └── DeploymentEnvironment               ├── Element
-        ├── DeploymentNode                  ├── Relationship
-        │   ├── Tag                         │   ├── Description
-        │   ├── Instances                   │   ├── Order
-        │   ├── URL                         │   ├── Vertices
-        │   ├── Properties                  │   ├── Routing
-        │   └── Uses                        │   └── Position
-        │       └── Tag                     ├── Styles
-        ├── InfrastructureNode              │   ├── Element
-	    │   ├── Tag                         │   │   ├── Shape
-	    │   ├── URL                         │   │   ├── Icon
-	    │   ├── Uses                        │   │   ├── Width
-	    │   └── Uses                        │   │   ├── Height
-	    │       └── Tag                     │   │   ├── Background
-	    └── ContainerInstance               │   │   ├── Color
-            ├── Tag                         │   │   ├── Stroke
-            ├── InstanceID                  │   │   ├── FontSize
-            ├── HealthCheck                 │   │   ├── Border
-            │   ├── URL                     │   │   ├── Opacity
-            │   ├── Interval                │   │   ├── Metadata
-            │   ├── Timeout                 │   │   └── Description
-            │   └── Header                  │   └── Relationship
-            ├── Properties                  │       ├── Thickness
-            └── Uses                        │       ├── Color
-                └── Tag                     │       ├── Dashed
-                                            │       ├── Routing
-                                            │       ├── FontSize
-                                            │       ├── Width
-                                            │       ├── Position
+    └── DeploymentEnvironment               │   ├── PaperSize
+        ├── DeploymentNode                  │   └── Relationship
+        │   ├── Tag                         ├── DeploymentView
+        │   ├── Instances                   │   └── ... same as SystemLandscapeView*
+        │   ├── URL                         ├── Styles
+        │   ├── Properties                  │   ├── ElementStyle
+        │   └── Uses                        │   │   ├── Shape
+        │       └── Tag                     │   │   ├── Icon
+        ├── InfrastructureNode              │   │   ├── Width
+        │   ├── Tag                         │   │   ├── Height
+	    │   ├── URL                         │   │   ├── Background
+	    │   ├── Uses                        │   │   ├── Color
+	    │   └── Uses                        │   │   ├── Stroke
+	    │       └── Tag                     │   │   ├── FontSize
+	    └── ContainerInstance               │   │   ├── Border
+            ├── Tag                         │   │   ├── Opacity
+            ├── InstanceID                  │   │   ├── Metadata
+            ├── HealthCheck                 │   │   └── Description
+            │   ├── URL                     │   └── RelationshipStyle
+            │   ├── Interval                │       ├── Thickness
+            │   ├── Timeout                 │       ├── Color
+            │   └── Header                  │       ├── Dashed
+            ├── Properties                  │       ├── Routing
+            └── Uses                        │       ├── FontSize
+                └── Tag                     │       ├── Width
                                             │       └── Opacity
                                             ├── Theme
                                             └── Branding
+
+                                            * minus EnterpriseBoundaryVisible
 */
 package dsl
