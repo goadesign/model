@@ -7,8 +7,8 @@ import (
 )
 
 type (
-	// View describes a view.
-	View struct {
+	// ViewProps contains common properties of a view.
+	ViewProps struct {
 		// Title of the view.
 		Title string `json:"title,omitempty"`
 		// Description of view.
@@ -94,26 +94,21 @@ type (
 )
 
 type (
-	// Processor function that processes elements.
-	Processor func(ElementHolder)
-
-	// ProcessorByID is a function that processes elements by ID.
-	ProcessorByID func(string)
-
-	// ElementProcessor provides access to functions that accept specific
-	// elements (Person, Software System, Container or Component). Different
-	// functions can be provided for different element types. This makes it
-	// possible for specific views to return the relevant function or an error
-	// if the type of the element is not supported by the view.
-	ElementProcessor interface {
-		GetAdder(eh ElementHolder) (Processor, error)
-		GetRemover(eh ElementHolder) (ProcessorByID, error)
+	// View is the common interface for all views.
+	View interface {
+		GetElementView(string) *ElementView
+		GetRelationshipView(string) *RelationshipView
+		AddElements(...ElementHolder)
+		AddRelationships(...*Relationship)
+		Remove(id string)
+		RemoveTagged(tag string)
+		RemoveUnreachable(*Element)
+		RemoveUnrelated()
 	}
 
-	// ViewHolder provides access to the underlying view.
-	ViewHolder interface {
-		GetView() *View
-	}
+	// Processor function that processes elements. The argument must be
+	// either a slice of structs that implement ElementHolder.
+	Processor func(...ElementHolder)
 )
 
 type (
@@ -165,73 +160,25 @@ const (
 	RankRightLeft
 )
 
-// GetView provides access to the underlying view.
-func (v *View) GetView() *View {
-	return v
-}
-
-// AddPeople adds the given people to the view if not already present.
-func (v *View) AddPeople(adder Processor, people ...*Person) {
+// AddElements adds the given elements to the view if not already present.
+func (v *ViewProps) AddElements(ehs ...ElementHolder) {
 loop:
-	for _, p := range people {
+	for _, eh := range ehs {
+		id := eh.GetElement().ID
 		for _, e := range v.ElementViews {
-			if e.ID == p.ID {
+			if e.ID == id {
 				continue loop
 			}
 		}
-		adder(p.Element)
-		v.completeRelationships(p.ID)
-	}
-}
-
-// AddSoftwareSystems adds the given software systems to the view if not
-// already present.
-func (v *View) AddSoftwareSystems(adder Processor, systems ...*SoftwareSystem) {
-loop:
-	for _, s := range systems {
-		for _, e := range v.ElementViews {
-			if e.ID == s.ID {
-				continue loop
-			}
-		}
-		adder(s.Element)
-		//v.ElementViews = append(v.ElementViews, &ElementView{ID: s.ID, Element: s.Element})
-		v.completeRelationships(s.ID)
-	}
-}
-
-// AddContainers adds the given containers to the view if not already present.
-func (v *View) AddContainers(adder Processor, containers ...*Container) {
-loop:
-	for _, c := range containers {
-		for _, e := range v.ElementViews {
-			if e.ID == c.ID {
-				continue loop
-			}
-		}
-		adder(c.Element)
-		v.completeRelationships(c.ID)
-	}
-}
-
-// AddComponents adds the given components to the view if not already present.
-func (v *View) AddComponents(adder Processor, components ...*Component) {
-loop:
-	for _, c := range components {
-		for _, e := range v.ElementViews {
-			if e.ID == c.ID {
-				continue loop
-			}
-		}
-		adder(c.Element)
-		v.completeRelationships(c.ID)
+		v.ElementViews = append(v.ElementViews, &ElementView{ID: id, Element: eh.GetElement()})
+		v.completeRelationships(id)
 	}
 }
 
 // AddRelationships adds the given relationships to the view if not already
 // present. It does nothing if the relationship source and destination are not
 // already in the view.
-func (v *View) AddRelationships(rels ...*Relationship) {
+func (v *ViewProps) AddRelationships(rels ...*Relationship) {
 loop:
 	for _, r := range rels {
 		var src, dest bool
@@ -261,33 +208,13 @@ loop:
 	}
 }
 
-// completeRelationships adds the relationships for which the element with the
-// given id is either a source or a destination and the other end of the
-// relationship is already in the view.
-func (v *View) completeRelationships(id string) {
-	var rels []*Relationship
-	for _, r := range AllRelationships() {
-		if r.SourceID == id {
-			if v.GetElementView(r.DestinationID) != nil {
-				rels = append(rels, r)
-			}
-		} else if r.DestinationID == id {
-			if v.GetElementView(r.SourceID) != nil {
-				rels = append(rels, r)
-			}
-		}
-	}
-	v.AddRelationships(rels...)
-}
-
 // Remove removes the element with the given ID from the view if present.
-func (v *View) Remove(remover ProcessorByID, id string) {
-	remover(id)
-	// idx := v.index(id)
-	// if idx == -1 {
-	// 	return
-	// }
-	// v.ElementViews = append(v.ElementViews[:idx], v.ElementViews[idx+1:]...)
+func (v *ViewProps) Remove(id string) {
+	idx := v.index(id)
+	if idx == -1 {
+		return
+	}
+	v.ElementViews = append(v.ElementViews[:idx], v.ElementViews[idx+1:]...)
 
 	// Remove corresponding relationships.
 	var ids []string
@@ -316,7 +243,7 @@ func (v *View) Remove(remover ProcessorByID, id string) {
 }
 
 // RemoveTagged removes all elements with the given tag from the view.
-func (v *View) RemoveTagged(remover ProcessorByID, tag string) {
+func (v *ViewProps) RemoveTagged(tag string) {
 	var rm []string
 	for _, ev := range v.ElementViews {
 		vals := strings.Split(ev.Element.Tags, ",")
@@ -328,13 +255,13 @@ func (v *View) RemoveTagged(remover ProcessorByID, tag string) {
 		}
 	}
 	for _, id := range rm {
-		remover(id)
+		v.Remove(id)
 	}
 }
 
 // RemoveUnreachable removes all elements that are not related - directly or not
 // - to the element.
-func (v *View) RemoveUnreachable(remover ProcessorByID, elt *Element) {
+func (v *ViewProps) RemoveUnreachable(elt *Element) {
 	if v.index(elt.ID) == -1 {
 		return
 	}
@@ -350,13 +277,13 @@ loop:
 		rm = append(rm, e.ID)
 	}
 	for _, id := range rm {
-		remover(id)
+		v.Remove(id)
 	}
 }
 
 // RemoveUnrelated removes all elements that have no relationship to other
 // elements in the view.
-func (v *View) RemoveUnrelated(remover ProcessorByID) {
+func (v *ViewProps) RemoveUnrelated() {
 	for _, ev := range v.ElementViews {
 		related := false
 		for _, r := range v.RelationshipViews {
@@ -370,13 +297,13 @@ func (v *View) RemoveUnrelated(remover ProcessorByID) {
 			}
 		}
 		if !related {
-			remover(ev.ID)
+			v.Remove(ev.ID)
 		}
 	}
 }
 
 // GetElementView returns the element view with the given ID if any.
-func (v *View) GetElementView(id string) *ElementView {
+func (v *ViewProps) GetElementView(id string) *ElementView {
 	for _, e := range v.ElementViews {
 		if e.ID == id {
 			return e
@@ -386,7 +313,7 @@ func (v *View) GetElementView(id string) *ElementView {
 }
 
 // GetRelationshipView returns the relationship view with the given ID if any.
-func (v *View) GetRelationshipView(id string) *RelationshipView {
+func (v *ViewProps) GetRelationshipView(id string) *RelationshipView {
 	for _, r := range v.RelationshipViews {
 		if r.ID == id {
 			return r
@@ -395,8 +322,27 @@ func (v *View) GetRelationshipView(id string) *RelationshipView {
 	return nil
 }
 
+// completeRelationships adds the relationships for which the element with the
+// given id is either a source or a destination and the other end of the
+// relationship is already in the view.
+func (v *ViewProps) completeRelationships(id string) {
+	var rels []*Relationship
+	for _, r := range AllRelationships() {
+		if r.SourceID == id {
+			if v.GetElementView(r.DestinationID) != nil {
+				rels = append(rels, r)
+			}
+		} else if r.DestinationID == id {
+			if v.GetElementView(r.SourceID) != nil {
+				rels = append(rels, r)
+			}
+		}
+	}
+	v.AddRelationships(rels...)
+}
+
 // index returns the index of the element with the given ID, -1 if not found.
-func (v *View) index(id string) int {
+func (v *ViewProps) index(id string) int {
 	for i, e := range v.ElementViews {
 		if e.ID == id {
 			return i

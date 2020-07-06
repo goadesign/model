@@ -12,9 +12,9 @@ type (
 		// Enterprise associated with model if any.
 		Enterprise *Enterprise `json:"enterprise"`
 		// People lists Person elements.
-		People []*Person `json:"people"`
+		People People `json:"people"`
 		// Systems lists Software System elements.
-		Systems []*SoftwareSystem `json:"softwareSystems"`
+		Systems SoftwareSystems `json:"softwareSystems"`
 		// DeploymentNodes list the deployment nodes.
 		DeploymentNodes []*DeploymentNode `json:"deploymentNodes"`
 	}

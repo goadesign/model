@@ -2,6 +2,8 @@ package expr
 
 import (
 	"fmt"
+
+	"goa.design/goa/v3/eval"
 )
 
 type (
@@ -27,7 +29,7 @@ type (
 
 	// LandscapeView describes a system landscape view.
 	LandscapeView struct {
-		View
+		ViewProps
 		// EnterpriseBoundaryVisible specifies whether the enterprise boundary
 		// (to differentiate internal elements from external elements) should be
 		// visible on the resulting diagram.
@@ -36,7 +38,7 @@ type (
 
 	// ContextView describes a system context view.
 	ContextView struct {
-		View
+		ViewProps
 		// EnterpriseBoundaryVisible specifies whether the enterprise boundary
 		// (to differentiate internal elements from external elements) should be
 		// visible on the resulting diagram.
@@ -49,7 +51,7 @@ type (
 	// ContainerView describes a container view for a specific software
 	// system.
 	ContainerView struct {
-		View
+		ViewProps
 		// Specifies whether software system boundaries should be visible for
 		// "external" containers (those outside the software system in scope).
 		ExternalSoftwareSystemBoundariesVisible bool `json:"externalSoftwareSystemBoundariesVisible"`
@@ -60,7 +62,7 @@ type (
 
 	// ComponentView describes a component view for a specific container.
 	ComponentView struct {
-		View
+		ViewProps
 		// Specifies whether container boundaries should be visible for
 		// "external" containers (those outside the container in scope).
 		ExternalContainerBoundariesVisible bool `json:"externalContainersBoundariesVisible"`
@@ -70,14 +72,14 @@ type (
 
 	// DynamicView describes a dynamic view for a specified scope.
 	DynamicView struct {
-		View
+		ViewProps
 		// ElementID is the identifier of the element this view is associated with.
 		ElementID string
 	}
 
 	// DeploymentView describes a deployment view.
 	DeploymentView struct {
-		View
+		ViewProps
 		// SoftwareSystemID is the ID of the software system this view with is
 		// associated with.
 		SoftwareSystemID string `json:"softwareSystemId"`
@@ -108,6 +110,39 @@ type (
 // EvalName returns the generic expression name used in error messages.
 func (v *Views) EvalName() string {
 	return "views"
+}
+
+// Validate makes sure the right element are in the right views.
+func (v *Views) Validate() error {
+	verr := new(eval.ValidationErrors)
+	checkElements := func(title string, evs []*ElementView, allowContainers bool) {
+		var suffix = " and people"
+		if allowContainers {
+			suffix = ", people and containers"
+		}
+		for _, ev := range evs {
+			if GetSoftwareSystem(ev.ID) != nil {
+				continue
+			}
+			if GetPerson(ev.ID) != nil {
+				continue
+			}
+			if allowContainers && GetContainer(ev.ID) != nil {
+				continue
+			}
+			verr.Add(v, fmt.Sprintf("%s can only contain software systems%s", title, suffix))
+		}
+	}
+	for _, lv := range v.LandscapeViews {
+		checkElements("software landscape views", lv.ElementViews, false)
+	}
+	for _, cv := range v.ContextViews {
+		checkElements("software context views", cv.ElementViews, false)
+	}
+	for _, cv := range v.ContainerViews {
+		checkElements("container views", cv.ElementViews, true)
+	}
+	return verr
 }
 
 // EvalName returns the generic expression name used in error messages.

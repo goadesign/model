@@ -79,7 +79,7 @@ func SystemLandscapeView(args ...interface{}) {
 	}
 	key, description, dsl := parseView(args...)
 	v := &expr.LandscapeView{
-		View: expr.View{
+		ViewProps: expr.ViewProps{
 			Key:         key,
 			Description: description,
 		},
@@ -134,7 +134,7 @@ func SystemContextView(s *expr.SoftwareSystem, args ...interface{}) {
 	}
 	key, description, dsl := parseView(args...)
 	v := &expr.ContextView{
-		View: expr.View{
+		ViewProps: expr.ViewProps{
 			Key:         key,
 			Description: description,
 		},
@@ -191,7 +191,7 @@ func ContainerView(s *expr.SoftwareSystem, args ...interface{}) {
 	}
 	key, description, dsl := parseView(args...)
 	v := &expr.ContainerView{
-		View: expr.View{
+		ViewProps: expr.ViewProps{
 			Key:         key,
 			Description: description,
 		},
@@ -247,7 +247,7 @@ func ComponentView(c *expr.Container, args ...interface{}) {
 	}
 	key, description, dsl := parseView(args...)
 	v := &expr.ComponentView{
-		View: expr.View{
+		ViewProps: expr.ViewProps{
 			Key:         key,
 			Description: description,
 		},
@@ -380,7 +380,7 @@ func DynamicView(scope interface{}, args ...interface{}) {
 	}
 	key, description, dsl := parseView(args...)
 	v := &expr.DynamicView{
-		View: expr.View{
+		ViewProps: expr.ViewProps{
 			Key:         key,
 			Description: description,
 		},
@@ -455,7 +455,7 @@ func DeploymentView(scope interface{}, env string, args ...interface{}) {
 		return
 	}
 	v := &expr.DeploymentView{
-		View: expr.View{
+		ViewProps: expr.ViewProps{
 			Key:         key,
 			Description: description,
 		},
@@ -545,18 +545,19 @@ func Title(t string) {
 //
 func Add(first interface{}, rest ...interface{}) {
 	var (
-		per  *expr.Person
-		sys  *expr.SoftwareSystem
-		cont *expr.Container
-		comp *expr.Component
-		rel  *expr.Relationship
-		dsl  func()
+		eh  expr.ElementHolder
+		rel *expr.Relationship
+		dsl func()
 	)
+	eh, ok := first.(expr.ElementHolder)
+	if !ok {
+		eval.InvalidArgError("person, software system, container or component", first)
+	}
 	if len(rest) > 0 {
 		switch a := rest[0].(type) {
 		case expr.ElementHolder:
 			destID := a.GetElement().ID
-			srcID := first.(expr.ElementHolder).GetElement().ID
+			srcID := eh.GetElement().ID
 			rel = expr.FindRelationship(srcID, destID)
 			if rel == nil {
 				eval.ReportError("no existing relationship between %s and %s.", first.(eval.Expression).EvalName(), rest[0].(eval.Expression).EvalName())
@@ -581,63 +582,33 @@ func Add(first interface{}, rest ...interface{}) {
 		}
 	}
 	if _, ok := eval.Current().(*expr.DynamicView); ok && rel == nil {
-		eval.ReportError("only relationships may be added to dynamic views")
-		return
-	}
-	switch a := first.(type) {
-	case *expr.Person:
-		per = a
-	case *expr.SoftwareSystem:
-		sys = a
-	case *expr.Container:
-		cont = a
-	case *expr.Component:
-		comp = a
-	default:
-		eval.InvalidArgError("person, software system, container or component", a)
+		eval.ReportError("only relationships may be added explicitly to dynamic views")
 		return
 	}
 
-	vh, ok := eval.Current().(expr.ViewHolder)
+	v, ok := eval.Current().(expr.View)
 	if !ok {
 		eval.IncompatibleDSL()
 	}
-	v := vh.GetView()
-	switch {
-	case per != nil:
-		v.AddPeople(per)
-	case sys != nil:
-		v.AddSoftwareSystems(sys)
-	case cont != nil:
-		v.AddContainers(cont)
-	case comp != nil:
-		v.AddComponents(comp)
-	case rel != nil:
-		v.AddRelationships(rel)
-	}
 
-	// Execute DSL last so that relationships that may be removed are not added
-	// back.
-	if dsl != nil {
-		switch {
-		case per != nil:
-			eval.Execute(dsl, v.GetElementView(per.ID))
-		case sys != nil:
-			eval.Execute(dsl, v.GetElementView(sys.ID))
-		case cont != nil:
-			eval.Execute(dsl, v.GetElementView(cont.ID))
-		case comp != nil:
-			eval.Execute(dsl, v.GetElementView(comp.ID))
-		case rel != nil:
+	if rel != nil {
+		v.AddRelationships(rel)
+		if dsl != nil {
 			eval.Execute(dsl, v.GetRelationshipView(rel.ID))
 		}
+		return
+	}
+
+	v.AddElements(eh)
+	if dsl != nil {
+		eval.Execute(dsl, v.GetElementView(eh.GetElement().ID))
 	}
 }
 
 // AddAll includes all elements and relationships in scope to the view.
 //
-// AddAll may appear in SystemLandscapeView, SystemContextView, ContainerView,
-// ComponentView, DynamicView or DeploymentView.
+// AddAll may appear in SystemLandscapeView, SystemContextView, ContainerView or
+// ComponentView.
 //
 // AddAll takes no argument.
 //
@@ -657,25 +628,20 @@ func Add(first interface{}, rest ...interface{}) {
 //     })
 //
 func AddAll() {
-	model := expr.Root.Model
-	switch v := eval.Current().(type) {
-	case *expr.LandscapeView:
-		v.AddPeople(model.People...)
-		v.AddSoftwareSystems(model.Systems...)
-	case *expr.ContextView:
-		v.AddPeople(model.People...)
-		v.AddSoftwareSystems(model.Systems...)
-	case *expr.ContainerView:
-		v.AddPeople(model.People...)
-		v.AddSoftwareSystems(model.Systems...)
-		AddContainers()
-	case *expr.ComponentView:
-		v.AddPeople(model.People...)
-		v.AddSoftwareSystems(model.Systems...)
-		AddContainers()
-		AddComponents()
-	default:
+	v, ok := eval.Current().(expr.View)
+	if !ok {
 		eval.IncompatibleDSL()
+	}
+	model := expr.Root.Model
+	v.AddElements(model.People.Elements()...)
+	v.AddElements(model.Systems.Elements()...)
+	switch v := eval.Current().(type) {
+	case *expr.ContainerView:
+		v.AddElements(expr.GetSoftwareSystem(v.SoftwareSystemID).Containers.Elements()...)
+	case *expr.ComponentView:
+		c := expr.GetContainer(v.ContainerID)
+		v.AddElements(c.System.Containers.Elements()...)
+		v.AddElements(expr.GetContainer(v.ContainerID).Components.Elements()...)
 	}
 }
 
@@ -736,28 +702,28 @@ func AddNeighbors(element interface{}) {
 			eval.ReportError("AddNeighbors in a software landscape view must be given a software system or a person.")
 			return
 		}
-		v.AddPeople(elt.RelatedPeople()...)
-		v.AddSoftwareSystems(elt.RelatedSoftwareSystems()...)
+		v.AddElements(elt.RelatedPeople().Elements()...)
+		v.AddElements(elt.RelatedSoftwareSystems().Elements()...)
 	case *expr.ContextView:
 		if cont || comp {
 			eval.ReportError("AddNeighbors in a software context view must be given a software system or a person.")
 			return
 		}
-		v.AddPeople(elt.RelatedPeople()...)
-		v.AddSoftwareSystems(elt.RelatedSoftwareSystems()...)
+		v.AddElements(elt.RelatedPeople().Elements()...)
+		v.AddElements(elt.RelatedSoftwareSystems().Elements()...)
 	case *expr.ContainerView:
 		if comp {
 			eval.ReportError("AddNeighbors in a container view must be given a person, software system or a container.")
 			return
 		}
-		v.AddPeople(elt.RelatedPeople()...)
-		v.AddSoftwareSystems(elt.RelatedSoftwareSystems()...)
-		v.AddContainers(elt.RelatedContainers()...)
+		v.AddElements(elt.RelatedPeople().Elements()...)
+		v.AddElements(elt.RelatedSoftwareSystems().Elements()...)
+		v.AddElements(elt.RelatedContainers().Elements()...)
 	case *expr.ComponentView:
-		v.AddPeople(elt.RelatedPeople()...)
-		v.AddSoftwareSystems(elt.RelatedSoftwareSystems()...)
-		v.AddContainers(elt.RelatedContainers()...)
-		v.AddComponents(elt.RelatedComponents()...)
+		v.AddElements(elt.RelatedPeople().Elements()...)
+		v.AddElements(elt.RelatedSoftwareSystems().Elements()...)
+		v.AddElements(elt.RelatedContainers().Elements()...)
+		v.AddElements(elt.RelatedComponents().Elements()...)
 	default:
 		eval.IncompatibleDSL()
 	}
@@ -801,18 +767,18 @@ func AddDefault() {
 		AddNeighbors(expr.GetSoftwareSystem(v.SoftwareSystemID))
 	case *expr.ContainerView:
 		s := expr.GetSoftwareSystem(v.SoftwareSystemID)
-		v.AddContainers(s.Containers...)
+		v.AddElements(s.Containers.Elements()...)
 		for _, c := range s.Containers {
-			v.AddSoftwareSystems(c.RelatedSoftwareSystems()...)
-			v.AddPeople(c.RelatedPeople()...)
+			v.AddElements(c.RelatedSoftwareSystems().Elements()...)
+			v.AddElements(c.RelatedPeople().Elements()...)
 		}
 	case *expr.ComponentView:
 		c := expr.GetContainer(v.ContainerID)
-		v.AddComponents(c.Components...)
+		v.AddElements(c.Components.Elements()...)
 		for _, c := range c.Components {
-			v.AddContainers(c.RelatedContainers()...)
-			v.AddSoftwareSystems(c.RelatedSoftwareSystems()...)
-			v.AddPeople(c.RelatedPeople()...)
+			v.AddElements(c.RelatedContainers().Elements()...)
+			v.AddElements(c.RelatedSoftwareSystems().Elements()...)
+			v.AddElements(c.RelatedPeople().Elements()...)
 		}
 	default:
 		eval.IncompatibleDSL()
@@ -898,11 +864,11 @@ func Remove(e interface{}, dest ...interface{}) {
 		}
 	}
 
-	if vh, ok := eval.Current().(expr.ViewHolder); ok {
+	if v, ok := eval.Current().(expr.View); ok {
 		if id != "" {
-			vh.GetView().Remove(id)
+			v.Remove(id)
 		} else {
-			vh.GetView().RemoveTagged(tag)
+			v.RemoveTagged(tag)
 		}
 	} else {
 		eval.IncompatibleDSL()
@@ -944,8 +910,8 @@ func RemoveUnreachable(e interface{}) {
 		eval.InvalidArgError("person, software system, container or component", e)
 		return
 	}
-	if vh, ok := eval.Current().(expr.ViewHolder); ok {
-		vh.GetView().RemoveUnreachable(elt)
+	if v, ok := eval.Current().(expr.View); ok {
+		v.RemoveUnreachable(elt)
 	} else {
 		eval.IncompatibleDSL()
 	}
@@ -977,8 +943,8 @@ func RemoveUnreachable(e interface{}) {
 //     })
 //
 func RemoveUnrelated() {
-	if vh, ok := eval.Current().(expr.ViewHolder); ok {
-		vh.GetView().RemoveUnrelated()
+	if v, ok := eval.Current().(expr.View); ok {
+		v.RemoveUnrelated()
 	} else {
 		eval.IncompatibleDSL()
 	}
@@ -1001,10 +967,10 @@ func RemoveUnrelated() {
 func AddContainers() {
 	switch v := eval.Current().(type) {
 	case *expr.ContainerView:
-		v.AddContainers(expr.GetSoftwareSystem(v.SoftwareSystemID).Containers...)
+		v.AddElements(expr.GetSoftwareSystem(v.SoftwareSystemID).Containers.Elements()...)
 	case *expr.ComponentView:
 		c := expr.GetContainer(v.ContainerID)
-		v.AddContainers(c.System.Containers...)
+		v.AddElements(c.System.Containers.Elements()...)
 	default:
 		eval.IncompatibleDSL()
 	}
@@ -1018,7 +984,7 @@ func AddContainers() {
 //
 func AddComponents() {
 	if cv, ok := eval.Current().(*expr.ComponentView); ok {
-		cv.AddComponents(expr.GetContainer(cv.ContainerID).Components...)
+		cv.AddElements(expr.GetContainer(cv.ContainerID).Components.Elements()...)
 		return
 	}
 	eval.IncompatibleDSL()

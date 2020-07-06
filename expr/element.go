@@ -51,7 +51,7 @@ func (e *Element) GetElement() *Element { return e }
 
 // RelatedPeople returns all people the element has a relationship with
 // (either as source or as destination).
-func (e *Element) RelatedPeople() (res []*Person) {
+func (e *Element) RelatedPeople() (res People) {
 	add := func(p *Person) {
 		for _, ep := range res {
 			if ep.ID == p.ID {
@@ -77,7 +77,7 @@ func (e *Element) RelatedPeople() (res []*Person) {
 
 // RelatedSoftwareSystems returns all software systems the element has a
 // relationship with (either as source or as destination).
-func (e *Element) RelatedSoftwareSystems() (res []*SoftwareSystem) {
+func (e *Element) RelatedSoftwareSystems() (res SoftwareSystems) {
 	add := func(s *SoftwareSystem) {
 		for _, es := range res {
 			if es.ID == s.ID {
@@ -103,7 +103,7 @@ func (e *Element) RelatedSoftwareSystems() (res []*SoftwareSystem) {
 
 // RelatedContainers returns all containers the element has a relationship with
 // (either as source or as destination).
-func (e *Element) RelatedContainers() (res []*Container) {
+func (e *Element) RelatedContainers() (res Containers) {
 	add := func(cc *Container) {
 		for _, es := range res {
 			if es.ID == cc.ID {
@@ -129,7 +129,7 @@ func (e *Element) RelatedContainers() (res []*Container) {
 
 // RelatedComponents returns all components the element has a relationship with
 // (either as source or as destination).
-func (e *Element) RelatedComponents() (res []*Component) {
+func (e *Element) RelatedComponents() (res Components) {
 	add := func(c *Component) {
 		for _, es := range res {
 			if es.ID == c.ID {
