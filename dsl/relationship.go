@@ -16,19 +16,16 @@ const (
 
 // Uses adds a uni-directional relationship between two elements.
 //
-// Uses may appear in Person, SoftwareSystem, Container, Component,
-// DeploymentNode, InfrastructureNode or ContainerInstance.
+// Uses may appear in Person, SoftwareSystem, Container or Component.
 //
 // Uses tags 2 to 5 arguments. The first argument is the target of the
-// relationship, it must be a software system, container or component if the
-// scope is Person, SoftwareSystem, Container or Component. It must be a
-// DeploymentNode, InfrastructureNode or ContainerInstance if the scope is one
-// of these. The second argument is a short description for the relationship.
-// The description may optionally be followed by the technology used by the
-// relationship. If technology is set then Uses accepts an additional argument
-// to indicate the type of relationship: Synchronous or Asynchronous. Finally
-// Uses accepts an optional func() as last argument to define additional
-// properties on the relationship.
+// relationship, it must be a software system, container or component. The
+// second argument is a short description for the relationship. The description
+// may optionally be followed by the technology used by the relationship. If
+// technology is set then Uses accepts an additional argument to indicate the
+// type of relationship: Synchronous or Asynchronous. Finally Uses accepts an
+// optional func() as last argument to define additional properties on the
+// relationship.
 //
 // Usage is thus:
 //
@@ -54,82 +51,33 @@ const (
 //     })
 //
 func Uses(element interface{}, desc string, args ...interface{}) {
-	// 1. Relationships between elements (software systems, containers and
-	// components)
-	var srcID string
+	var src *expr.Element
 	switch e := eval.Current().(type) {
+	case *expr.Person:
+		src = e.Element
 	case *expr.SoftwareSystem:
-		srcID = e.ID
+		src = e.Element
 	case *expr.Container:
-		srcID = e.ID
+		src = e.Element
 	case *expr.Component:
-		srcID = e.ID
+		src = e.Element
 	default:
 		eval.IncompatibleDSL()
 		return
 	}
-
-	var destID string
-	switch e := eval.Current().(type) {
+	var dest *expr.Element
+	switch e := element.(type) {
 	case *expr.SoftwareSystem:
-		destID = e.ID
+		dest = e.Element
 	case *expr.Container:
-		destID = e.ID
+		dest = e.Element
 	case *expr.Component:
-		destID = e.ID
+		dest = e.Element
 	default:
 		eval.IncompatibleDSL()
 		return
 	}
-
-	if srcID != "" && destID == "" || srcID == "" && destID != "" {
-		eval.ReportError("Uses used in an element (SoftareSystem, Container or Component) must target another element.")
-	}
-
-	if srcID != "" {
-		uses(srcID, destID, desc, args...)
-		return
-	}
-
-	// 2. Relationships between deployment nodes.
-	if d, ok := eval.Current().(*expr.DeploymentNode); ok {
-		if dd, ok := element.(*expr.DeploymentNode); ok {
-			uses(d.ID, dd.ID, desc, args...)
-		} else {
-			eval.InvalidArgError("deployment node", fmt.Sprintf("%T", element))
-		}
-		return
-	}
-
-	// 3. Relationships between infrastructure node and another deployment
-	// element.
-	if i, ok := eval.Current().(*expr.InfrastructureNode); ok {
-		srcID := i.ID
-		var destID string
-		switch e := element.(type) {
-		case *expr.DeploymentNode:
-			destID = e.ID
-		case *expr.InfrastructureNode:
-			destID = e.ID
-		case *expr.ContainerInstance:
-			destID = e.ID
-		default:
-			eval.InvalidArgError("deployment node, infrastructure node or container instance", fmt.Sprintf("%T", element))
-			return
-		}
-		uses(srcID, destID, desc, args...)
-	}
-
-	// 4. Relationships between container instances.
-	if c, ok := eval.Current().(*expr.ContainerInstance); ok {
-		if cc, ok := element.(*expr.ContainerInstance); ok {
-			uses(c.ID, cc.ID, desc, args...)
-		} else {
-			eval.InvalidArgError("container instance", fmt.Sprintf("%T", element))
-		}
-		return
-	}
-
+	uses(src, dest, desc, args...)
 }
 
 // InteractsWith adds an interaction between a person and another.
@@ -169,7 +117,7 @@ func Uses(element interface{}, desc string, args ...interface{}) {
 //
 func InteractsWith(p *expr.Person, desc string, args ...interface{}) {
 	if c, ok := eval.Current().(*expr.Person); ok {
-		uses(c.ID, p.ID, desc, args...)
+		uses(c.Element, p.Element, desc, args...)
 	}
 }
 
@@ -209,24 +157,24 @@ func InteractsWith(p *expr.Person, desc string, args ...interface{}) {
 //     })
 //
 func Delivers(p *expr.Person, desc string, args ...interface{}) {
-	var srcID string
+	var src *expr.Element
 	switch e := eval.Current().(type) {
 	case *expr.SoftwareSystem:
-		srcID = e.ID
+		src = e.Element
 	case *expr.Container:
-		srcID = e.ID
+		src = e.Element
 	case *expr.Component:
-		srcID = e.ID
+		src = e.Element
 	default:
 		eval.IncompatibleDSL()
 		return
 	}
-	uses(srcID, p.ID, desc, args...)
+	uses(src, p.Element, desc, args...)
 }
 
 // uses adds a relationship between the given source and destination. The caller
 // must make sure that the relationship is valid.
-func uses(srcID, destID string, desc string, args ...interface{}) *expr.Relationship {
+func uses(src, dest *expr.Element, desc string, args ...interface{}) *expr.Relationship {
 	var (
 		technology string
 		style      expr.InteractionStyleKind
@@ -269,10 +217,12 @@ func uses(srcID, destID string, desc string, args ...interface{}) *expr.Relation
 	}
 	rel := &expr.Relationship{
 		Description:      desc,
-		SourceID:         srcID,
-		DestinationID:    destID,
+		SourceID:         src.ID,
+		DestinationID:    dest.ID,
 		Technology:       technology,
 		InteractionStyle: style,
+		Source:           src,
+		Destination:      dest,
 	}
 	if dsl != nil {
 		eval.Execute(dsl, rel)

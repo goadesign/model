@@ -279,11 +279,6 @@ var _ = Workspace("[name]", "[description]", func() {
             Properties(func() {
                 Prop("<name>", "<value">)
             })
-
-            // Adds a uni-directional relationship between this and another deployment node.
-            Uses(DeploymentNode, "<description>", "[technology]", Synchronous /* or Asynchronous */, func() {
-                Tag("<name>", "[name]") // as many tags as needed
-            })
         })
 
         // InfrastructureNode defines an infrastructure node, typically
@@ -299,13 +294,6 @@ var _ = Workspace("[name]", "[description]", func() {
             Properties(func() {
                 Prop("<name>", "<value">)
             })
-
-            // Adds a uni-directional relationship between this and
-            // another deployment element (deployment node,
-            // infrastructure node, or container instance).
-            Uses(DeploymentElement, "<description>", "[technology]", Synchronous /* or Asynchronous */, func() {
-                Tag("<name>", "[name]") // as many tags as needed
-            })
         })
 
         // ContainerInstance defines an instance of the specified
@@ -319,13 +307,6 @@ var _ = Workspace("[name]", "[description]", func() {
             // Properties define an arbitrary set of associated key-value pairs.
             Properties(func() {
                 Prop("<name>", "<value">)
-            })
-
-            // Adds a uni-directional relationship between this and
-            // another deployment element (deployment node,
-            // infrastructure node, or container instance).
-            Uses(DeploymentElement, "<description>", "[technology]", Synchronous /* or Asynchronous */, func() {
-                Tag("<name>", "[name]") // as many tags as needed
             })
 
             // HealthCheck defines a HTTP-based health check for this
@@ -358,14 +339,32 @@ var _ = Workspace("[name]", "[description]", func() {
             // Title of this view.
             Title("<title>")
 
-            // Add given person or element in view and render at given
-            // coordinates. If person or element was already in view (e.g. via
-            // AddAll()) then overrides coordinates. X and Y are optional and
-            // only required if AutoLayout isn't used. If NoRelationships is
-            // specified then relationships are not rendered.
-            Add(PersonOrElement, X, Y, NoRelationships)
+            // AddDefault adds default elements that are relevant for the
+            // specific view:
+            //
+            //    - System landscape view: adds all software systems and people
+            //    - System context view: adds softare system and other related
+            //      software systems and people.
+            //    - Container view: adds all containers in software system as well
+            //      as related software systems and people.
+            //    - Component view: adds all components in container as well as
+            //      related containers, software systems and people.
+            AddDefault()
 
-            // Add given relationship in view. If relationship was already added
+            // Add given person or element to view. If person or element was
+            // already added implictely (e.g. via AddAll()) then overrides how
+            // the person or element is rendered.
+            Add(PersonOrElement, func() {
+
+                // Set explicit coordinates for where to render person or
+                // element.
+                Coord(X, Y)
+
+                // Do not render relationships when rendering person or element.
+                NoRelationships()
+            }
+
+            // Add given relationship to view. If relationship was already added
             // implictely (e.g. via AddAll()) then overrides how the
             // relationship is rendered.
             Add(Source, Destination, func() {
@@ -380,12 +379,6 @@ var _ = Workspace("[name]", "[description]", func() {
     
                 // Position of annotation along line; 0 (start) to 100 (end).
                 Position(50)
-    
-                // Description used in dynamic views.
-                Description("<description>")
-    
-                // Order of relationship in dynamic views, e.g. 1.0, 1.1, 2.0
-                Order("<order>")
             })
 
             // Add all elements and people  in scope to view.
@@ -453,7 +446,7 @@ var _ = Workspace("[name]", "[description]", func() {
         ContainerView(SoftwareSystem, "[key]", "[description]", func() {
             // ... same usage as SystemLandscapeView without EnterpriseBoundaryVisible.
 
-            // All all containers to view.
+            // All all containers in software system to view.
             AddContainers()
 
             // Make software system boundaries visible for "external" containers
@@ -463,6 +456,12 @@ var _ = Workspace("[name]", "[description]", func() {
 
         ComponentView(Container, "[key]", "[description]", func() {
             // ... same usage as SystemLandscapeView without EnterpriseBoundaryVisible.
+
+            // All all containers in software system to view.
+            AddContainers()
+
+            // All all components in container to view.
+            AddComponents()
 
             // Make container boundaries visible for "external" components
             // (those outside the container in scope).
@@ -522,8 +521,25 @@ var _ = Workspace("[name]", "[description]", func() {
             PaperSize(SizeSlide4X3)
 
             // Set of relationships that make up dynamic diagram.
-            Show(Source, Destination)
-            // ...
+            Add(Source, Destination, func() {
+
+                // Vertices lists the x and y coordinate of the vertices used to
+                // render the relationship. The number of arguments must be even.
+                Vertices(10, 20, 10, 40)
+    
+                // Routing algorithm used when rendering relationship, one of
+                // RoutingDirect, RoutingCurved or RoutingOrthogonal.
+                Routing(RoutingOrthogonal)
+    
+                // Position of annotation along line; 0 (start) to 100 (end).
+                Position(50)
+    
+                // Description used in dynamic views.
+                Description("<description>")
+    
+                // Order of relationship in dynamic views, e.g. 1.0, 1.1, 2.0
+                Order("<order>")
+            })
         })
           
         // DynamicView on software system or container uses the corresponding

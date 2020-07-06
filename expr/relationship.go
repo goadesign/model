@@ -28,6 +28,10 @@ type (
 		// ID of container-container relationship upon which this container
 		// instance-container instance relationship is based.
 		LinkedRelationshipID string `json:"linkedRelationshipId"`
+		// Source Element.
+		Source *Element `json:"-"`
+		// Destination Element.
+		Destination *Element `json:"-"`
 	}
 
 	// InteractionStyleKind is the enum for possible interaction styles.

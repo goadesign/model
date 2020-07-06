@@ -5,13 +5,13 @@ softare architecture models following the C4 model (https://c4model.com).
 It is recommended to use "dot import" when using this package to write DSLs,
 for example:
 
-	package model
+    package model
 
-	import . "goa.design/structurizr/dsl"
+    import . "goa.design/structurizr/dsl"
 
-	var _ = Workspace("<name>", "[description]", func() {
-		// ...
-	})
+    var _ = Workspace("<name>", "[description]", func() {
+        // ...
+    })
 
 The DSL can be executed via the eval package. The resulting data structure
 JSON representation is suitable for uploading to the Structurizr service
@@ -26,68 +26,45 @@ general shape of the DSL is:
     ├── Version                         └── Views
     ├── Enterprise                          ├── SystemLandscapeView
     ├── Person                              │   ├── Title
-    │   ├── Tag                             │   ├── Add
-    │   ├── URL                             │   ├── AddAll
-    │   ├── External                        │   ├── AddNeighbors
-    │   ├── Properties                      │   ├── AddContainers
+    │   ├── Tag                             │   ├── AddDefault
+    │   ├── URL                             │   ├── Add
+    │   ├── External                        │   ├── AddAll
+    │   ├── Properties                      │   ├── AddNeighbors
     │   ├── Uses                            │   ├── Remove
-    │   │   └── Tag                         │   ├── RemoveUnreachable
-    │   └── InteractsWith                   │   ├── RemoveUnrelated
-    │       └── Tag                         │   ├── AutoLayout
-    ├── SoftwareSystem                      │   │   ├── RankSeparation
-    │   ├── Tag                             │   │   ├── NodeSeparation
-    │   ├── URL                             │   │   ├── EdgeSeparation
-    │   ├── External                        │   │   └── Vertices
-    │   ├── Properties                      │   ├── AnimationStep
-    │   ├── Uses                            │   ├── PaperSize
-    │   │   └── Tag                         │   └── EnterpriseBoundaryVisible
-    │   └── Delivers                        ├── SystemContextView
-    │       └── Tag                         │   └──  ... same as SystemLandsapeView*
+    │   └── InteractsWith                   │   ├── RemoveUnreachable
+    ├── SoftwareSystem                      │   ├── RemoveUnrelated
+    │   ├── Tag                             │   ├── AutoLayout
+    │   ├── URL                             │   ├── AnimationStep
+    │   ├── External                        │   ├── PaperSize
+    │   ├── Properties                      │   └── EnterpriseBoundaryVisible
+    │   ├── Uses                            ├── SystemContextView
+    │   └── Delivers                        │   └──  ... (same as SystemLandsapeView)
     ├── Container                           ├── ContainerView
-    │   ├── Tag                             │   ├── SystemBoundariesVisible
-    │   ├── URL                             │   └── ... same as SystemLandscapeView*
-    │   ├── Properties                      ├── ComponentView
-    │   ├── Uses                            │   ├── ContainerBoundariesVisible
-    │   │   └── Tag                         │   └── ... same as SystemLandscapeView*
-    │   └── Delivers                        ├── FilteredView
-    │       └── Tag                         │   ├── FilterTag
-    ├── Component                           │   └── Exclude
-    │   ├── Tag                             ├── DynamicView
-    │   ├── URL                             │   ├── Title
-    │   ├── Properties                      │   ├── AutoLayout
-    │   ├── Uses                            │   │   ├── RankSeparation
-    │   │   └── Tag                         │   │   ├── NodeSeparation
-    │   └── Delivers                        │   │   ├── EdgeSeparation
-    │       └── Tag                         │   │   └── Vertices
-    └── DeploymentEnvironment               │   ├── PaperSize
-        ├── DeploymentNode                  │   └── Relationship
-        │   ├── Tag                         ├── DeploymentView
-        │   ├── Instances                   │   └── ... same as SystemLandscapeView*
-        │   ├── URL                         ├── Styles
-        │   ├── Properties                  │   ├── ElementStyle
-        │   └── Uses                        │   │   ├── Shape
-        │       └── Tag                     │   │   ├── Icon
-        ├── InfrastructureNode              │   │   ├── Width
-        │   ├── Tag                         │   │   ├── Height
-	    │   ├── URL                         │   │   ├── Background
-	    │   ├── Uses                        │   │   ├── Color
-	    │   └── Uses                        │   │   ├── Stroke
-	    │       └── Tag                     │   │   ├── FontSize
-	    └── ContainerInstance               │   │   ├── Border
-            ├── Tag                         │   │   ├── Opacity
-            ├── InstanceID                  │   │   ├── Metadata
-            ├── HealthCheck                 │   │   └── Description
-            │   ├── URL                     │   └── RelationshipStyle
-            │   ├── Interval                │       ├── Thickness
-            │   ├── Timeout                 │       ├── Color
-            │   └── Header                  │       ├── Dashed
-            ├── Properties                  │       ├── Routing
-            └── Uses                        │       ├── FontSize
-                └── Tag                     │       ├── Width
-                                            │       └── Opacity
-                                            ├── Theme
-                                            └── Branding
-
-                                            * minus EnterpriseBoundaryVisible
+    │   ├── Tag                             │   ├── AddContainers
+    │   ├── URL                             │   ├── AddInfluencers
+    │   ├── Properties                      │   ├── SystemBoundariesVisible
+    │   ├── Uses                            │   └── ... (same as SystemLandscapeView*)
+    │   └── Delivers                        ├── ComponentView
+    ├── Component                           │   ├── AddContainers
+    │   ├── Tag                             │   ├── AddComponents
+    │   ├── URL                             │   ├── ContainerBoundariesVisible
+    │   ├── Properties                      │   └── ... (same as SystemLandscapeView*)
+    │   ├── Uses                            ├── FilteredViee
+    │   └── Delivers                        │   ├── FilterTag
+    └── DeploymentEnvironment               │   └── Exclude
+        ├── DeploymentNode                  ├── DynamicView
+        │   ├── Tag                         │   ├── Title
+        │   ├── Instances                   │   ├── AutoLayout
+        │   ├── URL                         │   ├── PaperSize
+        │   └── Properties                  │   └── Add
+        ├── InfrastructureNode              ├── DeploymentView
+        │   ├── Tag                         │   └── ... (same as SystemLandscapeView*)
+        │   ├── URL                         ├── Style
+        │   └── Properties                  │   ├── ElementStyle
+        └── ContainerInstance               │   └── RelationshipStyle
+            ├── Tag                         ├── Theme
+            ├── InstanceID                  └── Branding
+            ├── HealthCheck
+            └── Properties                  (* minus EnterpriseBoundaryVisible)
 */
 package dsl

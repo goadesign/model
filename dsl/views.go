@@ -493,6 +493,147 @@ func Title(t string) {
 	}
 }
 
+// Add adds a person, an element or a relationship to a view.
+//
+// Add must appear in SystemLandscapeView, SystemContextView, ContainerView,
+// ComponentView or DynamicView (only relationships can be added to dynamic
+// views).
+//
+// Add takes the person, element or relationship (as defined by the source and
+// destination) as first argument and an optional function as last argument.
+//
+//      Add(PersonOrElement)
+//
+//      Add(PersonOrElement, func())
+//
+//      Add(Source, Destination)
+//
+//      Add(Source, Destination, func())
+//
+// Example:
+//
+//     var _ = Workspace(func() {
+//         var System = SoftwareSystem("Software System", "My software system.")
+//         var Person = Person("Customer", func() {
+//             External()
+//             Uses(System, "Sends emails", "SMTP")
+//         })
+//         Views(func() {
+//             SystemContextView(SoftwareSystem, "context", "An overview diagram.", func() {
+//                 Add(System, func() {
+//                     Coord(10, 10)
+//                     NoRelationships()
+//                 })
+//                 Add(Person, System, func() {
+//                     Vertices(10, 20, 10, 40)
+//                     Routing(RoutingOrthogonal)
+//                     Position(45)
+//                 })
+//             })
+//             DynamicView(SoftwareSystem, "dynamic", func() {
+//                 Title("Customer flow")
+//                 Add(Person, System, func() {
+//                     Vertices(10, 20, 10, 40)
+//                     Routing(RoutingOrthogonal)
+//                     Position(45)
+//                     Description("Customer sends email to support")
+//                     Order("1")
+//                 })
+//             })
+//         })
+//     })
+//
+func Add(first interface{}, rest ...interface{}) {
+	var (
+		per  *expr.Person
+		sys  *expr.SoftwareSystem
+		cont *expr.Container
+		comp *expr.Component
+		rel  *expr.Relationship
+		dsl  func()
+	)
+	if len(rest) > 0 {
+		switch a := rest[0].(type) {
+		case expr.ElementHolder:
+			destID := a.GetElement().ID
+			srcID := first.(expr.ElementHolder).GetElement().ID
+			rel = expr.FindRelationship(srcID, destID)
+			if rel == nil {
+				eval.ReportError("no existing relationship between %s and %s.", first.(eval.Expression).EvalName(), rest[0].(eval.Expression).EvalName())
+				return
+			}
+		case func():
+			dsl = a
+		default:
+			eval.InvalidArgError("person, software system, container, component or function DSL", a)
+			return
+		}
+		if len(rest) > 1 {
+			if d, ok := rest[1].(func()); ok {
+				dsl = d
+			} else {
+				eval.InvalidArgError("function", rest[1])
+				return
+			}
+			if len(rest) > 2 {
+				eval.ReportError("too many arguments")
+			}
+		}
+	}
+	if _, ok := eval.Current().(*expr.DynamicView); ok && rel == nil {
+		eval.ReportError("only relationships may be added to dynamic views")
+		return
+	}
+	switch a := first.(type) {
+	case *expr.Person:
+		per = a
+	case *expr.SoftwareSystem:
+		sys = a
+	case *expr.Container:
+		cont = a
+	case *expr.Component:
+		comp = a
+	default:
+		eval.InvalidArgError("person, software system, container or component", a)
+		return
+	}
+
+	vh, ok := eval.Current().(expr.ViewHolder)
+	if !ok {
+		eval.IncompatibleDSL()
+	}
+	v := vh.GetView()
+	switch {
+	case per != nil:
+		v.AddPeople(per)
+	case sys != nil:
+		v.AddSoftwareSystems(sys)
+	case cont != nil:
+		v.AddContainers(cont)
+	case comp != nil:
+		v.AddComponents(comp)
+	case rel != nil:
+		v.AddRelationships(rel)
+	}
+
+	// Execute DSL last so that relationships that may be removed are not added
+	// back.
+	if dsl != nil {
+		switch {
+		case per != nil:
+			eval.Execute(dsl, v.GetElementView(per.ID))
+		case sys != nil:
+			eval.Execute(dsl, v.GetElementView(sys.ID))
+		case cont != nil:
+			eval.Execute(dsl, v.GetElementView(cont.ID))
+		case comp != nil:
+			eval.Execute(dsl, v.GetElementView(comp.ID))
+		case rel != nil:
+			eval.Execute(dsl, v.GetRelationshipView(rel.ID))
+		}
+	}
+}
+
 // AddAll includes all elements and relationships in scope to the view.
 //
 // AddAll may appear in SystemLandscapeView, SystemContextView, ContainerView,
@@ -500,35 +641,387 @@ func Title(t string) {
 //
 // AddAll takes no argument.
 //
+// Example:
+//
+//     var _ = Workspace(func() {
+//         var System = SoftwareSystem("Software System", "My software system.")
+//         var Person = Person("Customer", func() {
+//             External()
+//             Uses(System, "Sends emails", "SMTP")
+//         })
+//         Views(func() {
+//             SystemContextView(SoftwareSystem, "context", "An overview diagram.", func() {
+//                 AddAll()
+//             })
+//         })
+//     })
+//
 func AddAll() {
 	model := expr.Root.Model
 	switch v := eval.Current().(type) {
 	case *expr.LandscapeView:
-		v.Merge(elementViews(model.PeopleElements()))
-		v.Merge(elementViews(model.SystemElements()))
+		v.AddPeople(model.People...)
+		v.AddSoftwareSystems(model.Systems...)
 	case *expr.ContextView:
-		v.Merge(elementViews(model.PeopleElements()))
-		v.Merge(elementViews(model.SystemElements()))
+		v.AddPeople(model.People...)
+		v.AddSoftwareSystems(model.Systems...)
 	case *expr.ContainerView:
-		v.Merge(elementViews(model.PeopleElements()))
-		v.Merge(elementViews(model.SystemElements()))
-		cs := expr.Registry[v.SoftwareSystemID].(*expr.SoftwareSystem).ContainerElements()
-		v.Merge(elementViews(cs))
+		v.AddPeople(model.People...)
+		v.AddSoftwareSystems(model.Systems...)
+		AddContainers()
 	case *expr.ComponentView:
-	case *expr.DynamicView:
-	case *expr.DeploymentView:
+		v.AddPeople(model.People...)
+		v.AddSoftwareSystems(model.Systems...)
+		AddContainers()
+		AddComponents()
 	default:
 		eval.IncompatibleDSL()
 	}
 }
 
-// elementViews is a helper method that converts the given elements to views.
-func elementViews(elements []*expr.Element) []*expr.ElementView {
-	res := make([]*expr.ElementView, len(elements))
-	for i, e := range elements {
-		res[i] = &expr.ElementView{ID: e.ID}
+// AddNeighbors Adds all of the permitted elements which are directly connected
+// to the specified element to the view. Permitted elements are software
+// systems and people for system landscape and system context views, software
+// systems, people and containers for container views and software system,
+// people, containers and components for component views.
+//
+// AddNeighbors must appear in SystemLandscapeView, SystemContextView,
+// ContainerView or ComponentView.
+//
+// AddNeighbors accept a single argument which is the element that should be
+// added with its direct relationships. It must be a software system or person
+// for system landscape and system context views, a software system, person or
+// container for container views or a software system, person, container or
+// component for component views.
+//
+// Example:
+//
+//     var _ = Workspace(func() {
+//         var System = SoftwareSystem("Software System", "My software system.")
+//         var Customer = Person("Customer", func() {
+//             External()
+//             Uses(System, "Sends emails", "SMTP")
+//         })
+//         Views(func() {
+//             SystemContextView(SoftwareSystem, "context", "An overview diagram.", func() {
+//                 AddNeighbors(System)
+//                 AddNeighbors(Customer)
+//             })
+//         })
+//     })
+//
+func AddNeighbors(element interface{}) {
+	var (
+		elt        *expr.Element
+		cont, comp bool
+	)
+	switch e := element.(type) {
+	case *expr.Person:
+		elt = e.Element
+	case *expr.SoftwareSystem:
+		elt = e.Element
+	case *expr.Container:
+		elt = e.Element
+		cont = true
+	case *expr.Component:
+		elt = e.Element
+		comp = true
+	default:
+		eval.InvalidArgError("person, software system, container or component", element)
+		return
 	}
-	return res
+	switch v := eval.Current().(type) {
+	case *expr.LandscapeView:
+		if cont || comp {
+			eval.ReportError("AddNeighbors in a software landscape view must be given a software system or a person.")
+			return
+		}
+		v.AddPeople(elt.RelatedPeople()...)
+		v.AddSoftwareSystems(elt.RelatedSoftwareSystems()...)
+	case *expr.ContextView:
+		if cont || comp {
+			eval.ReportError("AddNeighbors in a software context view must be given a software system or a person.")
+			return
+		}
+		v.AddPeople(elt.RelatedPeople()...)
+		v.AddSoftwareSystems(elt.RelatedSoftwareSystems()...)
+	case *expr.ContainerView:
+		if comp {
+			eval.ReportError("AddNeighbors in a container view must be given a person, software system or a container.")
+			return
+		}
+		v.AddPeople(elt.RelatedPeople()...)
+		v.AddSoftwareSystems(elt.RelatedSoftwareSystems()...)
+		v.AddContainers(elt.RelatedContainers()...)
+	case *expr.ComponentView:
+		v.AddPeople(elt.RelatedPeople()...)
+		v.AddSoftwareSystems(elt.RelatedSoftwareSystems()...)
+		v.AddContainers(elt.RelatedContainers()...)
+		v.AddComponents(elt.RelatedComponents()...)
+	default:
+		eval.IncompatibleDSL()
+	}
+}
+
+// AddDefault adds default elements that are relevant for the specific view:
+//
+//    - System landscape view: adds all software systems and people
+//    - System context view: adds softare system and other related software systems
+//      and people.
+//    - Container view: adds all containers in software system as well as related
+//      software systems and people.
+//    - Component view: adds all components in container as well as related
+//      containers, software systems and people.
+//
+// AddDefault must appear in SystemLandscapeView, SystemContextView,
+// ContainerView or ComponentView.
+//
+// AddDefault takes no argument.
+//
+// Example:
+//
+//     var _ = Workspace(func() {
+//         var System = SoftwareSystem("Software System", "My software system.")
+//         var Customer = Person("Customer", func() {
+//             External()
+//             Uses(System, "Sends emails", "SMTP")
+//         })
+//         Views(func() {
+//             SystemContextView(SoftwareSystem, "context", "An overview diagram.", func() {
+//                 AddDefault()
+//             })
+//         })
+//     })
+//
+func AddDefault() {
+	switch v := eval.Current().(type) {
+	case *expr.LandscapeView:
+		AddAll()
+	case *expr.ContextView:
+		AddNeighbors(expr.GetSoftwareSystem(v.SoftwareSystemID))
+	case *expr.ContainerView:
+		s := expr.GetSoftwareSystem(v.SoftwareSystemID)
+		v.AddContainers(s.Containers...)
+		for _, c := range s.Containers {
+			v.AddSoftwareSystems(c.RelatedSoftwareSystems()...)
+			v.AddPeople(c.RelatedPeople()...)
+		}
+	case *expr.ComponentView:
+		c := expr.GetContainer(v.ContainerID)
+		v.AddComponents(c.Components...)
+		for _, c := range c.Components {
+			v.AddContainers(c.RelatedContainers()...)
+			v.AddSoftwareSystems(c.RelatedSoftwareSystems()...)
+			v.AddPeople(c.RelatedPeople()...)
+		}
+	default:
+		eval.IncompatibleDSL()
+	}
+}
+
+// Remove given person, element or relationship from view. Alternatively remove
+// all persons, elements and relationships tagged with the given tag.
+//
+// Remove must appear in SystemLandscapeView, SystemContextView,
+// ContainerView or ComponentView.
+//
+// Remove takes one or two argument: the first argument must be a person, an
+// element or a tag value. The second argument is needed when removing
+// relationships and indicates the destination of the relationship (the first
+// argument is the source in this case).
+//
+// Usage:
+//
+//     Remove(PersonOrElement)
+//
+//     Remove(Source, Destination)
+//
+//     Remove("<tag>")
+//
+// Example:
+//
+//     var _ = Workspace(func() {
+//         var System = SoftwareSystem("Software System", "My software system.")
+//         var Customer = Person("Customer", func() {
+//             External()
+//             Uses(System, "Sends emails", "SMTP")
+//         })
+//         Container(System, "Unwanted", func() {
+//             Tag("irrelevant")
+//         })
+//         Views(func() {
+//             SystemContextView(SoftwareSystem, "context", "An overview diagram.", func() {
+//                 AddDefault()
+//                 Remove(Customer)
+//                 Remove(Customer, System)
+//                 Remove("irrelevant")
+//             })
+//         })
+//     })
+//
+func Remove(e interface{}, dest ...interface{}) {
+	if len(dest) > 1 {
+		eval.ReportError("too many arguments")
+		return
+	}
+
+	var destID string
+	if len(dest) > 0 {
+		if eh, ok := dest[0].(expr.ElementHolder); ok {
+			destID = eh.GetElement().ID
+		} else {
+			eval.InvalidArgError("person, software system, container or component", dest[0])
+			return
+		}
+	}
+
+	var id, tag string
+	switch a := e.(type) {
+	case expr.ElementHolder:
+		id = a.GetElement().ID
+	case string:
+		tag = a
+	default:
+		eval.InvalidArgError("string, person, software system, container or component", e)
+		return
+	}
+	if destID != "" {
+		if tag != "" {
+			eval.ReportError("only one argument allowed when using a tag as first argument")
+			return
+		}
+		if r := expr.FindRelationship(id, destID); r != nil {
+			id = r.ID
+		} else {
+			eval.ReportError("no existing relationship with source %s and destination %s", e.(eval.Expression).EvalName(), dest[0].(eval.Expression).EvalName())
+			return
+		}
+	}
+
+	if vh, ok := eval.Current().(expr.ViewHolder); ok {
+		if id != "" {
+			vh.GetView().Remove(id)
+		} else {
+			vh.GetView().RemoveTagged(tag)
+		}
+	} else {
+		eval.IncompatibleDSL()
+	}
+}
+
+// RemoveUnreachable removes all elements and people that cannot be reached by
+// traversing the graph of relationships starting with the given element or
+// person.
+//
+// RemoveUnreachable must appear in SystemLandscapeView, SystemContextView,
+// ContainerView or ComponentView.
+//
+// RemoveUnreachable takes one argument: the person or element from which the
+// graph traversal should be initiated.
+//
+// Example:
+//
+//     var _ = Workspace(func() {
+//         var System = SoftwareSystem("Software System", "My software system.")
+//         var OtherSystem = SoftwareSystem("Other software System")
+//         var Customer = Person("Customer", func() {
+//             External()
+//             Uses(System, "Sends emails", "SMTP")
+//         })
+//         Views(func() {
+//             SystemContextView(SoftwareSystem, "context", "An overview diagram.", func() {
+//                 AddDefault()
+//                 RemoveUnreachable(System) // Removes OtherSystem
+//             })
+//         })
+//     })
+//
+func RemoveUnreachable(e interface{}) {
+	var elt *expr.Element
+	if eh, ok := e.(expr.ElementHolder); ok {
+		elt = eh.GetElement()
+	} else {
+		eval.InvalidArgError("person, software system, container or component", e)
+		return
+	}
+	if vh, ok := eval.Current().(expr.ViewHolder); ok {
+		vh.GetView().RemoveUnreachable(elt)
+	} else {
+		eval.IncompatibleDSL()
+	}
+}
+
+// RemoveUnrelated removes all elements that have no relationship to other
+// elements in the view.
+//
+// RemoveUnrelated must appear in SystemLandscapeView, SystemContextView,
+// ContainerView or ComponentView.
+//
+// RemoveUnrelated takes no argument.
+//
+// Example:
+//
+//     var _ = Workspace(func() {
+//         var System = SoftwareSystem("Software System", "My software system.")
+//         var OtherSystem = SoftwareSystem("Other software System")
+//         var Customer = Person("Customer", func() {
+//             External()
+//             Uses(System, "Sends emails", "SMTP")
+//         })
+//         Views(func() {
+//             SystemContextView(SoftwareSystem, "context", "An overview diagram.", func() {
+//                 AddDefault()
+//                 RemoveUnrelated()) // Removes OtherSystem
+//             })
+//         })
+//     })
+//
+func RemoveUnrelated() {
+	if vh, ok := eval.Current().(expr.ViewHolder); ok {
+		vh.GetView().RemoveUnrelated()
+	} else {
+		eval.IncompatibleDSL()
+	}
+}
+
+// AutoLayout enables automatic layout mode for the diagram. The
+// first argument indicates the rank direction, it must be one of
+// RankTopBottom, RankBottomTop, RankLeftRight or RankRightLeft
+//
+// AutoLayout must appear in SystemLandscapeView, SystemContextView,
+
+// ContainerView or ComponentView.
+
+// AddContainers includes all containers in scope to the view.
+//
+// AddContainers may appear in ContainerView or ComponentView.
+//
+// AddContainers takes no argument.
+//
+func AddContainers() {
+	switch v := eval.Current().(type) {
+	case *expr.ContainerView:
+		v.AddContainers(expr.GetSoftwareSystem(v.SoftwareSystemID).Containers...)
+	case *expr.ComponentView:
+		c := expr.GetContainer(v.ContainerID)
+		v.AddContainers(c.System.Containers...)
+	default:
+		eval.IncompatibleDSL()
+	}
+}
+
+// AddComponents includes all components in scope to the view.
+//
+// AddComponents must appear in ComponentView.
+//
+// AddComponents takes no argument
+//
+func AddComponents() {
+	if cv, ok := eval.Current().(*expr.ComponentView); ok {
+		cv.AddComponents(expr.GetContainer(cv.ContainerID).Components...)
+		return
+	}
+	eval.IncompatibleDSL()
 }
 
 // parseView is a helper function that parses the given view DSL
@@ -549,7 +1042,7 @@ func parseView(args ...interface{}) (key, description string, dsl func()) {
 	case func():
 		dsl = a
 	default:
-		eval.InvalidArgError("key or DSL function", args[0])
+		eval.InvalidArgError("string or function", args[0])
 	}
 	if len(args) > 1 {
 		if dsl != nil {
@@ -561,7 +1054,7 @@ func parseView(args ...interface{}) (key, description string, dsl func()) {
 		case func():
 			dsl = a
 		default:
-			eval.InvalidArgError("desciption or DSL function", args[1])
+			eval.InvalidArgError("string or function", args[1])
 		}
 		if len(args) > 2 {
 			if dsl != nil {
@@ -570,7 +1063,7 @@ func parseView(args ...interface{}) (key, description string, dsl func()) {
 			if d, ok := args[2].(func()); ok {
 				dsl = d
 			} else {
-				eval.InvalidArgError("DSL function", args[2])
+				eval.InvalidArgError("function", args[2])
 			}
 			if len(args) > 3 {
 				eval.ReportError("too many arguments")

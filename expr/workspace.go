@@ -70,3 +70,8 @@ func (w *Workspace) Packages() []string {
 		fmt.Sprintf("goa.design/plugins/v3@%s/structurizr/dsl", goa.Version()),
 	}
 }
+
+// EvalName returns the generic expression name used in error messages.
+func (w *Workspace) EvalName() string {
+	return "Structurizr workspace"
+}
