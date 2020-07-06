@@ -362,7 +362,7 @@ var _ = Workspace("[name]", "[description]", func() {
 
                 // Do not render relationships when rendering person or element.
                 NoRelationships()
-            }
+            })
 
             // Add given relationship to view. If relationship was already added
             // implictely (e.g. via AddAll()) then overrides how the
