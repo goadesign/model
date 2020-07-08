@@ -23,6 +23,8 @@ type (
 		DeploymentViews []*DeploymentView `json:"deploymentViews,omitempty"`
 		// FilteredViews lists the filtered views.
 		FilteredViews []*FilteredView `json:"filteredViews,omitempty"`
+		// Styles contains the element and relationship styles.
+		Configuration *Configuration `json:"configuration"`
 		// DSL to be run once all elements have been evaluated.
 		DSL func() `json:"-"`
 	}

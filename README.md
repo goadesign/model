@@ -420,7 +420,7 @@ var _ = Workspace("[name]", "[description]", func() {
                 EdgeSeparation(200) 
 
                 // Create vertices during automatic layout, false by default.
-                Vertices()
+                RenderVertices()
             }) 
 
             // Animation defines an animation step consisting of the
