@@ -54,7 +54,7 @@ type (
 		ViewProps
 		// Specifies whether software system boundaries should be visible for
 		// "external" containers (those outside the software system in scope).
-		ExternalSoftwareSystemBoundariesVisible bool `json:"externalSoftwareSystemBoundariesVisible"`
+		SystemBoundariesVisible bool `json:"externalSoftwareSystemBoundariesVisible"`
 		// SoftwareSystemID is the ID of the software system this view with is
 		// associated with.
 		SoftwareSystemID string `json:"softwareSystemId"`
@@ -65,7 +65,7 @@ type (
 		ViewProps
 		// Specifies whether container boundaries should be visible for
 		// "external" containers (those outside the container in scope).
-		ExternalContainerBoundariesVisible bool `json:"externalContainersBoundariesVisible"`
+		ContainerBoundariesVisible bool `json:"externalContainersBoundariesVisible"`
 		// The ID of the container this view is associated with.
 		ContainerID string `json:"containerID"`
 	}
@@ -175,6 +175,27 @@ func (vs *Views) Validate() error {
 	}
 
 	return verr
+}
+
+// Finalize remove relationships from elements with NoRelationship set to true.
+func (vs *Views) Finalize() {
+	for _, vp := range vs.all() {
+		for _, ev := range vp.ElementViews {
+			if ev.NoRelationship {
+				i := 0
+				for _, rv := range vp.RelationshipViews {
+					if rv.Relationship.SourceID != ev.ID && rv.Relationship.DestinationID != ev.ID {
+						vp.RelationshipViews[i] = rv
+						i++
+					}
+				}
+				for j := i; j < len(vp.RelationshipViews); j++ {
+					vp.RelationshipViews[j] = nil
+				}
+				vp.RelationshipViews = vp.RelationshipViews[:i]
+			}
+		}
+	}
 }
 
 // all returns all the views in a single slice.

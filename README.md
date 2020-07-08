@@ -361,7 +361,7 @@ var _ = Workspace("[name]", "[description]", func() {
                 Coord(X, Y)
 
                 // Do not render relationships when rendering person or element.
-                NoRelationships()
+                NoRelationship()
             })
 
             // Add given relationship to view. If relationship was already added
@@ -410,16 +410,16 @@ var _ = Workspace("[name]", "[description]", func() {
             // RankTopBottom, RankBottomTop, RankLeftRight or RankRightLeft.
             AutoLayout(RankTopBottom, func() {
 
-                // Separation between ranks in pixels
-                RankSeparation(200)
+                // Separation between ranks in pixels, defaults to 300.
+                RankSeparation(300)
 
-                // Separation between nodes in the same rank in pixels
-                NodeSeparation(200) 
+                // Separation between nodes in the same rank in pixels, defaults to 600.
+                NodeSeparation(600) 
 
-                // Separation between edges in pixels
-                EdgeSeparation(10) 
+                // Separation between edges in pixels, defaults to 200.
+                EdgeSeparation(200) 
 
-                // Create vertices during automatic layout.
+                // Create vertices during automatic layout, false by default.
                 Vertices()
             }) 
 

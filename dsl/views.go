@@ -22,6 +22,51 @@ const (
 	RankRightLeft = expr.RankRightLeft
 )
 
+const (
+	// SizeA0Landscape defines a render page size of A0 in landscape mode (46-13/16 x 33-1/8).
+	SizeA0Landscape = expr.SizeA0Landscape
+	// SizeA0Portrait defines a render page size of A0 in portrait mode (33-1/8 x 46-13/16).
+	SizeA0Portrait = expr.SizeA0Portrait
+	// SizeA1Landscape defines a render page size of A1 in landscape mode (33-1/8 x 23-3/8).
+	SizeA1Landscape = expr.SizeA1Landscape
+	// SizeA1Portrait defines a render page size of A1 in portrait mode (23-3/8 x 33-1/8).
+	SizeA1Portrait = expr.SizeA1Portrait
+	// SizeA2Landscape defines a render page size of A2 in landscape mode (23-3/8 x 16-1/2).
+	SizeA2Landscape = expr.SizeA2Landscape
+	// SizeA2Portrait defines a render page size of A2 in portrait mode (16-1/2 x 23-3/8).
+	SizeA2Portrait = expr.SizeA2Portrait
+	// SizeA3Landscape defines a render page size of A3 in landscape mode (16-1/2 x 11-3/4).
+	SizeA3Landscape = expr.SizeA3Landscape
+	// SizeA3Portrait defines a render page size of A3 in portrait mode (11-3/4 x 16-1/2).
+	SizeA3Portrait = expr.SizeA3Portrait
+	// SizeA4Landscape defines a render page size of A4 in landscape mode (11-3/4 x 8-1/4).
+	SizeA4Landscape = expr.SizeA4Landscape
+	// SizeA4Portrait defines a render page size of A4 in portrait mode (8-1/4 x 11-3/4).
+	SizeA4Portrait = expr.SizeA4Portrait
+	// SizeA5Landscape defines a render page size of A5 in landscape mode (8-1/4  x 5-7/8).
+	SizeA5Landscape = expr.SizeA5Landscape
+	// SizeA5Portrait defines a render page size of A5 in portrait mode (5-7/8 x 8-1/4).
+	SizeA5Portrait = expr.SizeA5Portrait
+	// SizeA6Landscape defines a render page size of A6 in landscape mode (4-1/8 x 5-7/8).
+	SizeA6Landscape = expr.SizeA6Landscape
+	// SizeA6Portrait defines a render page size of A6 in portrait mode (5-7/8 x 4-1/8).
+	SizeA6Portrait = expr.SizeA6Portrait
+	// SizeLegalLandscape defines a render page size of Legal in landscape mode (14 x 8-1/2).
+	SizeLegalLandscape = expr.SizeLegalLandscape
+	// SizeLegalPortrait defines a render page size of Legal in portrait mode (8-1/2 x 14).
+	SizeLegalPortrait = expr.SizeLegalPortrait
+	// SizeLetterLandscape defines a render page size of Letter in landscape mode (11 x 8-1/2).
+	SizeLetterLandscape = expr.SizeLetterLandscape
+	// SizeLetterPortrait defines a render page size of Letter in portrait mode (8-1/2 x 11).
+	SizeLetterPortrait = expr.SizeLetterPortrait
+	// SizeSlide16X10 defines a render page size ratio of 16 x 10.
+	SizeSlide16X10 = expr.SizeSlide16X10
+	// SizeSlide16X9 defines a render page size ratio of 16 x 9.
+	SizeSlide16X9 = expr.SizeSlide16X9
+	// SizeSlide4X3 defines a render page size ratio of 4 x 3.
+	SizeSlide4X3 = expr.SizeSlide4X3
+)
+
 // Views defines one or more views.
 //
 // Views takes one argument: the function that defines the views.
@@ -803,6 +848,108 @@ func AddDefault() {
 	}
 }
 
+// AddContainers includes all containers in scope to the view.
+//
+// AddContainers may appear in ContainerView or ComponentView.
+//
+// AddContainers takes no argument.
+//
+func AddContainers() {
+	switch v := eval.Current().(type) {
+	case *expr.ContainerView:
+		v.AddElements(expr.GetSoftwareSystem(v.SoftwareSystemID).Containers.Elements()...)
+	case *expr.ComponentView:
+		c := expr.GetContainer(v.ContainerID)
+		v.AddElements(c.System.Containers.Elements()...)
+	default:
+		eval.IncompatibleDSL()
+	}
+}
+
+// AddInfluencers adds all containers of the ContainerView as well as all
+// external influencers, that is all persons and all other software systems with
+// incoming or outgoing dependencies. Additionally, all relationships of
+// external dependencies are omitted to keep the diagram clean.
+//
+// AddInfluencers must appear in ContainerView.
+//
+// AddInfluencers takes no argument.
+//
+func AddInfluencers() {
+	cv, ok := eval.Current().(*expr.ContainerView)
+	if !ok {
+		eval.IncompatibleDSL()
+		return
+	}
+
+	system := expr.GetSoftwareSystem(cv.SoftwareSystemID)
+	model := expr.Root.Model
+	for _, s := range model.Systems {
+		for _, r := range s.Rels {
+			if r.DestinationID == cv.SoftwareSystemID {
+				cv.AddElements(s)
+			}
+		}
+		for _, r := range system.Rels {
+			if r.DestinationID == s.ID {
+				cv.AddElements(s)
+			}
+		}
+	}
+
+	for _, p := range model.People {
+		for _, r := range p.Rels {
+			if r.DestinationID == cv.SoftwareSystemID {
+				cv.AddElements(p)
+			}
+		}
+		for _, r := range system.Rels {
+			if r.DestinationID == p.ID {
+				cv.AddElements(p)
+			}
+		}
+	}
+
+	for i, rv := range cv.RelationshipViews {
+		src := rv.Relationship.Source
+		var keep bool
+		if keep = src.ID == cv.SoftwareSystemID; !keep {
+			if c := expr.GetContainer(src.ID); c != nil {
+				keep = c.System.ID == cv.SoftwareSystemID
+			} else if c := expr.GetComponent(src.ID); c != nil {
+				keep = c.Container.System.ID == cv.SoftwareSystemID
+			}
+		}
+		if !keep {
+			dest := rv.Relationship.Destination
+			if keep = dest.ID == cv.SoftwareSystemID; !keep {
+				if c := expr.GetContainer(dest.ID); c != nil {
+					keep = c.System.ID == cv.SoftwareSystemID
+				} else if c := expr.GetComponent(dest.ID); c != nil {
+					keep = c.Container.System.ID == cv.SoftwareSystemID
+				}
+			}
+		}
+		if !keep {
+			cv.RelationshipViews = append(cv.RelationshipViews[:i], cv.RelationshipViews[i+1:]...)
+		}
+	}
+}
+
+// AddComponents includes all components in scope to the view.
+//
+// AddComponents must appear in ComponentView.
+//
+// AddComponents takes no argument
+//
+func AddComponents() {
+	if cv, ok := eval.Current().(*expr.ComponentView); ok {
+		cv.AddElements(expr.GetContainer(cv.ContainerID).Components.Elements()...)
+		return
+	}
+	eval.IncompatibleDSL()
+}
+
 // Remove given person, element or relationship from view. Alternatively remove
 // all persons, elements and relationships tagged with the given tag.
 //
@@ -1020,7 +1167,12 @@ func AutoLayout(rank expr.RankDirectionKind, args ...func()) {
 			eval.ReportError("too many arguments")
 		}
 	}
-	layout := &expr.Layout{RankDirection: rank}
+	layout := &expr.Layout{
+		RankDirection: rank,
+		RankSep:       300,
+		NodeSep:       600,
+		EdgeSep:       200,
+	}
 	if dsl != nil {
 		eval.Execute(dsl, layout)
 	}
@@ -1079,33 +1231,377 @@ func Animation(args ...interface{}) {
 	}
 }
 
-// AddContainers includes all containers in scope to the view.
+// PaperSize defines the paper size that should be used to render
+// the view.
 //
-// AddContainers may appear in ContainerView or ComponentView.
+// PaperSize must appear in SystemLandscapeView, SystemContextView,
+// ContainerView, ComponentView, DynamicView or DeploymentView.
 //
-// AddContainers takes no argument.
+// PaperSize accepts a single argument: the paper size. The possible values for
+// the argument follow the patterns SizeA[0-6][Portrait|Landscape],
+// SizeLetter[Portrait|Landscape] or SizeLegal[Portrait_Landscape].
+// Alternatively the argument may be one of SizeSlide4X3, SizeSlide16X9 or
+// SizeSlide16X10.
 //
-func AddContainers() {
+// Example
+//
+//     var _ = Workspace(func() {
+//         var System = SoftwareSystem("Software System", "My software system.")
+//         var OtherSystem = SoftwareSystem("Other software System")
+//         var Customer = Person("Customer", func() {
+//             External()
+//             Uses(System, "Sends emails", "SMTP")
+//         })
+//         Views(func() {
+//             SystemContextView(SoftwareSystem, "context", "An overview diagram.", func() {
+//                 AddDefault()
+//                 PaperSize(SizeSlide4X3)
+//             })
+//         })
+//     })
+//
+func PaperSize(size expr.PaperSizeKind) {
+	v, ok := eval.Current().(expr.View)
+	if !ok {
+		eval.IncompatibleDSL()
+		return
+	}
+	v.Props().PaperSize = size
+}
+
+// EnterpriseBoundaryVisible makes the enterprise boundary visible to differentiate internal
+// elements from external elements on the resulting diagram.
+//
+// EnterpriseBoundaryVisible must appear in SystemLandscapeView or SystemContextView.
+//
+// EnterpriseBoundaryVisible takes no argument
+func EnterpriseBoundaryVisible() {
 	switch v := eval.Current().(type) {
-	case *expr.ContainerView:
-		v.AddElements(expr.GetSoftwareSystem(v.SoftwareSystemID).Containers.Elements()...)
-	case *expr.ComponentView:
-		c := expr.GetContainer(v.ContainerID)
-		v.AddElements(c.System.Containers.Elements()...)
+	case *expr.LandscapeView:
+		v.EnterpriseBoundaryVisible = true
+	case *expr.ContextView:
+		v.EnterpriseBoundaryVisible = true
 	default:
 		eval.IncompatibleDSL()
 	}
 }
 
-// AddComponents includes all components in scope to the view.
+// SystemBoundariesVisible makes the system boundaries visible for "external" containers
+// (those outside the software system in scope)
 //
-// AddComponents must appear in ComponentView.
+// SystemBoundariesVisible must appear in ContainerView.
 //
-// AddComponents takes no argument
+// SystemBoundariesVisible takes no argument
+func SystemBoundariesVisible() {
+	if v, ok := eval.Current().(*expr.ContainerView); ok {
+		v.SystemBoundariesVisible = true
+		return
+	}
+	eval.IncompatibleDSL()
+}
+
+// ContainerBoundariesVisible makes the enterprise boundary visible to differentiate internal
+// elements from external elements on the resulting diagram.
 //
-func AddComponents() {
-	if cv, ok := eval.Current().(*expr.ComponentView); ok {
-		cv.AddElements(expr.GetContainer(cv.ContainerID).Components.Elements()...)
+// ContainerBoundariesVisible must appear in ComponentView.
+//
+// ContainerBoundariesVisible takes no argument
+func ContainerBoundariesVisible() {
+	if v, ok := eval.Current().(*expr.ComponentView); ok {
+		v.ContainerBoundariesVisible = true
+		return
+	}
+	eval.IncompatibleDSL()
+}
+
+// Coord defines explicit coordinates for where to render a person or element.
+//
+// Coord must appear in Add.
+//
+// Coord takes two arguments: the X and Y where the person or element is rendered.
+//
+// Example:
+//
+//     var _ = Workspace(func() {
+//         var System = SoftwareSystem("Software System", "My software system.")
+//         var OtherSystem = SoftwareSystem("Other software System")
+//         var Customer = Person("Customer", func() {
+//             External()
+//             Uses(System, "Sends emails", "SMTP")
+//         })
+//         Views(func() {
+//             SystemContextView(SoftwareSystem, "context", "An overview diagram.", func() {
+//                 Add(Customer, func() {
+//                     Coord(200,200)
+//                 })
+//             })
+//         })
+//     })
+//
+func Coord(x, y int) {
+	if ev, ok := eval.Current().(*expr.ElementView); ok {
+		ev.X = x
+		ev.Y = y
+		return
+	}
+	eval.IncompatibleDSL()
+}
+
+// NoRelationship indicates that no relationship should be rendered to and from the person or element.
+//
+// NoRelationship must appear in Add.
+//
+// NoRelationship takes no argument.
+//
+// Example:
+//
+//     var _ = Workspace(func() {
+//         var System = SoftwareSystem("Software System", "My software system.")
+//         var OtherSystem = SoftwareSystem("Other software System")
+//         var Customer = Person("Customer", func() {
+//             External()
+//             Uses(System, "Sends emails", "SMTP")
+//         })
+//         Views(func() {
+//             SystemContextView(SoftwareSystem, "context", "An overview diagram.", func() {
+//                 Add(Customer, func() {
+//                     NoRelationship()
+//                 })
+//             })
+//         })
+//     })
+//
+func NoRelationship() {
+	if ev, ok := eval.Current().(*expr.ElementView); ok {
+		ev.NoRelationship = true
+		return
+	}
+	eval.IncompatibleDSL()
+}
+
+// Vertices lists the x and y coordinate of the vertices used to
+// render the relationship.
+//
+// Vertices must appear in Add when adding relationships.
+//
+// Vertices takes the x and y coordinates of the vertices as argument. The
+// number of arguments must be even.
+//
+// Example:
+//
+//     var _ = Workspace(func() {
+//         var System = SoftwareSystem("Software System", "My software system.")
+//         var Customer = Person("Customer", func() {
+//             External()
+//             Uses(System, "Sends emails", "SMTP")
+//         })
+//         Views(func() {
+//             SystemContextView(SoftwareSystem, "context", "An overview diagram.", func() {
+//                 Add(Customer, System, func() {
+//                     Vertices(300, 100, 400, 200)
+//                 })
+//             })
+//         })
+//     })
+//
+func Vertices(args ...int) {
+	if len(args)%2 != 0 {
+		eval.ReportError("Vertices must be given an even number of arguments")
+	}
+	rv, ok := eval.Current().(*expr.RelationshipView)
+	if !ok {
+		eval.IncompatibleDSL()
+	}
+	for i := 0; i < len(args); i += 2 {
+		rv.Vertices = append(rv.Vertices, &expr.Vertex{args[i], args[i+1]})
+	}
+}
+
+// Routing algorithm used when rendering relationship, defaults to
+// RoutingOrthogonal.
+//
+// Routing must appear in a Add expression that adds a relationship.
+//
+// Routing takes one argument: one of RoutingDirect, RoutingCurved or
+// RoutingOrthogonal.
+//
+// Example:
+//
+//     var _ = Workspace(func() {
+//         var System = SoftwareSystem("Software System", "My software system.")
+//         var Customer = Person("Customer", func() {
+//             External()
+//             Uses(System, "Sends emails", "SMTP")
+//         })
+//         Views(func() {
+//             SystemContextView(SoftwareSystem, "context", "An overview diagram.", func() {
+//                 Add(Customer, System, func() {
+//                     Routing(RoutingDirect)
+//                 })
+//             })
+//         })
+//     })
+//
+func Routing(k expr.RoutingKind) {
+	if rv, ok := eval.Current().(*expr.RelationshipView); ok {
+		rv.Routing = k
+		return
+	}
+	eval.IncompatibleDSL()
+}
+
+// Position sets the position of a relationship annotation along the line.
+//
+// Position must appear in a Add expression that adds a relationship.
+//
+// Position takes one argument: the position value between 0 (start of line) and
+// 100 (end of line).
+//
+// Example:
+//
+//     var _ = Workspace(func() {
+//         var System = SoftwareSystem("Software System", "My software system.")
+//         var Customer = Person("Customer", func() {
+//             External()
+//             Uses(System, "Sends emails", "SMTP")
+//         })
+//         Views(func() {
+//             SystemContextView(SoftwareSystem, "context", "An overview diagram.", func() {
+//                 Add(Customer, System, func() {
+//                     Position(40)
+//                 })
+//             })
+//         })
+//     })
+//
+func Position(p int) {
+	if p < 0 || p > 100 {
+		eval.InvalidArgError("integer between 0 and 100", p)
+		return
+	}
+	if rv, ok := eval.Current().(*expr.RelationshipView); ok {
+		rv.Position = p
+		return
+	}
+	eval.IncompatibleDSL()
+}
+
+// RankSeparation sets the separation between ranks in pixels, defaults to 300.
+//
+// RankSeparation must appear in AutoLayout.
+//
+// RankSeparation takes one argument: the rank separation in pixels.
+//
+// Example:
+//
+//     var _ = Workspace(func() {
+//         var System = SoftwareSystem("Software System", "My software system.")
+//         Views(func() {
+//             SystemContextView(SoftwareSystem, "context", "An overview diagram.", func() {
+//                 AutoLayout(func() {
+//                     RankSeparation(500)
+//                 })
+//             })
+//         })
+//     })
+//
+func RankSeparation(s int) {
+	if s < 0 {
+		eval.ReportError("rank separation must be positive")
+		return
+	}
+	if a, ok := eval.Current().(*expr.Layout); ok {
+		a.RankSep = s
+		return
+	}
+	eval.IncompatibleDSL()
+}
+
+// NodeSeparation sets the separation between nodes in pixels, defaults to 600.
+//
+// NodeSeparation must appear in AutoLayout.
+//
+// NodeSeparation takes one argument: the node separation in pixels.
+//
+// Example:
+//
+//     var _ = Workspace(func() {
+//         var System = SoftwareSystem("Software System", "My software system.")
+//         Views(func() {
+//             SystemContextView(SoftwareSystem, "context", "An overview diagram.", func() {
+//                 AutoLayout(func() {
+//                     NodeSeparation(500)
+//                 })
+//             })
+//         })
+//     })
+//
+func NodeSeparation(s int) {
+	if s < 0 {
+		eval.ReportError("rank separation must be positive")
+		return
+	}
+	if a, ok := eval.Current().(*expr.Layout); ok {
+		a.NodeSep = s
+		return
+	}
+	eval.IncompatibleDSL()
+}
+
+// EdgeSeparation sets the separation between edges in pixels, defaults to 200.
+//
+// EdgeSeparation must appear in AutoLayout.
+//
+// EdgeSeparation takes one argument: the edge separation in pixels.
+//
+// Example:
+//
+//     var _ = Workspace(func() {
+//         var System = SoftwareSystem("Software System", "My software system.")
+//         Views(func() {
+//             SystemContextView(SoftwareSystem, "context", "An overview diagram.", func() {
+//                 AutoLayout(func() {
+//                     EdgeSeparation(500)
+//                 })
+//             })
+//         })
+//     })
+//
+func EdgeSeparation(s int) {
+	if s < 0 {
+		eval.ReportError("rank separation must be positive")
+		return
+	}
+	if a, ok := eval.Current().(*expr.Layout); ok {
+		a.EdgeSep = s
+		return
+	}
+	eval.IncompatibleDSL()
+}
+
+// RenderVertices indicates that vertices should be created during automatic
+// layout, false by default.
+//
+// RenderVertices must appear in AutoLayout.
+//
+// RenderVertices takes no argument.
+//
+// Example:
+//
+//     var _ = Workspace(func() {
+//         var System = SoftwareSystem("Software System", "My software system.")
+//         Views(func() {
+//             SystemContextView(SoftwareSystem, "context", "An overview diagram.", func() {
+//                 AutoLayout(func() {
+//                     RenderVertices()
+//                 })
+//             })
+//         })
+//     })
+//
+func RenderVertices() {
+	if a, ok := eval.Current().(*expr.Layout); ok {
+		a.Vertices = true
 		return
 	}
 	eval.IncompatibleDSL()

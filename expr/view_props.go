@@ -41,6 +41,8 @@ type (
 		Y int `json:"y"`
 		// Correpsonding model element.
 		Element *Element `json:"-"`
+		// Remove relationships before rendering.
+		NoRelationship bool `json:"-"`
 	}
 
 	// RelationshipView describes an instance of a model relationship in a
@@ -110,32 +112,32 @@ type (
 )
 
 const (
-	SizeA6Portrait PaperSizeKind = iota + 1
-	SizeA6Landscape
-	SizeA5Portrait
-	SizeA5Landscape
-	SizeA4Portrait
-	SizeA4Landscape
-	SizeA3Portrait
-	SizeA3Landscape
-	SizeA2Portrait
-	SizeA2Landscape
-	SizeA1Portrait
-	SizeA1Landscape
+	SizeA0Landscape PaperSizeKind = iota + 1
 	SizeA0Portrait
-	SizeA0Landscape
-	SizeLetterPortrait
-	SizeLetterLandscape
-	SizeLegalPortrait
+	SizeA1Landscape
+	SizeA1Portrait
+	SizeA2Landscape
+	SizeA2Portrait
+	SizeA3Landscape
+	SizeA3Portrait
+	SizeA4Landscape
+	SizeA4Portrait
+	SizeA5Landscape
+	SizeA5Portrait
+	SizeA6Landscape
+	SizeA6Portrait
 	SizeLegalLandscape
-	SizeSlide4X3
-	SizeSlide16X9
+	SizeLegalPortrait
+	SizeLetterLandscape
+	SizeLetterPortrait
 	SizeSlide16X10
+	SizeSlide16X9
+	SizeSlide4X3
 )
 
 const (
-	RoutingDirect RoutingKind = iota + 1
-	RoutingCurved
+	RoutingCurved RoutingKind = iota + 1
+	RoutingDirect
 	RoutingOrthogonal
 )
 
