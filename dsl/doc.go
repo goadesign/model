@@ -34,7 +34,7 @@ general shape of the DSL is:
     │   └── InteractsWith                   │   ├── RemoveUnreachable
     ├── SoftwareSystem                      │   ├── RemoveUnrelated
     │   ├── Tag                             │   ├── AutoLayout
-    │   ├── URL                             │   ├── AnimationStep
+    │   ├── URL                             │   ├── Animation
     │   ├── External                        │   ├── PaperSize
     │   ├── Properties                      │   └── EnterpriseBoundaryVisible
     │   ├── Uses                            ├── SystemContextView

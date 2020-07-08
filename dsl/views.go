@@ -1,6 +1,8 @@
 package dsl
 
 import (
+	"fmt"
+
 	"goa.design/goa/v3/eval"
 	"goa.design/structurizr/expr"
 )
@@ -8,6 +10,17 @@ import (
 // Global is the keyword used to define dynamic views with global scope. See
 // DynamicView.
 const Global = 0
+
+const (
+	// RankTopBottom indicates a layout that uses top to bottom rank.
+	RankTopBottom = expr.RankTopBottom
+	// RankBottomTop indicates a layout that uses bottom to top rank.
+	RankBottomTop = expr.RankBottomTop
+	// RankLeftRight indicates a layout that uses left to right rank.
+	RankLeftRight = expr.RankLeftRight
+	// RankRightLeft indicates a layout that uses right to left rank.
+	RankRightLeft = expr.RankRightLeft
+)
 
 // Views defines one or more views.
 //
@@ -64,7 +77,7 @@ func Views(dsl func()) {
 //                 AddAll()
 //                 Remove(Container3)
 //                 AutoLayout()
-//                 AnimationStep(Container1, Container2)
+//                 Animation(Container1, Container2)
 //                 PaperSize(SizeSlide4X3)
 //                 EnterpriseBoundaryVisible()
 //             })
@@ -119,7 +132,7 @@ func SystemLandscapeView(args ...interface{}) {
 //                 AddAll()
 //                 Remove(Container3)
 //                 AutoLayout()
-//                 AnimationStep(Container1, Container2)
+//                 Animation(Container1, Container2)
 //                 PaperSize(SizeSlide4X3)
 //                 EnterpriseBoundaryVisible()
 //             })
@@ -176,7 +189,7 @@ func SystemContextView(s *expr.SoftwareSystem, args ...interface{}) {
 //                 Remove(Container3)
 //                 // Alternatively to AddAll + Remove: Add
 //                 AutoLayout()
-//                 AnimationStep(Container1, Container2)
+//                 Animation(Container1, Container2)
 //                 PaperSize(SizeSlide4X3)
 //                 SystemBoundariesVisible()
 //             })
@@ -232,7 +245,7 @@ func ContainerView(s *expr.SoftwareSystem, args ...interface{}) {
 //                 AddAll()
 //                 Remove(Component3)
 //                 AutoLayout()
-//                 AnimationStep(Component1, Component2)
+//                 Animation(Component1, Component2)
 //                 PaperSize(SizeSlide4X3)
 //                 ContainerBoundariesVisible()
 //             })
@@ -292,16 +305,9 @@ func FilteredView(view interface{}, dsl func()) {
 		return
 	}
 	var key string
-	switch v := view.(type) {
-	case *expr.LandscapeView:
-		key = v.Key
-	case *expr.ContextView:
-		key = v.Key
-	case *expr.ContainerView:
-		key = v.Key
-	case *expr.ComponentView:
-		key = v.Key
-	default:
+	if v, ok := view.(expr.View); ok {
+		key = v.Props().Key
+	} else {
 		eval.IncompatibleDSL()
 		return
 	}
@@ -431,7 +437,7 @@ func DynamicView(scope interface{}, args ...interface{}) {
 //                 AddAll()
 //                 Remove(Container3)
 //                 AutoLayout()
-//                 AnimationStep(Container1, Container2)
+//                 Animation(Container1, Container2)
 //                 PaperSize(SizeSlide4X3)
 //             })
 //         })
@@ -475,20 +481,9 @@ func DeploymentView(scope interface{}, env string, args ...interface{}) {
 //
 // Title accepts one argument: the view title.
 func Title(t string) {
-	switch v := eval.Current().(type) {
-	case *expr.LandscapeView:
-		v.Title = t
-	case *expr.ContextView:
-		v.Title = t
-	case *expr.ContainerView:
-		v.Title = t
-	case *expr.ComponentView:
-		v.Title = t
-	case *expr.DynamicView:
-		v.Title = t
-	case *expr.DeploymentView:
-		v.Title = t
-	default:
+	if v, ok := eval.Current().(expr.View); ok {
+		v.Props().Title = t
+	} else {
 		eval.IncompatibleDSL()
 	}
 }
@@ -594,21 +589,29 @@ func Add(first interface{}, rest ...interface{}) {
 	if rel != nil {
 		v.AddRelationships(rel)
 		if dsl != nil {
-			eval.Execute(dsl, v.GetRelationshipView(rel.ID))
+			eval.Execute(dsl, v.RelationshipView(rel.ID))
 		}
 		return
 	}
 
-	v.AddElements(eh)
+	ea, ok := v.(expr.ViewAdder)
+	if !ok {
+		eval.ReportError("elements cannot be added directly to dynamic views")
+		return
+	}
+	if err := ea.AddElements(eh); err != nil {
+		eval.ReportError(err.Error()) // Element type not supported in view
+		return
+	}
 	if dsl != nil {
-		eval.Execute(dsl, v.GetElementView(eh.GetElement().ID))
+		eval.Execute(dsl, v.ElementView(eh.GetElement().ID))
 	}
 }
 
-// AddAll includes all elements and relationships in scope to the view.
+// AddAll includes all elements and relationships in the view scope.
 //
-// AddAll may appear in SystemLandscapeView, SystemContextView, ContainerView or
-// ComponentView.
+// AddAll may appear in SystemLandscapeView, SystemContextView, ContainerView,
+// ComponentView or DeploymentView.
 //
 // AddAll takes no argument.
 //
@@ -628,20 +631,32 @@ func Add(first interface{}, rest ...interface{}) {
 //     })
 //
 func AddAll() {
-	v, ok := eval.Current().(expr.View)
-	if !ok {
-		eval.IncompatibleDSL()
-	}
 	model := expr.Root.Model
-	v.AddElements(model.People.Elements()...)
-	v.AddElements(model.Systems.Elements()...)
 	switch v := eval.Current().(type) {
+	case *expr.LandscapeView:
+		v.AddElements(model.People.Elements()...)
+		v.AddElements(model.Systems.Elements()...)
+	case *expr.ContextView:
+		v.AddElements(model.People.Elements()...)
+		v.AddElements(model.Systems.Elements()...)
 	case *expr.ContainerView:
+		v.AddElements(model.People.Elements()...)
+		v.AddElements(model.Systems.Elements()...)
 		v.AddElements(expr.GetSoftwareSystem(v.SoftwareSystemID).Containers.Elements()...)
 	case *expr.ComponentView:
+		v.AddElements(model.People.Elements()...)
+		v.AddElements(model.Systems.Elements()...)
 		c := expr.GetContainer(v.ContainerID)
 		v.AddElements(c.System.Containers.Elements()...)
 		v.AddElements(expr.GetContainer(v.ContainerID).Components.Elements()...)
+	case *expr.DeploymentView:
+		for _, n := range model.DeploymentNodes {
+			if n.Environment == "" || n.Environment == v.Environment {
+				v.AddElements(n)
+			}
+		}
+	default:
+		eval.IncompatibleDSL()
 	}
 }
 
@@ -738,6 +753,7 @@ func AddNeighbors(element interface{}) {
 //      software systems and people.
 //    - Component view: adds all components in container as well as related
 //      containers, software systems and people.
+//    - Deployment view: adds all deployment nodes.
 //
 // AddDefault must appear in SystemLandscapeView, SystemContextView,
 // ContainerView or ComponentView.
@@ -780,6 +796,8 @@ func AddDefault() {
 			v.AddElements(c.RelatedSoftwareSystems().Elements()...)
 			v.AddElements(c.RelatedPeople().Elements()...)
 		}
+	case *expr.DeploymentView:
+		AddAll()
 	default:
 		eval.IncompatibleDSL()
 	}
@@ -868,7 +886,10 @@ func Remove(e interface{}, dest ...interface{}) {
 		if id != "" {
 			v.Remove(id)
 		} else {
-			v.RemoveTagged(tag)
+			elts := v.AllTagged(tag)
+			for _, e := range elts {
+				v.Remove(e.GetElement().ID)
+			}
 		}
 	} else {
 		eval.IncompatibleDSL()
@@ -911,7 +932,9 @@ func RemoveUnreachable(e interface{}) {
 		return
 	}
 	if v, ok := eval.Current().(expr.View); ok {
-		v.RemoveUnreachable(elt)
+		for _, e := range v.AllUnreachable(elt) {
+			v.Remove(e.ID)
+		}
 	} else {
 		eval.IncompatibleDSL()
 	}
@@ -944,7 +967,9 @@ func RemoveUnreachable(e interface{}) {
 //
 func RemoveUnrelated() {
 	if v, ok := eval.Current().(expr.View); ok {
-		v.RemoveUnrelated()
+		for _, e := range v.AllUnrelated() {
+			v.Remove(e.ID)
+		}
 	} else {
 		eval.IncompatibleDSL()
 	}
@@ -955,8 +980,104 @@ func RemoveUnrelated() {
 // RankTopBottom, RankBottomTop, RankLeftRight or RankRightLeft
 //
 // AutoLayout must appear in SystemLandscapeView, SystemContextView,
+// ContainerView, ComponentView, DynamicView or DeploymentView.
+//
+// AutoLayout accepts one or two arguments: the layout rank direction and
+// an optional function DSL that describes the layout properties.
+//
+// Example:
+//
+//     var _ = Workspace(func() {
+//         var System = SoftwareSystem("Software System", "My software system.")
+//         var OtherSystem = SoftwareSystem("Other software System")
+//         var Customer = Person("Customer", func() {
+//             External()
+//             Uses(System, "Sends emails", "SMTP")
+//         })
+//         Views(func() {
+//             SystemContextView(SoftwareSystem, "context", "An overview diagram.", func() {
+//                 AddDefault()
+//                 AutoLayout(RankTopBottom, func() {
+//                     RankSeparation(200)
+//                     NodeSeparation(100)
+//                     EdgeSeparation(10)
+//                     Vertices()
+//                 })
+//             })
+//         })
+//     })
+//
+func AutoLayout(rank expr.RankDirectionKind, args ...func()) {
+	v, ok := eval.Current().(expr.View)
+	if !ok {
+		eval.IncompatibleDSL()
+		return
+	}
+	var dsl func()
+	if len(args) > 0 {
+		dsl = args[0]
+		if len(args) > 1 {
+			eval.ReportError("too many arguments")
+		}
+	}
+	layout := &expr.Layout{RankDirection: rank}
+	if dsl != nil {
+		eval.Execute(dsl, layout)
+	}
+	v.Props().Layout = layout
+}
 
-// ContainerView or ComponentView.
+// Animation defines an animation step consisting of the specified elements.
+//
+// Animation must appear in SystemLandscapeView, SystemContextView,
+// ContainerView, ComponentView or DeploymentView.
+//
+// Animation accepts one or more arguments. The arguments must all be an
+// element (SoftwareSystem, Container, Component). The arguments may also be any
+// of DeploymeNode, InfrastructureNode or ContainerInstance in DeploymentView.
+//
+// Example
+//
+//     var _ = Workspace(func() {
+//         var System = SoftwareSystem("Software System", "My software system.")
+//         var OtherSystem = SoftwareSystem("Other software System")
+//         var Customer = Person("Customer", func() {
+//             External()
+//             Uses(System, "Sends emails", "SMTP")
+//         })
+//         Views(func() {
+//             SystemContextView(SoftwareSystem, "context", "An overview diagram.", func() {
+//                 AddDefault()
+//                 Animation(OtherSystem, Customer) // First OtherSystem and Customer
+//                 Animation(System)                // Then System
+//             })
+//         })
+//     })
+//
+func Animation(args ...interface{}) {
+	v, ok := eval.Current().(expr.ViewAdder)
+	if !ok {
+		eval.IncompatibleDSL()
+		return
+	}
+	_, depl := eval.Current().(*expr.DeploymentView)
+	ehs := make([]expr.ElementHolder, len(args))
+	for _, arg := range args {
+		switch a := arg.(type) {
+		case expr.ElementHolder:
+			ehs = append(ehs, a)
+		default:
+			suffix := " or Component"
+			if depl {
+				suffix = ", Component, DeploymentNode, InfrastructureNode or ContainerInstance"
+			}
+			eval.InvalidArgError(fmt.Sprintf("SoftwareSystem, Container%s", suffix), arg)
+		}
+	}
+	if err := v.AddAnimation(ehs); err != nil {
+		eval.ReportError(err.Error())
+	}
+}
 
 // AddContainers includes all containers in scope to the view.
 //

@@ -48,8 +48,8 @@ func SoftwareSystem(name string, args ...interface{}) {
 		Element: &expr.Element{
 			Name:        name,
 			Description: description,
-			Location:    expr.LocationInternal,
 		},
+		Location: expr.LocationInternal,
 	}
 	if dsl != nil {
 		eval.Execute(dsl, s)

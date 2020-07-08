@@ -9,37 +9,18 @@ type (
 		Name string
 	}
 
-	// DeploymentElement describes a deployment element.
-	DeploymentElement struct {
-		// ID of deployment element.
-		ID string `json:"id"`
-		// Name of deployment element.
-		Name string `json:"name"`
-		// Description of deployment element if any.
-		Description string `json:"description"`
-		// Technology used by deployment element if any.
-		Technology string `json:"technology"`
+	// DeploymentNode describes a single deployment node.
+	DeploymentNode struct {
+		Element
 		// Environment is the deployment environment in which this deployment
 		// node resides (e.g. "Development", "Live", etc).
 		Environment string `json:"environment"`
-		// Tags attached to deployment node as comma separated list if any.
-		Tags string `json:"tags"`
-		// URL where more information about this deployment node can be found.
-		URL string `json:"url"`
-		// Set of arbitrary name-value properties (shown in diagram tooltips).
-		Properties map[string]string `json:"properties"`
-		// Rels is the set of relationships from this deployment node to other
-		// elements.
-		Rels []*Relationship `json:"relationships"`
-	}
-
-	// DeploymentNode describes a single deployment node.
-	DeploymentNode struct {
-		DeploymentElement
 		// Instances is the number of instances.
 		Instances int `json:"instances"`
 		// Children describe the child deployment nodes if any.
 		Children []*DeploymentNode `json:"children"`
+		// Parent is the parent deployment node if any.
+		Parent *DeploymentNode `json:"-"`
 		// InfrastructureNodes describe the infrastructure nodes (load
 		// balancers, firewall etc.)
 		InfrastructureNodes []*InfrastructureNode `json:"infrastrctureNodes"`
@@ -49,24 +30,29 @@ type (
 	}
 
 	// InfrastructureNode describes an infrastructure node.
-	InfrastructureNode DeploymentElement
+	InfrastructureNode struct {
+		Element
+		// Parent deployment node.
+		Parent *DeploymentNode `json:"-"`
+		// Environment is the deployment environment in which this
+		// infrastructure node resides (e.g. "Development", "Live",
+		// etc).
+		Environment string `json:"environment"`
+	}
 
 	// ContainerInstance describes an instance of a container.
 	ContainerInstance struct {
-		// ID of container instance.
-		ID string `json:"id"`
+		// cheating a bit: a ContainerInstance does not have a name,
+		// description, technology or URL.
+		Element
+		// Parent deployment node.
+		Parent *DeploymentNode `json:"-"`
 		// ID of container that is instantiated.
 		ContainerID string `json:"containerId"`
 		// InstanceID is the number/index of this instance.
 		InstanceID int `json:"instanceId"`
 		// Environment is the deployment environment of this instance.
 		Environment string `json:"environment"`
-		// Tags attached to container instance as comma separated list if any.
-		Tags string `json:"tags"`
-		// Set of arbitrary name-value properties (shown in diagram tooltips).
-		Properties map[string]string `json:"properties"`
-		// Rels is the set of relationships from this container to other elements.
-		Rels []*Relationship `json:"relationships"`
 		// HealthChecks is the set of HTTP-based health checks for this
 		// container instance.
 		HealthChecks []*HealthCheck `json:"healthChecks"`

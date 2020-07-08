@@ -72,6 +72,14 @@ func GetComponent(id string) *Component {
 	return nil
 }
 
+// GetDeploymentNode retrieves the deployment node with the given ID from the registry. It returns nil if none is found.
+func GetDeploymentNode(id string) *DeploymentNode {
+	if n, ok := Registry[id].(*DeploymentNode); ok {
+		return n
+	}
+	return nil
+}
+
 // GetRelationship retrieves the relationship with the given ID from the registry. It
 // returns nil if none is found.
 func GetRelationship(id string) *Relationship {

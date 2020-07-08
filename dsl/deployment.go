@@ -81,12 +81,12 @@ func DeploymentNode(name string, args ...interface{}) {
 	}
 	description, technology, dsl := parseElementArgs(args...)
 	node := &expr.DeploymentNode{
-		DeploymentElement: expr.DeploymentElement{
+		Element: expr.Element{
 			Name:        name,
 			Description: description,
 			Technology:  technology,
-			Environment: env.Name,
 		},
+		Environment: env.Name,
 	}
 	if dsl != nil {
 		eval.Execute(dsl, node)
@@ -142,9 +142,11 @@ func InfrastructureNode(d *expr.DeploymentNode, name string, args ...interface{}
 	}
 	description, technology, dsl := parseElementArgs(args...)
 	node := &expr.InfrastructureNode{
-		Name:        name,
-		Description: description,
-		Technology:  technology,
+		Element: expr.Element{
+			Name:        name,
+			Description: description,
+			Technology:  technology,
+		},
 		Environment: env.Name,
 	}
 	if dsl != nil {

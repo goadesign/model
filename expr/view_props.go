@@ -3,11 +3,13 @@ package expr
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"strings"
 )
 
 type (
-	// ViewProps contains common properties of a view.
+	// ViewProps contains common properties of a view as well as helper
+	// methods to fetch them.
 	ViewProps struct {
 		// Title of the view.
 		Title string `json:"title,omitempty"`
@@ -24,8 +26,8 @@ type (
 		ElementViews []*ElementView `json:"elements,omitempty"`
 		// RelationshipViews list the relationships included in the view.
 		RelationshipViews []*RelationshipView `json:"relationships,omitempty"`
-		// AnimationSteps describes the animation steps if any.
-		AnimationSteps []*AnimationStep `json:"animationSteps,omitempty"`
+		// Animations describes the animation steps if any.
+		Animations []*Animation `json:"animationSteps,omitempty"`
 	}
 
 	// ElementView describes an instance of a model element (Person,
@@ -33,7 +35,7 @@ type (
 	ElementView struct {
 		// ID of element.
 		ID string `json:"id"`
-		// Horizontal position of element when rendered.
+		// Horizontal position of element when rendered
 		X int `json:"x"`
 		// Vertical position of element when rendered.
 		Y int `json:"y"`
@@ -68,14 +70,16 @@ type (
 		Y int `json:"y"`
 	}
 
-	// AnimationStep represents an animation step.
-	AnimationStep struct {
+	// Animation represents an animation step.
+	Animation struct {
 		// Order of animation step.
-		Order string `json:"order"`
+		Order int `json:"order"`
 		// Set of element IDs that should be included.
-		Elements []string `json:"elements,omitempty"`
+		ElementIDs []string `json:"elements,omitempty"`
 		// Set of relationship IDs tat should be included.
 		Relationships []string `json:"relationships,omitempty"`
+		// Set of element that should be included.
+		Elements []ElementHolder `json:"-"`
 	}
 
 	// Layout describes an automatic layout.
@@ -91,24 +95,6 @@ type (
 		// Render vertices if true.
 		Vertices bool
 	}
-)
-
-type (
-	// View is the common interface for all views.
-	View interface {
-		GetElementView(string) *ElementView
-		GetRelationshipView(string) *RelationshipView
-		AddElements(...ElementHolder)
-		AddRelationships(...*Relationship)
-		Remove(id string)
-		RemoveTagged(tag string)
-		RemoveUnreachable(*Element)
-		RemoveUnrelated()
-	}
-
-	// Processor function that processes elements. The argument must be
-	// either a slice of structs that implement ElementHolder.
-	Processor func(...ElementHolder)
 )
 
 type (
@@ -160,113 +146,48 @@ const (
 	RankRightLeft
 )
 
-// AddElements adds the given elements to the view if not already present.
-func (v *ViewProps) AddElements(ehs ...ElementHolder) {
-loop:
-	for _, eh := range ehs {
-		id := eh.GetElement().ID
-		for _, e := range v.ElementViews {
-			if e.ID == id {
-				continue loop
-			}
+// ElementView returns the element view with the given ID if any.
+func (v ViewProps) ElementView(id string) *ElementView {
+	for _, e := range v.ElementViews {
+		if e.ID == id {
+			return e
 		}
-		v.ElementViews = append(v.ElementViews, &ElementView{ID: id, Element: eh.GetElement()})
-		v.completeRelationships(id)
 	}
+	return nil
 }
 
-// AddRelationships adds the given relationships to the view if not already
-// present. It does nothing if the relationship source and destination are not
-// already in the view.
-func (v *ViewProps) AddRelationships(rels ...*Relationship) {
-loop:
-	for _, r := range rels {
-		var src, dest bool
-		for _, ev := range v.ElementViews {
-			if ev.ID == r.SourceID {
-				src = true
-				if dest {
-					break
-				}
-			}
-			if ev.ID == r.DestinationID {
-				dest = true
-				if src {
-					break
-				}
-			}
-		}
-		if !src || !dest {
-			continue loop
-		}
-		for _, rv := range v.RelationshipViews {
-			if rv.ID == r.ID {
-				continue loop
-			}
-		}
-		v.RelationshipViews = append(v.RelationshipViews, &RelationshipView{ID: r.ID, Relationship: r})
-	}
-}
-
-// Remove removes the element with the given ID from the view if present.
-func (v *ViewProps) Remove(id string) {
-	idx := v.index(id)
-	if idx == -1 {
-		return
-	}
-	v.ElementViews = append(v.ElementViews[:idx], v.ElementViews[idx+1:]...)
-
-	// Remove corresponding relationships.
-	var ids []string
+// RelationshipView returns the relationship view with the given ID if any.
+func (v ViewProps) RelationshipView(id string) *RelationshipView {
 	for _, r := range v.RelationshipViews {
-		if r.Relationship.SourceID == id {
-			ids = append(ids, id)
-		} else if r.Relationship.DestinationID == id {
-			ids = append(ids, id)
+		if r.ID == id {
+			return r
 		}
 	}
-	rvs := v.RelationshipViews
-	tmp := rvs[:0]
-	for _, r := range rvs {
-		remove := false
-		for _, id := range ids {
-			if r.ID == id {
-				remove = true
-				break
-			}
-		}
-		if !remove {
-			tmp = append(tmp, r)
-		}
-	}
-	v.RelationshipViews = tmp
+	return nil
 }
 
-// RemoveTagged removes all elements with the given tag from the view.
-func (v *ViewProps) RemoveTagged(tag string) {
-	var rm []string
+// AllTagged returns all elements with the given tag in the view.
+func (v ViewProps) AllTagged(tag string) (elts []*Element) {
 	for _, ev := range v.ElementViews {
 		vals := strings.Split(ev.Element.Tags, ",")
 		for _, val := range vals {
 			if strings.Trim(val, " ") == tag {
-				rm = append(rm, ev.ID)
+				elts = append(elts, ev.Element)
 				break
 			}
 		}
 	}
-	for _, id := range rm {
-		v.Remove(id)
-	}
+	return
 }
 
-// RemoveUnreachable removes all elements that are not related - directly or not
-// - to the element.
-func (v *ViewProps) RemoveUnreachable(elt *Element) {
-	if v.index(elt.ID) == -1 {
+// AllUnreachable fetches all elements in view related to the element (directly
+// or not).
+func (v ViewProps) AllUnreachable(eh ElementHolder) (elts []*Element) {
+	e := eh.GetElement()
+	if v.index(e.ID) == -1 {
 		return
 	}
-	var rm []string
-	ids := elt.Reachable()
+	ids := e.Reachable()
 loop:
 	for _, e := range v.ElementViews {
 		for _, id := range ids {
@@ -274,16 +195,14 @@ loop:
 				continue loop
 			}
 		}
-		rm = append(rm, e.ID)
+		elts = append(elts, e.Element)
 	}
-	for _, id := range rm {
-		v.Remove(id)
-	}
+	return
 }
 
-// RemoveUnrelated removes all elements that have no relationship to other
-// elements in the view.
-func (v *ViewProps) RemoveUnrelated() {
+// AllUnrelated fetches all elements that have no relationship to other elements
+// in the view.
+func (v ViewProps) AllUnrelated() (elts []*Element) {
 	for _, ev := range v.ElementViews {
 		related := false
 		for _, r := range v.RelationshipViews {
@@ -297,52 +216,19 @@ func (v *ViewProps) RemoveUnrelated() {
 			}
 		}
 		if !related {
-			v.Remove(ev.ID)
+			elts = append(elts, ev.Element)
 		}
 	}
+	return
 }
 
-// GetElementView returns the element view with the given ID if any.
-func (v *ViewProps) GetElementView(id string) *ElementView {
-	for _, e := range v.ElementViews {
-		if e.ID == id {
-			return e
-		}
-	}
-	return nil
-}
-
-// GetRelationshipView returns the relationship view with the given ID if any.
-func (v *ViewProps) GetRelationshipView(id string) *RelationshipView {
-	for _, r := range v.RelationshipViews {
-		if r.ID == id {
-			return r
-		}
-	}
-	return nil
-}
-
-// completeRelationships adds the relationships for which the element with the
-// given id is either a source or a destination and the other end of the
-// relationship is already in the view.
-func (v *ViewProps) completeRelationships(id string) {
-	var rels []*Relationship
-	for _, r := range AllRelationships() {
-		if r.SourceID == id {
-			if v.GetElementView(r.DestinationID) != nil {
-				rels = append(rels, r)
-			}
-		} else if r.DestinationID == id {
-			if v.GetElementView(r.SourceID) != nil {
-				rels = append(rels, r)
-			}
-		}
-	}
-	v.AddRelationships(rels...)
+// Props returns the underlying properties object.
+func (v ViewProps) Props() *ViewProps {
+	return &v
 }
 
 // index returns the index of the element with the given ID, -1 if not found.
-func (v *ViewProps) index(id string) int {
+func (v ViewProps) index(id string) int {
 	for i, e := range v.ElementViews {
 		if e.ID == id {
 			return i
@@ -350,6 +236,23 @@ func (v *ViewProps) index(id string) int {
 	}
 	return -1
 }
+
+// EvalName returns the generic expression name used in error messages.
+func (v ViewProps) EvalName() string {
+	var suf string
+	switch {
+	case v.Title != "":
+		suf = fmt.Sprintf(" with title %q", v.Title)
+	case v.Title != "":
+		suf = fmt.Sprintf(" with  key %q", v.Key)
+	case v.Title != "" && v.Key != "":
+		suf = fmt.Sprintf(" with title %q and key %q", v.Title, v.Key)
+	}
+	return fmt.Sprintf("view%s", suf)
+}
+
+// EvalName returns the generic expression name used in error messages.
+func (l *Layout) EvalName() string { return "automatic layout" }
 
 // EvalName returns the generic expression name used in error messages.
 func (v *ElementView) EvalName() string { return "element view" }

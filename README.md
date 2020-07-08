@@ -28,7 +28,7 @@ var _ = Workspace("Getting Started", "This is a model of my software system.", f
     Views(func() {
         SystemContext(MySystem, "SystemContext", "An example of a System Context diagram.", func() {
             AddAll()
-            AutoLayout()
+            AutoLayout(RankTopBottom)
         })
         Styles(func() {
             ElementStyle(System, func() {
@@ -72,7 +72,7 @@ var _ = Workspace("Getting Started", "This is a model of my software system.", f
     Views(func() {
         SystemContext(MySystem, "SystemContext", "An example of a System Context diagram.", func() {
             AddAll()
-            AutoLayout()
+            AutoLayout(RankTopBottom)
         })
         Styles(func() {
             ElementStyle(System, func() {
@@ -423,9 +423,9 @@ var _ = Workspace("[name]", "[description]", func() {
                 Vertices()
             }) 
 
-            // AnimationStep defines an animation step consisting of the
+            // Animation defines an animation step consisting of the
             // specified elements.
-            AnimationStep(Element, Element/*, ...*/)
+            Animation(Element, Element/*, ...*/)
             
             // PaperSize defines the paper size that should be used to render
             // the view. The possible values for the argument follow the

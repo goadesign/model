@@ -8,6 +8,8 @@ type (
 	// Person represents a person.
 	Person struct {
 		*Element
+		// Location of person.
+		Location LocationKind `json:"location"`
 	}
 
 	// People is a slide of Person that can easily be converted into a slice of ElementHolder.

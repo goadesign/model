@@ -8,6 +8,8 @@ type (
 	// SoftwareSystem represents a software system.
 	SoftwareSystem struct {
 		*Element
+		// Location of element.
+		Location LocationKind `json:"location"`
 		// Containers list the containers within the software system.
 		Containers Containers `json:"containers,omitempty"`
 	}

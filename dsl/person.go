@@ -72,8 +72,9 @@ func Person(name string, args ...interface{}) {
 		Element: &expr.Element{
 			Name:        name,
 			Description: desc,
-			Location:    expr.LocationInternal,
-		}}
+		},
+		Location: expr.LocationInternal,
+	}
 	if dsl != nil {
 		eval.Execute(dsl, p)
 	}
