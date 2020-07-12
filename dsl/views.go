@@ -1420,7 +1420,8 @@ func Vertices(args ...int) {
 // Routing algorithm used when rendering relationship, defaults to
 // RoutingOrthogonal.
 //
-// Routing must appear in a Add expression that adds a relationship.
+// Routing must appear in a Add expression that adds a relationship or in a
+// RelationshipStyle expression.
 //
 // Routing takes one argument: one of RoutingDirect, RoutingCurved or
 // RoutingOrthogonal.
@@ -1443,16 +1444,20 @@ func Vertices(args ...int) {
 //     })
 //
 func Routing(k expr.RoutingKind) {
-	if rv, ok := eval.Current().(*expr.RelationshipView); ok {
-		rv.Routing = k
-		return
+	switch a := eval.Current().(type) {
+	case *expr.RelationshipView:
+		a.Routing = k
+	case *expr.RelationshipStyle:
+		a.Routing = k
+	default:
+		eval.IncompatibleDSL()
 	}
-	eval.IncompatibleDSL()
 }
 
 // Position sets the position of a relationship annotation along the line.
 //
-// Position must appear in a Add expression that adds a relationship.
+// Position must appear in a Add expression that adds a relationship or in
+// RelationshipStyle.
 //
 // Position takes one argument: the position value between 0 (start of line) and
 // 100 (end of line).
@@ -1479,11 +1484,14 @@ func Position(p int) {
 		eval.InvalidArgError("integer between 0 and 100", p)
 		return
 	}
-	if rv, ok := eval.Current().(*expr.RelationshipView); ok {
-		rv.Position = p
-		return
+	switch a := eval.Current().(type) {
+	case *expr.RelationshipView:
+		a.Position = p
+	case *expr.RelationshipStyle:
+		a.Position = p
+	default:
+		eval.IncompatibleDSL()
 	}
-	eval.IncompatibleDSL()
 }
 
 // RankSeparation sets the separation between ranks in pixels, defaults to 300.

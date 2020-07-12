@@ -97,9 +97,9 @@ func main() {
         os.Exit(1)
     }
 
-    // Upload the model to the Structurizr service. 
+    // Upload the model to the Structurizr service.
     // The API key and secret must be set in the STRUCTURIZR_KEY and
-    // STRUCTURIZR_SECRET environment variables respectively. The 
+    // STRUCTURIZR_SECRET environment variables respectively. The
     // workspace ID must be set in STRUCTURIZR_WORKSPACE_ID.
     var (
         key = os.Getenv("STRUCTURIZR_KEY")
@@ -183,7 +183,7 @@ var _ = Workspace("[name]", "[description]", func() {
 
         // URL where more information about this software system can be
         // found.
-        URL("<url>") 
+        URL("<url>")
 
         // External indicates the software system is external to the enterprise.
         External()
@@ -273,7 +273,7 @@ var _ = Workspace("[name]", "[description]", func() {
 
             // URL where more information about this deployment node can be
             // found.
-            URL("<url>") 
+            URL("<url>")
 
             // Properties define an arbitrary set of associated key-value pairs.
             Properties(func() {
@@ -288,7 +288,7 @@ var _ = Workspace("[name]", "[description]", func() {
 
             // URL where more information about this infrastructure node can be
             // found.
-            URL("<url>") 
+            URL("<url>")
 
             // Properties define an arbitrary set of associated key-value pairs.
             Properties(func() {
@@ -303,7 +303,7 @@ var _ = Workspace("[name]", "[description]", func() {
 
             // Sets instance number or index.
             InstanceID(1)
-            
+
             // Properties define an arbitrary set of associated key-value pairs.
             Properties(func() {
                 Prop("<name>", "<value">)
@@ -315,7 +315,7 @@ var _ = Workspace("[name]", "[description]", func() {
 
                 // URL is the health check URL/endpoint.
                 URL("<url>")
-                
+
                 // Interval is the polling interval, in seconds.
                 Interval(42)
 
@@ -332,7 +332,7 @@ var _ = Workspace("[name]", "[description]", func() {
 
     // Views is optional and defines one or more views.
     Views(func() {
-        
+
         // SystemLandscapeView defines a System Landscape view.
         SystemLandscapeView("[key]", "[description]", func() {
 
@@ -372,11 +372,11 @@ var _ = Workspace("[name]", "[description]", func() {
                 // Vertices lists the x and y coordinate of the vertices used to
                 // render the relationship. The number of arguments must be even.
                 Vertices(10, 20, 10, 40)
-    
+
                 // Routing algorithm used when rendering relationship, one of
                 // RoutingDirect, RoutingCurved or RoutingOrthogonal.
                 Routing(RoutingOrthogonal)
-    
+
                 // Position of annotation along line; 0 (start) to 100 (end).
                 Position(50)
             })
@@ -414,19 +414,19 @@ var _ = Workspace("[name]", "[description]", func() {
                 RankSeparation(300)
 
                 // Separation between nodes in the same rank in pixels, defaults to 600.
-                NodeSeparation(600) 
+                NodeSeparation(600)
 
                 // Separation between edges in pixels, defaults to 200.
-                EdgeSeparation(200) 
+                EdgeSeparation(200)
 
                 // Create vertices during automatic layout, false by default.
                 RenderVertices()
-            }) 
+            })
 
             // Animation defines an animation step consisting of the
             // specified elements.
             Animation(Element, Element/*, ...*/)
-            
+
             // PaperSize defines the paper size that should be used to render
             // the view. The possible values for the argument follow the
             // patterns SizeA[0-6][Portrait|Landscape], SizeLetter[Portrait|Landscape]
@@ -442,7 +442,7 @@ var _ = Workspace("[name]", "[description]", func() {
         SystemContextView(SoftwareSystem, "[key]", "[description]", func() {
             // ... same usage as SystemLandscapeView.
         })
-        
+
         ContainerView(SoftwareSystem, "[key]", "[description]", func() {
             // ... same usage as SystemLandscapeView without EnterpriseBoundaryVisible.
 
@@ -479,11 +479,11 @@ var _ = Workspace("[name]", "[description]", func() {
             // Exclude elements and relationships with the given tags instead of
             // including.
             Exclude()
-        }) 
+        })
 
         // DynamicView defines a Dynamic view for the specified scope. The
         // first argument defines the scope of the view, and therefore what can
-        // be added to the view, as follows: 
+        // be added to the view, as follows:
         //
         //   * Global scope: People and software systems.
         //   * Software system scope: People, other software systems, and
@@ -504,14 +504,14 @@ var _ = Workspace("[name]", "[description]", func() {
                 RankSeparation(200)
 
                 // Separation between nodes in the same rank in pixels
-                NodeSeparation(200) 
+                NodeSeparation(200)
 
                 // Separation between edges in pixels
-                EdgeSeparation(10) 
+                EdgeSeparation(10)
 
                 // Create vertices during automatic layout.
                 Vertices()
-            }) 
+            })
 
             // PaperSize defines the paper size that should be used to render
             // the view. The possible values for the argument follow the
@@ -526,22 +526,22 @@ var _ = Workspace("[name]", "[description]", func() {
                 // Vertices lists the x and y coordinate of the vertices used to
                 // render the relationship. The number of arguments must be even.
                 Vertices(10, 20, 10, 40)
-    
+
                 // Routing algorithm used when rendering relationship, one of
                 // RoutingDirect, RoutingCurved or RoutingOrthogonal.
                 Routing(RoutingOrthogonal)
-    
+
                 // Position of annotation along line; 0 (start) to 100 (end).
                 Position(50)
-    
+
                 // Description used in dynamic views.
                 Description("<description>")
-    
+
                 // Order of relationship in dynamic views, e.g. 1.0, 1.1, 2.0
                 Order("<order>")
             })
         })
-          
+
         // DynamicView on software system or container uses the corresponding
         // identifier as first argument.
         DynamicView(SoftwareSystemOrContainer, "[key]", "[description]", func() {
@@ -552,7 +552,7 @@ var _ = Workspace("[name]", "[description]", func() {
         // deployment environment. The first argument defines the scope of the
         // view, and the second property defines the deployment environment. The
         // combination of these two arguments determines what can be added to
-        // the view, as follows: 
+        // the view, as follows:
         //  * Global scope: All deployment nodes, infrastructure nodes, and
         //    container instances within the deployment environment.
         //  * Software system scope: All deployment nodes and infrastructure
@@ -576,8 +576,11 @@ var _ = Workspace("[name]", "[description]", func() {
             // (shape, icon, etc) are optional, see Structurizr - Notation for
             // more details.
             ElementStyle("<tag>", func() {
-                Shape(ShapeBox) // ShapeBox, ShapeRoundedBox, ShapeCircle, ShapeEllipse, ShapeHexagon, ShapeCylinder, ShapePipe, ShapePerson
-                                // ShapeRobot, ShapeFolder, ShapeWebBrowser, ShapeMobileDevicePortrait, ShapeMobileDeviceLandscape, ShapeComponent
+                Shape(ShapeBox) // ShapeBox, ShapeRoundedBox, ShapeCircle, ShapeEllipse,
+                                // ShapeHexagon, ShapeCylinder, ShapePipe, ShapePerson
+                                // ShapeRobot, ShapeFolder, ShapeWebBrowser,
+                                // ShapeMobileDevicePortrait, ShapeMobileDeviceLandscape,
+                                // ShapeComponent.
                 Icon("<file>")
                 Width(42)
                 Height(42)
@@ -587,8 +590,8 @@ var _ = Workspace("[name]", "[description]", func() {
                 FontSize(42)
                 Boder(BorderSolid) // BorderSolid, BorderDashed, BorderDotted
                 Opacity(42) // Between 0 and 100
-                Metadata(true)
-                Description(true)
+                ShowMetadata()
+                ShowDescription()
             })
 
             // RelationshipStyle defines a relationship style. All nested

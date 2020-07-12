@@ -3,6 +3,7 @@ package expr
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 )
 
 type (
@@ -162,6 +163,21 @@ const (
 	BorderDashed
 	BorderDotted
 )
+
+// EvalName returns the generic expression name used in error messages.
+func (c *Configuration) EvalName() string {
+	return "styles"
+}
+
+// EvalName returns the generic expression name used in error messages.
+func (es *ElementStyle) EvalName() string {
+	return fmt.Sprintf("element style for tag %q", es.Tag)
+}
+
+// EvalName returns the generic expression name used in error messages.
+func (rs *RelationshipStyle) EvalName() string {
+	return fmt.Sprintf("relationship style for tag %q", rs.Tag)
+}
 
 // MarshalJSON replaces the constant value with the proper structurizr schema
 // string value.
