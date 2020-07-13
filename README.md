@@ -1,6 +1,13 @@
 # Structurizr for Go
 
-This GitHub repository is a non-official client library for the
+---
+[![Build Status](https://github.com/goadesign/structurizr/workflows/build/badge.svg?branch=v3&event=push)](https://github.com/goadesign/structurizr/actions?query=branch%3Av3+event%3Apush)
+[![Godoc Packages](https://img.shields.io/badge/godoc-packages-blue)](https://pkg.go.dev/mod/goa.design/structurizr?tab=packages)
+[![Godoc DSL](https://img.shields.io/badge/godoc-DSL-blue)](https://pkg.go.dev/goa.design/structurizr/v1@v1.0.0/dsl?tab=doc)
+
+## Overview
+
+This GitHub repository is a non-official client library and tool for the
 [Structurizr](https://structurizr.com/) cloud service and on-premises
 installation, both of which are web-based publishing platforms for software
 architecture models based upon the [C4 model](https://c4model.com).
@@ -18,24 +25,29 @@ augmented with a description of the corresponding software architecture.
 Here is a complete and correct DSL for an architecture model:
 
 ```Go
-var _ = Workspace("Getting Started", "This is a model of my software system.", func() {
-    var System = SoftwareSystem("Software System", "My software system.")
+import . "goa.design/structurizr/dsl"
 
-    var User = Person("User", "A user of my software system.", func() {
+var _ = Workspace("Getting Started", "This is a model of my software system.", func() {
+    var System = SoftwareSystem("Software System", "My software system.", func() {
+        Tag("system")
+    })
+
+    Person("User", "A user of my software system.", func() {
         Uses(System, "Uses")
+        Tag("person")
     })
 
     Views(func() {
-        SystemContext(MySystem, "SystemContext", "An example of a System Context diagram.", func() {
+        SystemContextView(System, "SystemContext", "An example of a System Context diagram.", func() {
             AddAll()
             AutoLayout(RankTopBottom)
         })
         Styles(func() {
-            ElementStyle(System, func() {
+            ElementStyle("system", func() {
                 Background("#1168bd")
                 Color("#ffffff")
-             })
-            ElementStyle(User, func() {
+            })
+            ElementStyle("person", func() {
                 Shape(ShapePerson)
                 Background("#08427b")
                 Color("#ffffff")
@@ -49,11 +61,16 @@ This code creates a model containing elements and relationships, creates a
 single view and adds some styling.
 ![Getting Started Diagram](https://structurizr.com/static/img/getting-started.png)
 
-## Standalone Usage
+## Library
 
 The [eval](https://github.com/goadesign/structurizr/tree/master/eval) package
-makes it convenient to run the DSL above. Here is a complete example that
-uploads the workspace described in the DSL to the Structurizr service:
+makes it convenient to run the DSL above. The
+[service](https://github.com/goadesign/structurizr/tree/master/service)
+package contains a client library for the
+[Structurizr service APIs](https://structurizr.com/help/web-api).
+
+Here is a complete example that takes advantage of both to upload the
+workspace described in a DSL to the Structurizr service:
 
 ```Go
 package main
@@ -62,25 +79,31 @@ include "goa.design/structurizr/eval"
 include "goa.design/structurizr/client"
 
 // DSL that describes software architecture model.
-var _ = Workspace("Getting Started", "This is a model of my software system.", func() {
-    var System = SoftwareSystem("Software System", "My software system.")
 
-    var User = Person("User", "A user of my software system.", func() {
+import . "goa.design/structurizr/dsl"
+
+var _ = Workspace("Getting Started", "This is a model of my software system.", func() {
+    var System = SoftwareSystem("Software System", "My software system.", func() {
+        Tag("system")
+    })
+
+    Person("User", "A user of my software system.", func() {
         Uses(System, "Uses")
+        Tag("person")
     })
 
     Views(func() {
-        SystemContext(MySystem, "SystemContext", "An example of a System Context diagram.", func() {
+        SystemContextView(System, "SystemContext", "An example of a System Context diagram.", func() {
             AddAll()
             AutoLayout(RankTopBottom)
         })
         Styles(func() {
-            ElementStyle(System, func() {
+            ElementStyle("system", func() {
                 Background("#1168bd")
                 Color("#ffffff")
-             })
-            ElementStyle(User, func() {
-                Shape("ShapePerson")
+            })
+            ElementStyle("person", func() {
+                Shape(ShapePerson)
                 Background("#08427b")
                 Color("#ffffff")
             })
@@ -109,9 +132,51 @@ func main() {
     c := service.NewClient(key, secret)
     if err := c.Put(wid, w); err != nil {
         fmt.Fprintf(os.Stderr, "failed to store workspace: %s", err.String())
+        os.Exit(1)
     }
 }
 ```
+
+## Tool
+
+The `stz` tool included in this repo uploads or writes a file containing the
+JSON representation of the structurizr API
+[Workspace object](https://github.com/structurizr/json) generated from DSL
+contained in a given Go package. The tool can can also upload an existing
+file to the service.
+
+Upload DSL defined in package `goa.design/structurizr/examples/basic`:
+
+```bash
+stz goa.design/structurizr/examples/basic -wid WID -key KEY -secret SECRET
+```
+
+Where `WID` is the Structurizr service workspace ID, `KEY` the Structurizr
+service API key and `SECRET` the corresponding secret.
+
+Write the JSON representation of the Structurizr workspace to disk instead:
+
+```bash
+stz goa.design/structurizr/examples/basic -out model.json
+```
+
+Upload an existing file to the Structurizr service:
+
+```bash
+stz model.json -wid WID -key KEY -secret SECRET
+```
+
+### Tool Setup
+
+Assuming a working Go setup, run the following command in the root of the
+repo:
+
+```bash
+go install cmd/stz
+```
+
+This will create a `stz` executable under `$GOPATH/bin` which should be in
+your `PATH` environment variable.
 
 ## Goa Plugin
 
@@ -127,15 +192,16 @@ import . "goa.design/plugins/structurizr/dsl"
 // ... DSL describing API, services and architecture model
 ```
 
-Running `goa gen` creates a `structurizr.json` file in the `gen` folder. This
+Running `goa gen` creates a `model.json` file in the `gen` folder. This
 file follows the
 [structurizr JSON schema](https://github.com/structurizr/json) and can be
-uploaded to the Structurizr service for example using the
-[Structurizr CLI](https://github.com/structurizr/cli).
+uploaded to the Structurizr service for example using the `stz` tool included
+in this repo.
 
 ## DSL Syntax
 
-The code snippet below describes the entire syntax of the DSL.
+The code snippet below describes the entire syntax of the DSL. The reference can also be found in the
+[package documentation](https://pkg.go.dev/goa.design/structurizr/v1@v1.0.0/dsl?tab=doc).
 
 ```Go
 // Workspace defines the workspace containing the models and views. Workspace

@@ -37,11 +37,11 @@ import (
 //        })
 //    })
 //
-func SoftwareSystem(name string, args ...interface{}) {
+func SoftwareSystem(name string, args ...interface{}) *expr.SoftwareSystem {
 	w, ok := eval.Current().(*expr.Workspace)
 	if !ok {
 		eval.IncompatibleDSL()
-		return
+		return nil
 	}
 	description, _, dsl := parseElementArgs(args...)
 	s := &expr.SoftwareSystem{
@@ -56,6 +56,7 @@ func SoftwareSystem(name string, args ...interface{}) {
 	}
 	expr.Identify(s)
 	w.Model.Systems = append(w.Model.Systems, s)
+	return s
 }
 
 // Container defines a container.
@@ -107,15 +108,15 @@ func SoftwareSystem(name string, args ...interface{}) {
 //        })
 //    })
 //
-func Container(system *expr.SoftwareSystem, args ...interface{}) {
+func Container(system *expr.SoftwareSystem, args ...interface{}) *expr.Container {
 	_, ok := eval.Current().(*expr.Workspace)
 	if !ok {
 		eval.IncompatibleDSL()
-		return
+		return nil
 	}
 	if len(args) == 0 {
 		eval.ReportError("missing argument")
-		return
+		return nil
 	}
 	var (
 		name        string
@@ -158,6 +159,7 @@ func Container(system *expr.SoftwareSystem, args ...interface{}) {
 	}
 	expr.Identify(c)
 	system.Containers = append(system.Containers, c)
+	return c
 }
 
 // Component defines a component.
@@ -196,11 +198,11 @@ func Container(system *expr.SoftwareSystem, args ...interface{}) {
 //        })
 //    })
 //
-func Component(container *expr.Container, name string, args ...interface{}) {
+func Component(container *expr.Container, name string, args ...interface{}) *expr.Component {
 	_, ok := eval.Current().(*expr.Workspace)
 	if !ok {
 		eval.IncompatibleDSL()
-		return
+		return nil
 	}
 	description, technology, dsl := parseElementArgs(args...)
 	c := &expr.Component{
@@ -216,6 +218,7 @@ func Component(container *expr.Container, name string, args ...interface{}) {
 	}
 	expr.Identify(c)
 	container.Components = append(container.Components, c)
+	return c
 }
 
 // parseElement is a helper function that parses the given element DSL

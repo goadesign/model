@@ -47,21 +47,21 @@ import (
 //        SoftwareSystem("My Software System")
 //    })
 //
-func Workspace(args ...interface{}) {
+func Workspace(args ...interface{}) *expr.Workspace {
 	_, ok := eval.Current().(eval.TopExpr)
 	if !ok {
 		eval.IncompatibleDSL()
-		return
+		return nil
 	}
 	nargs := len(args)
 	if nargs == 0 {
 		eval.ReportError("missing child DSL")
-		return
+		return nil
 	}
 	dsl, ok := args[nargs-1].(func())
 	if !ok {
 		eval.ReportError("missing child DSL (last argument must be a func)")
-		return
+		return nil
 	}
 	var name, desc string
 	if nargs > 1 {
@@ -78,13 +78,14 @@ func Workspace(args ...interface{}) {
 	}
 	if nargs > 3 {
 		eval.ReportError("too many arguments")
-		return
+		return nil
 	}
 	w := &expr.Workspace{Name: name, Description: desc, Model: &expr.Model{}}
 	if !eval.Execute(dsl, w) {
-		return
+		return nil
 	}
 	expr.Root = w
+	return w
 }
 
 // Version specifies a version number for the workspace.

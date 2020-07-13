@@ -36,11 +36,11 @@ import (
 //        })
 //    })
 //
-func Person(name string, args ...interface{}) {
+func Person(name string, args ...interface{}) *expr.Person {
 	w, ok := eval.Current().(*expr.Workspace)
 	if !ok {
 		eval.IncompatibleDSL()
-		return
+		return nil
 	}
 	var (
 		desc string
@@ -80,4 +80,5 @@ func Person(name string, args ...interface{}) {
 	}
 	expr.Identify(p)
 	w.Model.People = append(w.Model.People, p)
+	return p
 }
