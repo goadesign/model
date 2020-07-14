@@ -14,20 +14,20 @@ type (
 		// Description of relationship if any.
 		Description string `json:"description"`
 		// Tags attached to relationship as comma separated list if any.
-		Tags string `json:"tags"`
+		Tags string `json:"tags,omitempty"`
 		// URL where more information can be found.
-		URL string `json:"url"`
+		URL string `json:"url,omitempty"`
 		// SourceID is the ID of the source element.
 		SourceID string `json:"sourceId"`
 		// DestinationID is ID the destination element.
 		DestinationID string `json:"destinationId"`
 		// Technology associated with relationship.
-		Technology string `json:"technology"`
+		Technology string `json:"technology,omitempty"`
 		// InteractionStyle describes whether the interaction is synchronous or asynchronous
 		InteractionStyle InteractionStyleKind
 		// ID of container-container relationship upon which this container
 		// instance-container instance relationship is based.
-		LinkedRelationshipID string `json:"linkedRelationshipId"`
+		LinkedRelationshipID string `json:"linkedRelationshipId,omitempty"`
 		// Source Element.
 		Source *Element `json:"-"`
 		// Destination Element.

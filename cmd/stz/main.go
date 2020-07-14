@@ -14,100 +14,82 @@ import (
 	"goa.design/structurizr/expr"
 	structurizr "goa.design/structurizr/pkg"
 	"goa.design/structurizr/service"
+	"golang.org/x/tools/go/packages"
 )
 
 func main() {
 	var (
-		out    = flag.String("out", "", "Write structurizr JSON to given file path instead of uploading.")
-		wid    = flag.String("wid", "", "Structurizr workspace ID [ignored if -out is used]")
-		key    = flag.String("key", "", "Structurizr API key [ignored if -out is used]")
-		secret = flag.String("secret", "", "Structurizr API secret [ignored if -out is used]")
+		out    = flag.String("out", "model.json", "Write structurizr JSON to given file path [use with get or gen].")
+		wid    = flag.String("workspace", "", "Structurizr workspace ID [ignored for gen]")
+		key    = flag.String("key", "", "Structurizr API key [ignored for gen]")
+		secret = flag.String("secret", "", "Structurizr API secret [ignored for gen]")
 	)
 	flag.Parse()
 
-	var path string
+	var (
+		cmd  string
+		path string
+	)
 	inFlag := false
 	for _, arg := range os.Args[1:] {
 		if !strings.HasPrefix(arg, "-") && !inFlag {
-			if path != "" {
-				fail("only one argument can be provided.")
+			switch cmd {
+			case "":
+				cmd = arg
+			case "gen", "put":
+				path = arg
+			default:
+				fail("too many arguments, use 'help' for usage.")
 			}
-			path = arg
 		} else {
 			inFlag = strings.HasPrefix(arg, "-")
 		}
 	}
 
-	switch path {
-	case "":
-		showUsage()
-		os.Exit(1)
+	pathOrDefault := func(p string) string {
+		if p == "" {
+			return "model.json"
+		}
+		return p
+	}
+
+	var err error
+	switch cmd {
+	case "gen":
+		err = gen(pathOrDefault(path), *out)
+	case "get":
+		err = get(pathOrDefault(*out), *wid, *key, *secret)
+	case "put":
+		err = put(pathOrDefault(path), *wid, *key, *secret)
+	case "lock":
+		err = lock(*wid, *key, *secret)
+	case "unlock":
+		err = unlock(*wid, *key, *secret)
 	case "version":
 		fmt.Printf("%s version %s\n", os.Args[0], structurizr.Version())
-		os.Exit(0)
 	case "help":
 		showUsage()
-		os.Exit(0)
 	default:
-		if isFilePath(path) {
-			if err := upload(path, *wid, *key, *secret); err != nil {
-				fail("upload failed: %s", err.Error())
-			}
-			os.Exit(0)
-		}
-		var (
-			up     = *out != ""
-			output = *out
-		)
-		if output == "" {
-			tdir, err := ioutil.TempDir(".", "model")
-			if err != nil {
-				fail("failed to create temp dir: %s", err.Error())
-			}
-			defer os.RemoveAll(tdir)
-			output = filepath.Join(tdir, "model.json")
-		}
-		if err := generate(path, output); err != nil {
-			fail(err.Error())
-		}
-		if up {
-			if err := upload(output, *wid, *key, *secret); err != nil {
-				fail("upload failed: %s", err.Error())
-			}
-		}
+		showUsage()
+		os.Exit(1)
+	}
+	if err != nil {
+		fail(err.Error())
 	}
 }
 
-func isFilePath(f string) bool {
-	s, err := os.Stat(f)
-	if err != nil {
-		return false
-	}
-	return !s.IsDir()
-}
-
-func upload(path, wid, key, secret string) error {
-	c := service.NewClient(key, secret)
-	f, err := os.Open(path)
-	if err != nil {
+func gen(pkg, out string) error {
+	// Validate package import path
+	if _, err := packages.Load(&packages.Config{Mode: packages.NeedName}, pkg); err != nil {
 		return err
 	}
-	defer f.Close()
-	var w expr.Workspace
-	if err := json.NewDecoder(f).Decode(&w); err != nil {
-		return fmt.Errorf("failed to read %q: %s", path, err.Error())
-	}
-	return c.Put(wid, &w)
-}
 
-func generate(pkg, out string) error {
+	// Write program that generates JSON
 	tmpDir, err := ioutil.TempDir("", "stz")
 	if err != nil {
 		return err
 	}
 	defer os.RemoveAll(tmpDir)
-
-	// Write program that generates JSON
 	var sections []*codegen.SectionTemplate
 	{
 		imports := []*codegen.ImportSpec{
@@ -134,7 +116,7 @@ func generate(pkg, out string) error {
 	if err != nil {
 		return fmt.Errorf(`failed to find a go compiler, looked in "%s"`, os.Getenv("PATH"))
 	}
-	if err := runCmd(gobin, tmpDir, gobin, "get", "-v", "goa.design/structurizr/eval"); err != nil {
+	if err := runCmd(gobin, tmpDir, gobin, "mod", "init", "stz"); err != nil {
 		return err
 	}
 	if err := runCmd(gobin, tmpDir, gobin, "build", "-o", "stz"); err != nil {
@@ -142,7 +124,47 @@ func generate(pkg, out string) error {
 	}
 
 	// Run program
-	return runCmd(filepath.Join(tmpDir, "stz"), "-o", out)
+	out, _ = filepath.Abs(out)
+	return runCmd(filepath.Join(tmpDir, "stz"), tmpDir, "-out", out)
+}
+
+func get(out, wid, key, secret string) error {
+	c := service.NewClient(key, secret)
+	w, err := c.Get(wid)
+	if err != nil {
+		return err
+	}
+	b, err := json.MarshalIndent(w, "", "    ")
+	if err != nil {
+		return err
+	}
+	return ioutil.WriteFile(out, b, 0644)
+}
+
+func put(path, wid, key, secret string) error {
+	c := service.NewClient(key, secret)
+	f, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	var w expr.Workspace
+	if err := json.NewDecoder(f).Decode(&w); err != nil {
+		return fmt.Errorf("failed to read %q: %s", path, err.Error())
+	}
+	return c.Put(wid, &w)
+}
+
+func lock(wid, key, secret string) error {
+	c := service.NewClient(key, secret)
+	_, err := c.Lock(wid)
+	return err
+}
+
+func unlock(wid, key, secret string) error {
+	c := service.NewClient(key, secret)
+	_, err := c.Unlock(wid)
+	return err
 }
 
 func fail(format string, args ...interface{}) {
@@ -152,13 +174,16 @@ func fail(format string, args ...interface{}) {
 
 func showUsage() {
 	fmt.Fprintln(os.Stderr, "Usage:")
-	fmt.Fprintf(os.Stderr, "%s PACKAGE [FLAGS]\n", os.Args[0])
-	fmt.Fprintf(os.Stderr, "%s FILE FLAGS\n", os.Args[0])
-	fmt.Fprintf(os.Stderr, "%s help\n\n", os.Args[0])
+	fmt.Fprintf(os.Stderr, "\n%s gen PACKAGE [FLAGS]\n", os.Args[0])
+	fmt.Fprintf(os.Stderr, "%s get [FLAGS]\n", os.Args[0])
+	fmt.Fprintf(os.Stderr, "%s put FILE FLAGS\n", os.Args[0])
+	fmt.Fprintf(os.Stderr, "%s lock [FLAGS]\n", os.Args[0])
+	fmt.Fprintf(os.Stderr, "%s unlock [FLAGS]\n", os.Args[0])
+	fmt.Fprintf(os.Stderr, "%s help\n", os.Args[0])
 	fmt.Fprintf(os.Stderr, "%s version\n\n", os.Args[0])
 	fmt.Fprintln(os.Stderr, "Where:")
 	fmt.Fprintln(os.Stderr, "PACKAGE is the import path to a Go package containing the DSL describing a Structurizr workspace.")
-	fmt.Fprintln(os.Stderr, "FILE is the path to a file containing a valid JSON representation of a Structurizr workspace")
+	fmt.Fprintln(os.Stderr, "FILE is the path to a file containing a valid JSON representation of a Structurizr workspace.")
 	fmt.Fprintln(os.Stderr, "FLAGS is a sequence of:")
 	flag.PrintDefaults()
 }
@@ -179,22 +204,21 @@ func runCmd(path, dir string, args ...string) error {
 // mainT is the template for the generator main.
 const mainT = `func main() {
 	// Retrieve output path
-	out = flag.String("out", "", "")
-	flag.Parse()
+	out := os.Args[1]
 		
     // Run the model DSL
     w, err := eval.RunDSL()
     if err != nil {
-        fmt.Fprintf(os.Stderr, "invalid model: %s", err.String())
+        fmt.Fprintf(os.Stderr, "invalid model: %s", err.Error())
         os.Exit(1)
     }
-	b, err := json.MarshalIndent("", "    ", w)
+	b, err := json.MarshalIndent(w, "", "    ")
     if err != nil {
-        fmt.Fprintf(os.Stderr, "failed to encode JSON: %s", err.String())
+        fmt.Fprintf(os.Stderr, "failed to encode JSON: %s", err.Error())
         os.Exit(1)
 	}
-	if err := ioutil.WriteFile(*out, b, 0644); err != nil {
-        fmt.Fprintf(os.Stderr, "failed to write file: %s", err.String())
+	if err := ioutil.WriteFile(out, b, 0644); err != nil {
+        fmt.Fprintf(os.Stderr, "failed to write file: %s", err.Error())
         os.Exit(1)
 	}
 }

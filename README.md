@@ -139,31 +139,32 @@ func main() {
 
 ## Tool
 
-The `stz` tool included in this repo uploads or writes a file containing the
-JSON representation of the structurizr API
-[Workspace object](https://github.com/structurizr/json) generated from DSL
-contained in a given Go package. The tool can can also upload an existing
-file to the service.
+Alternatively, the `stz` tool included in this repo can be used to generate a
+file containing the JSON representation of the structurizr API
+[Workspace object](https://github.com/structurizr/json) described via DSL.
+The tool can can also retrieve or upload such files from and to the
+Structurizr service. Finally the tool can also lock or unlock a workspace in
+the service.
 
 Upload DSL defined in package `goa.design/structurizr/examples/basic`:
 
 ```bash
-stz goa.design/structurizr/examples/basic -wid WID -key KEY -secret SECRET
+stz gen goa.design/structurizr/examples/basic && stz put -worspace WORKSPACE -key KEY -secret SECRET
 ```
 
-Where `WID` is the Structurizr service workspace ID, `KEY` the Structurizr
-service API key and `SECRET` the corresponding secret.
+Where `WORKSPACE` is the Structurizr service workspace ID, `KEY` the
+Structurizr service API key and `SECRET` the corresponding secret.
 
-Write the JSON representation of the Structurizr workspace to disk instead:
+Retrieve the JSON representation of a workspace from the service:
 
 ```bash
-stz goa.design/structurizr/examples/basic -out model.json
+stz get -workspace WORKSPACE -key KEY -secret SECRET -out model.json
 ```
 
 Upload an existing file to the Structurizr service:
 
 ```bash
-stz model.json -wid WID -key KEY -secret SECRET
+stz put model.json -workspace WORKSPACE -key KEY -secret SECRET
 ```
 
 ### Tool Setup

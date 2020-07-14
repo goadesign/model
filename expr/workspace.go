@@ -15,28 +15,28 @@ type Workspace struct {
 	// Name of workspace.
 	Name string `json:"name"`
 	// Description of workspace if any.
-	Description string `json:"description"`
+	Description string `json:"description,omitempty"`
 	// Version number for the workspace.
-	Version string `json:"version"`
+	Version string `json:"version,omitempty"`
 	// Thumbnail associated with the workspace; a Base64 encoded PNG file as a
 	// data URI (data:image/png;base64).
-	Thumbnail string `json:"thumbnail"`
+	Thumbnail string `json:"thumbnail,omitempty"`
 	// The last modified date, in ISO 8601 format (e.g. "2018-09-08T12:40:03Z").
-	LastModifiedDate string `json:"lastModifiedData"`
+	LastModifiedDate string `json:"lastModifiedData,omitempty"`
 	// A string identifying the user who last modified the workspace (e.g. an
 	// e-mail address or username).
-	LastModifiedUser string `json:"lastModifiedUser"`
+	LastModifiedUser string `json:"lastModifiedUser,omitempty"`
 	//  A string identifying the agent that was last used to modify the workspace
 	//  (e.g. "structurizr-java/1.2.0").
-	LastModifiedAgent string `json:"lastModifiedAgent"`
+	LastModifiedAgent string `json:"lastModifiedAgent,omitempty"`
 	// Model is the software architecture model.
-	Model *Model `json:"model"`
+	Model *Model `json:"model,omitempty"`
 	// Views contains the views if any.
-	Views *Views `json:"views"`
+	Views *Views `json:"views,omitempty"`
 	// Documentation associated with software architecture model.
-	Documentation *Documentation `json:"documentation"`
+	Documentation *Documentation `json:"documentation,omitempty"`
 	// Configuration of workspace.
-	Configuration *Configuration `json:"configuration"`
+	Configuration *Configuration `json:"configuration,omitempty"`
 }
 
 // Root is the design root expression.
