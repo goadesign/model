@@ -23,7 +23,7 @@ func main() {
 		wid    = fs.String("workspace", "", "Structurizr workspace ID [ignored for gen]")
 		key    = fs.String("key", "", "Structurizr API key [ignored for gen]")
 		secret = fs.String("secret", "", "Structurizr API secret [ignored for gen]")
-		debug  = fs.Bool("debug", false, "Print debug information.")
+		debug  = fs.Bool("debug", false, "Print debug information to stderr.")
 	)
 
 	var (
@@ -38,13 +38,14 @@ func main() {
 			cmd = arg
 		case "gen", "put":
 			path = arg
+			idx++
 			goto done
 		default:
 			goto done
 		}
 	}
 done:
-	fs.Parse(os.Args[idx+1:])
+	fs.Parse(os.Args[idx:])
 
 	pathOrDefault := func(p string) string {
 		if p == "" {
@@ -62,19 +63,19 @@ done:
 		}
 		err = gen(path, *out, *debug)
 	case "get":
-		err = get(pathOrDefault(*out), *wid, *key, *secret)
+		err = get(pathOrDefault(*out), *wid, *key, *secret, *debug)
 	case "put":
-		err = put(pathOrDefault(path), *wid, *key, *secret)
+		err = put(pathOrDefault(path), *wid, *key, *secret, *debug)
 	case "lock":
-		err = lock(*wid, *key, *secret)
+		err = lock(*wid, *key, *secret, *debug)
 	case "unlock":
-		err = unlock(*wid, *key, *secret)
+		err = unlock(*wid, *key, *secret, *debug)
 	case "version":
 		fmt.Printf("%s version %s\n", os.Args[0], structurizr.Version())
 	case "help":
-		showUsage()
+		showUsage(fs)
 	default:
-		showUsage()
+		showUsage(fs)
 		os.Exit(1)
 	}
 	if err != nil {
@@ -131,13 +132,16 @@ func gen(pkg, out string, debug bool) error {
 	out, _ = filepath.Abs(out)
 	o, err := runCmd(filepath.Join(tmpDir, "stz"), tmpDir, "-out", out)
 	if debug {
-		fmt.Println(o)
+		fmt.Fprintln(os.Stderr, o)
 	}
 	return err
 }
 
-func get(out, wid, key, secret string) error {
+func get(out, wid, key, secret string, debug bool) error {
 	c := service.NewClient(key, secret)
+	if debug {
+		c.EnableDebug()
+	}
 	w, err := c.Get(wid)
 	if err != nil {
 		return err
@@ -149,8 +153,11 @@ func get(out, wid, key, secret string) error {
 	return ioutil.WriteFile(out, b, 0644)
 }
 
-func put(path, wid, key, secret string) error {
+func put(path, wid, key, secret string, debug bool) error {
 	c := service.NewClient(key, secret)
+	if debug {
+		c.EnableDebug()
+	}
 	f, err := os.Open(path)
 	if err != nil {
 		return err
@@ -163,14 +170,20 @@ func put(path, wid, key, secret string) error {
 	return c.Put(wid, &w)
 }
 
-func lock(wid, key, secret string) error {
+func lock(wid, key, secret string, debug bool) error {
 	c := service.NewClient(key, secret)
+	if debug {
+		c.EnableDebug()
+	}
 	_, err := c.Lock(wid)
 	return err
 }
 
-func unlock(wid, key, secret string) error {
+func unlock(wid, key, secret string, debug bool) error {
 	c := service.NewClient(key, secret)
+	if debug {
+		c.EnableDebug()
+	}
 	_, err := c.Unlock(wid)
 	return err
 }
@@ -180,20 +193,20 @@ func fail(format string, args ...interface{}) {
 	os.Exit(1)
 }
 
-func showUsage() {
+func showUsage(fs *flag.FlagSet) {
 	fmt.Fprintln(os.Stderr, "Usage:")
-	fmt.Fprintf(os.Stderr, "\n%s gen PACKAGE [FLAGS]\n", os.Args[0])
-	fmt.Fprintf(os.Stderr, "%s get [FLAGS]\n", os.Args[0])
-	fmt.Fprintf(os.Stderr, "%s put FILE FLAGS\n", os.Args[0])
-	fmt.Fprintf(os.Stderr, "%s lock [FLAGS]\n", os.Args[0])
-	fmt.Fprintf(os.Stderr, "%s unlock [FLAGS]\n", os.Args[0])
-	fmt.Fprintf(os.Stderr, "%s help\n", os.Args[0])
-	fmt.Fprintf(os.Stderr, "%s version\n\n", os.Args[0])
+	fmt.Fprintf(os.Stderr, "\n%s gen PACKAGE [FLAGS]\t# Generate workspace JSON from DSL.\n", os.Args[0])
+	fmt.Fprintf(os.Stderr, "%s get [FLAGS]\t\t# Fetch workspace from Structurizr service.\n", os.Args[0])
+	fmt.Fprintf(os.Stderr, "%s put FILE FLAGS\t# Upload workspace to Structurizr service.\n", os.Args[0])
+	fmt.Fprintf(os.Stderr, "%s lock [FLAGS]\t# Prevent changes to workspace in Structurizr service.\n", os.Args[0])
+	fmt.Fprintf(os.Stderr, "%s unlock [FLAGS]\t# Allow changes to workspace in Structurizr service.\n", os.Args[0])
+	fmt.Fprintf(os.Stderr, "%s help\t\t# Print this help message.\n", os.Args[0])
+	fmt.Fprintf(os.Stderr, "%s version\t\t# Print the tool version.\n\n", os.Args[0])
 	fmt.Fprintln(os.Stderr, "Where:")
-	fmt.Fprintln(os.Stderr, "PACKAGE is the import path to a Go package containing the DSL describing a Structurizr workspace.")
+	fmt.Fprintln(os.Stderr, "\nPACKAGE is the import path to a Go package containing the DSL describing a Structurizr workspace.")
 	fmt.Fprintln(os.Stderr, "FILE is the path to a file containing a valid JSON representation of a Structurizr workspace.")
 	fmt.Fprintln(os.Stderr, "FLAGS is a sequence of:")
-	flag.PrintDefaults()
+	fs.PrintDefaults()
 }
 
 func runCmd(path, dir string, args ...string) (string, error) {

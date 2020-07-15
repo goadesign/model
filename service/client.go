@@ -17,8 +17,10 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 	"time"
 
+	goahttp "goa.design/goa/http"
 	"goa.design/structurizr/expr"
 )
 
@@ -110,6 +112,11 @@ func (c *Client) Lock(id string) (*Response, error) { return c.lockUnlock(id, tr
 // Unlock unlocks a previously locked workspace.
 func (c *Client) Unlock(id string) (*Response, error) { return c.lockUnlock(id, false) }
 
+// EnableDebug causes the client to print debug information to Stderr.
+func (c *Client) EnableDebug() {
+	c.HTTP = goahttp.NewDebugDoer(c.HTTP)
+}
+
 // lockUnlock implements the Lock and Unlock calls.
 func (c *Client) lockUnlock(id string, lock bool) (*Response, error) {
 	u := &url.URL{Scheme: Scheme, Host: Host, Path: fmt.Sprintf("/workspace/%s/lock", id)}
@@ -143,8 +150,9 @@ func (c *Client) sign(req *http.Request, content, ct string) {
 		h := md5.New()
 		h.Write([]byte(content))
 		md5 := hex.EncodeToString(h.Sum(nil))
+		md5 = strings.ToLower(strings.Replace(md5, "-", "", -1))
 		nonce = strconv.FormatInt(time.Now().UnixNano()/int64(time.Millisecond), 10)
-		digest = fmt.Sprintf("%s\n%s\n%s\n%s\n%s", req.Method, req.URL.Path, md5, ct, nonce)
+		digest = fmt.Sprintf("%s\n%s\n%s\n%s\n%s\n", req.Method, req.URL.Path, md5, ct, nonce)
 	}
 
 	// 2. Compute HMAC
@@ -156,7 +164,9 @@ func (c *Client) sign(req *http.Request, content, ct string) {
 	}
 
 	// 3. Write X-Authorization and Nonce headers
-	req.Header.Set("X-Authorization", fmt.Sprintf("%s:%s", c.Key, base64.StdEncoding.EncodeToString(hm)))
+	auth := base64.StdEncoding.EncodeToString(hm)
+	auth = strings.ToLower(strings.Replace(auth, "-", "", -1))
+	req.Header.Set("X-Authorization", fmt.Sprintf("%s:%s", c.Key, auth))
 	req.Header.Set("Nonce", nonce)
 
 	// Finally set agent.
