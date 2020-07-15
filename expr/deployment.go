@@ -16,17 +16,17 @@ type (
 		// node resides (e.g. "Development", "Live", etc).
 		Environment string `json:"environment"`
 		// Instances is the number of instances.
-		Instances int `json:"instances"`
+		Instances *int `json:"instances,omitempty"`
 		// Children describe the child deployment nodes if any.
-		Children []*DeploymentNode `json:"children"`
+		Children []*DeploymentNode `json:"children,omitempty"`
 		// Parent is the parent deployment node if any.
 		Parent *DeploymentNode `json:"-"`
 		// InfrastructureNodes describe the infrastructure nodes (load
 		// balancers, firewall etc.)
-		InfrastructureNodes []*InfrastructureNode `json:"infrastrctureNodes"`
+		InfrastructureNodes []*InfrastructureNode `json:"infrastrctureNodes,omitempty"`
 		// ContainerInstances describe instances of containers deployed in
 		// deployment node.
-		ContainerInstances []*ContainerInstance `json:"containerInstances"`
+		ContainerInstances []*ContainerInstance `json:"containerInstances,omitempty"`
 	}
 
 	// InfrastructureNode describes an infrastructure node.

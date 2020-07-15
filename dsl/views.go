@@ -91,7 +91,7 @@ func Views(dsl func()) {
 		eval.IncompatibleDSL()
 		return
 	}
-	w.Views = &expr.Views{DSL: dsl}
+	w.Views = &expr.Views{DSLFunc: dsl}
 }
 
 // SystemLandscapeView defines a system landscape view.
@@ -1167,11 +1167,12 @@ func AutoLayout(rank expr.RankDirectionKind, args ...func()) {
 			eval.ReportError("too many arguments")
 		}
 	}
+	r, n, e := 300, 600, 200
 	layout := &expr.Layout{
 		RankDirection: rank,
-		RankSep:       300,
-		NodeSep:       600,
-		EdgeSep:       200,
+		RankSep:       &r,
+		NodeSep:       &n,
+		EdgeSep:       &e,
 	}
 	if dsl != nil {
 		eval.Execute(dsl, layout)
@@ -1276,11 +1277,12 @@ func PaperSize(size expr.PaperSizeKind) {
 //
 // EnterpriseBoundaryVisible takes no argument
 func EnterpriseBoundaryVisible() {
+	t := true
 	switch v := eval.Current().(type) {
 	case *expr.LandscapeView:
-		v.EnterpriseBoundaryVisible = true
+		v.EnterpriseBoundaryVisible = &t
 	case *expr.ContextView:
-		v.EnterpriseBoundaryVisible = true
+		v.EnterpriseBoundaryVisible = &t
 	default:
 		eval.IncompatibleDSL()
 	}
@@ -1294,7 +1296,8 @@ func EnterpriseBoundaryVisible() {
 // SystemBoundariesVisible takes no argument
 func SystemBoundariesVisible() {
 	if v, ok := eval.Current().(*expr.ContainerView); ok {
-		v.SystemBoundariesVisible = true
+		t := true
+		v.SystemBoundariesVisible = &t
 		return
 	}
 	eval.IncompatibleDSL()
@@ -1308,7 +1311,8 @@ func SystemBoundariesVisible() {
 // ContainerBoundariesVisible takes no argument
 func ContainerBoundariesVisible() {
 	if v, ok := eval.Current().(*expr.ComponentView); ok {
-		v.ContainerBoundariesVisible = true
+		t := true
+		v.ContainerBoundariesVisible = &t
 		return
 	}
 	eval.IncompatibleDSL()
@@ -1340,8 +1344,8 @@ func ContainerBoundariesVisible() {
 //
 func Coord(x, y int) {
 	if ev, ok := eval.Current().(*expr.ElementView); ok {
-		ev.X = x
-		ev.Y = y
+		ev.X = &x
+		ev.Y = &y
 		return
 	}
 	eval.IncompatibleDSL()
@@ -1486,9 +1490,9 @@ func Position(p int) {
 	}
 	switch a := eval.Current().(type) {
 	case *expr.RelationshipView:
-		a.Position = p
+		a.Position = &p
 	case *expr.RelationshipStyle:
-		a.Position = p
+		a.Position = &p
 	default:
 		eval.IncompatibleDSL()
 	}
@@ -1519,7 +1523,7 @@ func RankSeparation(s int) {
 		return
 	}
 	if a, ok := eval.Current().(*expr.Layout); ok {
-		a.RankSep = s
+		a.RankSep = &s
 		return
 	}
 	eval.IncompatibleDSL()
@@ -1550,7 +1554,7 @@ func NodeSeparation(s int) {
 		return
 	}
 	if a, ok := eval.Current().(*expr.Layout); ok {
-		a.NodeSep = s
+		a.NodeSep = &s
 		return
 	}
 	eval.IncompatibleDSL()
@@ -1581,7 +1585,7 @@ func EdgeSeparation(s int) {
 		return
 	}
 	if a, ok := eval.Current().(*expr.Layout); ok {
-		a.EdgeSep = s
+		a.EdgeSep = &s
 		return
 	}
 	eval.IncompatibleDSL()
@@ -1609,7 +1613,8 @@ func EdgeSeparation(s int) {
 //
 func RenderVertices() {
 	if a, ok := eval.Current().(*expr.Layout); ok {
-		a.Vertices = true
+		t := true
+		a.Vertices = &t
 		return
 	}
 	eval.IncompatibleDSL()

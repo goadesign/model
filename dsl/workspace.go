@@ -63,29 +63,28 @@ func Workspace(args ...interface{}) *expr.Workspace {
 		eval.ReportError("missing child DSL (last argument must be a func)")
 		return nil
 	}
-	var name, desc string
 	if nargs > 1 {
-		name, ok = args[0].(string)
+		name, ok := args[0].(string)
 		if !ok {
 			eval.InvalidArgError("string", args[0])
 		}
+		expr.Root.Name = name
 	}
 	if nargs > 2 {
-		desc, ok = args[1].(string)
+		desc, ok := args[1].(string)
 		if !ok {
 			eval.InvalidArgError("string", args[1])
 		}
+		expr.Root.Description = desc
 	}
 	if nargs > 3 {
 		eval.ReportError("too many arguments")
 		return nil
 	}
-	w := &expr.Workspace{Name: name, Description: desc, Model: &expr.Model{}}
-	if !eval.Execute(dsl, w) {
+	if !eval.Execute(dsl, expr.Root) {
 		return nil
 	}
-	expr.Root = w
-	return w
+	return expr.Root
 }
 
 // Version specifies a version number for the workspace.

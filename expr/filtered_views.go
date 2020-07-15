@@ -20,7 +20,7 @@ type (
 		Mode string `json:"mode"`
 		// The set of tags to include/exclude elements/relationships when
 		// rendering this filtered view.
-		Tags []string `json:"tags"`
+		Tags []string `json:"tags,omitempty"`
 	}
 )
 

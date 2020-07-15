@@ -9,13 +9,13 @@ type (
 	// Documentation associated with software architecture model.
 	Documentation struct {
 		// Documentation sections.
-		Sections []*DocumentationSection `json:"sections"`
+		Sections []*DocumentationSection `json:"sections,omitempty"`
 		// ADR decisions.
-		Decisions []*Decision `json:"decisions"`
+		Decisions []*Decision `json:"decisions,omitempty"`
 		// Images used in documentation.
-		Images []*Image `json:"images"`
+		Images []*Image `json:"images,omitempty"`
 		// Information about template used to render documentation.
-		Template *DocumentationTemplateMetadata `json:"template"`
+		Template *DocumentationTemplateMetadata `json:"template,omitempty"`
 	}
 
 	// DocumentationSection corresponds to a documentation section.
@@ -29,7 +29,7 @@ type (
 		// Order (index) of section in document.
 		Order int `json:"order"`
 		// ID of element (in model) that section applies to (optional).
-		ElementID string `json:"elementId"`
+		ElementID string `json:"elementId,omitempty"`
 	}
 
 	// Decision record (e.g. architecture decision record).
@@ -47,7 +47,7 @@ type (
 		// Content format.
 		Format DocFormatKind `json:"format"`
 		// ID of element (in model) that decision applies to (optional).
-		ElementID string `json:"elementId"`
+		ElementID string `json:"elementId,omitempty"`
 	}
 
 	// Image represents a Base64 encoded image (PNG/JPG/GIF).
@@ -66,9 +66,9 @@ type (
 		// Name of documentation template.
 		Name string `json:"name"`
 		// Name of author of documentation template.
-		Author string `json:"author"`
+		Author string `json:"author,omitempty"`
 		// URL that points to more information about template.
-		URL string `json:"url"`
+		URL string `json:"url,omitempty"`
 	}
 
 	// DocFormatKind is the enum used to represent documentation format.

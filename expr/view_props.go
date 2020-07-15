@@ -36,9 +36,9 @@ type (
 		// ID of element.
 		ID string `json:"id"`
 		// Horizontal position of element when rendered
-		X int `json:"x"`
+		X *int `json:"x,omitempty"`
 		// Vertical position of element when rendered.
-		Y int `json:"y"`
+		Y *int `json:"y,omitempty"`
 		// Correpsonding model element.
 		Element *Element `json:"-"`
 		// Remove relationships before rendering.
@@ -55,11 +55,11 @@ type (
 		// Order of relationship in dynamic views.
 		Order string `json:"order"`
 		// Set of vertices used to render relationship
-		Vertices []*Vertex `json:"vertices"`
+		Vertices []*Vertex `json:"vertices,omitempty"`
 		// Routing algorithm used to render relationship.
 		Routing RoutingKind `json:"routing"`
 		// Position of annotation along line; 0 (start) to 100 (end).
-		Position int `json:"position"`
+		Position *int `json:"position,omitempty"`
 		// Corresponding relationship.
 		Relationship *Relationship `json:"-"`
 	}
@@ -89,13 +89,13 @@ type (
 		// Algorithm rank direction.
 		RankDirection RankDirectionKind `json:"rankDirection"`
 		// RankSep defines the separation between ranks in pixels.
-		RankSep int `json:"rankSeparation"`
+		RankSep *int `json:"rankSeparation,omitempty"`
 		// NodeSep defines the separation between nodes in pixels.
-		NodeSep int `json:"nodeSeparation"`
+		NodeSep *int `json:"nodeSeparation,omitempty"`
 		// EdgeSep defines the separation between edges in pixels.
-		EdgeSep int `json:"edgeSeparation"`
+		EdgeSep *int `json:"edgeSeparation,omitempty"`
 		// Render vertices if true.
-		Vertices bool
+		Vertices *bool `json:"vertices,omitempty"`
 	}
 )
 

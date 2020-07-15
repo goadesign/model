@@ -85,11 +85,9 @@ func DeploymentNode(name string, args ...interface{}) {
 			Name:        name,
 			Description: description,
 			Technology:  technology,
+			DSLFunc:     dsl,
 		},
 		Environment: env.Name,
-	}
-	if dsl != nil {
-		eval.Execute(dsl, node)
 	}
 	expr.Identify(node)
 	expr.Root.Model.DeploymentNodes = append(expr.Root.Model.DeploymentNodes, node)
@@ -146,11 +144,9 @@ func InfrastructureNode(d *expr.DeploymentNode, name string, args ...interface{}
 			Name:        name,
 			Description: description,
 			Technology:  technology,
+			DSLFunc:     dsl,
 		},
 		Environment: env.Name,
-	}
-	if dsl != nil {
-		eval.Execute(dsl, node)
 	}
 	expr.Identify(node)
 	d.InfrastructureNodes = append(d.InfrastructureNodes, node)
@@ -195,11 +191,9 @@ func ContainerInstance(d *expr.DeploymentNode, args ...func()) {
 		}
 	}
 	ci := &expr.ContainerInstance{
+		Element:     expr.Element{DSLFunc: dsl},
 		ContainerID: d.ID,
 		Environment: env.Name,
-	}
-	if dsl != nil {
-		eval.Execute(dsl, ci)
 	}
 	expr.Identify(ci)
 	d.ContainerInstances = append(d.ContainerInstances, ci)
@@ -227,7 +221,7 @@ func Instances(n int) {
 		eval.IncompatibleDSL()
 		return
 	}
-	node.Instances = n
+	node.Instances = &n
 }
 
 // InstanceID sets the instance number or index of a container instance.

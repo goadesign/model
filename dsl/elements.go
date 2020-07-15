@@ -48,11 +48,9 @@ func SoftwareSystem(name string, args ...interface{}) *expr.SoftwareSystem {
 		Element: &expr.Element{
 			Name:        name,
 			Description: description,
+			DSLFunc:     dsl,
 		},
 		Location: expr.LocationInternal,
-	}
-	if dsl != nil {
-		eval.Execute(dsl, s)
 	}
 	expr.Identify(s)
 	w.Model.Systems = append(w.Model.Systems, s)
@@ -151,11 +149,9 @@ func Container(system *expr.SoftwareSystem, args ...interface{}) *expr.Container
 			Name:        name,
 			Description: description,
 			Technology:  technology,
+			DSLFunc:     dsl,
 		},
 		System: system,
-	}
-	if dsl != nil {
-		eval.Execute(dsl, c)
 	}
 	expr.Identify(c)
 	system.Containers = append(system.Containers, c)
@@ -210,11 +206,9 @@ func Component(container *expr.Container, name string, args ...interface{}) *exp
 			Name:        name,
 			Description: description,
 			Technology:  technology,
+			DSLFunc:     dsl,
 		},
 		Container: container,
-	}
-	if dsl != nil {
-		eval.Execute(dsl, c)
 	}
 	expr.Identify(c)
 	container.Components = append(container.Components, c)

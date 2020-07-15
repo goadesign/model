@@ -72,11 +72,9 @@ func Person(name string, args ...interface{}) *expr.Person {
 		Element: &expr.Element{
 			Name:        name,
 			Description: desc,
+			DSLFunc:     dsl,
 		},
 		Location: expr.LocationInternal,
-	}
-	if dsl != nil {
-		eval.Execute(dsl, p)
 	}
 	expr.Identify(p)
 	w.Model.People = append(w.Model.People, p)

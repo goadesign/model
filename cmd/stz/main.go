@@ -8,7 +8,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
 
 	"goa.design/goa/v3/codegen"
 	"goa.design/structurizr/expr"
@@ -19,32 +18,33 @@ import (
 
 func main() {
 	var (
-		out    = flag.String("out", "model.json", "Write structurizr JSON to given file path [use with get or gen].")
-		wid    = flag.String("workspace", "", "Structurizr workspace ID [ignored for gen]")
-		key    = flag.String("key", "", "Structurizr API key [ignored for gen]")
-		secret = flag.String("secret", "", "Structurizr API secret [ignored for gen]")
+		fs     = flag.NewFlagSet("flags", flag.ContinueOnError)
+		out    = fs.String("out", "model.json", "Write structurizr JSON to given file path [use with get or gen].")
+		wid    = fs.String("workspace", "", "Structurizr workspace ID [ignored for gen]")
+		key    = fs.String("key", "", "Structurizr API key [ignored for gen]")
+		secret = fs.String("secret", "", "Structurizr API secret [ignored for gen]")
+		debug  = fs.Bool("debug", false, "Print debug information.")
 	)
-	flag.Parse()
 
 	var (
 		cmd  string
 		path string
+		idx  int
 	)
-	inFlag := false
 	for _, arg := range os.Args[1:] {
-		if !strings.HasPrefix(arg, "-") && !inFlag {
-			switch cmd {
-			case "":
-				cmd = arg
-			case "gen", "put":
-				path = arg
-			default:
-				fail("too many arguments, use 'help' for usage.")
-			}
-		} else {
-			inFlag = strings.HasPrefix(arg, "-")
+		idx++
+		switch cmd {
+		case "":
+			cmd = arg
+		case "gen", "put":
+			path = arg
+			goto done
+		default:
+			goto done
 		}
 	}
+done:
+	fs.Parse(os.Args[idx+1:])
 
 	pathOrDefault := func(p string) string {
 		if p == "" {
@@ -56,7 +56,11 @@ func main() {
 	var err error
 	switch cmd {
 	case "gen":
-		err = gen(pathOrDefault(path), *out)
+		if path == "" {
+			err = fmt.Errorf("missing Go import package path")
+			break
+		}
+		err = gen(path, *out, *debug)
 	case "get":
 		err = get(pathOrDefault(*out), *wid, *key, *secret)
 	case "put":
@@ -78,7 +82,7 @@ func main() {
 	}
 }
 
-func gen(pkg, out string) error {
+func gen(pkg, out string, debug bool) error {
 	// Validate package import path
 	if _, err := packages.Load(&packages.Config{Mode: packages.NeedName}, pkg); err != nil {
 		return err
@@ -116,16 +120,20 @@ func gen(pkg, out string) error {
 	if err != nil {
 		return fmt.Errorf(`failed to find a go compiler, looked in "%s"`, os.Getenv("PATH"))
 	}
-	if err := runCmd(gobin, tmpDir, gobin, "mod", "init", "stz"); err != nil {
+	if _, err := runCmd(gobin, tmpDir, gobin, "mod", "init", "stz"); err != nil {
 		return err
 	}
-	if err := runCmd(gobin, tmpDir, gobin, "build", "-o", "stz"); err != nil {
+	if _, err := runCmd(gobin, tmpDir, gobin, "build", "-o", "stz"); err != nil {
 		return err
 	}
 
 	// Run program
 	out, _ = filepath.Abs(out)
-	return runCmd(filepath.Join(tmpDir, "stz"), tmpDir, "-out", out)
+	o, err := runCmd(filepath.Join(tmpDir, "stz"), tmpDir, "-out", out)
+	if debug {
+		fmt.Println(o)
+	}
+	return err
 }
 
 func get(out, wid, key, secret string) error {
@@ -188,17 +196,17 @@ func showUsage() {
 	flag.PrintDefaults()
 }
 
-func runCmd(path, dir string, args ...string) error {
+func runCmd(path, dir string, args ...string) (string, error) {
 	os.Setenv("GO111MODULE", "on")
 	c := exec.Cmd{Path: path, Args: args, Dir: dir}
 	b, err := c.CombinedOutput()
 	if err != nil {
 		if len(b) > 0 {
-			return fmt.Errorf(string(b))
+			return "", fmt.Errorf(string(b))
 		}
-		return fmt.Errorf("failed to run command %q in directory %q: %s", path, dir, err)
+		return "", fmt.Errorf("failed to run command %q in directory %q: %s", path, dir, err)
 	}
-	return nil
+	return string(b), nil
 }
 
 // mainT is the template for the generator main.
@@ -209,7 +217,7 @@ const mainT = `func main() {
     // Run the model DSL
     w, err := eval.RunDSL()
     if err != nil {
-        fmt.Fprintf(os.Stderr, "invalid model: %s", err.Error())
+        fmt.Fprint(os.Stderr, err.Error())
         os.Exit(1)
     }
 	b, err := json.MarshalIndent(w, "", "    ")

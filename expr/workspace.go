@@ -11,7 +11,7 @@ import (
 // Workspace describes a workspace and is the root expression of the plugin.
 type Workspace struct {
 	// ID of workspace.
-	ID string `json:"id"`
+	ID string `json:"id,omitempty"`
 	// Name of workspace.
 	Name string `json:"name"`
 	// Description of workspace if any.
@@ -40,20 +40,45 @@ type Workspace struct {
 }
 
 // Root is the design root expression.
-var Root = &Workspace{}
+var Root = &Workspace{Model: &Model{}}
 
 // Register design root with eval engine.
 func init() {
 	eval.Register(Root)
 }
 
-// WalkSets iterates over the views, elements are completely evaluated during
-// init.
+// WalkSets iterates over the elements and views.
+// Elements DSL cannot be executed on init because all elements must first be
+// loaded and their IDs captured in the registry before relationships can be
+// built with DSL.
 func (w *Workspace) WalkSets(walk eval.SetWalker) {
 	if w.Views == nil {
 		return
 	}
+	walk(eval.ToExpressionSet(w.Model.People))
+	walk(eval.ToExpressionSet(w.Model.Systems))
+	for _, s := range w.Model.Systems {
+		walk(eval.ToExpressionSet(s.Containers))
+	}
+	for _, s := range w.Model.Systems {
+		for _, c := range s.Containers {
+			walk(eval.ToExpressionSet(c.Components))
+		}
+	}
+	walkDeploymentNodes(w.Model.DeploymentNodes, walk)
 	walk([]eval.Expression{w.Views})
+}
+
+func walkDeploymentNodes(n []*DeploymentNode, walk eval.SetWalker) {
+	if n == nil {
+		return
+	}
+	walk(eval.ToExpressionSet(n))
+	for _, d := range n {
+		walk(eval.ToExpressionSet(d.InfrastructureNodes))
+		walk(eval.ToExpressionSet(d.ContainerInstances))
+		walkDeploymentNodes(d.Children, walk)
+	}
 }
 
 // DependsOn tells the eval engine to run the goa DSL first.

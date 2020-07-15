@@ -26,7 +26,7 @@ type (
 		// Styles contains the element and relationship styles.
 		Configuration *Configuration `json:"configuration,omitempty"`
 		// DSL to be run once all elements have been evaluated.
-		DSL func() `json:"-"`
+		DSLFunc func() `json:"-"`
 	}
 
 	// LandscapeView describes a system landscape view.
@@ -35,7 +35,7 @@ type (
 		// EnterpriseBoundaryVisible specifies whether the enterprise boundary
 		// (to differentiate internal elements from external elements) should be
 		// visible on the resulting diagram.
-		EnterpriseBoundaryVisible bool `json:"enterpriseBoundaryVisible"`
+		EnterpriseBoundaryVisible *bool `json:"enterpriseBoundaryVisible,omitempty"`
 	}
 
 	// ContextView describes a system context view.
@@ -44,7 +44,7 @@ type (
 		// EnterpriseBoundaryVisible specifies whether the enterprise boundary
 		// (to differentiate internal elements from external elements) should be
 		// visible on the resulting diagram.
-		EnterpriseBoundaryVisible bool `json:"enterpriseBoundaryVisible"`
+		EnterpriseBoundaryVisible *bool `json:"enterpriseBoundaryVisible,omitempty"`
 		// SoftwareSystemID is the ID of the software system this view with is
 		// associated with.
 		SoftwareSystemID string `json:"softwareSystemId"`
@@ -56,7 +56,7 @@ type (
 		ViewProps
 		// Specifies whether software system boundaries should be visible for
 		// "external" containers (those outside the software system in scope).
-		SystemBoundariesVisible bool `json:"externalSoftwareSystemBoundariesVisible"`
+		SystemBoundariesVisible *bool `json:"externalSoftwareSystemBoundariesVisible,omitempty"`
 		// SoftwareSystemID is the ID of the software system this view with is
 		// associated with.
 		SoftwareSystemID string `json:"softwareSystemId"`
@@ -67,16 +67,16 @@ type (
 		ViewProps
 		// Specifies whether container boundaries should be visible for
 		// "external" containers (those outside the container in scope).
-		ContainerBoundariesVisible bool `json:"externalContainersBoundariesVisible"`
+		ContainerBoundariesVisible *bool `json:"externalContainersBoundariesVisible,omitempty"`
 		// The ID of the container this view is associated with.
-		ContainerID string `json:"containerID"`
+		ContainerID string `json:"containerId"`
 	}
 
 	// DynamicView describes a dynamic view for a specified scope.
 	DynamicView struct {
 		ViewProps
 		// ElementID is the identifier of the element this view is associated with.
-		ElementID string
+		ElementID string `json:"elementId"`
 	}
 
 	// DeploymentView describes a deployment view.
@@ -126,6 +126,11 @@ var (
 	_ ViewAdder = &ComponentView{}
 	_ ViewAdder = &DeploymentView{}
 )
+
+// DSL returns the DSL to execute.
+func (vs *Views) DSL() func() {
+	return vs.DSLFunc
+}
 
 // EvalName returns the generic expression name used in error messages.
 func (vs *Views) EvalName() string {

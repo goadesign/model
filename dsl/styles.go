@@ -216,9 +216,9 @@ func Icon(file string) {
 func Width(w int) {
 	switch a := eval.Current().(type) {
 	case *expr.ElementStyle:
-		a.Width = w
+		a.Width = &w
 	case *expr.RelationshipStyle:
-		a.Width = w
+		a.Width = &w
 	default:
 		eval.IncompatibleDSL()
 	}
@@ -231,7 +231,7 @@ func Width(w int) {
 // Height accepts a single argument: the height in pixel.
 func Height(h int) {
 	if es, ok := eval.Current().(*expr.ElementStyle); ok {
-		es.Height = h
+		es.Height = &h
 		return
 	}
 	eval.IncompatibleDSL()
@@ -302,9 +302,9 @@ func Stroke(c string) {
 func FontSize(s int) {
 	switch a := eval.Current().(type) {
 	case *expr.ElementStyle:
-		a.FontSize = s
+		a.FontSize = &s
 	case *expr.RelationshipStyle:
-		a.FontSize = s
+		a.FontSize = &s
 	default:
 		eval.IncompatibleDSL()
 	}
@@ -336,9 +336,9 @@ func Opacity(o int) {
 	}
 	switch a := eval.Current().(type) {
 	case *expr.ElementStyle:
-		a.Opacity = o
+		a.Opacity = &o
 	case *expr.RelationshipStyle:
-		a.Opacity = o
+		a.Opacity = &o
 	default:
 		eval.IncompatibleDSL()
 	}
@@ -351,7 +351,8 @@ func Opacity(o int) {
 // ShowMetadata takes no argument.
 func ShowMetadata() {
 	if es, ok := eval.Current().(*expr.ElementStyle); ok {
-		es.Metadata = true
+		t := true
+		es.Metadata = &t
 		return
 	}
 	eval.IncompatibleDSL()
@@ -364,7 +365,8 @@ func ShowMetadata() {
 // ShowDescription takes no argument.
 func ShowDescription() {
 	if es, ok := eval.Current().(*expr.ElementStyle); ok {
-		es.Description = true
+		t := true
+		es.Description = &t
 		return
 	}
 	eval.IncompatibleDSL()
@@ -377,7 +379,7 @@ func ShowDescription() {
 // Thickness takes one argument: the thickness in pixels.
 func Thickness(t int) {
 	if rs, ok := eval.Current().(*expr.RelationshipStyle); ok {
-		rs.Thickness = t
+		rs.Thickness = &t
 		return
 	}
 	eval.IncompatibleDSL()
@@ -390,7 +392,8 @@ func Thickness(t int) {
 // Dashed takes no argument.
 func Dashed() {
 	if rs, ok := eval.Current().(*expr.RelationshipStyle); ok {
-		rs.Dashed = true
+		t := true
+		rs.Dashed = &t
 		return
 	}
 	eval.IncompatibleDSL()

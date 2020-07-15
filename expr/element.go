@@ -21,9 +21,11 @@ type (
 		// URL where more information about this element can be found.
 		URL string `json:"url,omitempty"`
 		// Set of arbitrary name-value properties (shown in diagram tooltips).
-		Properties map[string]string `json:"properties"`
+		Properties map[string]string `json:"properties,omitempty"`
 		// Rels is the set of relationships from this element to other elements.
 		Rels []*Relationship `json:"relationships,omitempty"`
+		// DSL to run.
+		DSLFunc func() `json:"-"`
 	}
 
 	// ElementHolder provides access to the underlying element.
@@ -43,6 +45,9 @@ const (
 	// LocationExternal defines an element external to the enterprise.
 	LocationExternal
 )
+
+// DSL returns the attached DSL.
+func (e Element) DSL() func() { return e.DSLFunc }
 
 // GetElement returns the underlying element.
 func (e Element) GetElement() *Element { return &e }
