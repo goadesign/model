@@ -20,7 +20,7 @@ import (
 	"strings"
 	"time"
 
-	goahttp "goa.design/goa/http"
+	goahttp "goa.design/goa/v3/http"
 	"goa.design/structurizr/expr"
 )
 
