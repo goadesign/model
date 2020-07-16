@@ -74,13 +74,16 @@ workspace described in a DSL to the Structurizr service:
 ```Go
 package main
 
-include "goa.design/structurizr/eval"
-include "goa.design/structurizr/client"
+import (
+    "fmt"
+    "os"
+
+    . "goa.design/structurizr/dsl"
+    "goa.design/structurizr/eval"
+    "goa.design/structurizr/service"
+)
 
 // DSL that describes software architecture model.
-
-import . "goa.design/structurizr/dsl"
-
 var _ = Workspace("Getting Started", "This is a model of my software system.", func() {
     var System = SoftwareSystem("Software System", "My software system.", func() {
         Tag("system")
@@ -115,7 +118,7 @@ func main() {
     // Run the model DSL
     w, err := eval.RunDSL()
     if err != nil {
-        fmt.Fprintf(os.Stderr, "invalid model: %s", err.String())
+        fmt.Fprintf(os.Stderr, "invalid model: %s", err.Error())
         os.Exit(1)
     }
 
@@ -124,13 +127,13 @@ func main() {
     // STRUCTURIZR_SECRET environment variables respectively. The
     // workspace ID must be set in STRUCTURIZR_WORKSPACE_ID.
     var (
-        key = os.Getenv("STRUCTURIZR_KEY")
+        key    = os.Getenv("STRUCTURIZR_KEY")
         secret = os.Getenv("STRUCTURIZR_SECRET")
-        wid = os.Getenv("STRUCTURIZR_WORKSPACE_ID")
+        wid    = os.Getenv("STRUCTURIZR_WORKSPACE_ID")
     )
     c := service.NewClient(key, secret)
     if err := c.Put(wid, w); err != nil {
-        fmt.Fprintf(os.Stderr, "failed to store workspace: %s", err.String())
+        fmt.Fprintf(os.Stderr, "failed to store workspace: %s", err.Error())
         os.Exit(1)
     }
 }
@@ -196,7 +199,7 @@ the Goa design:
 package design
 
 import . "goa.design/goa/v3/dsl"
-import . "goa.design/plugins/structurizr/dsl"
+import "goa.design/structurizr/dsl"
 
 // ... DSL describing API, services and architecture model
 ```
