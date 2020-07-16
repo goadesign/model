@@ -3,6 +3,8 @@ package expr
 import (
 	"bytes"
 	"encoding/json"
+
+	"goa.design/goa/v3/eval"
 )
 
 type (
@@ -47,14 +49,33 @@ const (
 )
 
 // DSL returns the attached DSL.
-func (e Element) DSL() func() { return e.DSLFunc }
+func (e *Element) DSL() func() { return e.DSLFunc }
+
+// Validate validates the relationships.
+func (c *Container) Validate() error {
+	var verr *eval.ValidationErrors
+	for _, r := range c.Rels {
+		if Root.Model.FindElement(r.DestinationName) == nil {
+			verr.Add(r, "could not find relationship target %q", r.DestinationName)
+		}
+	}
+	return verr
+}
+
+// Finalize updates the relationship destinations.
+func (e *Element) Finalize() {
+	for _, r := range e.Rels {
+		r.Destination = Root.Model.FindElement(r.DestinationName).GetElement()
+		r.DestinationID = r.Destination.ID
+	}
+}
 
 // GetElement returns the underlying element.
-func (e Element) GetElement() *Element { return &e }
+func (e *Element) GetElement() *Element { return e }
 
 // RelatedPeople returns all people the element has a relationship with
 // (either as source or as destination).
-func (e Element) RelatedPeople() (res People) {
+func (e *Element) RelatedPeople() (res People) {
 	add := func(p *Person) {
 		for _, ep := range res {
 			if ep.ID == p.ID {
@@ -80,7 +101,7 @@ func (e Element) RelatedPeople() (res People) {
 
 // RelatedSoftwareSystems returns all software systems the element has a
 // relationship with (either as source or as destination).
-func (e Element) RelatedSoftwareSystems() (res SoftwareSystems) {
+func (e *Element) RelatedSoftwareSystems() (res SoftwareSystems) {
 	add := func(s *SoftwareSystem) {
 		for _, es := range res {
 			if es.ID == s.ID {
@@ -106,7 +127,7 @@ func (e Element) RelatedSoftwareSystems() (res SoftwareSystems) {
 
 // RelatedContainers returns all containers the element has a relationship with
 // (either as source or as destination).
-func (e Element) RelatedContainers() (res Containers) {
+func (e *Element) RelatedContainers() (res Containers) {
 	add := func(cc *Container) {
 		for _, es := range res {
 			if es.ID == cc.ID {
@@ -132,7 +153,7 @@ func (e Element) RelatedContainers() (res Containers) {
 
 // RelatedComponents returns all components the element has a relationship with
 // (either as source or as destination).
-func (e Element) RelatedComponents() (res Components) {
+func (e *Element) RelatedComponents() (res Components) {
 	add := func(c *Component) {
 		for _, es := range res {
 			if es.ID == c.ID {
@@ -158,9 +179,9 @@ func (e Element) RelatedComponents() (res Components) {
 
 // Reachable returns the IDs of all elements that can be reached by traversing
 // the relationships from the given root.
-func (e Element) Reachable() (res []string) {
+func (e *Element) Reachable() (res []string) {
 	seen := make(map[string]struct{})
-	traverse(&e, seen)
+	traverse(e, seen)
 	res = make([]string, len(seen))
 	for k := range seen {
 		res = append(res, k)

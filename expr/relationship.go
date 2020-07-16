@@ -28,10 +28,12 @@ type (
 		// ID of container-container relationship upon which this container
 		// instance-container instance relationship is based.
 		LinkedRelationshipID string `json:"linkedRelationshipId,omitempty"`
-		// Source Element.
+		// Source element.
 		Source *Element `json:"-"`
-		// Destination Element.
+		// Destination element.
 		Destination *Element `json:"-"`
+		// DestinationName element name.
+		DestinationName string `json:"-"`
 	}
 
 	// InteractionStyleKind is the enum for possible interaction styles.

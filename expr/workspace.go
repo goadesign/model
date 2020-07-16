@@ -53,9 +53,7 @@ func init() {
 // loaded and their IDs captured in the registry before relationships can be
 // built with DSL.
 func (w *Workspace) WalkSets(walk eval.SetWalker) {
-	if w.Views == nil {
-		return
-	}
+	walk([]eval.Expression{w.Model})
 	walk(eval.ToExpressionSet(w.Model.People))
 	walk(eval.ToExpressionSet(w.Model.Systems))
 	for _, s := range w.Model.Systems {
