@@ -66,6 +66,8 @@ done:
 		err = get(pathOrDefault(*out), *wid, *key, *secret, *debug)
 	case "put":
 		err = put(pathOrDefault(path), *wid, *key, *secret, *debug)
+	case "patch":
+		err = patch(pathOrDefault(path), *wid, *key, *secret, *debug)
 	case "lock":
 		err = lock(*wid, *key, *secret, *debug)
 	case "unlock":
@@ -170,6 +172,42 @@ func put(path, wid, key, secret string, debug bool) error {
 	return c.Put(wid, &w)
 }
 
+func patch(path, wid, key, secret string, debug bool) error {
+	var nw expr.Workspace
+	{
+		f, err := os.Open(path)
+		if err != nil {
+			return err
+		}
+		defer f.Close()
+
+		if err = json.NewDecoder(f).Decode(&nw); err != nil {
+			return err
+		}
+	}
+
+	c := service.NewClient(key, secret)
+	if debug {
+		c.EnableDebug()
+	}
+
+	var ow *expr.Workspace
+	{
+		w, err := c.Get(wid)
+		if err != nil {
+			return err
+		}
+		ow = w
+	}
+
+	err := ow.Merge(&nw)
+	if err != nil {
+		return err
+	}
+
+	return c.Put(wid, ow)
+}
+
 func lock(wid, key, secret string, debug bool) error {
 	c := service.NewClient(key, secret)
 	if debug {
@@ -198,6 +236,7 @@ func showUsage(fs *flag.FlagSet) {
 	fmt.Fprintf(os.Stderr, "\n%s gen PACKAGE [FLAGS]\t# Generate workspace JSON from DSL.\n", os.Args[0])
 	fmt.Fprintf(os.Stderr, "%s get [FLAGS]\t\t# Fetch workspace from Structurizr service.\n", os.Args[0])
 	fmt.Fprintf(os.Stderr, "%s put FILE FLAGS\t# Upload workspace to Structurizr service.\n", os.Args[0])
+	fmt.Fprintf(os.Stderr, "%s patch FILE FLAGS\t# Patch workspace in Structurizr service.\n", os.Args[0])
 	fmt.Fprintf(os.Stderr, "%s lock [FLAGS]\t# Prevent changes to workspace in Structurizr service.\n", os.Args[0])
 	fmt.Fprintf(os.Stderr, "%s unlock [FLAGS]\t# Allow changes to workspace in Structurizr service.\n", os.Args[0])
 	fmt.Fprintf(os.Stderr, "%s help\t\t# Print this help message.\n", os.Args[0])

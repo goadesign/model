@@ -1,6 +1,7 @@
 package expr
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"goa.design/goa/v3/eval"
@@ -11,7 +12,7 @@ import (
 // Workspace describes a workspace and is the root expression of the plugin.
 type Workspace struct {
 	// ID of workspace.
-	ID string `json:"id,omitempty"`
+	ID int `json:"id,omitempty"`
 	// Name of workspace.
 	Name string `json:"name"`
 	// Description of workspace if any.
@@ -99,4 +100,15 @@ func (w *Workspace) Packages() []string {
 // EvalName returns the generic expression name used in error messages.
 func (w *Workspace) EvalName() string {
 	return "Structurizr workspace"
+}
+
+// Merge merges other into this workspace. The merge algorithm recursively
+// overrides all fields of w with fields from other that do not have the zero
+// value.
+func (w *Workspace) Merge(other *Workspace) error {
+	js, err := json.Marshal(other)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(js, w)
 }

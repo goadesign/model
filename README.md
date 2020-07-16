@@ -166,6 +166,15 @@ Upload an existing file to the Structurizr service:
 stz put model.json -workspace WORKSPACE -key KEY -secret SECRET
 ```
 
+Patch an existing workspace with a new workspace definition. This overrides
+the fields of the existing workspace with the fields of the workspace
+serialized in the given file. Any field that isn't defined in the serialized
+workspace is left untouched.
+
+```bash
+stz patch model.json -workspace WORKSPACE -key KEY -secret SECRET
+```
+
 ### Tool Setup
 
 Assuming a working Go setup, run the following command in the root of the

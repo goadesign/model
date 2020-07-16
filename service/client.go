@@ -17,7 +17,6 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
-	"strings"
 	"time"
 
 	goahttp "goa.design/goa/v3/http"
@@ -146,13 +145,14 @@ func (c *Client) lockUnlock(id string, lock bool) (*Response, error) {
 func (c *Client) sign(req *http.Request, content, ct string) {
 	// 1. Compute digest
 	var digest, nonce string
+	var md5b []byte
 	{
 		h := md5.New()
 		h.Write([]byte(content))
-		md5 := hex.EncodeToString(h.Sum(nil))
-		md5 = strings.ToLower(strings.Replace(md5, "-", "", -1))
+		md5b := h.Sum(nil)
+		md5s := hex.EncodeToString(md5b)
 		nonce = strconv.FormatInt(time.Now().UnixNano()/int64(time.Millisecond), 10)
-		digest = fmt.Sprintf("%s\n%s\n%s\n%s\n%s\n", req.Method, req.URL.Path, md5, ct, nonce)
+		digest = fmt.Sprintf("%s\n%s\n%s\n%s\n%s\n", req.Method, req.URL.Path, md5s, ct, nonce)
 	}
 
 	// 2. Compute HMAC
@@ -163,12 +163,12 @@ func (c *Client) sign(req *http.Request, content, ct string) {
 		hm = h.Sum(nil)
 	}
 
-	// 3. Write X-Authorization and Nonce headers
-	auth := base64.StdEncoding.EncodeToString(hm)
-	auth = strings.ToLower(strings.Replace(auth, "-", "", -1))
+	// 3. Write headers
+	auth := base64.StdEncoding.EncodeToString([]byte(hex.EncodeToString(hm)))
 	req.Header.Set("X-Authorization", fmt.Sprintf("%s:%s", c.Key, auth))
 	req.Header.Set("Nonce", nonce)
-
-	// Finally set agent.
+	if req.Method == http.MethodPut {
+		req.Header.Set("Content-MD5", base64.StdEncoding.EncodeToString(md5b))
+	}
 	req.Header.Set("User-Agent", UserAgent)
 }
