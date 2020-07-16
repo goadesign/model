@@ -145,12 +145,12 @@ func (c *Client) lockUnlock(id string, lock bool) (*Response, error) {
 func (c *Client) sign(req *http.Request, content, ct string) {
 	// 1. Compute digest
 	var digest, nonce string
-	var md5b []byte
+	var md5s string
 	{
 		h := md5.New()
 		h.Write([]byte(content))
 		md5b := h.Sum(nil)
-		md5s := hex.EncodeToString(md5b)
+		md5s = hex.EncodeToString(md5b)
 		nonce = strconv.FormatInt(time.Now().UnixNano()/int64(time.Millisecond), 10)
 		digest = fmt.Sprintf("%s\n%s\n%s\n%s\n%s\n", req.Method, req.URL.Path, md5s, ct, nonce)
 	}
@@ -168,7 +168,7 @@ func (c *Client) sign(req *http.Request, content, ct string) {
 	req.Header.Set("X-Authorization", fmt.Sprintf("%s:%s", c.Key, auth))
 	req.Header.Set("Nonce", nonce)
 	if req.Method == http.MethodPut {
-		req.Header.Set("Content-MD5", base64.StdEncoding.EncodeToString(md5b))
+		req.Header.Set("Content-Md5", base64.StdEncoding.EncodeToString([]byte(md5s)))
 	}
 	req.Header.Set("User-Agent", UserAgent)
 }
