@@ -243,96 +243,63 @@ func External() {
 	}
 }
 
-// Properties defines arbitrary key-value pairs. They are shown in the diagram
+// Prop defines arbitrary key-value pairs. They are shown in the diagram
 // tooltip and can be used to store metadata (e.g. team name).
 //
-// Properties must appear in Person, SoftwareSystem, Container, Component,
+// Prop must appear in Person, SoftwareSystem, Container, Component,
 // DeploymentNode, InfrastructureNode or ContainerInstance.
 //
-// Properties accepts a single argument: a function that lists each property
-// using Prop.
+// Prop accepts two arguments: the name and value of a property.
 //
 // Example:
 //
 //    var _ = Workspace(func() {
 //        SoftwareSystem("MySystem", func() {
-//            Properties(func() {
-//                Prop("name", "value")
-//            })
-//        })
-//    })
-//
-func Properties(dsl func()) {
-	switch e := eval.Current().(type) {
-	case *expr.Person:
-		if e.Properties == nil {
-			e.Properties = make(map[string]string)
-		}
-	case *expr.SoftwareSystem:
-		if e.Properties == nil {
-			e.Properties = make(map[string]string)
-		}
-	case *expr.Container:
-		if e.Properties == nil {
-			e.Properties = make(map[string]string)
-		}
-	case *expr.Component:
-		if e.Properties == nil {
-			e.Properties = make(map[string]string)
-		}
-	case *expr.DeploymentNode:
-		if e.Properties == nil {
-			e.Properties = make(map[string]string)
-		}
-	case *expr.InfrastructureNode:
-		if e.Properties == nil {
-			e.Properties = make(map[string]string)
-		}
-	case *expr.ContainerInstance:
-		if e.Properties == nil {
-			e.Properties = make(map[string]string)
-		}
-	default:
-		eval.IncompatibleDSL()
-		return
-	}
-	eval.Execute(dsl, eval.Current())
-}
-
-// Prop defines a single key-value pair.
-//
-// Prop must appear in a Properties expression.
-//
-// Prop accepts two arguments: the name and value.
-//
-// Example:
-//
-//    var _ = Workspace(func() {
-//        SoftwareSystem("MySystem", func() {
-//            Properties(func() {
-//                Prop("name", "value")
-//            })
+//           Prop("name", "value")
 //        })
 //    })
 //
 func Prop(name, value string) {
+	var props map[string]string
 	switch e := eval.Current().(type) {
 	case *expr.Person:
-		e.Properties[name] = value
+		if e.Properties == nil {
+			e.Properties = make(map[string]string)
+		}
+		props = e.Properties
 	case *expr.SoftwareSystem:
-		e.Properties[name] = value
+		if e.Properties == nil {
+			e.Properties = make(map[string]string)
+		}
+		props = e.Properties
 	case *expr.Container:
-		e.Properties[name] = value
+		if e.Properties == nil {
+			e.Properties = make(map[string]string)
+		}
+		props = e.Properties
 	case *expr.Component:
-		e.Properties[name] = value
+		if e.Properties == nil {
+			e.Properties = make(map[string]string)
+		}
+		props = e.Properties
 	case *expr.DeploymentNode:
-		e.Properties[name] = value
+		if e.Properties == nil {
+			e.Properties = make(map[string]string)
+		}
+		props = e.Properties
 	case *expr.InfrastructureNode:
-		e.Properties[name] = value
+		if e.Properties == nil {
+			e.Properties = make(map[string]string)
+		}
+		props = e.Properties
 	case *expr.ContainerInstance:
-		e.Properties[name] = value
+		if e.Properties == nil {
+			e.Properties = make(map[string]string)
+		}
+		props = e.Properties
 	default:
 		eval.IncompatibleDSL()
 		return
 	}
+	props[name] = value
 }

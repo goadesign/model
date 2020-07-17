@@ -32,8 +32,8 @@ import (
 //            Tag("bill processing")
 //            URL("https://goa.design/mysystem")
 //            External()
-//            Uses(OtherSystem, "Uses", "gRPC", Synchronous)
-//            Delivers(Customer, "Delivers emails to", "SMTP", Synchronous)
+//            Uses("Other System", "Uses", "gRPC", Synchronous)
+//            Delivers("Customer", "Delivers emails to", "SMTP", Synchronous)
 //        })
 //    })
 //
@@ -59,55 +59,56 @@ func SoftwareSystem(name string, args ...interface{}) *expr.SoftwareSystem {
 
 // Container defines a container.
 //
-// Container must appear in a Workspace expression.
+// Container must appear in a SoftwareSystem expression.
 //
-// Container takes 2 to 5 arguments. The first argument is the software system
-// that the container belongs to. The second argument is the container name. The
-// name may be optionally followed by a description. If a description is set
+// Container takes 1 to 4 arguments. The first argument is the container name.
+// The name may be optionally followed by a description. If a description is set
 // then it may be followed by the technology details used by the container.
 // Finally Container may take a func() as last argument to define additional
 // properties of the container.
 //
 // The valid syntax for Container is thus:
 //
-//    Container(SoftwareSystem, "<name>")
+//    Container("<name>")
 //
-//    Container(SoftwareSystem, "<name>", "[description]")
+//    Container("<name>", "[description]")
 //
-//    Container(SoftwareSystem, "<name>", "[description]", "[technology]")
+//    Container("<name>", "[description]", "[technology]")
 //
-//    Container(SoftwareSystem, "<name>", func())
+//    Container("<name>", func())
 //
-//    Container(SoftwareSystem, "<name>", "[description]", func())
+//    Container("<name>", "[description]", func())
 //
-//    Container(SoftwareSystem, "<name>", "[description]", "[technology]", func())
+//    Container("<name>", "[description]", "[technology]", func())
 //
-// Container also accepts a Goa service as second argument in which case the
-// name and description are taken from the service and the technology is set to
-// "Go and Goa v3"
+// Container also accepts a Goa service as argument in which case the name and
+// description are taken from the service and the technology is set to "Go and
+// Goa v3"
 //
-//    Container(SoftwareSystem, Service)
+//    Container(Service)
 //
-//    Container(SoftwareSystem, Service, func())
+//    Container(Service, func())
 //
 // Example:
 //
 //    var _ = Workspace(func() {
-//        Container(SoftwareSystem, "My system", "A system with a great architecture", "Go and Goa", func() {
-//            Tag("bill processing")
-//            URL("https://goa.design/mysystem")
-//            Uses(OtherSystem, "Uses", "gRPC", Synchronous)
-//            Delivers(Customer, "Delivers emails to", "SMTP", Synchronous)
-//        })
+//        SoftwareSystem("My system", "A system with a great architecture", func() {
+//            Container("My service", "A service", "Go and Goa", func() {
+//                Tag("bill processing")
+//                URL("https://goa.design/mysystem")
+//                Uses("Other Container", "Uses", "gRPC", Synchronous)
+//                Delivers("Customer", "Delivers emails to", "SMTP", Synchronous)
+//            })
 //
-//        // Alternate syntax using a Goa service.
-//        Container(SoftwareSystem, Service, func() {
-//            // ...
+//            // Alternate syntax using a Goa service.
+//            Container(Service, func() {
+//                // ...
+//            })
 //        })
 //    })
 //
-func Container(system *expr.SoftwareSystem, args ...interface{}) *expr.Container {
-	_, ok := eval.Current().(*expr.Workspace)
+func Container(args ...interface{}) *expr.Container {
+	system, ok := eval.Current().(*expr.SoftwareSystem)
 	if !ok {
 		eval.IncompatibleDSL()
 		return nil
@@ -160,42 +161,45 @@ func Container(system *expr.SoftwareSystem, args ...interface{}) *expr.Container
 
 // Component defines a component.
 //
-// Component must appear in a Workspace expression.
+// Component must appear in a Container expression.
 //
-// Component takes 2 to 5 arguments. The first argument is the container that
-// the component belongs to. The second argument is the component name. The name
-// may be optionally followed by a description. If a description is set then it
-// may be followed by the technology details used by the component. Finally
-// Component may take a func() as last argument to define additional properties
-// of the component.
+// Component takes 1 to 4 arguments. The first argument is the component name.
+// The name may be optionally followed by a description. If a description is set
+// then it may be followed by the technology details used by the component.
+// Finally Component may take a func() as last argument to define additional
+// properties of the component.
 //
 // The valid syntax for Component is thus:
 //
-//    Component(Container, "<name>")
+//    Component("<name>")
 //
-//    Component(Container, "<name>", "[description]")
+//    Component("<name>", "[description]")
 //
-//    Component(Container, "<name>", "[description]", "[technology]")
+//    Component("<name>", "[description]", "[technology]")
 //
-//    Component(Container, "<name>", func())
+//    Component("<name>", func())
 //
-//    Component(Container, "<name>", "[description]", func())
+//    Component("<name>", "[description]", func())
 //
-//    Component(Container, "<name>", "[description]", "[technology]", func())
+//    Component("<name>", "[description]", "[technology]", func())
 //
 // Example:
 //
 //    var _ = Workspace(func() {
-//        Component(Container, "My component", "A component", "Go and Goa", func() {
-//            Tag("bill processing")
-//            URL("https://goa.design/mysystem")
-//            Uses(OtherSystem, "Uses", "gRPC", Synchronous)
-//            Delivers(Customer, "Delivers emails to", "SMTP", Synchronous)
+//        SoftwareSystem("My system", "A system with a great architecture", func() {
+//            Container("My container", "A container with a great architecture", "Go and Goa", func() {
+//                Component(Container, "My component", "A component", "Go and Goa", func() {
+//                    Tag("bill processing")
+//                    URL("https://goa.design/mysystem")
+//                    Uses("Other Component", "Uses", "gRPC", Synchronous)
+//                    Delivers("Customer", "Delivers emails to", "SMTP", Synchronous)
+//                })
+//            })
 //        })
 //    })
 //
-func Component(container *expr.Container, name string, args ...interface{}) *expr.Component {
-	_, ok := eval.Current().(*expr.Workspace)
+func Component(name string, args ...interface{}) *expr.Component {
+	container, ok := eval.Current().(*expr.Container)
 	if !ok {
 		eval.IncompatibleDSL()
 		return nil

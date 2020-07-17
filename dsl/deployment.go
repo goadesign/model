@@ -38,7 +38,8 @@ func DeploymentEnvironment(name string, dsl func()) {
 // A deployment node can also contain InfrastructureNode and
 // ContainerInstance elements.
 //
-// DeploymentNode must appear in a DeploymentEnvironment expression.
+// DeploymentNode must appear in a DeploymentEnvironment or DeploymentNode
+// expression.
 //
 // DeploymentNode takes 1 to 4 arguments. The first argument is the node name.
 // The name may be optionally followed by a description. If a description is set
@@ -68,18 +69,43 @@ func DeploymentEnvironment(name string, dsl func()) {
 //                Tag("shard")
 //                Instances(3)
 //                URL("https://goa.design/docs/shard")
-//                Uses(OtherDeploymentNode, "Uses", "gRPC", Asynchronous)
+//                InfrastructureNode("Gateway", "US gateway", func() {
+//                    Tag("gateway")
+//                    URL("https://goa.design/docs/shards/us")
+//                })
+//                ContainerInstance(func() {
+//                    Tag("service")
+//                    InstanceID(1)
+//                    HealthCheck("check", func() {
+//                        URL("https://goa.design/health")
+//                        Interval(10)
+//                        Timeout(1000)
+//                    })
+//                })
+//                DeploymentNode("Cluster", "K8 cluster", func() {
+//                    // ...
+//                })
 //            })
 //        })
 //    })
 //
-func DeploymentNode(name string, args ...interface{}) {
-	env, ok := eval.Current().(*expr.DeploymentEnvironment)
-	if !ok {
+func DeploymentNode(name string, args ...interface{}) *expr.DeploymentNode {
+	var (
+		parent *expr.DeploymentNode
+		env    string
+	)
+	switch d := eval.Current().(type) {
+	case *expr.DeploymentEnvironment:
+		env = d.Name
+	case *expr.DeploymentNode:
+		env = d.Environment
+		parent = d
+	default:
 		eval.IncompatibleDSL()
-		return
+		return nil
 	}
 	description, technology, dsl := parseElementArgs(args...)
+	one := 1
 	node := &expr.DeploymentNode{
 		Element: expr.Element{
 			Name:        name,
@@ -87,56 +113,62 @@ func DeploymentNode(name string, args ...interface{}) {
 			Technology:  technology,
 			DSLFunc:     dsl,
 		},
-		Environment: env.Name,
+		Instances:   &one,
+		Environment: env,
+		Parent:      parent,
 	}
 	expr.Identify(node)
-	expr.Root.Model.DeploymentNodes = append(expr.Root.Model.DeploymentNodes, node)
+	if parent != nil {
+		parent.Children = append(parent.Children, node)
+	} else {
+		expr.Root.Model.DeploymentNodes = append(expr.Root.Model.DeploymentNodes, node)
+	}
+	return node
 }
 
 // InfrastructureNode defines an infrastructure node, typically something like a
 // load balancer, firewall, DNS service, etc.
 //
-// InfrastructureNode must appear in a DeploymentEnvironment expression.
+// InfrastructureNode must appear in a DeploymentNode expression.
 //
-// InfrastructureNode takes 2 to 5 arguments. The first argument is the parent
-// deployment node. The second argument is the infrastructure node name. The
-// name may be optionally followed by a description. If a description is set
-// then it may be followed by the technology details used by the component.
-// Finally InfrastructureNode may take a func() as last argument to define
-// additional properties of the component.
+// InfrastructureNode takes 1 to 4 arguments. The first argument is the
+// infrastructure node name. The name may be optionally followed by a
+// description. If a description is set then it may be followed by the
+// technology details used by the component. Finally InfrastructureNode may take
+// a func() as last argument to define additional properties of the component.
 //
 // The valid syntax for InfrastructureNode is thus:
 //
-//    InfrastructureNode(DeploymentNode, "<name>")
+//    InfrastructureNode("<name>")
 //
-//    InfrastructureNode(DeploymentNode, "<name>", "[description]")
+//    InfrastructureNode("<name>", "[description]")
 //
-//    InfrastructureNode(DeploymentNode, "<name>", "[description]", "[technology]")
+//    InfrastructureNode("<name>", "[description]", "[technology]")
 //
-//    InfrastructureNode(DeploymentNode, "<name>", func())
+//    InfrastructureNode("<name>", func())
 //
-//    InfrastructureNode(DeploymentNode, "<name>", "[description]", func())
+//    InfrastructureNode("<name>", "[description]", func())
 //
-//    InfrastructureNode(DeploymentNode, "<name>", "[description]", "[technology]", func())
+//    InfrastructureNode("<name>", "[description]", "[technology]", func())
 //
 // Example:
 //
 //    var _ = Workspace(func() {
 //        DeploymentEnvironment("Production", func() {
-//            InfrastructureNode(DeploymentNode, "US", "US shard", func() {
-//                Tag("shard")
-//                Instances(3)
-//                URL("https://goa.design/docs/shards/us")
-//                Uses(OtherInfrastructureNode, "Uses", "gRPC", Asynchronous)
+//            DeploymentNode("US", "US shard", func() {
+//                InfrastructureNode("Gateway", "US gateway", func() {
+//                    Tag("gateway")
+//                    URL("https://goa.design/docs/shards/us")
+//                })
 //            })
 //        })
 //    })
 //
-func InfrastructureNode(d *expr.DeploymentNode, name string, args ...interface{}) {
+func InfrastructureNode(d *expr.DeploymentNode, name string, args ...interface{}) *expr.InfrastructureNode {
 	env, ok := eval.Current().(*expr.DeploymentEnvironment)
 	if !ok {
 		eval.IncompatibleDSL()
-		return
+		return nil
 	}
 	description, technology, dsl := parseElementArgs(args...)
 	node := &expr.InfrastructureNode{
@@ -150,53 +182,67 @@ func InfrastructureNode(d *expr.DeploymentNode, name string, args ...interface{}
 	}
 	expr.Identify(node)
 	d.InfrastructureNodes = append(d.InfrastructureNodes, node)
+	return node
 }
 
 // ContainerInstance defines an instance of the specified container that is
 // deployed on the parent deployment node.
 //
-// ContainerInstance must appear in a DeploymentEnvironment expression.
+// ContainerInstance must appear in a DeploymentNode expression.
 //
-// ContainerInstance takes 1 or 2 arguments. The first argument is the parent
-// deployment node. The second argument is an optional func() that defines
-// additional properties on the container instance.
+// ContainerInstance takes three arguments: the container instance name used to
+// refer to it in deployment views, the container or its name and an optional
+// func() that defines additional properties on the container instance.
 //
 // Example:
 //
 //    var _ = Workspace(func() {
 //        DeploymentEnvironment("Production", func() {
-//            ContainerInstance(DeploymentNode, func() {
-//                Tag("shard")
-//                InstanceID(1)
-//                Uses(OtherContainerInstance, "Uses", "gRPC", Asynchronous)
-//                HealthCheck("check", func() {
-//                    URL("https://goa.design/health")
-//                    Interval(10)
-//                    Timeout(1000)
+//            DeploymentNode("US", "US shard", func() {
+//                ContainerInstance("instance", "container", func() {
+//                    Tag("service")
+//                    InstanceID(1)
+//                    HealthCheck("check", func() {
+//                        URL("https://goa.design/health")
+//                        Interval(10)
+//                        Timeout(1000)
+//                    })
 //                })
 //            })
 //        })
 //    })
 //
-func ContainerInstance(d *expr.DeploymentNode, args ...func()) {
-	env, ok := eval.Current().(*expr.DeploymentEnvironment)
+func ContainerInstance(container interface{}, dsl ...func()) *expr.ContainerInstance {
+	d, ok := eval.Current().(*expr.DeploymentNode)
 	if !ok {
 		eval.IncompatibleDSL()
 	}
-	var dsl func()
-	if len(args) > 0 {
-		dsl = args[0]
-		if len(args) > 1 {
+	var cid string
+	switch c := container.(type) {
+	case *expr.Container:
+		cid = c.ID
+	case string:
+		cid = c
+	default:
+		eval.InvalidArgError("container or container name", container)
+		return nil
+	}
+	var f func()
+	if len(dsl) > 0 {
+		f = dsl[0]
+		if len(dsl) > 1 {
 			eval.ReportError("too many arguments")
 		}
 	}
 	ci := &expr.ContainerInstance{
-		Element:     expr.Element{DSLFunc: dsl},
-		ContainerID: d.ID,
-		Environment: env.Name,
+		Element:     expr.Element{DSLFunc: f},
+		Parent:      d,
+		Environment: d.Environment,
+		ContainerID: cid,
 	}
 	expr.Identify(ci)
 	d.ContainerInstances = append(d.ContainerInstances, ci)
+	return ci
 }
 
 // Instances sets the number of instances of the deployment node.

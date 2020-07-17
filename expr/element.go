@@ -13,7 +13,7 @@ type (
 		// ID of element.
 		ID string `json:"id"`
 		// Name of element.
-		Name string `json:"name"`
+		Name string `json:"name,omitempty"` // Container instances don't have a name
 		// Description of element if any.
 		Description string `json:"description,omitempty"`
 		// Technology used by element if any - not applicable to Person.

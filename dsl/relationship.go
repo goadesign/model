@@ -212,6 +212,22 @@ func Delivers(p interface{}, desc string, args ...interface{}) {
 	uses(src, n, desc, args...)
 }
 
+// Description provides a short description for a relationship displayed in a
+// dynamic view.
+//
+// Description must appear in Add.
+//
+// Description takes one argument: the relationship description used in the
+// dynamic view.
+func Description(desc string) {
+	v, ok := eval.Current().(*expr.RelationshipView)
+	if !ok {
+		eval.IncompatibleDSL()
+		return
+	}
+	v.Description = desc
+}
+
 // uses adds a relationship between the given source and destination. The caller
 // must make sure that the relationship is valid.
 func uses(src *expr.Element, dest, desc string, args ...interface{}) *expr.Relationship {

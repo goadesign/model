@@ -153,11 +153,11 @@ func SystemLandscapeView(args ...interface{}) {
 // SystemContextView must appear in Views.
 //
 // SystemContextView accepts 2 to 4 arguments: the first argument is the system
-// the view applies to. The second argument is an optional key for the view
-// which can be used to reference it when creating a fltered views. The third
-// argument is an optional description, the key must be provided when giving a
-// description. The last argument is a function describing the properties of the
-// view.
+// or the name of the system the view applies to. The second argument is an
+// optional key for the view which can be used to reference it when creating a
+// fltered views. The third argument is an optional description, the key must be
+// provided when giving a description. The last argument is a function
+// describing the properties of the view.
 //
 // Valid usage of SystemContextView are thus:
 //
@@ -184,10 +184,29 @@ func SystemLandscapeView(args ...interface{}) {
 //         })
 //     })
 //
-func SystemContextView(s *expr.SoftwareSystem, args ...interface{}) {
+func SystemContextView(system interface{}, args ...interface{}) {
 	vs, ok := eval.Current().(*expr.Views)
 	if !ok {
 		eval.IncompatibleDSL()
+		return
+	}
+	var sid string
+	switch s := system.(type) {
+	case *expr.SoftwareSystem:
+		sid = s.ID
+	case string:
+		sys := expr.Root.Model.FindElement(s)
+		if sys == nil {
+			eval.ReportError("no software system named %q", s)
+			return
+		}
+		if _, ok := sys.(*expr.SoftwareSystem); !ok {
+			eval.InvalidArgError("software system or software system name", system)
+			return
+		}
+		sid = sys.GetElement().ID
+	default:
+		eval.InvalidArgError("software system or software system name", system)
 		return
 	}
 	key, description, dsl := parseView(args...)
@@ -196,7 +215,7 @@ func SystemContextView(s *expr.SoftwareSystem, args ...interface{}) {
 			Key:         key,
 			Description: description,
 		},
-		SoftwareSystemID: s.ID,
+		SoftwareSystemID: sid,
 	}
 	if dsl != nil {
 		eval.Execute(dsl, v)
@@ -209,11 +228,11 @@ func SystemContextView(s *expr.SoftwareSystem, args ...interface{}) {
 // ContainerView must appear in Views.
 //
 // ContainerView accepts 2 to 4 arguments: the first argument is the software
-// system the container view applies to. The second argumetn is an optional key
-// for the view which can be used to reference it when creating a fltered views.
-// The third argument is an optional description, the key must be provided when
-// giving a description. The last argument is a function describing the
-// properties of the view.
+// system or the name of the software system the container view applies to. The
+// second argumetn is an optional key for the view which can be used to
+// reference it when creating a fltered views. The third argument is an optional
+// description, the key must be provided when giving a description. The last
+// argument is a function describing the properties of the view.
 //
 // Valid usage of ContainerView are thus:
 //
@@ -241,10 +260,29 @@ func SystemContextView(s *expr.SoftwareSystem, args ...interface{}) {
 //         })
 //     })
 //
-func ContainerView(s *expr.SoftwareSystem, args ...interface{}) {
+func ContainerView(system interface{}, args ...interface{}) {
 	vs, ok := eval.Current().(*expr.Views)
 	if !ok {
 		eval.IncompatibleDSL()
+		return
+	}
+	var sid string
+	switch s := system.(type) {
+	case *expr.SoftwareSystem:
+		sid = s.ID
+	case string:
+		sys := expr.Root.Model.FindElement(s)
+		if sys == nil {
+			eval.ReportError("no software system named %q", s)
+			return
+		}
+		if _, ok := sys.(*expr.SoftwareSystem); !ok {
+			eval.InvalidArgError("software system or software system name", system)
+			return
+		}
+		sid = sys.GetElement().ID
+	default:
+		eval.InvalidArgError("software system or software system name", system)
 		return
 	}
 	key, description, dsl := parseView(args...)
@@ -253,7 +291,7 @@ func ContainerView(s *expr.SoftwareSystem, args ...interface{}) {
 			Key:         key,
 			Description: description,
 		},
-		SoftwareSystemID: s.ID,
+		SoftwareSystemID: sid,
 	}
 	if dsl != nil {
 		eval.Execute(dsl, v)
@@ -266,11 +304,11 @@ func ContainerView(s *expr.SoftwareSystem, args ...interface{}) {
 // ComponentView must appear in Views.
 //
 // ComponentView accepts 2 to 4 arguments: the first argument is the container
-// being described by the component view. The second argument is an optional key
-// for the view which can be used to reference it when creating a fltered views.
-// The third argument is an optional description, the key must be provided when
-// giving a description. The last argument is a function describing the
-// properties of the view.
+// or the name of the container being described by the component view. The
+// second argument is an optional key for the view which can be used to
+// reference it when creating a fltered views. The third argument is an optional
+// description, the key must be provided when giving a description. The last
+// argument is a function describing the properties of the view.
 //
 // Valid usage of ComponentView are thus:
 //
@@ -283,9 +321,11 @@ func ContainerView(s *expr.SoftwareSystem, args ...interface{}) {
 // Example:
 //
 //     var _ = Workspace(func() {
-//         var System = SoftwareSystem("Software System", "My software system.")
+//         var System = SoftwareSystem("Software System", "My software system.", func() {
+//             Container("Container")
+//         })
 //         Views(func() {
-//             ComponentView(Container, "component", "An overview diagram.", func() {
+//             ComponentView("Container", "component", "An overview diagram.", func() {
 //                 Title("Overview of container")
 //                 AddAll()
 //                 Remove(Component3)
@@ -297,10 +337,29 @@ func ContainerView(s *expr.SoftwareSystem, args ...interface{}) {
 //         })
 //     })
 //
-func ComponentView(c *expr.Container, args ...interface{}) {
+func ComponentView(container interface{}, args ...interface{}) {
 	vs, ok := eval.Current().(*expr.Views)
 	if !ok {
 		eval.IncompatibleDSL()
+		return
+	}
+	var cid string
+	switch c := container.(type) {
+	case *expr.Container:
+		cid = c.ID
+	case string:
+		ct := expr.Root.Model.FindElement(c)
+		if ct == nil {
+			eval.ReportError("no container named %q", c)
+			return
+		}
+		if _, ok := ct.(*expr.Container); !ok {
+			eval.InvalidArgError("container or container name", container)
+			return
+		}
+		cid = ct.GetElement().ID
+	default:
+		eval.InvalidArgError("container or container name", container)
 		return
 	}
 	key, description, dsl := parseView(args...)
@@ -309,7 +368,7 @@ func ComponentView(c *expr.Container, args ...interface{}) {
 			Key:         key,
 			Description: description,
 		},
-		ContainerID: c.ID,
+		ContainerID: cid,
 	}
 	if dsl != nil {
 		eval.Execute(dsl, v)
@@ -378,10 +437,11 @@ func FilteredView(view interface{}, dsl func()) {
 // DynamicView must appear in Views.
 //
 // DynamicView accepts 2 to 4 arguments: the first argument is the scope: either
-// the keyword 'Global' or a software system or container identifier. The second
-// argument is an optional key for the view. The third argument is an optional
-// description, the key must be provided when giving a description. The last
-// argument is a function describing the properties of the view.
+// the keyword 'Global', a software system, the name of a software system, a
+// container or the name of a container. The second argument is an optional key
+// for the view. The third argument is an optional description, the key must be
+// provided when giving a description. The last argument is a function
+// describing the properties of the view.
 //
 // A dynamic view is created by specifying relationships that should be
 // rendered. See Relationship for additional information.
@@ -425,8 +485,22 @@ func DynamicView(scope interface{}, args ...interface{}) {
 		id = s.ID
 	case *expr.Container:
 		id = s.ID
+	case string:
+		e := expr.Root.Model.FindElement(s)
+		if e == nil {
+			eval.ReportError("no software system or container named %q", s)
+			return
+		}
+		switch se := e.(type) {
+		case *expr.SoftwareSystem:
+			id = se.ID
+		case *expr.Container:
+			id = se.ID
+		default:
+			eval.InvalidArgError("'Global', a software system, a container or the name of one of these", scope)
+		}
 	default:
-		eval.IncompatibleDSL()
+		eval.InvalidArgError("'Global', a software system, a container or the name of one of these", scope)
 		return
 	}
 	key, description, dsl := parseView(args...)
@@ -501,8 +575,19 @@ func DeploymentView(scope interface{}, env string, args ...interface{}) {
 		id = "" // Global scope
 	case *expr.SoftwareSystem:
 		id = s.ID
+	case string:
+		e := expr.Root.Model.FindElement(s)
+		if e == nil {
+			eval.ReportError("no software system named %q", s)
+			return
+		}
+		se, ok := e.(*expr.SoftwareSystem)
+		if !ok {
+			eval.InvalidArgError("'Global', a software system or a software system name", scope)
+		}
+		id = se.ID
 	default:
-		eval.IncompatibleDSL()
+		eval.InvalidArgError("'Global', a software system or a software system name", scope)
 		return
 	}
 	v := &expr.DeploymentView{
@@ -533,18 +618,83 @@ func Title(t string) {
 	}
 }
 
-// Add adds a person, an element or a relationship to a view.
+// Add adds a person or an element to a view.
 //
-// Add must appear in SystemLandscapeView, SystemContextView, ContainerView,
-// ComponentView or DynamicView (only relationships can be added to dynamic
-// views).
+// Add must appear in SystemLandscapeView, SystemContextView, ContainerView or
+// ComponentView.
 //
-// Add takes the person, element or relationship (as defined by the source and
-// destination) as first argument and an optional function as last argument.
+// Add takes a person, person name, element or element name as first
+// argument. Add also accepts an optional function as last argument.
 //
 //      Add(PersonOrElement)
 //
 //      Add(PersonOrElement, func())
+//
+// Example:
+//
+//     var _ = Workspace(func() {
+//         var System = SoftwareSystem("Software System", "My software system.")
+//         Views(func() {
+//             SystemContextView(SoftwareSystem, "context", "An overview diagram.", func() {
+//                 Add(System, func() {
+//                     Coord(10, 10)
+//                     NoRelationships()
+//                 })
+//             })
+//         })
+//     })
+//
+func Add(element interface{}, dsl ...func()) {
+	v, ok := eval.Current().(expr.View)
+	if !ok {
+		eval.IncompatibleDSL()
+	}
+	if _, ok := eval.Current().(*expr.DynamicView); ok {
+		eval.ReportError("only relationships may be added explicitly to dynamic views")
+		return
+	}
+
+	var eh expr.ElementHolder
+	switch e := element.(type) {
+	case expr.ElementHolder:
+		eh = e
+	case string:
+		eh = expr.Root.Model.FindElement(e)
+		if eh == nil {
+			eval.ReportError("no person, software system, container or component named %q", e)
+			return
+		}
+	default:
+		eval.InvalidArgError("person, software system, container or component", element)
+		return
+	}
+
+	switch eh.(type) {
+	case *expr.Person, *expr.SoftwareSystem, *expr.Container, *expr.Component:
+		// all good
+	default:
+		eval.InvalidArgError("person, software system, container or component", element)
+	}
+
+	if len(dsl) > 0 {
+		if len(dsl) > 1 {
+			eval.ReportError("too many arguments")
+		}
+		eval.Execute(dsl[0], v.ElementView(eh.GetElement().ID))
+	}
+
+	if err := v.(expr.ViewAdder).AddElements(eh); err != nil {
+		eval.ReportError(err.Error()) // Element type not supported in view
+	}
+}
+
+// Link adds a relationship to a view.
+//
+// Link must appear in SystemLandscapeView, SystemContextView, ContainerView,
+// ComponentView or DynamicView.
+//
+// Link takes the relationship (as defined by the source and destination or
+// their names) as first argument and an optional function as last argument.
 //
 //      Add(Source, Destination)
 //
@@ -564,7 +714,7 @@ func Title(t string) {
 //                     Coord(10, 10)
 //                     NoRelationships()
 //                 })
-//                 Add(Person, System, func() {
+//                 Link(Person, System, func() {
 //                     Vertices(10, 20, 10, 40)
 //                     Routing(RoutingOrthogonal)
 //                     Position(45)
@@ -572,7 +722,7 @@ func Title(t string) {
 //             })
 //             DynamicView(SoftwareSystem, "dynamic", func() {
 //                 Title("Customer flow")
-//                 Add(Person, System, func() {
+//                 Link(Person, System, func() {
 //                     Vertices(10, 20, 10, 40)
 //                     Routing(RoutingOrthogonal)
 //                     Position(45)
@@ -583,74 +733,56 @@ func Title(t string) {
 //         })
 //     })
 //
-func Add(first interface{}, rest ...interface{}) {
-	var (
-		eh  expr.ElementHolder
-		rel *expr.Relationship
-		dsl func()
-	)
-	eh, ok := first.(expr.ElementHolder)
-	if !ok {
-		eval.InvalidArgError("person, software system, container or component", first)
-	}
-	if len(rest) > 0 {
-		switch a := rest[0].(type) {
-		case expr.ElementHolder:
-			destID := a.GetElement().ID
-			srcID := eh.GetElement().ID
-			rel = expr.FindRelationship(srcID, destID)
-			if rel == nil {
-				eval.ReportError("no existing relationship between %s and %s.", first.(eval.Expression).EvalName(), rest[0].(eval.Expression).EvalName())
-				return
-			}
-		case func():
-			dsl = a
-		default:
-			eval.InvalidArgError("person, software system, container, component or function DSL", a)
-			return
-		}
-		if len(rest) > 1 {
-			if d, ok := rest[1].(func()); ok {
-				dsl = d
-			} else {
-				eval.InvalidArgError("function", rest[1])
-				return
-			}
-			if len(rest) > 2 {
-				eval.ReportError("too many arguments")
-			}
-		}
-	}
-	if _, ok := eval.Current().(*expr.DynamicView); ok && rel == nil {
-		eval.ReportError("only relationships may be added explicitly to dynamic views")
-		return
-	}
-
+func Link(source, destination interface{}, dsl ...func()) {
 	v, ok := eval.Current().(expr.View)
 	if !ok {
 		eval.IncompatibleDSL()
 	}
 
-	if rel != nil {
-		v.AddRelationships(rel)
-		if dsl != nil {
-			eval.Execute(dsl, v.RelationshipView(rel.ID))
+	var src, dest expr.ElementHolder
+
+	switch s := source.(type) {
+	case expr.ElementHolder:
+		src = s
+	case string:
+		src = expr.Root.Model.FindElement(s)
+		if src == nil {
+			eval.ReportError("no person, software system, container or component named %q", s)
+			return
 		}
+	default:
+		eval.InvalidArgError("person, software system, container or component", source)
 		return
 	}
 
-	ea, ok := v.(expr.ViewAdder)
-	if !ok {
-		eval.ReportError("elements cannot be added directly to dynamic views")
+	switch d := destination.(type) {
+	case expr.ElementHolder:
+		dest = d
+	case string:
+		dest = expr.Root.Model.FindElement(d)
+		if dest == nil {
+			eval.ReportError("no person, software system, container or component named %q", d)
+			return
+		}
+	default:
+		eval.InvalidArgError("person, software system, container or component", destination)
 		return
 	}
-	if err := ea.AddElements(eh); err != nil {
-		eval.ReportError(err.Error()) // Element type not supported in view
+
+	rel := expr.FindRelationship(src.GetElement().ID, dest.GetElement().ID)
+	if rel == nil {
+		eval.ReportError("no relationship between %q and %q", src.GetElement().Name, dest.GetElement().Name)
 		return
 	}
-	if dsl != nil {
-		eval.Execute(dsl, v.ElementView(eh.GetElement().ID))
+
+	if len(dsl) > 0 {
+		if len(dsl) > 1 {
+			eval.ReportError("too many arguments")
+		}
+		eval.Execute(dsl[0], v.RelationshipView(rel.ID))
 	}
+
+	v.AddRelationships(rel)
 }
 
 // AddAll includes all elements and relationships in the view scope.

@@ -29,42 +29,42 @@ general shape of the DSL is:
     │   ├── Tag                             │   ├── AddDefault
     │   ├── URL                             │   ├── Add
     │   ├── External                        │   ├── AddAll
-    │   ├── Properties                      │   ├── AddNeighbors
-    │   ├── Uses                            │   ├── Remove
-    │   └── InteractsWith                   │   ├── RemoveUnreachable
-    ├── SoftwareSystem                      │   ├── RemoveUnrelated
-    │   ├── Tag                             │   ├── AutoLayout
-    │   ├── URL                             │   ├── Animation
-    │   ├── External                        │   ├── PaperSize
-    │   ├── Properties                      │   └── EnterpriseBoundaryVisible
-    │   ├── Uses                            ├── SystemContextView
-    │   └── Delivers                        │   └──  ... (same as SystemLandsapeView)
-    ├── Container                           ├── ContainerView
+    │   ├── Prop                            │   ├── AddNeighbors
+    │   ├── Uses                            │   ├── Link
+    │   └── InteractsWith                   │   ├── Remove
+    ├── SoftwareSystem                      │   ├── RemoveUnreachable
+    │   ├── Tag                             │   ├── RemoveUnrelated
+    │   ├── URL                             │   ├── AutoLayout
+    │   ├── External                        │   ├── Animation
+    │   ├── Prop                            │   ├── PaperSize
+    │   ├── Uses                            │   └── EnterpriseBoundaryVisible
+    │   └── Delivers                        ├── SystemContextView
+    ├── Container                           │   └──  ... (same as SystemLandsapeView)
+    │   ├── Tag                             ├── ContainerView
+    │   ├── URL                             │   ├── AddContainers
+    │   ├── Prop                            │   ├── AddInfluencers
+    │   ├── Uses                            │   ├── SystemBoundariesVisible
+    │   └── Delivers                        │   └── ... (same as SystemLandscapeView*)
+    ├── Component                           ├── ComponentView
     │   ├── Tag                             │   ├── AddContainers
-    │   ├── URL                             │   ├── AddInfluencers
-    │   ├── Properties                      │   ├── SystemBoundariesVisible
+    │   ├── URL                             │   ├── AddComponents
+    │   ├── Prop                            │   ├── ContainerBoundariesVisible
     │   ├── Uses                            │   └── ... (same as SystemLandscapeView*)
-    │   └── Delivers                        ├── ComponentView
-    ├── Component                           │   ├── AddContainers
-    │   ├── Tag                             │   ├── AddComponents
-    │   ├── URL                             │   ├── ContainerBoundariesVisible
-    │   ├── Properties                      │   └── ... (same as SystemLandscapeView*)
-    │   ├── Uses                            ├── FilteredViee
-    │   └── Delivers                        │   ├── FilterTag
-    └── DeploymentEnvironment               │   └── Exclude
-        ├── DeploymentNode                  ├── DynamicView
-        │   ├── Tag                         │   ├── Title
-        │   ├── Instances                   │   ├── AutoLayout
-        │   ├── URL                         │   ├── PaperSize
-        │   └── Properties                  │   └── Add
-        ├── InfrastructureNode              ├── DeploymentView
-        │   ├── Tag                         │   └── ... (same as SystemLandscapeView*)
-        │   ├── URL                         ├── Style
-        │   └── Properties                  │   ├── ElementStyle
-        └── ContainerInstance               │   └── RelationshipStyle
-            ├── Tag                         ├── Theme
-            ├── InstanceID                  └── Branding
-            ├── HealthCheck
-            └── Properties                  (* minus EnterpriseBoundaryVisible)
+    │   └── Delivers                        ├── FilteredViee
+    └── DeploymentEnvironment               │   ├── FilterTag
+        ├── DeploymentNode                  │   └── Exclude
+        │   ├── Tag                         ├── DynamicView
+        │   ├── Instances                   │   ├── Title
+        │   ├── URL                         │   ├── AutoLayout
+        │   └── Prop                        │   ├── PaperSize
+        ├── InfrastructureNode              │   └── Add
+        │   ├── Tag                         ├── DeploymentView
+        │   ├── URL                         │   └── ... (same as SystemLandscapeView*)
+        │   └── Prop                        ├── Style
+        └── ContainerInstance               │   ├── ElementStyle
+            ├── Tag                         │   └── RelationshipStyle
+            ├── HealthCheck                 ├── Theme
+            └── Prop                        └── Branding
+                                            (* minus EnterpriseBoundaryVisible)
 */
 package dsl

@@ -230,7 +230,7 @@ var _ = Workspace("[name]", "[description]", func() {
     Enterprise("<name>")
 
     // Person defines a person (user, actor, role or persona).
-    var Person = Person("<name>", "[description]", func() { // optional
+    var Person = Person("<name>", "[description]", func() {
         Tag("<name>", "[name]") // as many tags as needed
 
         // URL where more information about this system can be found.
@@ -239,10 +239,8 @@ var _ = Workspace("[name]", "[description]", func() {
         // External indicates the person is external to the enterprise.
         External()
 
-        // Properties define an arbitrary set of associated key-value pairs.
-        Properties(func() {
-            Prop("<name>", "<value">)
-        })
+        // Prop defines an arbitrary set of associated key-value pairs.
+        Prop("<name>", "<value">)
 
         // Adds a uni-directional relationship between this person and the given element.
         Uses(Element, "<description>", "[technology]", Synchronous /* or Asynchronous */, func() {
@@ -256,7 +254,7 @@ var _ = Workspace("[name]", "[description]", func() {
     })
 
     // SoftwareSystem defines a software system.
-    var SoftwareSystem = SoftwareSystem("<name>", "[description]", func() { // optional
+    var SoftwareSystem = SoftwareSystem("<name>", "[description]", func() {
         Tag("<name>",  "[name]") // as many tags as needed
 
         // URL where more information about this software system can be
@@ -266,10 +264,8 @@ var _ = Workspace("[name]", "[description]", func() {
         // External indicates the software system is external to the enterprise.
         External()
 
-        // Properties define an arbitrary set of associated key-value pairs.
-        Properties(func() {
-            Prop("<name>", "<value">)
-        })
+        // Prop defines an arbitrary set of associated key-value pairs.
+        Prop("<name>", "<value">)
 
         // Adds a uni-directional relationship between this software system and the given element.
         Uses(Element, "<description>", "[technology]", Synchronous /* or Asynchronous */, func() {
@@ -280,58 +276,50 @@ var _ = Workspace("[name]", "[description]", func() {
         Delivers(Person, "<description>", "[technology]", Synchronous /* or Asynchronous */, func() {
             Tag("<name>", "[name]") // as many tags as needed
         })
-    })
 
-    // Container defines a container within a software system.
-    var Container = Container(SoftwareSystem, "<name>",  "[description]",  "[technology]",  func() { // optional
-        Tag("<name>",  "[name]") // as many tags as neede
+        // Container defines a container within a software system.
+        var Container = Container("<name>",  "[description]",  "[technology]",  func() {
+            Tag("<name>",  "[name]") // as many tags as neede
 
-        // URL where more information about this container can be found.
-        URL("<url>")
+            // URL where more information about this container can be found.
+            URL("<url>")
 
-        // Properties define an arbitrary set of associated key-value pairs.
-        Properties(func() {
+            // Prop defines an arbitrary set of associated key-value pairs.
             Prop("<name>", "<value">)
+
+            // Adds a uni-directional relationship between this container and the given element.
+            Uses(Element, "<description>", "[technology]", Synchronous /* or Asynchronous */, func () {
+                Tag("<name>", "[name]") // as many tags as needed
+            })
+
+            // Adds an interaction between this container and a person.
+            Delivers(Person, "<description>", "[technology]", Synchronous /* or Asynchronous */, func() {
+                Tag("<name>", "[name]") // as many tags as needed
+            })
         })
 
-        // Adds a uni-directional relationship between this container and the given element.
-        Uses(Element, "<description>", "[technology]", Synchronous /* or Asynchronous */, func () {
-            Tag("<name>", "[name]") // as many tags as needed
-        })
+        // Container may also refer to a Goa service in which case the name
+        // and description are taken from the given service definition and
+        // the technology is set to "Go and Goa v3".
+        var Container = Container(GoaService, func() {
+            // ... see above
 
-        // Adds an interaction between this container and a person.
-        Delivers(Person, "<description>", "[technology]", Synchronous /* or Asynchronous */, func() {
-            Tag("<name>", "[name]") // as many tags as needed
-        })
-    })
-
-    // Container may also refer to a Goa service in which case the name
-    // and description are taken from the given service definition and
-    // the technology is set to "Go and Goa v3".
-    var Container = Container(SoftwareSystem, GoaService, func() {
-        // ... see above
-    })
-
-    // Component defines a component within a container.
-    var Component = Component(Container, "<name>",  "[description]",  "[technology]",  func() { // optional
-        Tag("<name>",  "[name]") // as many tags as neede
-
-        // URL where more information about this container can be found.
-        URL("<url>")
-
-        // Properties define an arbitrary set of associated key-value pairs.
-        Properties(func() {
-            Prop("<name>", "<value">)
-        })
-
-        // Adds a uni-directional relationship between this component and the given element.
-        Uses(Element, "<description>", "[technology]", Synchronous /* or Asynchronous */, func() {
-            Tag("<name>", "[name]") // as many tags as needed
-        })
-
-        // Adds an interaction between this component and a person.
-        Delivers(Person, "<description>", "[technology]", Synchronous /* or Asynchronous */, func() {
-            Tag("<name>", "[name]") // as many tags as needed
+            // Component defines a component within a container.
+            var Component = Component("<name>",  "[description]",  "[technology]",  func() {
+                Tag("<name>",  "[name]") // as many tags as need
+                // URL where more information about this container can be found.
+                URL("<url>")
+                // Prop defines an arbitrary set of associated key-value pairs.
+                Prop("<name>", "<value">)
+                // Adds a uni-directional relationship between this component and the given element.
+                Uses(Element, "<description>", "[technology]", Synchronous /* or Asynchronous */, func() {
+                    Tag("<name>", "[name]") // as many tags as needed
+                })
+                // Adds an interaction between this component and a person.
+                Delivers(Person, "<description>", "[technology]", Synchronous /* or Asynchronous */, func() {
+                    Tag("<name>", "[name]") // as many tags as needed
+                })
+            })
         })
     })
 
@@ -343,7 +331,7 @@ var _ = Workspace("[name]", "[description]", func() {
         // nested, so a deployment node can contain other deployment nodes.
         // A deployment node can also contain InfrastructureNode and
         // ContainerInstance elements.
-        var DeploymentNode = DeploymentNode("<name>",  "[description]",  "[technology]",  func() { // optional
+        var DeploymentNode = DeploymentNode("<name>",  "[description]",  "[technology]",  func() {
             Tag("<name>",  "[name]") // as many tags as needed
 
             // Instances sets the number of instances, defaults to 1.
@@ -353,57 +341,56 @@ var _ = Workspace("[name]", "[description]", func() {
             // found.
             URL("<url>")
 
-            // Properties define an arbitrary set of associated key-value pairs.
-            Properties(func() {
-                Prop("<name>", "<value">)
-            })
-        })
+            // Prop defines an arbitrary set of associated key-value pairs.
+            Prop("<name>", "<value">)
 
-        // InfrastructureNode defines an infrastructure node, typically
-        // something like a load balancer, firewall, DNS service, etc.
-        var InfrastructureNode = InfrastructureNode(DeploymentNode, "<name>", "[description]", "[technology]", func() { // optional
-            Tag("<name>",  "[name]") // as many tags as needed
+            // InfrastructureNode defines an infrastructure node, typically
+            // something like a load balancer, firewall, DNS service, etc.
+            var InfrastructureNode = InfrastructureNode("<name>", "[description]", "[technology]", func() {
+                Tag("<name>",  "[name]") // as many tags as needed
 
-            // URL where more information about this infrastructure node can be
-            // found.
-            URL("<url>")
-
-            // Properties define an arbitrary set of associated key-value pairs.
-            Properties(func() {
-                Prop("<name>", "<value">)
-            })
-        })
-
-        // ContainerInstance defines an instance of the specified
-        // container that is deployed on the parent deployment node.
-        var ContainerInstance = ContainerInstance(identifier, func() { // optional
-            Tag("<name>",  "[name]") // as many tags as needed
-
-            // Sets instance number or index.
-            InstanceID(1)
-
-            // Properties define an arbitrary set of associated key-value pairs.
-            Properties(func() {
-                Prop("<name>", "<value">)
-            })
-
-            // HealthCheck defines a HTTP-based health check for this
-            // container instance.
-            HealthCheck("<name>", func() {
-
-                // URL is the health check URL/endpoint.
+                // URL where more information about this infrastructure node can be
+                // found.
                 URL("<url>")
 
-                // Interval is the polling interval, in seconds.
-                Interval(42)
+                // Prop defines an arbitrary set of associated key-value pairs.
+                Prop("<name>", "<value">)
+            })
 
-                // Timeout after which a health check is deemed as failed,
-                // in milliseconds.
-                Timeout(42)
+            // ContainerInstance defines an instance of the specified
+            // container that is deployed on the parent deployment node.
+            var ContainerInstance = ContainerInstance(Container, func() {
+                Tag("<name>",  "[name]") // as many tags as needed
 
-                // Header defines a header that should be sent with the
-                // request.
-                Header("<name>", "<value>")
+                // Sets instance number or index.
+                InstanceID(1)
+
+                // Prop defines an arbitrary set of associated key-value pairs.
+                Prop("<name>", "<value">)
+
+                // HealthCheck defines a HTTP-based health check for this
+                // container instance.
+                HealthCheck("<name>", func() {
+
+                    // URL is the health check URL/endpoint.
+                    URL("<url>")
+
+                    // Interval is the polling interval, in seconds.
+                    Interval(42)
+
+                    // Timeout after which a health check is deemed as failed,
+                    // in milliseconds.
+                    Timeout(42)
+
+                    // Header defines a header that should be sent with the
+                    // request.
+                    Header("<name>", "<value>")
+                })
+            })
+
+            // DeploymentNode within a deployment node defines child nodes.
+            var ChildNode = DeploymentNode("<name>", "[description]", "[technology]", func() {
+                // ... see above
             })
         })
     })
