@@ -230,7 +230,7 @@ var _ = Workspace("Big Bank plc", "This is an example workspace to illustrate th
 			DevWebBrowser = DeploymentNode("Web Browser", "", "Chrome, Firefox, Safari or Edge", func() {
 				Tag("Element", "Deployment Node")
 
-				DevSPAInstance = ContainerInstance("Single-Page Application", func() {
+				DevSPAInstance = ContainerInstance(SinglePageApp, func() {
 					Tag("Container Instance")
 				})
 			})
@@ -289,7 +289,7 @@ var _ = Workspace("Big Bank plc", "This is an example workspace to illustrate th
 				PrimaryDB = DeploymentNode("Oracle - Primary", "The primary, live database server.", "Oracle 12c", func() {
 					Tag("Element", "Deployment Node")
 
-					PrimaryDBInstance = ContainerInstance("Database", func() {
+					PrimaryDBInstance = ContainerInstance(Database, func() {
 						Tag("Container Instance")
 						InstanceID(2)
 					})
@@ -303,7 +303,7 @@ var _ = Workspace("Big Bank plc", "This is an example workspace to illustrate th
 				SecondaryDB = DeploymentNode("Oracle - Secondary", "A secondary, standby database server, used for failover purposes only.", "Oracle 12c", func() {
 					Tag("Element", "Deployment Node", "Failover")
 
-					SecondaryDBInstance = ContainerInstance("Secondary database instance", "Database", func() {
+					SecondaryDBInstance = ContainerInstance(Database, func() {
 						Tag("Container Instance", "Failover")
 						InstanceID(3)
 					})
@@ -321,7 +321,7 @@ var _ = Workspace("Big Bank plc", "This is an example workspace to illustrate th
 					Prop("Xms", "1024M")
 					Prop("Xmx", "512M")
 
-					LiveWebAppInstance = ContainerInstance("Live Backend", "Web Application", func() {
+					LiveWebAppInstance = ContainerInstance(WebApp, func() {
 						Tag("Container Instance")
 						InstanceID(2)
 					})
@@ -335,7 +335,7 @@ var _ = Workspace("Big Bank plc", "This is an example workspace to illustrate th
 			LiveWebBrowser = DeploymentNode("Web Browser", "", "Chrome, Firefox, Safari or Edge", func() {
 				Tag("Element", "Deployment Node")
 
-				CustomerSPA = ContainerInstance("Customer Single-Page Application", "Single-Page Application", func() {
+				CustomerSPA = ContainerInstance(SinglePageApp, func() {
 					Tag("Container Instance")
 				})
 			})
@@ -344,7 +344,7 @@ var _ = Workspace("Big Bank plc", "This is an example workspace to illustrate th
 		CustomerMobile = DeploymentNode("Customer's mobile device", "", "Apple iOS or Android", func() {
 			Tag("Element", "Deployment Node")
 
-			CustomerMobileApp = ContainerInstance("Customer Mobile App", "Mobile App", func() {
+			CustomerMobileApp = ContainerInstance(MobileApp, func() {
 				Tag("Container Instance")
 			})
 		})
