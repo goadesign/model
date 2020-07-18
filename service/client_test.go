@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"os"
 	"testing"
 
-	"github.com/hashicorp/go-getter/helper/url"
 	"github.com/kylelemons/godebug/diff"
 	"goa.design/structurizr/expr"
 )
