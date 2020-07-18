@@ -13,6 +13,8 @@ type (
 	Model struct {
 		// Enterprise associated with model if any.
 		Enterprise *Enterprise `json:"enterprise,omitempty"`
+		// AddImpliedRelationships adds implied relationships automatically.
+		AddImpliedRelationships bool
 		// People lists Person elements.
 		People People `json:"people,omitempty"`
 		// Systems lists Software System elements.
@@ -54,6 +56,51 @@ func (m *Model) Validate() error {
 		}
 	}
 	return verr
+}
+
+// Finalize add all implied relationships if needed.
+func (m *Model) Finalize() {
+	if !m.AddImpliedRelationships {
+		return
+	}
+	for _, elem := range Registry {
+		r, ok := elem.(*Relationship)
+		if !ok {
+			continue
+		}
+		switch s := m.FindElement(r.SourceID).(type) {
+		case *Container:
+			m.addMissingRelationships(s.System.Element, r.DestinationID, r)
+		case *Component:
+			m.addMissingRelationships(s.Container.Element, r.DestinationID, r)
+			m.addMissingRelationships(s.Container.System.Element, r.DestinationID, r)
+		}
+	}
+}
+
+// addRelationshioIfNotExsists adds relationships from src to element with ID
+// destID and its parents (container system software and component container)
+// based on the properties of existing. It only adds a relationship if one
+// doesn't already exist with the same description.
+func (m *Model) addMissingRelationships(src *Element, destID string, existing *Relationship) {
+	for _, r := range src.Rels {
+		if r.DestinationID == destID && r.Description == existing.Description {
+			return
+		}
+	}
+	r := existing.Dup()
+	r.SourceID = src.ID
+	r.DestinationID = destID
+	src.Rels = append(src.Rels, r)
+
+	// Add relationships to destination parents as well.
+	switch e := m.FindElement(destID).(type) {
+	case *Container:
+		m.addMissingRelationships(src, e.System.ID, existing)
+	case *Component:
+		m.addMissingRelationships(src, e.Container.ID, existing)
+		m.addMissingRelationships(src, e.Container.System.ID, existing)
+	}
 }
 
 // FindElement retrieves the element with the given name or nil if there isn't

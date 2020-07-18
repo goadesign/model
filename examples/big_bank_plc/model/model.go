@@ -5,9 +5,6 @@ import (
 	"goa.design/structurizr/expr"
 )
 
-// CODEGEN IMPROVEMENTS NEEDED:
-// Add inferred relationships between parent elements
-
 var _ = Workspace("Big Bank plc", "This is an example workspace to illustrate the key features of Structurizr, based around a fictional online banking system.", func() {
 	Enterprise("Big Bank plc")
 

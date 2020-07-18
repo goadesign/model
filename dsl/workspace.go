@@ -131,6 +131,27 @@ func Enterprise(e string) {
 	}
 }
 
+// AddImpliedRelationships creates implied relationships between all valid
+// combinations of parent elements, unless the same relationship already exists
+// between them. For example if a model includes two containers with one
+// component each and the DSL defines a relationship between the two components
+// (Component 1 to Component 2) then AddImpliedRelationships would add the
+// following relationships:
+//
+//    * Component 1 to Container 2
+//    * Container 1 to Component 2
+//    * Container 1 to Container 2
+//
+// AddImpliedRelationships must appear in Workspace.
+func AddImpliedRelationships() {
+	w, ok := eval.Current().(*expr.Workspace)
+	if !ok {
+		eval.IncompatibleDSL()
+	} else {
+		w.Model.AddImpliedRelationships = true
+	}
+}
+
 // Tag defines a set of tags on the given element. Tags are used in views to
 // identify group of elements that should be rendered together for example.
 //

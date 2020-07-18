@@ -54,6 +54,21 @@ func (r *Relationship) EvalName() string {
 	return fmt.Sprintf("%s [%s -> %s]", r.Description, r.SourceID, r.DestinationID)
 }
 
+// Dup creates a new relationship with identical description, tags, URL,
+// technology and interaction style as r. Dup also creates a new ID for the
+// result.
+func (r *Relationship) Dup() *Relationship {
+	dup := &Relationship{
+		Description:      r.Description,
+		Tags:             r.Tags,
+		URL:              r.URL,
+		Technology:       r.Technology,
+		InteractionStyle: r.InteractionStyle,
+	}
+	Identify(dup)
+	return dup
+}
+
 // MarshalJSON replaces the constant value with the proper structurizr schema
 // string value.
 func (i InteractionStyleKind) MarshalJSON() ([]byte, error) {

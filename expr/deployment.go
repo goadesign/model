@@ -111,17 +111,10 @@ func (ci *ContainerInstance) Finalize() {
 				continue
 			}
 			if eci.ContainerID == dc.ID {
-				rc := &Relationship{
-					Description:          r.Description,
-					Tags:                 r.Tags,
-					URL:                  r.URL,
-					SourceID:             ci.ID,
-					DestinationID:        eci.ID,
-					Technology:           r.Technology,
-					InteractionStyle:     r.InteractionStyle,
-					LinkedRelationshipID: r.ID,
-				}
-				Identify(rc)
+				rc := r.Dup()
+				rc.SourceID = ci.ID
+				rc.DestinationID = eci.ID
+				rc.LinkedRelationshipID = r.ID
 				ci.Rels = append(c.Rels, rc)
 			}
 		}
