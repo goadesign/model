@@ -96,7 +96,13 @@ func gen(pkg, out string, debug bool) error {
 	if err != nil {
 		return err
 	}
-	defer os.RemoveAll(tmpDir)
+	defer func() {
+		if debug {
+			fmt.Printf("temp dir: %q\n", tmpDir)
+		} else {
+			os.RemoveAll(tmpDir)
+		}
+	}()
 	var sections []*codegen.SectionTemplate
 	{
 		imports := []*codegen.ImportSpec{
