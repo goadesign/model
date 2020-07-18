@@ -107,7 +107,7 @@ func DeploymentNode(name string, args ...interface{}) *expr.DeploymentNode {
 	description, technology, dsl := parseElementArgs(args...)
 	one := 1
 	node := &expr.DeploymentNode{
-		Element: expr.Element{
+		Element: &expr.Element{
 			Name:        name,
 			Description: description,
 			Technology:  technology,
@@ -172,7 +172,7 @@ func InfrastructureNode(d *expr.DeploymentNode, name string, args ...interface{}
 	}
 	description, technology, dsl := parseElementArgs(args...)
 	node := &expr.InfrastructureNode{
-		Element: expr.Element{
+		Element: &expr.Element{
 			Name:        name,
 			Description: description,
 			Technology:  technology,
@@ -199,7 +199,8 @@ func InfrastructureNode(d *expr.DeploymentNode, name string, args ...interface{}
 //    var _ = Workspace(func() {
 //        DeploymentEnvironment("Production", func() {
 //            DeploymentNode("US", "US shard", func() {
-//                ContainerInstance("instance", "container", func() {
+//                ContainerInstance(Container, func() {
+//                    RefName("instance")
 //                    Tag("service")
 //                    InstanceID(1)
 //                    HealthCheck("check", func() {
@@ -235,7 +236,7 @@ func ContainerInstance(container interface{}, dsl ...func()) *expr.ContainerInst
 		}
 	}
 	ci := &expr.ContainerInstance{
-		Element:     expr.Element{DSLFunc: f},
+		Element:     &expr.Element{DSLFunc: f},
 		Parent:      d,
 		Environment: d.Environment,
 		ContainerID: cid,
@@ -245,11 +246,39 @@ func ContainerInstance(container interface{}, dsl ...func()) *expr.ContainerInst
 	return ci
 }
 
+// RefName provides a name to a container instance that can be used to reference
+// it in deployment views (as an alternative to using a variable).
+//
+// RefName must appear in a ContainerInstance expression.
+//
+// RefName accepts a single argument which is the name that can be used to reference the container instance.
+//
+// Example:
+//
+//    var _ = Workspace(func() {
+//        DeploymentEnvironment("Production", func() {
+//            DeploymentNode("US", "US shard", func() {
+//                ContainerInstance("container", func() {
+//                    RefName("instance")
+//                })
+//            })
+//        })
+//    })
+//
+func RefName(name string) {
+	ci, ok := eval.Current().(*expr.ContainerInstance)
+	if !ok {
+		eval.IncompatibleDSL()
+		return
+	}
+	ci.Name = name
+}
+
 // Instances sets the number of instances of the deployment node.
 //
 // Instances must appear in a DeploymentNode expression.
 //
-// Instances accepts a single parameter which is the number.
+// Instances accepts a single argument which is the number.
 //
 // Example:
 //
@@ -274,7 +303,7 @@ func Instances(n int) {
 //
 // InstanceID must appear in a ContainerInstance expression.
 //
-// InstanceID accepts a single parameter which is the number.
+// InstanceID accepts a single argument which is the number.
 //
 // Example:
 //

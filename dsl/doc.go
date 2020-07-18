@@ -64,7 +64,7 @@ general shape of the DSL is:
         └── ContainerInstance               │   ├── ElementStyle
             ├── Tag                         │   └── RelationshipStyle
             ├── HealthCheck                 ├── Theme
-            └── Prop                        └── Branding
-                                            (* minus EnterpriseBoundaryVisible)
+            ├── Prop                        └── Branding
+            └── RefName                     (* minus EnterpriseBoundaryVisible)
 */
 package dsl

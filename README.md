@@ -39,7 +39,7 @@ var _ = Workspace("Getting Started", "This is a model of my software system.", f
     Views(func() {
         SystemContextView(System, "SystemContext", "An example of a System Context diagram.", func() {
             AddAll()
-            AutoLayout(RankTopBottom)
+            AutoLayout(RankLeftRight)
         })
         Styles(func() {
             ElementStyle("system", func() {
@@ -59,6 +59,10 @@ var _ = Workspace("Getting Started", "This is a model of my software system.", f
 This code creates a model containing elements and relationships, creates a
 single view and adds some styling.
 ![Getting Started Diagram](https://structurizr.com/static/img/getting-started.png)
+
+Other examples can be found in the repo
+[examples](https://github.com/goadesign/structurizr/tree/master/examples)
+directory.
 
 ## Library
 
@@ -97,7 +101,7 @@ var _ = Workspace("Getting Started", "This is a model of my software system.", f
     Views(func() {
         SystemContextView(System, "SystemContext", "An example of a System Context diagram.", func() {
             AddAll()
-            AutoLayout(RankTopBottom)
+            AutoLayout(RankLeftRight)
         })
         Styles(func() {
             ElementStyle("system", func() {
@@ -212,7 +216,35 @@ in this repo.
 
 ## DSL Syntax
 
-The code snippet below describes the entire syntax of the DSL. The reference can also be found in the
+### Rules
+
+The following rules apply to all elements and views declared in a model:
+
+* Software and people names must be unique.
+* Container names must be unique within the context of a software system.
+* Component names must be unique within the context of a container.
+* Deployment node names must be unique with their parent context.
+* Infrastructure node names must be unique with their parent context.
+* All relationships from a given source element to a given destination element
+  must have a unique description.
+* View keys must be unique.
+
+### References
+
+The functions `Uses`, `Delivers`, `InteractsWith`, `Add` and `Link` accept
+references to other elements as argument. The reference can be done either
+through a variable (which holds the element being referred to) or the name of
+the element. Note that names do not necessarily have to be globally unique
+(see rules above) so it may sometimes be necessary to use a variable to
+disambiguate. Also container instances do not have names per se however the
+`RefName` function makes it possible to define a name that can be used to
+refer to the container instance in deployment views (when using `Add` or
+`Link`).
+
+### Syntax
+
+The code snippet below describes the entire syntax of the DSL. The complete
+reference can be found in the `dsl`
 [package documentation](https://pkg.go.dev/goa.design/structurizr/v1@v1.0.0/dsl?tab=doc).
 
 ```Go
@@ -362,6 +394,9 @@ var _ = Workspace("[name]", "[description]", func() {
             var ContainerInstance = ContainerInstance(Container, func() {
                 Tag("<name>",  "[name]") // as many tags as needed
 
+                // Sets a name that can be used in deployment views.
+                RefName("<name>")
+
                 // Sets instance number or index.
                 InstanceID(1)
 
@@ -432,7 +467,7 @@ var _ = Workspace("[name]", "[description]", func() {
             // Add given relationship to view. If relationship was already added
             // implictely (e.g. via AddAll()) then overrides how the
             // relationship is rendered.
-            Add(Source, Destination, func() {
+            Link(Source, Destination, func() {
 
                 // Vertices lists the x and y coordinate of the vertices used to
                 // render the relationship. The number of arguments must be even.
@@ -586,7 +621,7 @@ var _ = Workspace("[name]", "[description]", func() {
             PaperSize(SizeSlide4X3)
 
             // Set of relationships that make up dynamic diagram.
-            Add(Source, Destination, func() {
+            Link(Source, Destination, func() {
 
                 // Vertices lists the x and y coordinate of the vertices used to
                 // render the relationship. The number of arguments must be even.
