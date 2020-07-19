@@ -7,11 +7,11 @@ import (
 
 const (
 	// Major version number
-	Major = 1
+	Major = 0
 	// Minor version number
 	Minor = 0
 	// Build number
-	Build = 0
+	Build = 4
 	// Suffix - set to empty string in release tag commits.
 	Suffix = ""
 )

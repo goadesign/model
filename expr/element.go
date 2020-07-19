@@ -53,7 +53,7 @@ func (e *Element) DSL() func() { return e.DSLFunc }
 
 // Validate validates the relationships.
 func (c *Container) Validate() error {
-	var verr *eval.ValidationErrors
+	verr := new(eval.ValidationErrors)
 	for _, r := range c.Rels {
 		if Root.Model.FindElement(r.DestinationName) == nil {
 			verr.Add(r, "could not find relationship target %q", r.DestinationName)

@@ -29,7 +29,7 @@ func (m *Model) EvalName() string { return "model" }
 
 // Validate makes sure all element names are unique.
 func (m *Model) Validate() error {
-	var verr *eval.ValidationErrors
+	verr := new(eval.ValidationErrors)
 	known := make(map[string]struct{})
 	for _, p := range m.People {
 		if _, ok := known[p.Name]; ok {

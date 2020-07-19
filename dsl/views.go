@@ -676,15 +676,14 @@ func Add(element interface{}, dsl ...func()) {
 		eval.InvalidArgError("person, software system, container or component", element)
 	}
 
+	if err := v.(expr.ViewAdder).AddElements(eh); err != nil {
+		eval.ReportError(err.Error()) // Element type not supported in view
+	}
 	if len(dsl) > 0 {
 		if len(dsl) > 1 {
 			eval.ReportError("too many arguments")
 		}
 		eval.Execute(dsl[0], v.ElementView(eh.GetElement().ID))
-	}
-
-	if err := v.(expr.ViewAdder).AddElements(eh); err != nil {
-		eval.ReportError(err.Error()) // Element type not supported in view
 	}
 }
 
@@ -1346,17 +1345,17 @@ func Animation(args ...interface{}) {
 		return
 	}
 	_, depl := eval.Current().(*expr.DeploymentView)
-	ehs := make([]expr.ElementHolder, len(args))
+	var ehs []expr.ElementHolder
 	for _, arg := range args {
-		switch a := arg.(type) {
-		case expr.ElementHolder:
-			ehs = append(ehs, a)
-		default:
+		if eh, ok := arg.(expr.ElementHolder); ok {
+			ehs = append(ehs, eh)
+		} else {
 			suffix := " or Component"
 			if depl {
 				suffix = ", Component, DeploymentNode, InfrastructureNode or ContainerInstance"
 			}
 			eval.InvalidArgError(fmt.Sprintf("SoftwareSystem, Container%s", suffix), arg)
+			return
 		}
 	}
 	if err := v.AddAnimation(ehs); err != nil {

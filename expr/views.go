@@ -509,6 +509,9 @@ func addAnimation(v *ViewProps, ehs []ElementHolder) error {
 	n := &Animation{Order: len(v.Animations) + 1}
 loop:
 	for _, e := range ehs {
+		if e == nil {
+			return fmt.Errorf("element not initialized")
+		}
 		id := e.GetElement().ID
 		if v.ElementView(id) == nil {
 			continue loop // item not in view, skip

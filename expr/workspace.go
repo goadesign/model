@@ -6,7 +6,7 @@ import (
 
 	"goa.design/goa/v3/eval"
 	"goa.design/goa/v3/expr"
-	goa "goa.design/goa/v3/pkg"
+	structurizr "goa.design/structurizr/pkg"
 )
 
 // Workspace describes a workspace and is the root expression of the plugin.
@@ -88,10 +88,10 @@ func (w *Workspace) DependsOn() []eval.Root { return []eval.Root{expr.Root} }
 // in these packages when computing the location of errors.
 func (w *Workspace) Packages() []string {
 	return []string{
-		"goa.design/plugins/v3/structurizr/expr",
-		"goa.design/plugins/v3/structurizr/dsl",
-		fmt.Sprintf("goa.design/plugins/v3@%s/structurizr/expr", goa.Version()),
-		fmt.Sprintf("goa.design/plugins/v3@%s/structurizr/dsl", goa.Version()),
+		"goa.design/structurizr/expr",
+		"goa.design/structurizr/dsl",
+		fmt.Sprintf("goa.design/structurizr@%s/expr", structurizr.Version()),
+		fmt.Sprintf("goa.design/structurizr@%s/dsl", structurizr.Version()),
 	}
 }
 

@@ -209,10 +209,10 @@ var _ = Workspace("Big Bank plc", "This is an example workspace to illustrate th
 				Tag("Element", "Deployment Node")
 
 				DevWebServer = DeploymentNode("Apache Tomcat", "An open source Java EE web server.", "Apache Tomcat 8.x", func() {
-					ContainerInstance(APIApplication, func() {
+					DevAPIAppInstance = ContainerInstance(APIApplication, func() {
 						Tag("Container Instance")
 					})
-					ContainerInstance(WebApp, func() {
+					DevWebAppInstance = ContainerInstance(WebApp, func() {
 						Tag("Container Instance")
 					})
 					Tag("Element", "Deployment Node")
