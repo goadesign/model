@@ -116,7 +116,7 @@ func Styles(dsl func()) {
 //                     Color("#000000")
 //                     Stroke("#000000")
 //                     FontSize(24)
-//                     Boder(BorderSolid)
+//                     Border(BorderSolid)
 //                     Opacity(100)
 //                     ShowMetadata()
 //                     ShowDescription()
@@ -310,13 +310,13 @@ func FontSize(s int) {
 	}
 }
 
-// Boder sets elements border style, default is BorderSolid.
+// Border sets elements border style, default is BorderSolid.
 //
 // Border must appear in ElementStyle.
 //
 // Border takes a single argument: one of BorderSolid, BorderDashed or
 // BorderDotted.
-func Boder(b expr.BorderKind) {
+func Border(b expr.BorderKind) {
 	if es, ok := eval.Current().(*expr.ElementStyle); ok {
 		es.Border = b
 		return
