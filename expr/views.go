@@ -208,6 +208,21 @@ func (vs *Views) Validate() error {
 // Finalize remove relationships from elements with NoRelationship set to true.
 func (vs *Views) Finalize() {
 	for _, vp := range vs.all() {
+		var rels []*Relationship
+		for _, x := range Registry {
+			r, ok := x.(*Relationship)
+			if !ok {
+				continue
+			}
+			for _, ev := range vp.ElementViews {
+				if r.SourceID == ev.ID {
+					if vp.ElementView(r.FindDestination().ID) != nil {
+						rels = append(rels, r)
+					}
+				}
+			}
+		}
+		addRelationships(vp, rels)
 		for _, ev := range vp.ElementViews {
 			if ev.NoRelationship {
 				i := 0
@@ -500,7 +515,11 @@ loop:
 		if !dest {
 			addElements(v, r.Destination)
 		}
-		v.RelationshipViews = append(v.RelationshipViews, &RelationshipView{ID: r.ID, Relationship: r})
+		v.RelationshipViews = append(v.RelationshipViews, &RelationshipView{
+			ID:           r.ID,
+			Relationship: r,
+			Routing:      RoutingDirect,
+		})
 	}
 }
 

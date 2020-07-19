@@ -53,7 +53,7 @@ type (
 		// Description of relationship used in dynamic views.
 		Description string `json:"description,omitempty"`
 		// Order of relationship in dynamic views.
-		Order string `json:"order"`
+		Order string `json:"order,omitempty"`
 		// Set of vertices used to render relationship
 		Vertices []*Vertex `json:"vertices,omitempty"`
 		// Routing algorithm used to render relationship.
@@ -249,25 +249,6 @@ func (v *ViewProps) EvalName() string {
 		suf = fmt.Sprintf(" with title %q and key %q", v.Title, v.Key)
 	}
 	return fmt.Sprintf("view%s", suf)
-}
-
-// Finalize computes the relationships used in the view.
-func (v *ViewProps) Finalize() {
-	var rels []*Relationship
-	for _, x := range Registry {
-		r, ok := x.(*Relationship)
-		if !ok {
-			continue
-		}
-		for _, ev := range v.ElementViews {
-			if r.SourceID == ev.ID {
-				if v.ElementView(r.FindDestination().ID) != nil {
-					rels = append(rels, r)
-				}
-			}
-		}
-	}
-	addRelationships(v, rels)
 }
 
 // EvalName returns the generic expression name used in error messages.

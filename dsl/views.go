@@ -1579,7 +1579,7 @@ func Vertices(args ...int) {
 }
 
 // Routing algorithm used when rendering relationship, defaults to
-// RoutingOrthogonal.
+// RoutingDirect.
 //
 // Routing must appear in a Add expression that adds a relationship or in a
 // RelationshipStyle expression.
