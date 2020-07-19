@@ -91,7 +91,7 @@ func Views(dsl func()) {
 		eval.IncompatibleDSL()
 		return
 	}
-	w.Views = &expr.Views{DSLFunc: dsl}
+	w.Views.DSLFunc = dsl
 }
 
 // SystemLandscapeView defines a system landscape view.
@@ -137,7 +137,7 @@ func SystemLandscapeView(args ...interface{}) {
 	}
 	key, description, dsl := parseView(args...)
 	v := &expr.LandscapeView{
-		ViewProps: expr.ViewProps{
+		ViewProps: &expr.ViewProps{
 			Key:         key,
 			Description: description,
 		},
@@ -211,7 +211,7 @@ func SystemContextView(system interface{}, args ...interface{}) {
 	}
 	key, description, dsl := parseView(args...)
 	v := &expr.ContextView{
-		ViewProps: expr.ViewProps{
+		ViewProps: &expr.ViewProps{
 			Key:         key,
 			Description: description,
 		},
@@ -287,7 +287,7 @@ func ContainerView(system interface{}, args ...interface{}) {
 	}
 	key, description, dsl := parseView(args...)
 	v := &expr.ContainerView{
-		ViewProps: expr.ViewProps{
+		ViewProps: &expr.ViewProps{
 			Key:         key,
 			Description: description,
 		},
@@ -364,7 +364,7 @@ func ComponentView(container interface{}, args ...interface{}) {
 	}
 	key, description, dsl := parseView(args...)
 	v := &expr.ComponentView{
-		ViewProps: expr.ViewProps{
+		ViewProps: &expr.ViewProps{
 			Key:         key,
 			Description: description,
 		},
@@ -505,7 +505,7 @@ func DynamicView(scope interface{}, args ...interface{}) {
 	}
 	key, description, dsl := parseView(args...)
 	v := &expr.DynamicView{
-		ViewProps: expr.ViewProps{
+		ViewProps: &expr.ViewProps{
 			Key:         key,
 			Description: description,
 		},
@@ -591,7 +591,7 @@ func DeploymentView(scope interface{}, env string, args ...interface{}) {
 		return
 	}
 	v := &expr.DeploymentView{
-		ViewProps: expr.ViewProps{
+		ViewProps: &expr.ViewProps{
 			Key:         key,
 			Description: description,
 		},
@@ -661,19 +661,12 @@ func Add(element interface{}, dsl ...func()) {
 	case string:
 		eh = expr.Root.Model.FindElement(e)
 		if eh == nil {
-			eval.ReportError("no person, software system, container or component named %q", e)
+			eval.ReportError("no element named %q", e)
 			return
 		}
 	default:
-		eval.InvalidArgError("person, software system, container or component", element)
+		eval.InvalidArgError("element or name of element", element)
 		return
-	}
-
-	switch eh.(type) {
-	case *expr.Person, *expr.SoftwareSystem, *expr.Container, *expr.Component:
-		// all good
-	default:
-		eval.InvalidArgError("person, software system, container or component", element)
 	}
 
 	if err := v.(expr.ViewAdder).AddElements(eh); err != nil {
@@ -768,11 +761,24 @@ func Link(source, destination interface{}, dsl ...func()) {
 		return
 	}
 
-	rel := expr.FindRelationship(src.GetElement().ID, dest.GetElement().ID)
+	var rel *expr.Relationship
+	srcID, destID := src.GetElement().ID, dest.GetElement().ID
+	for _, x := range expr.Registry {
+		r, ok := x.(*expr.Relationship)
+		if !ok {
+			continue
+		}
+		if r.SourceID == srcID && r.FindDestination().ID == destID {
+			rel = r
+			break
+		}
+	}
 	if rel == nil {
 		eval.ReportError("no relationship between %q and %q", src.GetElement().Name, dest.GetElement().Name)
 		return
 	}
+
+	v.AddRelationships(rel)
 
 	if len(dsl) > 0 {
 		if len(dsl) > 1 {
@@ -780,8 +786,6 @@ func Link(source, destination interface{}, dsl ...func()) {
 		}
 		eval.Execute(dsl[0], v.RelationshipView(rel.ID))
 	}
-
-	v.AddRelationships(rel)
 }
 
 // AddAll includes all elements and relationships in the view scope.
@@ -818,13 +822,13 @@ func AddAll() {
 	case *expr.ContainerView:
 		v.AddElements(model.People.Elements()...)
 		v.AddElements(model.Systems.Elements()...)
-		v.AddElements(expr.GetSoftwareSystem(v.SoftwareSystemID).Containers.Elements()...)
+		v.AddElements(expr.Registry[v.SoftwareSystemID].(*expr.SoftwareSystem).Containers.Elements()...)
 	case *expr.ComponentView:
 		v.AddElements(model.People.Elements()...)
 		v.AddElements(model.Systems.Elements()...)
-		c := expr.GetContainer(v.ContainerID)
+		c := expr.Registry[v.ContainerID].(*expr.Container)
 		v.AddElements(c.System.Containers.Elements()...)
-		v.AddElements(expr.GetContainer(v.ContainerID).Components.Elements()...)
+		v.AddElements(c.Components.Elements()...)
 	case *expr.DeploymentView:
 		for _, n := range model.DeploymentNodes {
 			if n.Environment == "" || n.Environment == v.Environment {
@@ -956,16 +960,16 @@ func AddDefault() {
 	case *expr.LandscapeView:
 		AddAll()
 	case *expr.ContextView:
-		AddNeighbors(expr.GetSoftwareSystem(v.SoftwareSystemID))
+		AddNeighbors(expr.Registry[v.SoftwareSystemID].(*expr.SoftwareSystem))
 	case *expr.ContainerView:
-		s := expr.GetSoftwareSystem(v.SoftwareSystemID)
+		s := expr.Registry[v.SoftwareSystemID].(*expr.SoftwareSystem)
 		v.AddElements(s.Containers.Elements()...)
 		for _, c := range s.Containers {
 			v.AddElements(c.RelatedSoftwareSystems().Elements()...)
 			v.AddElements(c.RelatedPeople().Elements()...)
 		}
 	case *expr.ComponentView:
-		c := expr.GetContainer(v.ContainerID)
+		c := expr.Registry[v.ContainerID].(*expr.Container)
 		v.AddElements(c.Components.Elements()...)
 		for _, c := range c.Components {
 			v.AddElements(c.RelatedContainers().Elements()...)
@@ -988,9 +992,9 @@ func AddDefault() {
 func AddContainers() {
 	switch v := eval.Current().(type) {
 	case *expr.ContainerView:
-		v.AddElements(expr.GetSoftwareSystem(v.SoftwareSystemID).Containers.Elements()...)
+		v.AddElements(expr.Registry[v.SoftwareSystemID].(*expr.SoftwareSystem).Containers.Elements()...)
 	case *expr.ComponentView:
-		c := expr.GetContainer(v.ContainerID)
+		c := expr.Registry[v.ContainerID].(*expr.Container)
 		v.AddElements(c.System.Containers.Elements()...)
 	default:
 		eval.IncompatibleDSL()
@@ -1013,16 +1017,16 @@ func AddInfluencers() {
 		return
 	}
 
-	system := expr.GetSoftwareSystem(cv.SoftwareSystemID)
+	system := expr.Registry[cv.SoftwareSystemID].(*expr.SoftwareSystem)
 	model := expr.Root.Model
 	for _, s := range model.Systems {
 		for _, r := range s.Rels {
-			if r.DestinationID == cv.SoftwareSystemID {
+			if r.FindDestination().ID == cv.SoftwareSystemID {
 				cv.AddElements(s)
 			}
 		}
 		for _, r := range system.Rels {
-			if r.DestinationID == s.ID {
+			if r.FindDestination().ID == s.ID {
 				cv.AddElements(s)
 			}
 		}
@@ -1030,12 +1034,12 @@ func AddInfluencers() {
 
 	for _, p := range model.People {
 		for _, r := range p.Rels {
-			if r.DestinationID == cv.SoftwareSystemID {
+			if r.FindDestination().ID == cv.SoftwareSystemID {
 				cv.AddElements(p)
 			}
 		}
 		for _, r := range system.Rels {
-			if r.DestinationID == p.ID {
+			if r.FindDestination().ID == p.ID {
 				cv.AddElements(p)
 			}
 		}
@@ -1045,18 +1049,18 @@ func AddInfluencers() {
 		src := rv.Relationship.Source
 		var keep bool
 		if keep = src.ID == cv.SoftwareSystemID; !keep {
-			if c := expr.GetContainer(src.ID); c != nil {
+			if c, ok := expr.Registry[src.ID].(*expr.Container); ok {
 				keep = c.System.ID == cv.SoftwareSystemID
-			} else if c := expr.GetComponent(src.ID); c != nil {
+			} else if c, ok := expr.Registry[src.ID].(*expr.Component); ok {
 				keep = c.Container.System.ID == cv.SoftwareSystemID
 			}
 		}
 		if !keep {
-			dest := rv.Relationship.Destination
+			dest := rv.Relationship.FindDestination()
 			if keep = dest.ID == cv.SoftwareSystemID; !keep {
-				if c := expr.GetContainer(dest.ID); c != nil {
+				if c, ok := expr.Registry[dest.ID].(*expr.Container); ok {
 					keep = c.System.ID == cv.SoftwareSystemID
-				} else if c := expr.GetComponent(dest.ID); c != nil {
+				} else if c, ok := expr.Registry[dest.ID].(*expr.Component); ok {
 					keep = c.Container.System.ID == cv.SoftwareSystemID
 				}
 			}
@@ -1075,7 +1079,7 @@ func AddInfluencers() {
 //
 func AddComponents() {
 	if cv, ok := eval.Current().(*expr.ComponentView); ok {
-		cv.AddElements(expr.GetContainer(cv.ContainerID).Components.Elements()...)
+		cv.AddElements(expr.Registry[cv.ContainerID].(*expr.Container).Components.Elements()...)
 		return
 	}
 	eval.IncompatibleDSL()
@@ -1129,6 +1133,9 @@ func Remove(e interface{}, dest ...interface{}) {
 
 	var destID string
 	if len(dest) > 0 {
+		if len(dest) > 1 {
+			eval.ReportError("too many arguments")
+		}
 		if eh, ok := dest[0].(expr.ElementHolder); ok {
 			destID = eh.GetElement().ID
 		} else {
@@ -1152,8 +1159,19 @@ func Remove(e interface{}, dest ...interface{}) {
 			eval.ReportError("only one argument allowed when using a tag as first argument")
 			return
 		}
-		if r := expr.FindRelationship(id, destID); r != nil {
-			id = r.ID
+		var rel *expr.Relationship
+		for _, x := range expr.Registry {
+			r, ok := x.(*expr.Relationship)
+			if !ok {
+				continue
+			}
+			if r.SourceID == id && r.FindDestination().ID == destID {
+				rel = r
+				break
+			}
+		}
+		if rel != nil {
+			id = rel.ID
 		} else {
 			eval.ReportError("no existing relationship with source %s and destination %s", e.(eval.Expression).EvalName(), dest[0].(eval.Expression).EvalName())
 			return
@@ -1347,14 +1365,22 @@ func Animation(args ...interface{}) {
 	_, depl := eval.Current().(*expr.DeploymentView)
 	var ehs []expr.ElementHolder
 	for _, arg := range args {
-		if eh, ok := arg.(expr.ElementHolder); ok {
-			ehs = append(ehs, eh)
-		} else {
-			suffix := " or Component"
-			if depl {
-				suffix = ", Component, DeploymentNode, InfrastructureNode or ContainerInstance"
+		switch a := arg.(type) {
+		case expr.ElementHolder:
+			ehs = append(ehs, a)
+		case string:
+			e := expr.Root.Model.FindElement(a)
+			if e == nil {
+				eval.ReportError("no element named %q", a)
+				return
 			}
-			eval.InvalidArgError(fmt.Sprintf("SoftwareSystem, Container%s", suffix), arg)
+			ehs = append(ehs, e)
+		default:
+			suffix := " or component"
+			if depl {
+				suffix = ", component, deployment node, infrastructure node or container instance"
+			}
+			eval.InvalidArgError(fmt.Sprintf("software system, container%s", suffix), arg)
 			return
 		}
 	}

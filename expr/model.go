@@ -70,10 +70,10 @@ func (m *Model) Finalize() {
 		}
 		switch s := m.FindElement(r.SourceID).(type) {
 		case *Container:
-			m.addMissingRelationships(s.System.Element, r.DestinationID, r)
+			m.addMissingRelationships(s.System.Element, r.FindDestination().ID, r)
 		case *Component:
-			m.addMissingRelationships(s.Container.Element, r.DestinationID, r)
-			m.addMissingRelationships(s.Container.System.Element, r.DestinationID, r)
+			m.addMissingRelationships(s.Container.Element, r.FindDestination().ID, r)
+			m.addMissingRelationships(s.Container.System.Element, r.FindDestination().ID, r)
 		}
 	}
 }
@@ -84,7 +84,7 @@ func (m *Model) Finalize() {
 // doesn't already exist with the same description.
 func (m *Model) addMissingRelationships(src *Element, destID string, existing *Relationship) {
 	for _, r := range src.Rels {
-		if r.DestinationID == destID && r.Description == existing.Description {
+		if r.FindDestination().ID == destID && r.Description == existing.Description {
 			return
 		}
 	}
@@ -106,19 +106,13 @@ func (m *Model) addMissingRelationships(src *Element, destID string, existing *R
 // FindElement retrieves the element with the given name or nil if there isn't
 // one.
 func (m *Model) FindElement(n string) ElementHolder {
-	for _, s := range m.Systems {
-		if s.Name == n {
-			return s
+	for _, x := range Registry {
+		eh, ok := x.(ElementHolder)
+		if !ok {
+			continue
 		}
-		for _, c := range s.Containers {
-			if c.Name == n {
-				return c
-			}
-			for _, cm := range c.Components {
-				if cm.Name == n {
-					return cm
-				}
-			}
+		if eh.GetElement().Name == n {
+			return eh
 		}
 	}
 	return nil

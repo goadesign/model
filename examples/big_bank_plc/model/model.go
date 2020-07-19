@@ -27,7 +27,7 @@ var _ = Workspace("Big Bank plc", "This is an example workspace to illustrate th
 		InteractsWith("Customer Service Staff", "Asks questions to", "Telephone", Synchronous, func() {
 			Tag("Relationship", "Synchronous")
 		})
-		Uses("Single Page Application", "Views account balances, and makes payments using", Synchronous, func() {
+		Uses("Single-Page Application", "Views account balances, and makes payments using", Synchronous, func() {
 			Tag("Relationship", "Synchronous")
 		})
 		Uses("ATM", "Withdraws cash using", Synchronous, func() {
@@ -36,7 +36,7 @@ var _ = Workspace("Big Bank plc", "This is an example workspace to illustrate th
 		Uses("Internet Banking System", "Views account balances, and makes payments using", Synchronous, func() {
 			Tag("Relationship", "Synchronous")
 		})
-		Uses("Mobile Application", "Views account balances, and makes payments using", Synchronous, func() {
+		Uses("Mobile App", "Views account balances, and makes payments using", Synchronous, func() {
 			Tag("Relationship", "Synchronous")
 		})
 		Uses("Web Application", "Visits bigbank.com/ib using", "HTTPS", Synchronous, func() {
@@ -73,7 +73,7 @@ var _ = Workspace("Big Bank plc", "This is an example workspace to illustrate th
 	)
 
 	var InternetBankingSystem = SoftwareSystem("Internet Banking System", "Allows customers to view information about their bank accounts, and make payments.", func() {
-		Uses("Email System", "Sends e-mail using", Synchronous, func() {
+		Uses("E-mail System", "Sends e-mail using", Synchronous, func() {
 			Tag("Relationship", "Synchronous")
 		})
 		Uses("Mainframe Banking System", "Gets account information from, and makes payments using", "", Synchronous, func() {
@@ -349,9 +349,6 @@ var _ = Workspace("Big Bank plc", "This is an example workspace to illustrate th
 
 		SystemLandscapeView("SystemLandscape", "The system landscape diagram for Big Bank plc.", func() {
 			PaperSize(SizeA5Landscape)
-			Animation("Personal Banking Customer", "Internet Banking System", "Mainframe Banking System", "Email System")
-			Animation("ATM")
-			Animation("Customer Service Staff", "Bank Office Staff")
 			EnterpriseBoundaryVisible()
 
 			Add(PersonalBankingCustomer, func() {
@@ -379,16 +376,14 @@ var _ = Workspace("Big Bank plc", "This is an example workspace to illustrate th
 			Link(PersonalBankingCustomer, CustomerServiceStaff, func() {
 				Vertices(285, 240)
 			})
+
+			Animation(PersonalBankingCustomer, InternetBankingSystem, MainframeBankingSystem, EMailSystem)
+			Animation(ATM)
+			Animation(CustomerServiceStaff, BackOfficeStaff)
 		})
 
 		ContainerView("Internet Banking System", "Containers", "The container diagram for the Internet Banking System.", func() {
 			PaperSize(SizeA5Landscape)
-			Animation("Personal Banking Customer", "Mainframe Banking System", "Email System")
-			Animation("Web Application")
-			Animation("Single-Page Application")
-			Animation("Mobile App")
-			Animation("API Application")
-			Animation("Database")
 
 			Add(PersonalBankingCustomer, func() {
 				Coord(1056, 24)
@@ -414,16 +409,19 @@ var _ = Workspace("Big Bank plc", "This is an example workspace to illustrate th
 			Add(Database, func() {
 				Coord(37, 1214)
 			})
+
+			Animation(PersonalBankingCustomer, MainframeBankingSystem, EMailSystem)
+			Animation(WebApp)
+			Animation(SinglePageApp)
+			Animation(MobileApp)
+			Animation(APIApplication)
+			Animation(Database)
 		})
 
 		ComponentView("API Application", "Components", "The component diagram for the API Application", func() {
 			PaperSize(SizeA5Landscape)
-			Animation("Mainframe Banking System", "Single-Page Application", "Email System", "Mobile App", "Database")
-			Animation("Sign In Controller", "Security Component")
-			Animation("Mainframe Banking System Facade", "Accounts Summary Controller")
-			Animation("Email Component", "Reset Password Controller")
 
-			Add("MainframeBankingSystemFacade", func() {
+			Add("Mainframe Banking System Facade", func() {
 				Coord(1925, 817)
 			})
 			Add("Email Component", func() {
@@ -456,11 +454,16 @@ var _ = Workspace("Big Bank plc", "This is an example workspace to illustrate th
 			Add("Security Component", func() {
 				Coord(105, 817)
 			})
+
+			Animation(MainframeBankingSystem, SinglePageApp, EMailSystem, MobileApp, Database)
+			Animation("Sign In Controller", "Security Component")
+			Animation("Mainframe Banking System Facade", "Accounts Summary Controller")
+			Animation("Email Component", "Reset Password Controller")
 		})
 
 		DynamicView("API Application", "SignIn", "Summarises how the sign in feature works in the single-page application.", func() {
 			PaperSize(SizeA5Landscape)
-			Link(SinglePageApp, "SignInController", func() {
+			Link(SinglePageApp, "Sign In Controller", func() {
 				Description("Submits credentials to")
 			})
 			Link("Sign In Controller", "Security Component", func() {
@@ -475,95 +478,85 @@ var _ = Workspace("Big Bank plc", "This is an example workspace to illustrate th
 			PaperSize(SizeA5Landscape)
 			AutoLayout(RankBottomTop)
 
+			Add(LiveWebBrowser)
+			Add(CustomerComputer)
+			Add(CustomerMobile)
+			Add(DataCenter)
+			Add(BigBankWeb)
+			Add(LiveWebApp)
+			Add(BigBankAPI)
+			Add(LiveAPIApp)
+			Add(BigBankDB01)
+			Add(PrimaryDB)
+			Add(BigBankDB02)
+			Add(SecondaryDB)
+
 			Animation(LiveWebBrowser, CustomerSPA, CustomerComputer)
 			Animation(CustomerMobile, CustomerMobileApp)
 			Animation(DataCenter, BigBankWeb, LiveWebApp, LiveWebAppInstance, BigBankAPI, LiveAPIApp, LiveAPIAppInstance)
 			Animation(BigBankDB01, PrimaryDB, PrimaryDBInstance)
 			Animation(BigBankDB02, SecondaryDB, SecondaryDBInstance)
-
-			Add(LiveWebBrowser)
-			Add(CustomerSPA)
-			Add(CustomerComputer)
-			Add(CustomerMobile)
-			Add(CustomerMobileApp)
-			Add(DataCenter)
-			Add(BigBankWeb)
-			Add(LiveWebApp)
-			Add(LiveWebAppInstance)
-			Add(BigBankAPI)
-			Add(LiveAPIApp)
-			Add(LiveAPIAppInstance)
-			Add(BigBankDB01)
-			Add(PrimaryDB)
-			Add(PrimaryDBInstance)
-			Add(BigBankDB02)
-			Add(SecondaryDB)
-			Add(SecondaryDBInstance)
 		})
 
 		DeploymentView("Internet Banking System", "Development", "DevelopmentDeployment", "An example development deployment scenario for the Internet Banking System.", func() {
 			PaperSize(SizeA5Landscape)
 			AutoLayout(RankBottomTop)
 
-			Animation(DevWebBrowser, DevSPAInstance, DevLaptop)
-			Animation(DevWebServerDocker, DevWebServer, DevAPIAppInstance, DevWebAppInstance)
-			Animation(DevDBDocker, DevDB, DevDBInstance)
-
 			Add(DevWebBrowser)
-			Add(DevSPAInstance)
 			Add(DevLaptop)
 			Add(DevWebServerDocker)
 			Add(DevWebServer)
-			Add(DevAPIAppInstance)
-			Add(DevWebAppInstance)
 			Add(DevDBDocker)
 			Add(DevDB)
-			Add(DevDBInstance)
-		})
-	})
 
-	Styles(func() {
-		ElementStyle("Software System", func() {
-			Background("#1168bd")
-			Color("#ffffff")
+			Animation(DevWebBrowser, DevSPAInstance, DevLaptop)
+			Animation(DevWebServerDocker, DevWebServer, DevAPIAppInstance, DevWebAppInstance)
+			Animation(DevDBDocker, DevDB, DevDBInstance)
 		})
-		ElementStyle("Container", func() {
-			Background("#438dd5")
-			Color("#ffffff")
-		})
-		ElementStyle("Component", func() {
-			Background("#85bbf0")
-			Color("#000000")
-		})
-		ElementStyle("Person", func() {
-			Background("#08427b")
-			Color("#ffffff")
-			FontSize(22)
-			Shape(ShapePerson)
-		})
-		ElementStyle("Existing System", func() {
-			Background("#999999")
-			Color("#ffffff")
-		})
-		ElementStyle("Bank Staff", func() {
-			Background("#999999")
-			Color("#ffffff")
-		})
-		ElementStyle("Web Browser", func() {
-			Shape(ShapeWebBrowser)
-		})
-		ElementStyle("Mobile App", func() {
-			Shape(expr.ShapeMobileDeviceLandscape)
-		})
-		ElementStyle("Database", func() {
-			Shape(ShapeCylinder)
-		})
-		ElementStyle("Failover", func() {
-			Opacity(25)
-		})
-		RelationshipStyle("Failover", func() {
-			Position(70)
-			Opacity(25)
+
+		Styles(func() {
+			ElementStyle("Software System", func() {
+				Background("#1168bd")
+				Color("#ffffff")
+			})
+			ElementStyle("Container", func() {
+				Background("#438dd5")
+				Color("#ffffff")
+			})
+			ElementStyle("Component", func() {
+				Background("#85bbf0")
+				Color("#000000")
+			})
+			ElementStyle("Person", func() {
+				Background("#08427b")
+				Color("#ffffff")
+				FontSize(22)
+				Shape(ShapePerson)
+			})
+			ElementStyle("Existing System", func() {
+				Background("#999999")
+				Color("#ffffff")
+			})
+			ElementStyle("Bank Staff", func() {
+				Background("#999999")
+				Color("#ffffff")
+			})
+			ElementStyle("Web Browser", func() {
+				Shape(ShapeWebBrowser)
+			})
+			ElementStyle("Mobile App", func() {
+				Shape(expr.ShapeMobileDeviceLandscape)
+			})
+			ElementStyle("Database", func() {
+				Shape(ShapeCylinder)
+			})
+			ElementStyle("Failover", func() {
+				Opacity(25)
+			})
+			RelationshipStyle("Failover", func() {
+				Position(70)
+				Opacity(25)
+			})
 		})
 	})
 })

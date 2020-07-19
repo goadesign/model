@@ -51,12 +51,12 @@ const (
 // DSL returns the attached DSL.
 func (e *Element) DSL() func() { return e.DSLFunc }
 
-// Validate validates the relationships.
-func (c *Container) Validate() error {
+// Validate relationships.
+func (e *Element) Validate() error {
 	verr := new(eval.ValidationErrors)
-	for _, r := range c.Rels {
-		if Root.Model.FindElement(r.DestinationName) == nil {
-			verr.Add(r, "could not find relationship target %q", r.DestinationName)
+	for _, r := range e.Rels {
+		if err := r.Validate(); err != nil {
+			verr.AddError(r, err)
 		}
 	}
 	return verr
@@ -65,8 +65,7 @@ func (c *Container) Validate() error {
 // Finalize updates the relationship destinations.
 func (e *Element) Finalize() {
 	for _, r := range e.Rels {
-		r.Destination = Root.Model.FindElement(r.DestinationName).GetElement()
-		r.DestinationID = r.Destination.ID
+		r.Finalize()
 	}
 }
 
@@ -84,14 +83,18 @@ func (e *Element) RelatedPeople() (res People) {
 		}
 		res = append(res, p)
 	}
-	for _, r := range AllRelationships() {
+	for _, x := range Registry {
+		r, ok := x.(*Relationship)
+		if !ok {
+			continue
+		}
 		if r.SourceID == e.ID {
-			if p := GetPerson(r.DestinationID); p != nil {
+			if p, ok := Registry[r.FindDestination().ID].(*Person); ok {
 				add(p)
 			}
 		}
-		if r.DestinationID == e.ID {
-			if p := GetPerson(r.SourceID); p != nil {
+		if r.FindDestination().ID == e.ID {
+			if p, ok := Registry[r.SourceID].(*Person); ok {
 				add(p)
 			}
 		}
@@ -110,14 +113,18 @@ func (e *Element) RelatedSoftwareSystems() (res SoftwareSystems) {
 		}
 		res = append(res, s)
 	}
-	for _, r := range AllRelationships() {
+	for _, x := range Registry {
+		r, ok := x.(*Relationship)
+		if !ok {
+			continue
+		}
 		if r.SourceID == e.ID {
-			if s := GetSoftwareSystem(r.DestinationID); s != nil {
+			if s, ok := Registry[r.FindDestination().ID].(*SoftwareSystem); ok {
 				add(s)
 			}
 		}
-		if r.DestinationID == e.ID {
-			if s := GetSoftwareSystem(r.SourceID); s != nil {
+		if r.FindDestination().ID == e.ID {
+			if s, ok := Registry[r.SourceID].(*SoftwareSystem); ok {
 				add(s)
 			}
 		}
@@ -136,15 +143,19 @@ func (e *Element) RelatedContainers() (res Containers) {
 		}
 		res = append(res, cc)
 	}
-	for _, r := range AllRelationships() {
+	for _, x := range Registry {
+		r, ok := x.(*Relationship)
+		if !ok {
+			continue
+		}
 		if r.SourceID == e.ID {
-			if s := GetContainer(r.DestinationID); s != nil {
-				add(s)
+			if c, ok := Registry[r.FindDestination().ID].(*Container); ok {
+				add(c)
 			}
 		}
-		if r.DestinationID == e.ID {
-			if s := GetContainer(r.SourceID); s != nil {
-				add(s)
+		if r.FindDestination().ID == e.ID {
+			if c, ok := Registry[r.SourceID].(*Container); ok {
+				add(c)
 			}
 		}
 	}
@@ -162,15 +173,19 @@ func (e *Element) RelatedComponents() (res Components) {
 		}
 		res = append(res, c)
 	}
-	for _, r := range AllRelationships() {
+	for _, x := range Registry {
+		r, ok := x.(*Relationship)
+		if !ok {
+			continue
+		}
 		if r.SourceID == e.ID {
-			if s := GetComponent(r.DestinationID); s != nil {
-				add(s)
+			if c, ok := Registry[r.FindDestination().ID].(*Component); ok {
+				add(c)
 			}
 		}
-		if r.DestinationID == e.ID {
-			if s := GetComponent(r.SourceID); s != nil {
-				add(s)
+		if r.FindDestination().ID == e.ID {
+			if c, ok := Registry[r.SourceID].(*Component); ok {
+				add(c)
 			}
 		}
 	}
@@ -198,13 +213,17 @@ func traverse(e *Element, seen map[string]struct{}) {
 		seen[nid] = struct{}{}
 		return true
 	}
-	for _, r := range AllRelationships() {
+	for _, x := range Registry {
+		r, ok := x.(*Relationship)
+		if !ok {
+			continue
+		}
 		if r.SourceID == e.ID {
-			if add(r.DestinationID) {
+			if add(r.FindDestination().ID) {
 				traverse(r.Destination, seen)
 			}
 		}
-		if r.DestinationID == e.ID {
+		if r.FindDestination().ID == e.ID {
 			if add(r.SourceID) {
 				traverse(r.Source, seen)
 			}

@@ -688,7 +688,7 @@ var _ = Workspace("[name]", "[description]", func() {
                 Color("#<rrggbb>")
                 Stroke("#<rrggbb>")
                 FontSize(42)
-                Boder(BorderSolid) // BorderSolid, BorderDashed, BorderDotted
+                Border(BorderSolid) // BorderSolid, BorderDashed, BorderDotted
                 Opacity(42) // Between 0 and 100
                 ShowMetadata()
                 ShowDescription()

@@ -196,6 +196,8 @@ func Tag(first string, t ...string) {
 		e.Tags = setOrAppend(e.Tags, tags)
 	case *expr.ContainerInstance:
 		e.Tags = setOrAppend(e.Tags, tags)
+	case *expr.Relationship:
+		e.Tags = setOrAppend(e.Tags, tags)
 	default:
 		eval.IncompatibleDSL()
 	}

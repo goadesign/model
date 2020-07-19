@@ -51,7 +51,47 @@ const (
 
 // EvalName is the qualified name of the expression.
 func (r *Relationship) EvalName() string {
-	return fmt.Sprintf("%s [%s -> %s]", r.Description, r.SourceID, r.DestinationID)
+	var src, dest = "unknown source", "unknown destination"
+	if r.Source != nil {
+		src = r.Source.Name
+	}
+	if r.FindDestination() != nil {
+		dest = r.Destination.Name
+	}
+	return fmt.Sprintf("%s [%s -> %s]", r.Description, src, dest)
+}
+
+// Validate makes sure the named destination exists.
+func (r *Relationship) Validate() error {
+	if r.FindDestination() == nil {
+		return fmt.Errorf("could not find relationship destination %q", r.DestinationName)
+	}
+	return nil
+}
+
+// Finalize computes the destinations when name is used to define relationship.
+func (r *Relationship) Finalize() {
+	r.FindDestination()
+}
+
+// FindDestination computes the relationship destination.
+func (r *Relationship) FindDestination() *Element {
+	if r.Destination != nil {
+		return r.Destination
+	}
+	for _, e := range Registry {
+		eh, ok := e.(ElementHolder)
+		if !ok {
+			continue
+		}
+		ee := eh.GetElement()
+		if ee.Name == r.DestinationName {
+			r.Destination = ee
+			r.DestinationID = ee.ID
+			return ee
+		}
+	}
+	return nil
 }
 
 // Dup creates a new relationship with identical description, tags, URL,

@@ -57,7 +57,7 @@ type (
 		Environment string `json:"environment"`
 		// HealthChecks is the set of HTTP-based health checks for this
 		// container instance.
-		HealthChecks []*HealthCheck `json:"healthChecks"`
+		HealthChecks []*HealthCheck `json:"healthChecks,omitempty"`
 	}
 
 	// HealthCheck is a HTTP-based health check.
@@ -99,9 +99,9 @@ func (ci *ContainerInstance) EvalName() string {
 // also adds all the implied relationships.
 func (ci *ContainerInstance) Finalize() {
 	ci.Name = ""
-	c := Root.Model.FindElement(ci.ContainerID).(*Container)
+	c := Registry[ci.ContainerID].(*Container)
 	for _, r := range c.Rels {
-		dc, ok := Root.Model.FindElement(r.DestinationID).(*Container)
+		dc, ok := Root.Model.FindElement(r.FindDestination().ID).(*Container)
 		if !ok {
 			continue
 		}

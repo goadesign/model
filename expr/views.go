@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"goa.design/goa/v3/eval"
+	structurizr "goa.design/structurizr/pkg"
 )
 
 type (
@@ -31,7 +32,7 @@ type (
 
 	// LandscapeView describes a system landscape view.
 	LandscapeView struct {
-		ViewProps
+		*ViewProps
 		// EnterpriseBoundaryVisible specifies whether the enterprise boundary
 		// (to differentiate internal elements from external elements) should be
 		// visible on the resulting diagram.
@@ -40,7 +41,7 @@ type (
 
 	// ContextView describes a system context view.
 	ContextView struct {
-		ViewProps
+		*ViewProps
 		// EnterpriseBoundaryVisible specifies whether the enterprise boundary
 		// (to differentiate internal elements from external elements) should be
 		// visible on the resulting diagram.
@@ -53,7 +54,7 @@ type (
 	// ContainerView describes a container view for a specific software
 	// system.
 	ContainerView struct {
-		ViewProps
+		*ViewProps
 		// Specifies whether software system boundaries should be visible for
 		// "external" containers (those outside the software system in scope).
 		SystemBoundariesVisible *bool `json:"externalSoftwareSystemBoundariesVisible,omitempty"`
@@ -64,7 +65,7 @@ type (
 
 	// ComponentView describes a component view for a specific container.
 	ComponentView struct {
-		ViewProps
+		*ViewProps
 		// Specifies whether container boundaries should be visible for
 		// "external" containers (those outside the container in scope).
 		ContainerBoundariesVisible *bool `json:"externalContainersBoundariesVisible,omitempty"`
@@ -74,14 +75,14 @@ type (
 
 	// DynamicView describes a dynamic view for a specified scope.
 	DynamicView struct {
-		ViewProps
+		*ViewProps
 		// ElementID is the identifier of the element this view is associated with.
 		ElementID string `json:"elementId"`
 	}
 
 	// DeploymentView describes a deployment view.
 	DeploymentView struct {
-		ViewProps
+		*ViewProps
 		// SoftwareSystemID is the ID of the software system this view with is
 		// associated with.
 		SoftwareSystemID string `json:"softwareSystemId"`
@@ -119,13 +120,33 @@ var (
 	_ View = &DynamicView{}
 	_ View = &DeploymentView{}
 
-	// Make sure static views implement ElementAdder.
+	// Make sure static views implement ViewAdder.
 	_ ViewAdder = &LandscapeView{}
 	_ ViewAdder = &ContextView{}
 	_ ViewAdder = &ContainerView{}
 	_ ViewAdder = &ComponentView{}
 	_ ViewAdder = &DeploymentView{}
 )
+
+// DependsOn tells the eval engine to run the elements DSL first.
+func (vs *Views) DependsOn() []eval.Root { return []eval.Root{Root} }
+
+// WalkSets iterates over the views.
+func (vs *Views) WalkSets(walk eval.SetWalker) {
+	walk([]eval.Expression{vs})
+}
+
+// Packages returns the import path to the Go packages that make
+// up the DSL. This is used to skip frames that point to files
+// in these packages when computing the location of errors.
+func (vs *Views) Packages() []string {
+	return []string{
+		"goa.design/structurizr/expr",
+		"goa.design/structurizr/dsl",
+		fmt.Sprintf("goa.design/structurizr@%s/expr", structurizr.Version()),
+		fmt.Sprintf("goa.design/structurizr@%s/dsl", structurizr.Version()),
+	}
+}
 
 // DSL returns the DSL to execute.
 func (vs *Views) DSL() func() {
@@ -142,21 +163,21 @@ func (vs *Views) EvalName() string {
 func (vs *Views) Validate() error {
 	verr := new(eval.ValidationErrors)
 	checkElements := func(title string, evs []*ElementView, allowContainers bool) {
-		var suffix = " and people"
-		if allowContainers {
-			suffix = ", people and containers"
-		}
 		for _, ev := range evs {
-			if GetSoftwareSystem(ev.ID) != nil {
-				continue
+			switch Registry[ev.ID].(type) {
+			case *SoftwareSystem, *Person:
+				// all good
+			case *Container:
+				if !allowContainers {
+					verr.Add(vs, fmt.Sprintf("%s can only contain software systems and people", title))
+				}
+			default:
+				var suffix = " and people"
+				if allowContainers {
+					suffix = ", people and containers"
+				}
+				verr.Add(vs, fmt.Sprintf("%s can only contain software systems%s", title, suffix))
 			}
-			if GetPerson(ev.ID) != nil {
-				continue
-			}
-			if allowContainers && GetContainer(ev.ID) != nil {
-				continue
-			}
-			verr.Add(vs, fmt.Sprintf("%s can only contain software systems%s", title, suffix))
 		}
 	}
 	for _, lv := range vs.LandscapeViews {
@@ -191,7 +212,7 @@ func (vs *Views) Finalize() {
 			if ev.NoRelationship {
 				i := 0
 				for _, rv := range vp.RelationshipViews {
-					if rv.Relationship.SourceID != ev.ID && rv.Relationship.DestinationID != ev.ID {
+					if rv.Relationship.SourceID != ev.ID && rv.Relationship.FindDestination().ID != ev.ID {
 						vp.RelationshipViews[i] = rv
 						i++
 					}
@@ -208,22 +229,22 @@ func (vs *Views) Finalize() {
 // all returns all the views in a single slice.
 func (vs Views) all() (vps []*ViewProps) {
 	for _, lv := range vs.LandscapeViews {
-		vps = append(vps, &lv.ViewProps)
+		vps = append(vps, lv.ViewProps)
 	}
 	for _, cv := range vs.ContextViews {
-		vps = append(vps, &cv.ViewProps)
+		vps = append(vps, cv.ViewProps)
 	}
 	for _, cv := range vs.ContainerViews {
-		vps = append(vps, &cv.ViewProps)
+		vps = append(vps, cv.ViewProps)
 	}
 	for _, cv := range vs.ComponentViews {
-		vps = append(vps, &cv.ViewProps)
+		vps = append(vps, cv.ViewProps)
 	}
 	for _, dv := range vs.DynamicViews {
-		vps = append(vps, &dv.ViewProps)
+		vps = append(vps, dv.ViewProps)
 	}
 	for _, dv := range vs.DeploymentViews {
-		vps = append(vps, &dv.ViewProps)
+		vps = append(vps, dv.ViewProps)
 	}
 	return
 }
@@ -235,7 +256,7 @@ func (cv *LandscapeView) AddElements(ehs ...ElementHolder) error {
 			return fmt.Errorf("elements of type %T cannot be added to landscape view", eh)
 		}
 	}
-	addElements(&cv.ViewProps, ehs...)
+	addElements(cv.ViewProps, ehs...)
 	return nil
 }
 
@@ -243,17 +264,17 @@ func (cv *LandscapeView) AddElements(ehs ...ElementHolder) error {
 // present. It does nothing if the relationship source and destination are not
 // already in the view.
 func (cv *LandscapeView) AddRelationships(rels ...*Relationship) {
-	addRelationships(&cv.ViewProps, rels)
+	addRelationships(cv.ViewProps, rels)
 }
 
 // AddAnimation adds the given animation steps to the view.
 func (cv *LandscapeView) AddAnimation(ehs []ElementHolder) error {
-	return addAnimation(&cv.ViewProps, ehs)
+	return addAnimation(cv.ViewProps, ehs)
 }
 
 // Remove given element from view.
 func (cv *LandscapeView) Remove(id string) {
-	remove(&cv.ViewProps, id)
+	remove(cv.ViewProps, id)
 }
 
 // AddElements adds the given elements to the view if not already present.
@@ -263,7 +284,7 @@ func (cv *ContextView) AddElements(ehs ...ElementHolder) error {
 			return fmt.Errorf("elements of type %T cannot be added to context view", eh)
 		}
 	}
-	addElements(&cv.ViewProps, ehs...)
+	addElements(cv.ViewProps, ehs...)
 	return nil
 }
 
@@ -271,12 +292,12 @@ func (cv *ContextView) AddElements(ehs ...ElementHolder) error {
 // present. It does nothing if the relationship source and destination are not
 // already in the view.
 func (cv *ContextView) AddRelationships(rels ...*Relationship) {
-	addRelationships(&cv.ViewProps, rels)
+	addRelationships(cv.ViewProps, rels)
 }
 
 // AddAnimation adds the given animation steps to the view.
 func (cv *ContextView) AddAnimation(ehs []ElementHolder) error {
-	return addAnimation(&cv.ViewProps, ehs)
+	return addAnimation(cv.ViewProps, ehs)
 }
 
 // Remove given element from view if not software system this view is for.
@@ -284,7 +305,7 @@ func (cv *ContextView) Remove(id string) {
 	if id == cv.SoftwareSystemID {
 		return
 	}
-	remove(&cv.ViewProps, id)
+	remove(cv.ViewProps, id)
 }
 
 // AddElements adds the given elements to the view if not already present.
@@ -294,7 +315,7 @@ func (cv *ContainerView) AddElements(ehs ...ElementHolder) error {
 			return fmt.Errorf("elements of type %T cannot be added to container view", eh)
 		}
 	}
-	addElements(&cv.ViewProps, ehs...)
+	addElements(cv.ViewProps, ehs...)
 	return nil
 }
 
@@ -302,12 +323,12 @@ func (cv *ContainerView) AddElements(ehs ...ElementHolder) error {
 // present. It does nothing if the relationship source and destination are not
 // already in the view.
 func (cv *ContainerView) AddRelationships(rels ...*Relationship) {
-	addRelationships(&cv.ViewProps, rels)
+	addRelationships(cv.ViewProps, rels)
 }
 
 // AddAnimation adds the given animation steps to the view.
 func (cv *ContainerView) AddAnimation(ehs []ElementHolder) error {
-	return addAnimation(&cv.ViewProps, ehs)
+	return addAnimation(cv.ViewProps, ehs)
 }
 
 // Remove given element from view if not software system this view is for.
@@ -315,7 +336,7 @@ func (cv *ContainerView) Remove(id string) {
 	if id == cv.SoftwareSystemID {
 		return
 	}
-	remove(&cv.ViewProps, id)
+	remove(cv.ViewProps, id)
 }
 
 // AddElements adds the given elements to the view if not already present.
@@ -325,7 +346,7 @@ func (cv *ComponentView) AddElements(ehs ...ElementHolder) error {
 			return fmt.Errorf("elements of type %T cannot be added to component view", eh)
 		}
 	}
-	addElements(&cv.ViewProps, ehs...)
+	addElements(cv.ViewProps, ehs...)
 	return nil
 }
 
@@ -333,32 +354,32 @@ func (cv *ComponentView) AddElements(ehs ...ElementHolder) error {
 // present. It does nothing if the relationship source and destination are not
 // already in the view.
 func (cv *ComponentView) AddRelationships(rels ...*Relationship) {
-	addRelationships(&cv.ViewProps, rels)
+	addRelationships(cv.ViewProps, rels)
 }
 
 // AddAnimation adds the given animation steps to the view.
 func (cv *ComponentView) AddAnimation(ehs []ElementHolder) error {
-	return addAnimation(&cv.ViewProps, ehs)
+	return addAnimation(cv.ViewProps, ehs)
 }
 
 // Remove given element from view if not software system this view is for.
 func (cv *ComponentView) Remove(id string) {
-	if id == cv.ContainerID || id == GetContainer(cv.ContainerID).System.ID {
+	if id == cv.ContainerID || id == Registry[cv.ContainerID].(*Container).System.ID {
 		return
 	}
-	remove(&cv.ViewProps, id)
+	remove(cv.ViewProps, id)
 }
 
 // AddRelationships adds the given relationships to the view if not already
 // present. It does nothing if the relationship source and destination are not
 // already in the view.
 func (cv *DynamicView) AddRelationships(rels ...*Relationship) {
-	addRelationships(&cv.ViewProps, rels)
+	addRelationships(cv.ViewProps, rels)
 }
 
 // Remove given element from view.
 func (cv *DynamicView) Remove(id string) {
-	remove(&cv.ViewProps, id)
+	remove(cv.ViewProps, id)
 }
 
 // AddElements adds the given elements to the view if not already present.
@@ -367,7 +388,7 @@ func (dv *DeploymentView) AddElements(ehs ...ElementHolder) error {
 	for _, eh := range ehs {
 		n, ok := eh.(*DeploymentNode)
 		if !ok {
-			return fmt.Errorf("elements of type %T cannot be added to deployment views, only deployment nodes can", eh)
+			return fmt.Errorf("elements of type %T cannot be added to deployment views", eh)
 		}
 		nodes = append(nodes, n)
 	}
@@ -376,7 +397,7 @@ func (dv *DeploymentView) AddElements(ehs ...ElementHolder) error {
 		if addDeploymentNode(dv, n) {
 			p := n.Parent
 			for p != nil {
-				addElements(&dv.ViewProps, p)
+				addElements(dv.ViewProps, p)
 				p = p.Parent
 			}
 		}
@@ -388,20 +409,20 @@ func (dv *DeploymentView) AddElements(ehs ...ElementHolder) error {
 func addDeploymentNode(dv *DeploymentView, n *DeploymentNode) bool {
 	var nested bool
 	for _, inst := range n.ContainerInstances {
-		if dv.SoftwareSystemID == "" || GetContainer(inst.ContainerID).System.ID == dv.SoftwareSystemID {
-			addElements(&dv.ViewProps, inst)
+		if dv.SoftwareSystemID == "" || Registry[inst.ContainerID].(*Container).System.ID == dv.SoftwareSystemID {
+			addElements(dv.ViewProps, inst)
 			nested = true
 		}
 	}
 	for _, inf := range n.InfrastructureNodes {
-		addElements(&dv.ViewProps, inf)
+		addElements(dv.ViewProps, inf)
 		nested = true
 	}
 	for _, c := range n.Children {
 		nested = nested || addDeploymentNode(dv, c)
 	}
 	if nested {
-		addElements(&dv.ViewProps, n)
+		addElements(dv.ViewProps, n)
 	}
 	return nested
 }
@@ -410,27 +431,27 @@ func addDeploymentNode(dv *DeploymentView, n *DeploymentNode) bool {
 // present. It does nothing if the relationship source and destination are not
 // already in the view.
 func (dv *DeploymentView) AddRelationships(rels ...*Relationship) {
-	addRelationships(&dv.ViewProps, rels)
+	addRelationships(dv.ViewProps, rels)
 }
 
 // AddAnimation adds the given animation steps to the view.
 func (dv *DeploymentView) AddAnimation(ehs []ElementHolder) error {
-	return addAnimation(&dv.ViewProps, ehs)
+	return addAnimation(dv.ViewProps, ehs)
 }
 
 // Remove given deployment node from view.
 func (dv *DeploymentView) Remove(id string) {
-	n := GetDeploymentNode(id)
+	n := Registry[id].(*DeploymentNode)
 	for _, ci := range n.ContainerInstances {
-		remove(&dv.ViewProps, ci.ID)
+		remove(dv.ViewProps, ci.ID)
 	}
 	for _, inf := range n.InfrastructureNodes {
-		remove(&dv.ViewProps, inf.ID)
+		remove(dv.ViewProps, inf.ID)
 	}
 	for _, c := range n.Children {
 		dv.Remove(c.ID)
 	}
-	remove(&dv.ViewProps, id)
+	remove(dv.ViewProps, id)
 }
 
 // addElements adds the given elements to the view if not already present.
@@ -444,21 +465,6 @@ loop:
 			}
 		}
 		v.ElementViews = append(v.ElementViews, &ElementView{ID: id, Element: eh.GetElement()})
-
-		// Complete relationships
-		var rels []*Relationship
-		for _, r := range AllRelationships() {
-			if r.SourceID == id {
-				if v.ElementView(r.DestinationID) != nil {
-					rels = append(rels, r)
-				}
-			} else if r.DestinationID == id {
-				if v.ElementView(r.SourceID) != nil {
-					rels = append(rels, r)
-				}
-			}
-		}
-		addRelationships(v, rels)
 	}
 }
 
@@ -468,6 +474,11 @@ loop:
 func addRelationships(v *ViewProps, rels []*Relationship) {
 loop:
 	for _, r := range rels {
+		for _, rv := range v.RelationshipViews {
+			if rv.ID == r.ID {
+				continue loop
+			}
+		}
 		var src, dest bool
 		for _, ev := range v.ElementViews {
 			if ev.ID == r.SourceID {
@@ -476,20 +487,18 @@ loop:
 					break
 				}
 			}
-			if ev.ID == r.DestinationID {
+			if ev.ID == r.FindDestination().ID {
 				dest = true
 				if src {
 					break
 				}
 			}
 		}
-		if !src || !dest {
-			continue loop
+		if !src {
+			addElements(v, r.Source)
 		}
-		for _, rv := range v.RelationshipViews {
-			if rv.ID == r.ID {
-				continue loop
-			}
+		if !dest {
+			addElements(v, r.Destination)
 		}
 		v.RelationshipViews = append(v.RelationshipViews, &RelationshipView{ID: r.ID, Relationship: r})
 	}
@@ -542,7 +551,7 @@ loop:
 		}
 	}
 	if len(n.ElementIDs) == 0 {
-		return fmt.Errorf("None of the specified elements exist in this view or do not appear in previous animation steps")
+		return fmt.Errorf("none of the specified elements exist in this view or do not already appear in previous animation steps")
 	}
 
 	// Add relationships between new elements and elements in
@@ -553,7 +562,7 @@ loop:
 			for _, id := range s.ElementIDs {
 				if id == rv.Relationship.SourceID {
 					oldSrc = true
-				} else if id == rv.Relationship.DestinationID {
+				} else if id == rv.Relationship.FindDestination().ID {
 					oldDest = true
 				}
 				if oldSrc && oldDest {
@@ -567,7 +576,7 @@ loop:
 		for _, id := range n.ElementIDs {
 			if id == rv.Relationship.SourceID {
 				newSrc = true
-			} else if id == rv.Relationship.DestinationID {
+			} else if id == rv.Relationship.FindDestination().ID {
 				newDest = true
 			}
 			if newSrc && newDest {
@@ -596,7 +605,7 @@ func remove(v *ViewProps, id string) {
 	for _, r := range v.RelationshipViews {
 		if r.Relationship.SourceID == id {
 			ids = append(ids, id)
-		} else if r.Relationship.DestinationID == id {
+		} else if r.Relationship.FindDestination().ID == id {
 			ids = append(ids, id)
 		}
 	}

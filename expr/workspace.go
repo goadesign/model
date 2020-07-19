@@ -2,11 +2,9 @@ package expr
 
 import (
 	"encoding/json"
-	"fmt"
 
 	"goa.design/goa/v3/eval"
 	"goa.design/goa/v3/expr"
-	structurizr "goa.design/structurizr/pkg"
 )
 
 // Workspace describes a workspace and is the root expression of the plugin.
@@ -41,11 +39,12 @@ type Workspace struct {
 }
 
 // Root is the design root expression.
-var Root = &Workspace{Model: &Model{}}
+var Root = &Workspace{Model: &Model{}, Views: &Views{}}
 
 // Register design root with eval engine.
 func init() {
 	eval.Register(Root)
+	eval.Register(Root.Views)
 }
 
 // WalkSets iterates over the elements and views.
@@ -53,19 +52,24 @@ func init() {
 // loaded and their IDs captured in the registry before relationships can be
 // built with DSL.
 func (w *Workspace) WalkSets(walk eval.SetWalker) {
+	// 1. Model
 	walk([]eval.Expression{w.Model})
+	// 2. People
 	walk(eval.ToExpressionSet(w.Model.People))
+	// 3. Systems
 	walk(eval.ToExpressionSet(w.Model.Systems))
+	// 4. Containers
 	for _, s := range w.Model.Systems {
 		walk(eval.ToExpressionSet(s.Containers))
 	}
+	// 5. Components
 	for _, s := range w.Model.Systems {
 		for _, c := range s.Containers {
 			walk(eval.ToExpressionSet(c.Components))
 		}
 	}
+	// 6. Deployment environments
 	walkDeploymentNodes(w.Model.DeploymentNodes, walk)
-	walk([]eval.Expression{w.Views})
 }
 
 func walkDeploymentNodes(n []*DeploymentNode, walk eval.SetWalker) {
@@ -86,14 +90,7 @@ func (w *Workspace) DependsOn() []eval.Root { return []eval.Root{expr.Root} }
 // Packages returns the import path to the Go packages that make
 // up the DSL. This is used to skip frames that point to files
 // in these packages when computing the location of errors.
-func (w *Workspace) Packages() []string {
-	return []string{
-		"goa.design/structurizr/expr",
-		"goa.design/structurizr/dsl",
-		fmt.Sprintf("goa.design/structurizr@%s/expr", structurizr.Version()),
-		fmt.Sprintf("goa.design/structurizr@%s/dsl", structurizr.Version()),
-	}
-}
+func (w *Workspace) Packages() []string { return w.Views.Packages() }
 
 // EvalName returns the generic expression name used in error messages.
 func (w *Workspace) EvalName() string {

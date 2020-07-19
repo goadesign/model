@@ -149,7 +149,7 @@ const (
 )
 
 // ElementView returns the element view with the given ID if any.
-func (v ViewProps) ElementView(id string) *ElementView {
+func (v *ViewProps) ElementView(id string) *ElementView {
 	for _, e := range v.ElementViews {
 		if e.ID == id {
 			return e
@@ -159,7 +159,7 @@ func (v ViewProps) ElementView(id string) *ElementView {
 }
 
 // RelationshipView returns the relationship view with the given ID if any.
-func (v ViewProps) RelationshipView(id string) *RelationshipView {
+func (v *ViewProps) RelationshipView(id string) *RelationshipView {
 	for _, r := range v.RelationshipViews {
 		if r.ID == id {
 			return r
@@ -169,7 +169,7 @@ func (v ViewProps) RelationshipView(id string) *RelationshipView {
 }
 
 // AllTagged returns all elements with the given tag in the view.
-func (v ViewProps) AllTagged(tag string) (elts []*Element) {
+func (v *ViewProps) AllTagged(tag string) (elts []*Element) {
 	for _, ev := range v.ElementViews {
 		vals := strings.Split(ev.Element.Tags, ",")
 		for _, val := range vals {
@@ -184,7 +184,7 @@ func (v ViewProps) AllTagged(tag string) (elts []*Element) {
 
 // AllUnreachable fetches all elements in view related to the element (directly
 // or not).
-func (v ViewProps) AllUnreachable(eh ElementHolder) (elts []*Element) {
+func (v *ViewProps) AllUnreachable(eh ElementHolder) (elts []*Element) {
 	e := eh.GetElement()
 	if v.index(e.ID) == -1 {
 		return
@@ -204,7 +204,7 @@ loop:
 
 // AllUnrelated fetches all elements that have no relationship to other elements
 // in the view.
-func (v ViewProps) AllUnrelated() (elts []*Element) {
+func (v *ViewProps) AllUnrelated() (elts []*Element) {
 	for _, ev := range v.ElementViews {
 		related := false
 		for _, r := range v.RelationshipViews {
@@ -212,7 +212,7 @@ func (v ViewProps) AllUnrelated() (elts []*Element) {
 				related = true
 				break
 			}
-			if r.Relationship.DestinationID == ev.ID {
+			if r.Relationship.FindDestination().ID == ev.ID {
 				related = true
 				break
 			}
@@ -225,12 +225,10 @@ func (v ViewProps) AllUnrelated() (elts []*Element) {
 }
 
 // Props returns the underlying properties object.
-func (v ViewProps) Props() *ViewProps {
-	return &v
-}
+func (v *ViewProps) Props() *ViewProps { return v }
 
 // index returns the index of the element with the given ID, -1 if not found.
-func (v ViewProps) index(id string) int {
+func (v *ViewProps) index(id string) int {
 	for i, e := range v.ElementViews {
 		if e.ID == id {
 			return i
@@ -240,7 +238,7 @@ func (v ViewProps) index(id string) int {
 }
 
 // EvalName returns the generic expression name used in error messages.
-func (v ViewProps) EvalName() string {
+func (v *ViewProps) EvalName() string {
 	var suf string
 	switch {
 	case v.Title != "":
@@ -251,6 +249,25 @@ func (v ViewProps) EvalName() string {
 		suf = fmt.Sprintf(" with title %q and key %q", v.Title, v.Key)
 	}
 	return fmt.Sprintf("view%s", suf)
+}
+
+// Finalize computes the relationships used in the view.
+func (v *ViewProps) Finalize() {
+	var rels []*Relationship
+	for _, x := range Registry {
+		r, ok := x.(*Relationship)
+		if !ok {
+			continue
+		}
+		for _, ev := range v.ElementViews {
+			if r.SourceID == ev.ID {
+				if v.ElementView(r.FindDestination().ID) != nil {
+					rels = append(rels, r)
+				}
+			}
+		}
+	}
+	addRelationships(v, rels)
 }
 
 // EvalName returns the generic expression name used in error messages.

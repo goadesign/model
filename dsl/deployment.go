@@ -223,7 +223,17 @@ func ContainerInstance(container interface{}, dsl ...func()) *expr.ContainerInst
 	case *expr.Container:
 		cid = c.ID
 	case string:
-		cid = c
+		eh := expr.Root.Model.FindElement(c)
+		if eh == nil {
+			eval.ReportError("no container named %q", c)
+			return nil
+		}
+		cc, ok := eh.(*expr.Container)
+		if !ok {
+			eval.ReportError("no container named %q (found a %T with that name)", c, eh)
+			return nil
+		}
+		cid = cc.ID
 	default:
 		eval.InvalidArgError("container or container name", container)
 		return nil
@@ -240,6 +250,7 @@ func ContainerInstance(container interface{}, dsl ...func()) *expr.ContainerInst
 		Parent:      d,
 		Environment: d.Environment,
 		ContainerID: cid,
+		InstanceID:  1,
 	}
 	expr.Identify(ci)
 	d.ContainerInstances = append(d.ContainerInstances, ci)

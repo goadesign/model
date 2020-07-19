@@ -71,21 +71,14 @@ func Uses(element interface{}, desc string, args ...interface{}) {
 		eval.IncompatibleDSL()
 		return
 	}
-	var n string
-	switch e := element.(type) {
-	case *expr.SoftwareSystem:
-		n = e.Name
-	case *expr.Container:
-		n = e.Name
-	case *expr.Component:
-		n = e.Name
-	case string:
-		n = e
+	switch element.(type) {
+	case *expr.SoftwareSystem, *expr.Container, *expr.Component, string:
+		// all good
 	default:
 		eval.IncompatibleDSL()
 		return
 	}
-	uses(src, n, desc, args...)
+	uses(src, element, desc, args...)
 }
 
 // InteractsWith adds an interaction between a person and another.
@@ -128,18 +121,15 @@ func Uses(element interface{}, desc string, args ...interface{}) {
 //     })
 //
 func InteractsWith(p interface{}, desc string, args ...interface{}) {
-	var n string
-	switch a := p.(type) {
-	case *expr.Person:
-		n = a.Name
-	case string:
-		n = a
+	switch p.(type) {
+	case *expr.Person, string:
+		// all good
 	default:
 		eval.InvalidArgError("person or name of person", p)
 		return
 	}
 	if c, ok := eval.Current().(*expr.Person); ok {
-		uses(c.Element, n, desc, args...)
+		uses(c.Element, p, desc, args...)
 		return
 	}
 	eval.IncompatibleDSL()
@@ -198,18 +188,15 @@ func Delivers(p interface{}, desc string, args ...interface{}) {
 		return
 	}
 
-	var n string
-	switch a := p.(type) {
-	case *expr.Person:
-		n = a.Name
-	case string:
-		n = a
+	switch p.(type) {
+	case *expr.Person, string:
+		// all good
 	default:
 		eval.InvalidArgError("person or name of person", p)
 		return
 	}
 
-	uses(src, n, desc, args...)
+	uses(src, p, desc, args...)
 }
 
 // Description provides a short description for a relationship displayed in a
@@ -230,7 +217,7 @@ func Description(desc string) {
 
 // uses adds a relationship between the given source and destination. The caller
 // must make sure that the relationship is valid.
-func uses(src *expr.Element, dest, desc string, args ...interface{}) *expr.Relationship {
+func uses(src *expr.Element, dest interface{}, desc string, args ...interface{}) *expr.Relationship {
 	var (
 		technology string
 		style      expr.InteractionStyleKind
@@ -271,13 +258,24 @@ func uses(src *expr.Element, dest, desc string, args ...interface{}) *expr.Relat
 			}
 		}
 	}
+	var id, name string
+	var d *expr.Element
+	switch a := dest.(type) {
+	case expr.ElementHolder:
+		d = a.GetElement()
+		id = d.ID
+	case string:
+		name = a
+	}
 	rel := &expr.Relationship{
 		Description:      desc,
 		SourceID:         src.ID,
+		DestinationID:    id,
+		Destination:      d,
 		Technology:       technology,
 		InteractionStyle: style,
 		Source:           src,
-		DestinationName:  dest,
+		DestinationName:  name,
 	}
 	if dsl != nil {
 		eval.Execute(dsl, rel)
