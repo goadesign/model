@@ -1,8 +1,8 @@
 # Structurizr for Go
 
 ---
-[![Godoc Packages](https://img.shields.io/badge/godoc-packages-blue)](https://pkg.go.dev/mod/goa.design/structurizr?tab=packages)
-[![Godoc DSL](https://img.shields.io/badge/godoc-DSL-blue)](https://pkg.go.dev/goa.design/structurizr/v0@v0.0.6/dsl?tab=doc)
+[![Godoc Packages](https://img.shields.io/badge/godoc-packages-blue)](https://pkg.go.dev/goa.design/structurizr)
+[![Godoc DSL](https://img.shields.io/badge/godoc-DSL-blue)](https://pkg.go.dev/goa.design/structurizr@v0.0.6/dsl?tab=doc)
 
 ## Overview
 
