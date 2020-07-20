@@ -476,7 +476,7 @@ var _ = Workspace("Big Bank plc", "This is an example workspace to illustrate th
 
 		DeploymentView("Internet Banking System", "Live", "LiveDeployment", "An example live deployment scenario for the Internet Banking System.", func() {
 			PaperSize(SizeA5Landscape)
-			AutoLayout(RankBottomTop)
+			AutoLayout(RankLeftRight)
 
 			Add(LiveWebBrowser)
 			Add(CustomerComputer)

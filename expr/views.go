@@ -205,7 +205,7 @@ func (vs *Views) Validate() error {
 	return verr
 }
 
-// Finalize remove relationships from elements with NoRelationship set to true.
+// Finalize relationships.
 func (vs *Views) Finalize() {
 	for _, vp := range vs.all() {
 		var rels []*Relationship
@@ -484,8 +484,8 @@ loop:
 }
 
 // addRelationships adds the given relationships to the view if not already
-// present. It does nothing if the relationship source and destination are not
-// already in the view.
+// present. It also adds the relationship source and/or destination if they are
+// not already in the view.
 func addRelationships(v *ViewProps, rels []*Relationship) {
 loop:
 	for _, r := range rels {

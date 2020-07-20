@@ -101,7 +101,7 @@ func (ci *ContainerInstance) Finalize() {
 	ci.Name = ""
 	c := Registry[ci.ContainerID].(*Container)
 	for _, r := range c.Rels {
-		dc, ok := Root.Model.FindElement(r.FindDestination().ID).(*Container)
+		dc, ok := Registry[r.FindDestination().ID].(*Container)
 		if !ok {
 			continue
 		}
@@ -114,8 +114,9 @@ func (ci *ContainerInstance) Finalize() {
 				rc := r.Dup()
 				rc.SourceID = ci.ID
 				rc.DestinationID = eci.ID
+				rc.Destination = eci.Element
 				rc.LinkedRelationshipID = r.ID
-				ci.Rels = append(c.Rels, rc)
+				ci.Rels = append(ci.Rels, rc)
 			}
 		}
 	}

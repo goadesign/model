@@ -68,7 +68,7 @@ func (m *Model) Finalize() {
 		if !ok {
 			continue
 		}
-		switch s := m.FindElement(r.SourceID).(type) {
+		switch s := Registry[r.SourceID].(type) {
 		case *Container:
 			m.addMissingRelationships(s.System.Element, r.FindDestination().ID, r)
 		case *Component:
@@ -94,7 +94,7 @@ func (m *Model) addMissingRelationships(src *Element, destID string, existing *R
 	src.Rels = append(src.Rels, r)
 
 	// Add relationships to destination parents as well.
-	switch e := m.FindElement(destID).(type) {
+	switch e := Registry[destID].(type) {
 	case *Container:
 		m.addMissingRelationships(src, e.System.ID, existing)
 	case *Component:
