@@ -245,7 +245,7 @@ refer to the container instance in deployment views (when using `Add` or
 
 The code snippet below describes the entire syntax of the DSL. The complete
 reference can be found in the `dsl`
-[package documentation](https://pkg.go.dev/goa.design/structurizr/v1@v1.0.0/dsl?tab=doc).
+[package documentation](https://pkg.go.dev/goa.design/structurizr@v0.0.6/dsl?tab=doc)
 
 ```Go
 // Workspace defines the workspace containing the models and views. Workspace
