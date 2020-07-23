@@ -52,9 +52,7 @@ func SoftwareSystem(name string, args ...interface{}) *expr.SoftwareSystem {
 		},
 		Location: expr.LocationInternal,
 	}
-	expr.Identify(s)
-	w.Model.Systems = append(w.Model.Systems, s)
-	return s
+	return w.Model.AddSystem(s)
 }
 
 // Container defines a container.
@@ -154,9 +152,7 @@ func Container(args ...interface{}) *expr.Container {
 		},
 		System: system,
 	}
-	expr.Identify(c)
-	system.Containers = append(system.Containers, c)
-	return c
+	return system.AddContainer(c)
 }
 
 // Component defines a component.
@@ -214,9 +210,7 @@ func Component(name string, args ...interface{}) *expr.Component {
 		},
 		Container: container,
 	}
-	expr.Identify(c)
-	container.Components = append(container.Components, c)
-	return c
+	return container.AddComponent(c)
 }
 
 // parseElement is a helper function that parses the given element DSL

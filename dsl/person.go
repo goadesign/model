@@ -76,7 +76,5 @@ func Person(name string, args ...interface{}) *expr.Person {
 		},
 		Location: expr.LocationInternal,
 	}
-	expr.Identify(p)
-	w.Model.People = append(w.Model.People, p)
-	return p
+	return w.Model.AddPerson(p)
 }

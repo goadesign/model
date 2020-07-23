@@ -83,6 +83,120 @@ func (d *DeploymentEnvironment) EvalName() string {
 // EvalName returns the generic expression name used in error messages.
 func (d *DeploymentNode) EvalName() string { return fmt.Sprintf("deployment node %q", d.Name) }
 
+// Child returns the child deployment node with the given name if any,
+// nil otherwise.
+func (d *DeploymentNode) Child(name string) *DeploymentNode {
+	for _, dd := range d.Children {
+		if dd.Name == name {
+			return dd
+		}
+	}
+	return nil
+}
+
+// InfrastructureNode returns the infrastructure node with the given name if
+// any, nil otherwise.
+func (d *DeploymentNode) InfrastructureNode(name string) *InfrastructureNode {
+	for _, i := range d.InfrastructureNodes {
+		if i.Name == name {
+			return i
+		}
+	}
+	return nil
+}
+
+// ContainerInstance returns the container instance for the given container with
+// the given instance ID if any, nil otherwise. container must be an instance of
+// Container or the name of a container.
+func (d *DeploymentNode) ContainerInstance(container *Container, instanceID int) *ContainerInstance {
+	for _, ci := range d.ContainerInstances {
+		if ci.ContainerID == container.ID && ci.InstanceID == instanceID {
+			return ci
+		}
+	}
+	return nil
+}
+
+// AddChild adds the given child deployment node to the parent. If
+// there is already a deployment node with the given name then AddChild
+// merges both definitions. The merge algorithm:
+//
+//    * overrides the description, technology and URL if provided,
+//    * merges any new tag or propery into the existing tags and properties,
+//    * merges any new child deployment node into the existing children,
+//    * merges any new container instance or infrastructure nodes into existing
+//      ones.
+//
+// AddChild returns the new or merged deployment node.
+func (d *DeploymentNode) AddChild(n *DeploymentNode) *DeploymentNode {
+	existing := d.Child(n.Name)
+	if existing == nil {
+		d.Children = append(d.Children, n)
+		return n
+	}
+	if n.Description != "" {
+		existing.Description = n.Description
+	}
+	if n.Technology != "" {
+		existing.Technology = n.Technology
+	}
+	if olddsl := existing.DSLFunc; olddsl != nil {
+		existing.DSLFunc = func() { olddsl(); n.DSLFunc() }
+	}
+	return existing
+}
+
+// AddInfrastructureNode adds the given infrastructure node to the deployment
+// node. If there is already an infrastructure node with the given name then
+// AddInfrastructureNode merges both definitions. The merge algorithm:
+//
+//    * overrides the description, technology and URL if provided,
+//    * merges any new tag or propery into the existing tags and properties.
+//
+// AddInfrastructureNode returns the new or merged infrastructure node.
+func (d *DeploymentNode) AddInfrastructureNode(n *InfrastructureNode) *InfrastructureNode {
+	existing := d.InfrastructureNode(n.Name)
+	if n.Description != "" {
+		existing.Description = n.Description
+	}
+	if n.Technology != "" {
+		existing.Technology = n.Technology
+	}
+	if olddsl := existing.DSLFunc; olddsl != nil {
+		existing.DSLFunc = func() { olddsl(); n.DSLFunc() }
+	}
+	return existing
+}
+
+// AddContainerInstance adds the given container instance to the deployment
+// node. If there is already a container instance with the given container and
+// instance ID then AddContainerInstance merges both definitions. The merge
+// algorithm:
+//
+//    * overrides the description, technology and URL if provided,
+//    * merges any new tag or propery into the existing tags and properties,
+//    * merges any new health check into the existing health checks.
+//
+// AddContainerInstance returns the new or merged container instance.
+func (d *DeploymentNode) AddContainerInstance(ci *ContainerInstance) *ContainerInstance {
+	existing := d.ContainerInstance(ci.ContainerID, ci.InstanceID)
+	if existing == nil {
+		d.ContainerInstances = append(d.ContainerInstances, ci)
+		return ci
+	}
+	if ci.Description != "" {
+		existing.Description = ci.Description
+	}
+	if ci.Technology != "" {
+		existing.Technology = ci.Technology
+	}
+	existing.HealthChecks = append(existing.HealthChecks, ci.HealthChecks...)
+	if olddsl := existing.DSLFunc; olddsl != nil {
+		existing.DSLFunc = func() { olddsl(); ci.DSLFunc() }
+	}
+	return existing
+}
+
 // EvalName returns the generic expression name used in error messages.
 func (i *InfrastructureNode) EvalName() string { return fmt.Sprintf("infrastructure node %q", i.Name) }
 

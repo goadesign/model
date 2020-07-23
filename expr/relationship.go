@@ -24,7 +24,7 @@ type (
 		// Technology associated with relationship.
 		Technology string `json:"technology,omitempty"`
 		// InteractionStyle describes whether the interaction is synchronous or asynchronous
-		InteractionStyle InteractionStyleKind
+		InteractionStyle InteractionStyleKind `json:"interactionStyle"`
 		// ID of container-container relationship upon which this container
 		// instance-container instance relationship is based.
 		LinkedRelationshipID string `json:"linkedRelationshipId,omitempty"`

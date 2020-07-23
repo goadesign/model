@@ -117,13 +117,10 @@ func DeploymentNode(name string, args ...interface{}) *expr.DeploymentNode {
 		Environment: env,
 		Parent:      parent,
 	}
-	expr.Identify(node)
 	if parent != nil {
-		parent.Children = append(parent.Children, node)
-	} else {
-		expr.Root.Model.DeploymentNodes = append(expr.Root.Model.DeploymentNodes, node)
+		return parent.AddChild(node)
 	}
-	return node
+	return expr.Root.Model.AddDeploymentNode(node)
 }
 
 // InfrastructureNode defines an infrastructure node, typically something like a
@@ -180,9 +177,7 @@ func InfrastructureNode(d *expr.DeploymentNode, name string, args ...interface{}
 		},
 		Environment: env.Name,
 	}
-	expr.Identify(node)
-	d.InfrastructureNodes = append(d.InfrastructureNodes, node)
-	return node
+	return d.AddInfrastructureNode(node)
 }
 
 // ContainerInstance defines an instance of the specified container that is
@@ -252,9 +247,7 @@ func ContainerInstance(container interface{}, dsl ...func()) *expr.ContainerInst
 		ContainerID: cid,
 		InstanceID:  1,
 	}
-	expr.Identify(ci)
-	d.ContainerInstances = append(d.ContainerInstances, ci)
-	return ci
+	return d.AddContainerInstance(ci)
 }
 
 // RefName provides a name to a container instance that can be used to reference

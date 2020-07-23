@@ -107,3 +107,20 @@ func (w *Workspace) Merge(other *Workspace) error {
 	}
 	return json.Unmarshal(js, w)
 }
+
+// Person returns the person with the given name if any, nil otherwise.
+func (w *Workspace) Person(name string) *Person {
+	return w.Model.Person(name)
+}
+
+// SoftwareSystem returns the software system with the given name if any, nil
+// otherwise.
+func (w *Workspace) SoftwareSystem(name string) *SoftwareSystem {
+	return w.Model.SoftwareSystem(name)
+}
+
+// DeploymentNode returns the deployment node with the given name if any, nil
+// otherwise.
+func (w *Workspace) DeploymentNode(name string) *DeploymentNode {
+	return w.Model.DeploymentNode(name)
+}

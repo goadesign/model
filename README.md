@@ -229,6 +229,23 @@ The following rules apply to all elements and views declared in a model:
   must have a unique description.
 * View keys must be unique.
 
+Note that uniqueness of names is enforced by combining the evaluated
+definitions for a given element. For example if a model contained:
+
+```Go
+var Person1 = Person("User", "A user", func() {
+    Uses("System 1", "Uses")
+})
+var Person2 = Person("User", "The same user again", func() {
+    Uses("System 2", "Uses")
+})
+```
+
+Then the final model would only define a single person named `"User"` with
+the description `"The same user again"` and both relationships. This makes it
+possible to import shared models and "edit" existing elements, for example to
+add new relationships.
+
 ### References
 
 The functions `Uses`, `Delivers`, `InteractsWith`, `Add` and `Link` accept

@@ -175,29 +175,56 @@ func Tag(first string, t ...string) {
 	if len(t) > 0 {
 		tags = tags + "," + strings.Join(t, ",")
 	}
-	setOrAppend := func(exist, new string) string {
+	merge := func(exist, new string) string {
 		if exist == "" {
 			return new
 		}
-		return exist + "," + new
+		old := strings.Split(exist, ",")
+		ne := strings.Split(new, ",")
+		var m []string
+		for _, o := range old {
+			found := false
+			for _, n := range ne {
+				if n == o {
+					found = true
+					break
+				}
+			}
+			if !found {
+				m = append(m, o)
+			}
+		}
+		for _, n := range ne {
+			found := false
+			for _, o := range m {
+				if n == o {
+					found = true
+					break
+				}
+			}
+			if !found {
+				m = append(m, n)
+			}
+		}
+		return strings.Join(m, ",")
 	}
 	switch e := eval.Current().(type) {
 	case *expr.Person:
-		e.Tags = setOrAppend(e.Tags, tags)
+		e.Tags = merge(e.Tags, tags)
 	case *expr.SoftwareSystem:
-		e.Tags = setOrAppend(e.Tags, tags)
+		e.Tags = merge(e.Tags, tags)
 	case *expr.Container:
-		e.Tags = setOrAppend(e.Tags, tags)
+		e.Tags = merge(e.Tags, tags)
 	case *expr.Component:
-		e.Tags = setOrAppend(e.Tags, tags)
+		e.Tags = merge(e.Tags, tags)
 	case *expr.DeploymentNode:
-		e.Tags = setOrAppend(e.Tags, tags)
+		e.Tags = merge(e.Tags, tags)
 	case *expr.InfrastructureNode:
-		e.Tags = setOrAppend(e.Tags, tags)
+		e.Tags = merge(e.Tags, tags)
 	case *expr.ContainerInstance:
-		e.Tags = setOrAppend(e.Tags, tags)
+		e.Tags = merge(e.Tags, tags)
 	case *expr.Relationship:
-		e.Tags = setOrAppend(e.Tags, tags)
+		e.Tags = merge(e.Tags, tags)
 	default:
 		eval.IncompatibleDSL()
 	}

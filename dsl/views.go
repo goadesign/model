@@ -91,6 +91,10 @@ func Views(dsl func()) {
 		eval.IncompatibleDSL()
 		return
 	}
+	if existing := w.Views.DSLFunc; existing != nil {
+		newdsl := dsl
+		dsl = func() { existing(); newdsl() }
+	}
 	w.Views.DSLFunc = dsl
 }
 
