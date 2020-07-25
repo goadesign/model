@@ -161,8 +161,8 @@ func DeploymentNode(name string, args ...interface{}) *expr.DeploymentNode {
 //        })
 //    })
 //
-func InfrastructureNode(d *expr.DeploymentNode, name string, args ...interface{}) *expr.InfrastructureNode {
-	env, ok := eval.Current().(*expr.DeploymentEnvironment)
+func InfrastructureNode(name string, args ...interface{}) *expr.InfrastructureNode {
+	d, ok := eval.Current().(*expr.DeploymentNode)
 	if !ok {
 		eval.IncompatibleDSL()
 		return nil
@@ -175,7 +175,7 @@ func InfrastructureNode(d *expr.DeploymentNode, name string, args ...interface{}
 			Technology:  technology,
 			DSLFunc:     dsl,
 		},
-		Environment: env.Name,
+		Environment: d.Environment,
 	}
 	return d.AddInfrastructureNode(node)
 }

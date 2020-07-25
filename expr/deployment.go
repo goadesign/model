@@ -25,7 +25,7 @@ type (
 		Parent *DeploymentNode `json:"-"`
 		// InfrastructureNodes describe the infrastructure nodes (load
 		// balancers, firewall etc.)
-		InfrastructureNodes []*InfrastructureNode `json:"infrastrctureNodes,omitempty"`
+		InfrastructureNodes []*InfrastructureNode `json:"infrastructureNodes,omitempty"`
 		// ContainerInstances describe instances of containers deployed in
 		// deployment node.
 		ContainerInstances []*ContainerInstance `json:"containerInstances,omitempty"`
@@ -83,6 +83,12 @@ func (d *DeploymentEnvironment) EvalName() string {
 // EvalName returns the generic expression name used in error messages.
 func (d *DeploymentNode) EvalName() string { return fmt.Sprintf("deployment node %q", d.Name) }
 
+// Finalize adds the 'Deployment Node' tag ands finalizes relationships.
+func (d *DeploymentNode) Finalize() {
+	d.MergeTags("Deployment Node")
+	d.Element.Finalize()
+}
+
 // Child returns the child deployment node with the given name if any,
 // nil otherwise.
 func (d *DeploymentNode) Child(name string) *DeploymentNode {
@@ -131,6 +137,7 @@ func (d *DeploymentNode) ContainerInstance(container *Container, instanceID int)
 func (d *DeploymentNode) AddChild(n *DeploymentNode) *DeploymentNode {
 	existing := d.Child(n.Name)
 	if existing == nil {
+		Identify(n)
 		d.Children = append(d.Children, n)
 		return n
 	}
@@ -156,6 +163,11 @@ func (d *DeploymentNode) AddChild(n *DeploymentNode) *DeploymentNode {
 // AddInfrastructureNode returns the new or merged infrastructure node.
 func (d *DeploymentNode) AddInfrastructureNode(n *InfrastructureNode) *InfrastructureNode {
 	existing := d.InfrastructureNode(n.Name)
+	if existing == nil {
+		Identify(n)
+		d.InfrastructureNodes = append(d.InfrastructureNodes, n)
+		return n
+	}
 	if n.Description != "" {
 		existing.Description = n.Description
 	}
@@ -179,8 +191,10 @@ func (d *DeploymentNode) AddInfrastructureNode(n *InfrastructureNode) *Infrastru
 //
 // AddContainerInstance returns the new or merged container instance.
 func (d *DeploymentNode) AddContainerInstance(ci *ContainerInstance) *ContainerInstance {
-	existing := d.ContainerInstance(ci.ContainerID, ci.InstanceID)
+	c := Registry[ci.ContainerID].(*Container)
+	existing := d.ContainerInstance(c, ci.InstanceID)
 	if existing == nil {
+		Identify(ci)
 		d.ContainerInstances = append(d.ContainerInstances, ci)
 		return ci
 	}
@@ -200,6 +214,12 @@ func (d *DeploymentNode) AddContainerInstance(ci *ContainerInstance) *ContainerI
 // EvalName returns the generic expression name used in error messages.
 func (i *InfrastructureNode) EvalName() string { return fmt.Sprintf("infrastructure node %q", i.Name) }
 
+// Finalize adds the 'Infrastructure Node' tag ands finalizes relationships.
+func (i *InfrastructureNode) Finalize() {
+	i.MergeTags("Infrastructure Node")
+	i.Element.Finalize()
+}
+
 // EvalName returns the generic expression name used in error messages.
 func (ci *ContainerInstance) EvalName() string {
 	n := "unknown container"
@@ -210,7 +230,8 @@ func (ci *ContainerInstance) EvalName() string {
 }
 
 // Finalize removes the name value as it should not appear in the final JSON. It
-// also adds all the implied relationships.
+// also adds all the implied relationships and the "Container Instance" tag if
+// not present.
 func (ci *ContainerInstance) Finalize() {
 	ci.Name = ""
 	c := Registry[ci.ContainerID].(*Container)
@@ -234,6 +255,8 @@ func (ci *ContainerInstance) Finalize() {
 			}
 		}
 	}
+	ci.MergeTags("Container Instance")
+	ci.Element.Finalize()
 }
 
 // EvalName returns the generic expression name used in error messages.

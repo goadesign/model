@@ -2,7 +2,6 @@ package dsl
 
 import (
 	"net/url"
-	"strings"
 
 	"goa.design/goa/v3/eval"
 	"goa.design/structurizr/expr"
@@ -87,7 +86,8 @@ func Workspace(args ...interface{}) *expr.Workspace {
 	return expr.Root
 }
 
-// Version specifies a version number for the workspace.
+// Version specifies a version number for the workspace. The version number is
+// shown in the Structurizr UI but has otherwise no effect on the model.
 //
 // Version must appear in a Workspace expression.
 //
@@ -105,6 +105,30 @@ func Version(v string) {
 		eval.IncompatibleDSL()
 	} else {
 		w.Version = v
+	}
+}
+
+// Revision specifies a revision number for the workspace. The revision number
+// enforces a sequence with workspace updates. Updating a workspace requires
+// incrementing the revision number which helps alleviate the risk for
+// concurrent uploads clobbering each other.
+//
+// Revision must appear in a Workspace expression.
+//
+// Revision takes exactly one argument: the revision number.
+//
+// Example:
+//
+//    var _ = Workspace(func() {
+//        Revision(2)
+//    })
+//
+func Revision(r int) {
+	w, ok := eval.Current().(*expr.Workspace)
+	if !ok {
+		eval.IncompatibleDSL()
+	} else {
+		w.Revision = r
 	}
 }
 
@@ -171,60 +195,11 @@ func AddImpliedRelationships() {
 //    })
 //
 func Tag(first string, t ...string) {
-	tags := first
-	if len(t) > 0 {
-		tags = tags + "," + strings.Join(t, ",")
-	}
-	merge := func(exist, new string) string {
-		if exist == "" {
-			return new
-		}
-		old := strings.Split(exist, ",")
-		ne := strings.Split(new, ",")
-		var m []string
-		for _, o := range old {
-			found := false
-			for _, n := range ne {
-				if n == o {
-					found = true
-					break
-				}
-			}
-			if !found {
-				m = append(m, o)
-			}
-		}
-		for _, n := range ne {
-			found := false
-			for _, o := range m {
-				if n == o {
-					found = true
-					break
-				}
-			}
-			if !found {
-				m = append(m, n)
-			}
-		}
-		return strings.Join(m, ",")
-	}
 	switch e := eval.Current().(type) {
-	case *expr.Person:
-		e.Tags = merge(e.Tags, tags)
-	case *expr.SoftwareSystem:
-		e.Tags = merge(e.Tags, tags)
-	case *expr.Container:
-		e.Tags = merge(e.Tags, tags)
-	case *expr.Component:
-		e.Tags = merge(e.Tags, tags)
-	case *expr.DeploymentNode:
-		e.Tags = merge(e.Tags, tags)
-	case *expr.InfrastructureNode:
-		e.Tags = merge(e.Tags, tags)
-	case *expr.ContainerInstance:
-		e.Tags = merge(e.Tags, tags)
+	case expr.ElementHolder:
+		e.GetElement().MergeTags(t...)
 	case *expr.Relationship:
-		e.Tags = merge(e.Tags, tags)
+		e.MergeTags(t...)
 	default:
 		eval.IncompatibleDSL()
 	}

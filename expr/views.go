@@ -84,8 +84,8 @@ type (
 	DeploymentView struct {
 		*ViewProps
 		// SoftwareSystemID is the ID of the software system this view with is
-		// associated with.
-		SoftwareSystemID string `json:"softwareSystemId"`
+		// associated with if any.
+		SoftwareSystemID string `json:"softwareSystemId,omitempty"`
 		// The name of the environment that this deployment view is for (e.g.
 		// "Development", "Live", etc).
 		Environment string `json:"environment"`

@@ -27,6 +27,12 @@ func (c *Container) EvalName() string {
 	return fmt.Sprintf("container %q", c.Name)
 }
 
+// Finalize adds the 'Container' tag ands finalizes relationships.
+func (c *Container) Finalize() {
+	c.MergeTags("Container")
+	c.Element.Finalize()
+}
+
 // Elements returns a slice of ElementHolder that contains the elements of c.
 func (c Containers) Elements() []ElementHolder {
 	res := make([]ElementHolder, len(c))

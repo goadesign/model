@@ -25,10 +25,16 @@ func (c *Component) EvalName() string {
 	return fmt.Sprintf("component %q", c.Name)
 }
 
+// Finalize adds the 'Component' tag ands finalizes relationships.
+func (c *Component) Finalize() {
+	c.MergeTags("Component")
+	c.Element.Finalize()
+}
+
 // Elements returns a slice of ElementHolder that contains the elements of c.
-func (c Components) Elements() []ElementHolder {
-	res := make([]ElementHolder, len(c))
-	for i, cc := range c {
+func (cs Components) Elements() []ElementHolder {
+	res := make([]ElementHolder, len(cs))
+	for i, cc := range cs {
 		res[i] = cc
 	}
 	return res

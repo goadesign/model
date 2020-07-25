@@ -24,6 +24,12 @@ func (p *Person) EvalName() string {
 	return fmt.Sprintf("person %q", p.Name)
 }
 
+// Finalize adds the 'Person' tag ands finalizes relationships.
+func (p *Person) Finalize() {
+	p.MergeTags("Person")
+	p.Element.Finalize()
+}
+
 // Elements returns a slice of ElementHolder that contains the people.
 func (p People) Elements() []ElementHolder {
 	res := make([]ElementHolder, len(p))

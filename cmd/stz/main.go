@@ -92,7 +92,11 @@ func gen(pkg, out string, debug bool) error {
 	}
 
 	// Write program that generates JSON
-	tmpDir, err := ioutil.TempDir("", "stz")
+	cwd, err := os.Getwd()
+	if err != nil {
+		cwd = "."
+	}
+	tmpDir, err := ioutil.TempDir(cwd, "stz")
 	if err != nil {
 		return err
 	}
@@ -128,9 +132,6 @@ func gen(pkg, out string, debug bool) error {
 	gobin, err := exec.LookPath("go")
 	if err != nil {
 		return fmt.Errorf(`failed to find a go compiler, looked in "%s"`, os.Getenv("PATH"))
-	}
-	if _, err := runCmd(gobin, tmpDir, gobin, "mod", "init", "stz"); err != nil {
-		return err
 	}
 	if _, err := runCmd(gobin, tmpDir, gobin, "build", "-o", "stz"); err != nil {
 		return err

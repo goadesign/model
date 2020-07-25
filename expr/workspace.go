@@ -17,11 +17,13 @@ type Workspace struct {
 	Description string `json:"description,omitempty"`
 	// Version number for the workspace.
 	Version string `json:"version,omitempty"`
+	// Revision number, automatically generated.
+	Revision int `json:"revision,omitempty"`
 	// Thumbnail associated with the workspace; a Base64 encoded PNG file as a
 	// data URI (data:image/png;base64).
 	Thumbnail string `json:"thumbnail,omitempty"`
 	// The last modified date, in ISO 8601 format (e.g. "2018-09-08T12:40:03Z").
-	LastModifiedDate string `json:"lastModifiedData,omitempty"`
+	LastModifiedDate string `json:"lastModifiedDate,omitempty"`
 	// A string identifying the user who last modified the workspace (e.g. an
 	// e-mail address or username).
 	LastModifiedUser string `json:"lastModifiedUser,omitempty"`

@@ -79,9 +79,22 @@ func (r *Relationship) FindDestination() *Element {
 	if r.Destination != nil {
 		return r.Destination
 	}
+	srcDepl := false
+	switch Registry[r.Source.ID].(type) {
+	case *DeploymentNode, *InfrastructureNode, *ContainerInstance:
+		srcDepl = true
+	}
 	for _, e := range Registry {
 		eh, ok := e.(ElementHolder)
 		if !ok {
+			continue
+		}
+		destDepl := false
+		switch e.(type) {
+		case *DeploymentNode, *InfrastructureNode, *ContainerInstance:
+			destDepl = true
+		}
+		if (srcDepl || destDepl) && (!srcDepl || !destDepl) {
 			continue
 		}
 		ee := eh.GetElement()
@@ -107,6 +120,11 @@ func (r *Relationship) Dup() *Relationship {
 	}
 	Identify(dup)
 	return dup
+}
+
+// MergeTags adds the given tags. It skips tags already present in e.Tags.
+func (r *Relationship) MergeTags(tags ...string) {
+	r.Tags = mergeTags(r.Tags, tags)
 }
 
 // MarshalJSON replaces the constant value with the proper structurizr schema

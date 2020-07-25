@@ -3,6 +3,7 @@ package expr
 import (
 	"bytes"
 	"encoding/json"
+	"strings"
 
 	"goa.design/goa/v3/eval"
 )
@@ -71,6 +72,11 @@ func (e *Element) Finalize() {
 
 // GetElement returns the underlying element.
 func (e *Element) GetElement() *Element { return e }
+
+// MergeTags adds the given tags. It skips tags already present in e.Tags.
+func (e *Element) MergeTags(tags ...string) {
+	e.Tags = mergeTags(e.Tags, tags)
+}
 
 // RelatedPeople returns all people the element has a relationship with
 // (either as source or as destination).
@@ -263,4 +269,39 @@ func (l *LocationKind) UnmarshalJSON(data []byte) error {
 		*l = LocationUndefined
 	}
 	return nil
+}
+
+// mergeTags merges the comma separated tags in old with the ones in tags and
+// returns a comma separated string with the results.
+func mergeTags(existing string, tags []string) string {
+	if existing == "" {
+		return strings.Join(tags, ",")
+	}
+	old := strings.Split(existing, ",")
+	var merged []string
+	for _, o := range old {
+		found := false
+		for _, tag := range tags {
+			if tag == o {
+				found = true
+				break
+			}
+		}
+		if !found {
+			merged = append(merged, o)
+		}
+	}
+	for _, tag := range tags {
+		found := false
+		for _, o := range merged {
+			if tag == o {
+				found = true
+				break
+			}
+		}
+		if !found {
+			merged = append(merged, tag)
+		}
+	}
+	return strings.Join(merged, ",")
 }

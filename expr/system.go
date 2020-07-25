@@ -27,6 +27,12 @@ func (s *SoftwareSystem) EvalName() string {
 	return fmt.Sprintf("software system %q", s.Name)
 }
 
+// Finalize adds the 'SoftwareSystem' tag ands finalizes relationships.
+func (s *SoftwareSystem) Finalize() {
+	s.MergeTags("SoftwareSystem")
+	s.Element.Finalize()
+}
+
 // Elements returns a slice of ElementHolder that contains the elements of s.
 func (s SoftwareSystems) Elements() []ElementHolder {
 	res := make([]ElementHolder, len(s))

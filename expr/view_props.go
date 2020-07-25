@@ -173,7 +173,7 @@ func (v *ViewProps) AllTagged(tag string) (elts []*Element) {
 	for _, ev := range v.ElementViews {
 		vals := strings.Split(ev.Element.Tags, ",")
 		for _, val := range vals {
-			if strings.Trim(val, " ") == tag {
+			if val == tag {
 				elts = append(elts, ev.Element)
 				break
 			}
