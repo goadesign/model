@@ -26,7 +26,7 @@ func (p *Person) EvalName() string {
 
 // Finalize adds the 'Person' tag ands finalizes relationships.
 func (p *Person) Finalize() {
-	p.MergeTags("Person")
+	p.MergeTags("Element", "Person")
 	p.Element.Finalize()
 }
 

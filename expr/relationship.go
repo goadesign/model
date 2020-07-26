@@ -71,6 +71,7 @@ func (r *Relationship) Validate() error {
 
 // Finalize computes the destinations when name is used to define relationship.
 func (r *Relationship) Finalize() {
+	r.MergeTags("Relationship")
 	r.FindDestination()
 }
 

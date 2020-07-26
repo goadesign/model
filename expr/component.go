@@ -27,7 +27,7 @@ func (c *Component) EvalName() string {
 
 // Finalize adds the 'Component' tag ands finalizes relationships.
 func (c *Component) Finalize() {
-	c.MergeTags("Component")
+	c.MergeTags("Element", "Component")
 	c.Element.Finalize()
 }
 

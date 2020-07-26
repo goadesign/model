@@ -85,7 +85,7 @@ func (d *DeploymentNode) EvalName() string { return fmt.Sprintf("deployment node
 
 // Finalize adds the 'Deployment Node' tag ands finalizes relationships.
 func (d *DeploymentNode) Finalize() {
-	d.MergeTags("Deployment Node")
+	d.MergeTags("Element", "Deployment Node")
 	d.Element.Finalize()
 }
 
@@ -216,7 +216,7 @@ func (i *InfrastructureNode) EvalName() string { return fmt.Sprintf("infrastruct
 
 // Finalize adds the 'Infrastructure Node' tag ands finalizes relationships.
 func (i *InfrastructureNode) Finalize() {
-	i.MergeTags("Infrastructure Node")
+	i.MergeTags("Element", "Infrastructure Node")
 	i.Element.Finalize()
 }
 

@@ -29,7 +29,7 @@ func (c *Container) EvalName() string {
 
 // Finalize adds the 'Container' tag ands finalizes relationships.
 func (c *Container) Finalize() {
-	c.MergeTags("Container")
+	c.MergeTags("Element", "Container")
 	c.Element.Finalize()
 }
 
