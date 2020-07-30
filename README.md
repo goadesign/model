@@ -2,7 +2,7 @@
 
 ---
 [![Godoc Packages](https://img.shields.io/badge/godoc-packages-blue)](https://pkg.go.dev/goa.design/structurizr)
-[![Godoc DSL](https://img.shields.io/badge/godoc-DSL-blue)](https://pkg.go.dev/goa.design/structurizr@v0.0.6/dsl?tab=doc)
+[![Godoc DSL](https://img.shields.io/badge/godoc-DSL-blue)](https://pkg.go.dev/goa.design/structurizr@v0.0.9/dsl?tab=doc)
 
 ## Overview
 
@@ -717,7 +717,7 @@ var _ = Workspace("[name]", "[description]", func() {
             RelationshipStyle("<tag>", func() {
                 Thickness(42)
                 Color("#<rrggbb>")
-                Dashed(true)
+                Dashed()
                 Routing(RoutingDirect) // RoutingDirect, RoutingOrthogonal, RoutingCurved
                 FontSize(42)
                 Width(42)
