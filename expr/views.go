@@ -348,9 +348,6 @@ func (cv *ContainerView) AddAnimation(ehs []ElementHolder) error {
 
 // Remove given element from view if not software system this view is for.
 func (cv *ContainerView) Remove(id string) {
-	if id == cv.SoftwareSystemID {
-		return
-	}
 	remove(cv.ViewProps, id)
 }
 

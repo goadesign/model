@@ -199,18 +199,21 @@ func patch(path, wid, key, secret string, debug bool) error {
 	}
 
 	var ow *expr.Workspace
+	var rev int
 	{
 		w, err := c.Get(wid)
 		if err != nil {
 			return err
 		}
 		ow = w
+		rev = ow.Revision
 	}
 
 	err := ow.Merge(&nw)
 	if err != nil {
 		return err
 	}
+	ow.Revision = rev + 1
 
 	return c.Put(wid, ow)
 }

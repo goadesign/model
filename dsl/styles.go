@@ -153,7 +153,7 @@ func ElementStyle(tag string, dsl func()) {
 //                 RelationshipStyle("default", func() {
 //                     Thickness(2)
 //                     Color("#000000")
-//                     Dashed(true)
+//                     Dashed()
 //                     Routing(RoutingOrthogonal)
 //                     FontSize(24)
 //                     Width(300)
@@ -392,8 +392,7 @@ func Thickness(t int) {
 // Dashed takes no argument.
 func Dashed() {
 	if rs, ok := eval.Current().(*expr.RelationshipStyle); ok {
-		t := true
-		rs.Dashed = &t
+		rs.Dashed = true
 		return
 	}
 	eval.IncompatibleDSL()

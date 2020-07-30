@@ -195,6 +195,7 @@ func AddImpliedRelationships() {
 //    })
 //
 func Tag(first string, t ...string) {
+	t = append([]string{first}, t...)
 	switch e := eval.Current().(type) {
 	case expr.ElementHolder:
 		e.GetElement().MergeTags(t...)

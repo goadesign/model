@@ -113,7 +113,7 @@ type (
 		// Width of relationship annotation, in pixels.
 		Width *int `json:"width,omitempty"`
 		// Whether line is rendered dashed or not.
-		Dashed *bool `json:"dashed,omitempty"`
+		Dashed bool `json:"dashed"`
 		// Routing algorithm used to render lines.
 		Routing RoutingKind `json:"routing,omitempty"`
 		// Position of annotation along the line; 0 (start) to 100 (end).

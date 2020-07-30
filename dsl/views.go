@@ -67,6 +67,15 @@ const (
 	SizeSlide4X3 = expr.SizeSlide4X3
 )
 
+const (
+	// RoutingDirect draws straight lines between ends of relationships.
+	RoutingDirect = expr.RoutingDirect
+	// RoutingOrthogonal draws lines with right angles between ends of relationships.
+	RoutingOrthogonal = expr.RoutingOrthogonal
+	// RoutingCurved draws curved lines between ends of relationships.
+	RoutingCurved = expr.RoutingCurved
+)
+
 // Views defines one or more views.
 //
 // Views takes one argument: the function that defines the views.
@@ -827,6 +836,7 @@ func AddAll() {
 		v.AddElements(model.People.Elements()...)
 		v.AddElements(model.Systems.Elements()...)
 		v.AddElements(expr.Registry[v.SoftwareSystemID].(*expr.SoftwareSystem).Containers.Elements()...)
+		v.Remove(v.SoftwareSystemID)
 	case *expr.ComponentView:
 		v.AddElements(model.People.Elements()...)
 		v.AddElements(model.Systems.Elements()...)
