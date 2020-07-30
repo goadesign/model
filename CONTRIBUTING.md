@@ -1,4 +1,4 @@
-# Contributing to Goa
+# Contributing to Structurizr
 
 Thank you for your interest in contributing to the Go Structurizr project! We
 appreciate contributions via submitting Github issues and/or pull requests.
