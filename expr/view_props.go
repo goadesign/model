@@ -57,7 +57,7 @@ type (
 		// Set of vertices used to render relationship
 		Vertices []*Vertex `json:"vertices,omitempty"`
 		// Routing algorithm used to render relationship.
-		Routing RoutingKind `json:"routing"`
+		Routing RoutingKind `json:"routing,omitempty"`
 		// Position of annotation along line; 0 (start) to 100 (end).
 		Position *int `json:"position,omitempty"`
 		// Corresponding relationship.
@@ -87,7 +87,7 @@ type (
 	// Layout describes an automatic layout.
 	Layout struct {
 		// Algorithm rank direction.
-		RankDirection RankDirectionKind `json:"rankDirection"`
+		RankDirection RankDirectionKind `json:"rankDirection,omitempty"`
 		// RankSep defines the separation between ranks in pixels.
 		RankSep *int `json:"rankSeparation,omitempty"`
 		// NodeSep defines the separation between nodes in pixels.
@@ -112,7 +112,8 @@ type (
 )
 
 const (
-	SizeA0Landscape PaperSizeKind = iota + 1
+	SizeUndefined PaperSizeKind = iota
+	SizeA0Landscape
 	SizeA0Portrait
 	SizeA1Landscape
 	SizeA1Portrait
@@ -136,13 +137,15 @@ const (
 )
 
 const (
-	RoutingCurved RoutingKind = iota + 1
+	RoutingUndefined RoutingKind = iota
+	RoutingCurved
 	RoutingDirect
 	RoutingOrthogonal
 )
 
 const (
-	RankTopBottom RankDirectionKind = iota + 1
+	RankUndefined RankDirectionKind = iota
+	RankTopBottom
 	RankBottomTop
 	RankLeftRight
 	RankRightLeft
@@ -361,6 +364,8 @@ func (p *PaperSizeKind) UnmarshalJSON(data []byte) error {
 		*p = SizeSlide16X9
 	case "Slide_16_10":
 		*p = SizeSlide16X10
+	default:
+		*p = SizeUndefined
 	}
 	return nil
 }

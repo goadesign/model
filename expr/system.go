@@ -76,7 +76,7 @@ func (s *SoftwareSystem) AddContainer(c *Container) *Container {
 		existing.Technology = c.Technology
 	}
 	if olddsl := existing.DSLFunc; olddsl != nil {
-		existing.DSLFunc = func() { olddsl(); s.DSLFunc() }
+		existing.DSLFunc = func() { olddsl(); c.DSLFunc() }
 	}
 	return existing
 }

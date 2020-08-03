@@ -2,7 +2,7 @@
 
 ---
 [![Godoc Packages](https://img.shields.io/badge/godoc-packages-blue)](https://pkg.go.dev/goa.design/structurizr)
-[![Godoc DSL](https://img.shields.io/badge/godoc-DSL-blue)](https://pkg.go.dev/goa.design/structurizr@v0.0.9/dsl?tab=doc)
+[![Godoc DSL](https://img.shields.io/badge/godoc-DSL-blue)](https://pkg.go.dev/goa.design/structurizr@v0.0.10/dsl?tab=doc)
 
 ## Overview
 
@@ -498,8 +498,11 @@ var _ = Workspace("[name]", "[description]", func() {
                 Position(50)
             })
 
-            // Add all elements and people  in scope to view.
+            // Add all elements and people in scope.
             AddAll()
+
+            // Add default set of elements depending on view type.
+            AddDefault()
 
             // Add all elements that are directly connected to given person
             // or element.

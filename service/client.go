@@ -16,6 +16,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"os/user"
 	"strconv"
 	"time"
 
@@ -92,7 +93,6 @@ func (c *Client) Put(id string, w *expr.Workspace) error {
 	req, _ := http.NewRequest("PUT", u.String(), bytes.NewReader(body))
 	ct := "application/json; charset=UTF-8"
 	c.sign(req, string(body), ct)
-	req.Header.Set("Content-Type", ct)
 	resp, err := c.HTTP.Do(req)
 	if err != nil {
 		return err
@@ -119,6 +119,16 @@ func (c *Client) EnableDebug() {
 // lockUnlock implements the Lock and Unlock calls.
 func (c *Client) lockUnlock(id string, lock bool) (*Response, error) {
 	u := &url.URL{Scheme: Scheme, Host: Host, Path: fmt.Sprintf("/workspace/%s/lock", id)}
+	name := "anon"
+	if usr, err := user.Current(); err == nil {
+		name = usr.Name
+		if name == "" {
+			name = usr.Username
+		}
+	}
+	// the order matters :(
+	u.RawQuery = "user=" + url.QueryEscape(name) + "&agent=" + url.QueryEscape(UserAgent)
+
 	verb := "PUT"
 	if !lock {
 		verb = "DELETE"
@@ -152,7 +162,7 @@ func (c *Client) sign(req *http.Request, content, ct string) {
 		md5b := h.Sum(nil)
 		md5s = hex.EncodeToString(md5b)
 		nonce = strconv.FormatInt(time.Now().UnixNano()/int64(time.Millisecond), 10)
-		digest = fmt.Sprintf("%s\n%s\n%s\n%s\n%s\n", req.Method, req.URL.Path, md5s, ct, nonce)
+		digest = fmt.Sprintf("%s\n%s\n%s\n%s\n%s\n", req.Method, req.URL.RequestURI(), md5s, ct, nonce)
 	}
 
 	// 2. Compute HMAC
@@ -169,6 +179,7 @@ func (c *Client) sign(req *http.Request, content, ct string) {
 	req.Header.Set("Nonce", nonce)
 	if req.Method == http.MethodPut {
 		req.Header.Set("Content-Md5", base64.StdEncoding.EncodeToString([]byte(md5s)))
+		req.Header.Set("Content-Type", ct)
 	}
 	req.Header.Set("User-Agent", UserAgent)
 }

@@ -515,7 +515,6 @@ loop:
 		v.RelationshipViews = append(v.RelationshipViews, &RelationshipView{
 			ID:           r.ID,
 			Relationship: r,
-			Routing:      RoutingDirect,
 		})
 	}
 }

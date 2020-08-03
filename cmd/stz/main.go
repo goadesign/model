@@ -36,7 +36,7 @@ func main() {
 		switch cmd {
 		case "":
 			cmd = arg
-		case "gen", "put":
+		case "gen", "put", "patch":
 			path = arg
 			idx++
 			goto done
@@ -206,7 +206,7 @@ func patch(path, wid, key, secret string, debug bool) error {
 			return err
 		}
 		ow = w
-		rev = ow.Revision
+		rev = w.Revision
 	}
 
 	err := ow.Merge(&nw)

@@ -44,16 +44,18 @@ func (m *Model) Validate() error {
 			verr.Add(s, "name already in use")
 		}
 		known[s.Name] = struct{}{}
+		containers := make(map[string]struct{})
 		for _, c := range s.Containers {
-			if _, ok := known[c.Name]; ok {
-				verr.Add(s, "name already in use")
+			if _, ok := containers[c.Name]; ok {
+				verr.Add(c, "name already in use")
 			}
-			known[c.Name] = struct{}{}
+			containers[c.Name] = struct{}{}
+			components := make(map[string]struct{})
 			for _, cm := range c.Components {
-				if _, ok := known[cm.Name]; ok {
-					verr.Add(s, "name already in use")
+				if _, ok := components[cm.Name]; ok {
+					verr.Add(cm, "name already in use")
 				}
-				known[cm.Name] = struct{}{}
+				components[cm.Name] = struct{}{}
 			}
 		}
 	}
