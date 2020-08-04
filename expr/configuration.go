@@ -113,7 +113,7 @@ type (
 		// Width of relationship annotation, in pixels.
 		Width *int `json:"width,omitempty"`
 		// Whether line is rendered dashed or not.
-		Dashed bool `json:"dashed"`
+		Dashed *bool `json:"dashed,omitempty"`
 		// Routing algorithm used to render lines.
 		Routing RoutingKind `json:"routing,omitempty"`
 		// Position of annotation along the line; 0 (start) to 100 (end).
@@ -133,7 +133,8 @@ type (
 )
 
 const (
-	SymbolSquareBrackets SymbolKind = iota + 1
+	SymbolUndefined SymbolKind = iota
+	SymbolSquareBrackets
 	SymbolRoundBrackets
 	SymbolCurlyBrackets
 	SymbolAngleBrackets
@@ -142,7 +143,8 @@ const (
 )
 
 const (
-	ShapeBox ShapeKind = iota + 1
+	ShapeUndefined ShapeKind = iota
+	ShapeBox
 	ShapeRoundedBox
 	ShapeComponent
 	ShapeCircle
@@ -159,7 +161,8 @@ const (
 )
 
 const (
-	BorderSolid BorderKind = iota + 1
+	BorderUndefined BorderKind = iota
+	BorderSolid
 	BorderDashed
 	BorderDotted
 )

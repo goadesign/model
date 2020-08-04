@@ -1,44 +1,57 @@
 package expr
 
 import (
-	"encoding/json"
-
 	"goa.design/goa/v3/eval"
 	"goa.design/goa/v3/expr"
 )
 
-// Workspace describes a workspace and is the root expression of the plugin.
-type Workspace struct {
-	// ID of workspace.
-	ID int `json:"id,omitempty"`
-	// Name of workspace.
-	Name string `json:"name"`
-	// Description of workspace if any.
-	Description string `json:"description,omitempty"`
-	// Version number for the workspace.
-	Version string `json:"version,omitempty"`
-	// Revision number, automatically generated.
-	Revision int `json:"revision,omitempty"`
-	// Thumbnail associated with the workspace; a Base64 encoded PNG file as a
-	// data URI (data:image/png;base64).
-	Thumbnail string `json:"thumbnail,omitempty"`
-	// The last modified date, in ISO 8601 format (e.g. "2018-09-08T12:40:03Z").
-	LastModifiedDate string `json:"lastModifiedDate,omitempty"`
-	// A string identifying the user who last modified the workspace (e.g. an
-	// e-mail address or username).
-	LastModifiedUser string `json:"lastModifiedUser,omitempty"`
-	//  A string identifying the agent that was last used to modify the workspace
-	//  (e.g. "structurizr-java/1.2.0").
-	LastModifiedAgent string `json:"lastModifiedAgent,omitempty"`
-	// Model is the software architecture model.
-	Model *Model `json:"model,omitempty"`
-	// Views contains the views if any.
-	Views *Views `json:"views,omitempty"`
-	// Documentation associated with software architecture model.
-	Documentation *Documentation `json:"documentation,omitempty"`
-	// Configuration of workspace.
-	Configuration *Configuration `json:"configuration,omitempty"`
-}
+type (
+	// Workspace describes a workspace and is the root expression of the plugin.
+	Workspace struct {
+		// ID of workspace.
+		ID int `json:"id,omitempty"`
+		// Name of workspace.
+		Name string `json:"name"`
+		// Description of workspace if any.
+		Description string `json:"description,omitempty"`
+		// Version number for the workspace.
+		Version string `json:"version,omitempty"`
+		// Revision number, automatically generated.
+		Revision int `json:"revision,omitempty"`
+		// Thumbnail associated with the workspace; a Base64 encoded PNG file as a
+		// data URI (data:image/png;base64).
+		Thumbnail string `json:"thumbnail,omitempty"`
+		// The last modified date, in ISO 8601 format (e.g. "2018-09-08T12:40:03Z").
+		LastModifiedDate string `json:"lastModifiedDate,omitempty"`
+		// A string identifying the user who last modified the workspace (e.g. an
+		// e-mail address or username).
+		LastModifiedUser string `json:"lastModifiedUser,omitempty"`
+		//  A string identifying the agent that was last used to modify the workspace
+		//  (e.g. "structurizr-java/1.2.0").
+		LastModifiedAgent string `json:"lastModifiedAgent,omitempty"`
+		// Model is the software architecture model.
+		Model *Model `json:"model,omitempty"`
+		// Views contains the views if any.
+		Views *Views `json:"views,omitempty"`
+		// Documentation associated with software architecture model.
+		Documentation *Documentation `json:"documentation,omitempty"`
+		// Configuration of workspace.
+		Configuration *WorkspaceConfiguration `json:"configuration,omitempty"`
+	}
+
+	// WorkspaceConfiguration describes the workspace configuration.
+	WorkspaceConfiguration struct {
+		// Users that have access to the workspace.
+		Users []*User `json:"users"`
+	}
+
+	// User of Structurizr service.
+	User struct {
+		Username string `json:"username"`
+		// Role of user, one of "ReadWrite" or "ReadOnly".
+		Role string `json:"role"`
+	}
+)
 
 // Root is the design root expression.
 var Root = &Workspace{Model: &Model{}, Views: &Views{}}
@@ -97,17 +110,6 @@ func (w *Workspace) Packages() []string { return w.Views.Packages() }
 // EvalName returns the generic expression name used in error messages.
 func (w *Workspace) EvalName() string {
 	return "Structurizr workspace"
-}
-
-// Merge merges other into this workspace. The merge algorithm recursively
-// overrides all fields of w with fields from other that do not have the zero
-// value.
-func (w *Workspace) Merge(other *Workspace) error {
-	js, err := json.Marshal(other)
-	if err != nil {
-		return err
-	}
-	return json.Unmarshal(js, w)
 }
 
 // Person returns the person with the given name if any, nil otherwise.

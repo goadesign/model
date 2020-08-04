@@ -180,7 +180,7 @@ func put(path, wid, key, secret string, debug bool) error {
 }
 
 func patch(path, wid, key, secret string, debug bool) error {
-	var nw expr.Workspace
+	nw := &expr.Workspace{}
 	{
 		f, err := os.Open(path)
 		if err != nil {
@@ -188,7 +188,7 @@ func patch(path, wid, key, secret string, debug bool) error {
 		}
 		defer f.Close()
 
-		if err = json.NewDecoder(f).Decode(&nw); err != nil {
+		if err = json.NewDecoder(f).Decode(nw); err != nil {
 			return err
 		}
 	}
@@ -198,8 +198,8 @@ func patch(path, wid, key, secret string, debug bool) error {
 		c.EnableDebug()
 	}
 
-	var ow *expr.Workspace
 	var rev int
+	var ow *expr.Workspace
 	{
 		w, err := c.Get(wid)
 		if err != nil {
@@ -209,11 +209,8 @@ func patch(path, wid, key, secret string, debug bool) error {
 		rev = w.Revision
 	}
 
-	err := ow.Merge(&nw)
-	if err != nil {
-		return err
-	}
-	ow.Revision = rev + 1
+	ow.Merge(nw)
+	ow.Revision = rev
 
 	return c.Put(wid, ow)
 }

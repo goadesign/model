@@ -29,7 +29,7 @@ func (s *SoftwareSystem) EvalName() string {
 
 // Finalize adds the 'SoftwareSystem' tag ands finalizes relationships.
 func (s *SoftwareSystem) Finalize() {
-	s.MergeTags("Element", "SoftwareSystem")
+	s.MergeTags("Element", "Software System")
 	s.Element.Finalize()
 }
 

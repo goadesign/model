@@ -392,7 +392,8 @@ func Thickness(t int) {
 // Dashed takes no argument.
 func Dashed() {
 	if rs, ok := eval.Current().(*expr.RelationshipStyle); ok {
-		rs.Dashed = true
+		t := true
+		rs.Dashed = &t
 		return
 	}
 	eval.IncompatibleDSL()

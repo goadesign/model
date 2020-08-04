@@ -79,12 +79,14 @@ type (
 )
 
 const (
-	FormatMarkdown DocFormatKind = iota + 1
+	FormatUndefined DocFormatKind = iota
+	FormatMarkdown
 	FormatASCIIDoc
 )
 
 const (
-	DecisionProposed DecisionStatusKind = iota + 1
+	DecisionUndefined DecisionStatusKind = iota
+	DecisionProposed
 	DecisionAccepted
 	DecisionSuperseded
 	DecisionDeprecated
