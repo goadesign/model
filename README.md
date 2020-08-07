@@ -720,7 +720,7 @@ var _ = Workspace("[name]", "[description]", func() {
             RelationshipStyle("<tag>", func() {
                 Thickness(42)
                 Color("#<rrggbb>")
-                Dashed()
+                Solid()
                 Routing(RoutingDirect) // RoutingDirect, RoutingOrthogonal, RoutingCurved
                 FontSize(42)
                 Width(42)

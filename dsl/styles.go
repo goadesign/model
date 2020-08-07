@@ -153,7 +153,7 @@ func ElementStyle(tag string, dsl func()) {
 //                 RelationshipStyle("default", func() {
 //                     Thickness(2)
 //                     Color("#000000")
-//                     Dashed()
+//                     Solid()
 //                     Routing(RoutingOrthogonal)
 //                     FontSize(24)
 //                     Width(300)
@@ -385,15 +385,15 @@ func Thickness(t int) {
 	eval.IncompatibleDSL()
 }
 
-// Dashed dashes relationship lines.
+// Solid makes relationship lines solid (non-dashed).
 //
-// Dashed must appear in RelationshipStyle.
+// Solid must appear in RelationshipStyle.
 //
-// Dashed takes no argument.
-func Dashed() {
+// Solid takes no argument.
+func Solid() {
 	if rs, ok := eval.Current().(*expr.RelationshipStyle); ok {
-		t := true
-		rs.Dashed = &t
+		f := false
+		rs.Dashed = &f
 		return
 	}
 	eval.IncompatibleDSL()
