@@ -157,22 +157,22 @@ the service.
 Upload DSL defined in package `goa.design/structurizr/examples/basic`:
 
 ```bash
-stz gen goa.design/structurizr/examples/basic && stz put -worspace WORKSPACE -key KEY -secret SECRET
+stz gen goa.design/structurizr/examples/basic && stz put -id ID -key KEY -secret SECRET
 ```
 
-Where `WORKSPACE` is the Structurizr service workspace ID, `KEY` the
+Where `ID` is the Structurizr service workspace ID, `KEY` the
 Structurizr service API key and `SECRET` the corresponding secret.
 
 Retrieve the JSON representation of a workspace from the service:
 
 ```bash
-stz get -workspace WORKSPACE -key KEY -secret SECRET -out model.json
+stz get -id ID -key KEY -secret SECRET -out model.json
 ```
 
 Upload an existing file to the Structurizr service:
 
 ```bash
-stz put model.json -workspace WORKSPACE -key KEY -secret SECRET
+stz put model.json -id ID -key KEY -secret SECRET
 ```
 
 ### Tool Setup

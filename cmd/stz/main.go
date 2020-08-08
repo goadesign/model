@@ -20,7 +20,7 @@ func main() {
 	var (
 		fs     = flag.NewFlagSet("flags", flag.ContinueOnError)
 		out    = fs.String("out", "model.json", "Write structurizr JSON to given file path [use with get or gen].")
-		wid    = fs.String("workspace", "", "Structurizr workspace ID [ignored for gen]")
+		wid    = fs.String("id", "", "Structurizr workspace ID [ignored for gen]")
 		key    = fs.String("key", "", "Structurizr API key [ignored for gen]")
 		secret = fs.String("secret", "", "Structurizr API secret [ignored for gen]")
 		debug  = fs.Bool("debug", false, "Print debug information to stderr.")
@@ -36,7 +36,7 @@ func main() {
 		switch cmd {
 		case "":
 			cmd = arg
-		case "gen", "put", "patch":
+		case "gen", "put":
 			path = arg
 			idx++
 			goto done
@@ -66,8 +66,6 @@ done:
 		err = get(pathOrDefault(*out), *wid, *key, *secret, *debug)
 	case "put":
 		err = put(pathOrDefault(path), *wid, *key, *secret, *debug)
-	case "patch":
-		err = patch(pathOrDefault(path), *wid, *key, *secret, *debug)
 	case "lock":
 		err = lock(*wid, *key, *secret, *debug)
 	case "unlock":
@@ -163,23 +161,6 @@ func get(out, wid, key, secret string, debug bool) error {
 }
 
 func put(path, wid, key, secret string, debug bool) error {
-	c := service.NewClient(key, secret)
-	if debug {
-		c.EnableDebug()
-	}
-	f, err := os.Open(path)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-	var w expr.Workspace
-	if err := json.NewDecoder(f).Decode(&w); err != nil {
-		return fmt.Errorf("failed to read %q: %s", path, err.Error())
-	}
-	return c.Put(wid, &w)
-}
-
-func patch(path, wid, key, secret string, debug bool) error {
 	local := &expr.Workspace{}
 	f, err := os.Open(path)
 	if err != nil {
@@ -234,7 +215,6 @@ func showUsage(fs *flag.FlagSet) {
 	fmt.Fprintf(os.Stderr, "\n%s gen PACKAGE [FLAGS]\t# Generate workspace JSON from DSL.\n", os.Args[0])
 	fmt.Fprintf(os.Stderr, "%s get [FLAGS]\t\t# Fetch workspace from Structurizr service.\n", os.Args[0])
 	fmt.Fprintf(os.Stderr, "%s put FILE FLAGS\t# Upload workspace to Structurizr service.\n", os.Args[0])
-	fmt.Fprintf(os.Stderr, "%s patch FILE FLAGS\t# Upload workspace to Structurizr service and merge view layouts.\n", os.Args[0])
 	fmt.Fprintf(os.Stderr, "%s lock [FLAGS]\t# Prevent changes to workspace in Structurizr service.\n", os.Args[0])
 	fmt.Fprintf(os.Stderr, "%s unlock [FLAGS]\t# Allow changes to workspace in Structurizr service.\n", os.Args[0])
 	fmt.Fprintf(os.Stderr, "%s help\t\t# Print this help message.\n", os.Args[0])
