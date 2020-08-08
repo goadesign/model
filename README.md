@@ -24,6 +24,8 @@ augmented with a description of the corresponding software architecture.
 Here is a complete and correct DSL for an architecture model:
 
 ```Go
+package model
+
 import . "goa.design/structurizr/dsl"
 
 var _ = Workspace("Getting Started", "This is a model of my software system.", func() {
@@ -171,15 +173,6 @@ Upload an existing file to the Structurizr service:
 
 ```bash
 stz put model.json -workspace WORKSPACE -key KEY -secret SECRET
-```
-
-Patch an existing workspace with a new workspace definition. This overrides
-the fields of the existing workspace with the fields of the workspace
-serialized in the given file. Any field that isn't defined in the serialized
-workspace is left untouched.
-
-```bash
-stz patch model.json -workspace WORKSPACE -key KEY -secret SECRET
 ```
 
 ### Tool Setup
