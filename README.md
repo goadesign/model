@@ -2,7 +2,7 @@
 
 ---
 [![Godoc Packages](https://img.shields.io/badge/godoc-packages-blue)](https://pkg.go.dev/goa.design/structurizr)
-[![Godoc DSL](https://img.shields.io/badge/godoc-DSL-blue)](https://pkg.go.dev/goa.design/structurizr@v0.0.12/dsl?tab=doc)
+[![Godoc DSL](https://img.shields.io/badge/godoc-DSL-blue)](https://pkg.go.dev/goa.design/structurizr@v0.0.13/dsl?tab=doc)
 
 ## Overview
 
