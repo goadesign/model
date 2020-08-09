@@ -1,8 +1,9 @@
 # Model
 
 ---
-[![Go Packages](https://img.shields.io/badge/godoc-packages-blue)](https://pkg.go.dev/goa.design/model)
+![Version](https://img.shields.io/badge/Version-v0.0.13)
 [![DSL Reference](https://img.shields.io/badge/godoc-DSL-blue)](https://pkg.go.dev/goa.design/model@v0.0.13/dsl?tab=doc)
+[![Go Packages](https://img.shields.io/badge/godoc-packages-blue)](https://pkg.go.dev/goa.design/model)
 
 ## Overview
 

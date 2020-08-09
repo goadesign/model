@@ -1,25 +1,72 @@
 #! /usr/bin/make
 #
-# Makefile for goa v3 docs plugin
+# Makefile for Model
 #
 # Targets:
-# - "gen" generates the goa files for the example services
+# - "depend" retrieves the Go packages needed to run the linter and tests
+# - "lint" runs the linter and checks the code format using goimports
+# - "test" runs the tests
+# - "release" creates a new release commit, tags the commit and pushes the tag to GitHub.
+#
+# Meta targets:
+# - "all" is the default target, it runs "lint" and "test"
+# - "travis" runs "depend" and "all"
+#
+MAJOR=1
+MINOR=0
+BUILD=0
 
-# include common Makefile content for plugins
-include $(GOPATH)/src/goa.design/plugins/plugins.mk
+# Only list test and build dependencies
+# Standard dependencies are installed via go get
+DEPEND=\
+	golang.org/x/lint/golint \
+	golang.org/x/tools/cmd/goimports \
+	honnef.co/go/tools/cmd/staticcheck
 
-gen:
-	goa gen goa.design/plugins/v3/docs/examples/calc/design -o "$(GOPATH)/src/goa.design/plugins/docs/examples/calc" && \
-	make example
+all: lint test
 
-example:
-	@ rm -rf "$(GOPATH)/src/goa.design/plugins/docs/examples/calc/cmd" && \
-	goa example goa.design/plugins/v3/docs/examples/calc/design -o "$(GOPATH)/src/goa.design/plugins/docs/examples/calc"
+travis: depend all
 
-build-examples:
-	@cd "$(GOPATH)/src/goa.design/plugins/docs/examples/calc" && \
-		go build ./cmd/calc && go build ./cmd/calc-cli
+depend:
+	@echo INSTALLING DEPENDENCIES...
+	@go mod download
+	@go get -v $(DEPEND)
 
-clean:
-	@cd "$(GOPATH)/src/goa.design/plugins/docs/examples/calc" && \
-		rm -f calc calc-cli
+lint:
+ifneq ($(GOOS),windows)
+	@echo LINTING...
+	@if [ "`goimports -l $(GO_FILES) | tee /dev/stderr`" ]; then \
+		echo "^ - Repo contains improperly formatted go files" && echo && exit 1; \
+	fi
+	@if [ "`golint ./... | grep -vf .golint_exclude | tee /dev/stderr`" ]; then \
+		echo "^ - Lint errors!" && echo && exit 1; \
+	fi
+	@if [ "`staticcheck -checks all ./... | grep -v ".pb.go" | grep -v "SA1019" | tee /dev/stderr`" ]; then \
+		echo "^ - staticcheck errors!" && echo && exit 1; \
+	fi
+endif
+
+test:
+	env GO111MODULE=on go test ./...
+
+release:
+	# First make sure all is clean
+	@git diff-index --quiet HEAD
+	@go mod tidy
+
+	# Bump version number
+	@sed 's/Major = .*/Major = $(MAJOR)/' pkg/version.go > _tmp && mv _tmp pkg/version.go
+	@sed 's/Minor = .*/Minor = $(MINOR)/' pkg/version.go > _tmp && mv _tmp pkg/version.go
+	@sed 's/Build = .*/Build = $(BUILD)/' pkg/version.go > _tmp && mv _tmp pkg/version.go
+	@sed 's/badge\/Version-.*/badge\/Version-v$(MAJOR).$(MINOR).$(BUILD)/' README.md > _tmp && mv _tmp README.md
+	@sed 's/model@v.*tab=doc/model@v$(MAJOR).$(MINOR).$(BUILD)\/dsl?tab=doc/' README.md > _tmp && mv _tmp README.md
+
+	# Make sure stz builds
+	@cd cmd/stz && go install
+
+	# Commit and push
+	@git add .
+	@git commit -m "Release v$(MAJOR).$(MINOR).$(BUILD)"
+	@git tag v$(MAJOR).$(MINOR).$(BUILD)
+	@git push origin v$(MAJOR)
+	@git push origin v$(MAJOR).$(MINOR).$(BUILD)
