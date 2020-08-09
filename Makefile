@@ -68,5 +68,5 @@ release:
 	@git add .
 	@git commit -m "Release v$(MAJOR).$(MINOR).$(BUILD)"
 	@git tag v$(MAJOR).$(MINOR).$(BUILD)
-	@git push origin v$(MAJOR)
+	@git push origin master
 	@git push origin v$(MAJOR).$(MINOR).$(BUILD)
