@@ -1,6 +1,5 @@
 # Model
 
----
 ![Build](https://github.com/goadesign/model/workflows/CI/badge.svg)
 ![Version](https://img.shields.io/badge/Version-v1.0.2-blue.svg)
 ![Go version](https://img.shields.io/github/go-mod/go-version/gomods/athens.svg)
