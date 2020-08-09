@@ -14,7 +14,7 @@
 #
 MAJOR=1
 MINOR=0
-BUILD=0
+BUILD=1
 
 # Only list test and build dependencies
 # Standard dependencies are installed via go get
@@ -50,21 +50,21 @@ test:
 	env GO111MODULE=on go test ./...
 
 release:
-	# First make sure all is clean
+# First make sure all is clean
 	@git diff-index --quiet HEAD
 	@go mod tidy
 
-	# Bump version number
+# Bump version number
 	@sed 's/Major = .*/Major = $(MAJOR)/' pkg/version.go > _tmp && mv _tmp pkg/version.go
 	@sed 's/Minor = .*/Minor = $(MINOR)/' pkg/version.go > _tmp && mv _tmp pkg/version.go
 	@sed 's/Build = .*/Build = $(BUILD)/' pkg/version.go > _tmp && mv _tmp pkg/version.go
-	@sed 's/badge\/Version-.*/badge\/Version-v$(MAJOR).$(MINOR).$(BUILD)/' README.md > _tmp && mv _tmp README.md
+	@sed 's/badge\/Version-.*/badge\/Version-v$(MAJOR).$(MINOR).$(BUILD))/' README.md > _tmp && mv _tmp README.md
 	@sed 's/model@v.*tab=doc/model@v$(MAJOR).$(MINOR).$(BUILD)\/dsl?tab=doc/' README.md > _tmp && mv _tmp README.md
 
-	# Make sure stz builds
+# Make sure stz builds
 	@cd cmd/stz && go install
 
-	# Commit and push
+# Commit and push
 	@git add .
 	@git commit -m "Release v$(MAJOR).$(MINOR).$(BUILD)"
 	@git tag v$(MAJOR).$(MINOR).$(BUILD)
