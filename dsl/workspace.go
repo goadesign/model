@@ -4,10 +4,10 @@ import (
 	"net/url"
 
 	"goa.design/goa/v3/eval"
-	"goa.design/structurizr/expr"
+	"goa.design/model/expr"
 
-	// Register code generators for the structurizr plugin
-	_ "goa.design/structurizr/plugin"
+	// Register code generators for the model plugin
+	_ "goa.design/model/plugin"
 )
 
 // Workspace defines the workspace containing the models and views. Workspace
@@ -86,8 +86,7 @@ func Workspace(args ...interface{}) *expr.Workspace {
 	return expr.Root
 }
 
-// Version specifies a version number for the workspace. The version number is
-// shown in the Structurizr UI but has otherwise no effect on the model.
+// Version specifies a version number for the workspace.
 //
 // Version must appear in a Workspace expression.
 //

@@ -27,7 +27,7 @@ type (
 		// e-mail address or username).
 		LastModifiedUser string `json:"lastModifiedUser,omitempty"`
 		//  A string identifying the agent that was last used to modify the workspace
-		//  (e.g. "structurizr-java/1.2.0").
+		//  (e.g. "model-go/1.2.0").
 		LastModifiedAgent string `json:"lastModifiedAgent,omitempty"`
 		// Model is the software architecture model.
 		Model *Model `json:"model,omitempty"`
@@ -109,7 +109,7 @@ func (w *Workspace) Packages() []string { return w.Views.Packages() }
 
 // EvalName returns the generic expression name used in error messages.
 func (w *Workspace) EvalName() string {
-	return "Structurizr workspace"
+	return "workspace"
 }
 
 // Person returns the person with the given name if any, nil otherwise.

@@ -1,11 +1,11 @@
 package model
 
 import (
-	. "goa.design/structurizr/dsl"
-	"goa.design/structurizr/expr"
+	. "goa.design/model/dsl"
+	"goa.design/model/expr"
 )
 
-var _ = Workspace("Big Bank plc", "This is an example workspace to illustrate the key features of Structurizr, based around a fictional online banking system.", func() {
+var _ = Workspace("Big Bank plc", "This is an example workspace to illustrate the key features of Model, based around a fictional online banking system.", func() {
 	Enterprise("Big Bank plc")
 
 	var BackOfficeStaff = Person("Back Office Staff", "Administration and support staff within the bank.", func() {

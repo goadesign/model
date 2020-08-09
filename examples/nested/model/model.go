@@ -1,10 +1,10 @@
 package model
 
 import (
-	_ "goa.design/structurizr/examples/nested/model/subsystem1"
-	s2 "goa.design/structurizr/examples/nested/model/subsystem2"
+	_ "goa.design/model/examples/nested/model/subsystem1"
+	s2 "goa.design/model/examples/nested/model/subsystem2"
 
-	. "goa.design/structurizr/dsl"
+	. "goa.design/model/dsl"
 )
 
 var _ = Workspace("Global workspace", "The model for all systems", func() {

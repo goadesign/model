@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"goa.design/goa/v3/eval"
-	structurizr "goa.design/structurizr/pkg"
+	model "goa.design/model/pkg"
 )
 
 type (
@@ -141,10 +141,10 @@ func (vs *Views) WalkSets(walk eval.SetWalker) {
 // in these packages when computing the location of errors.
 func (vs *Views) Packages() []string {
 	return []string{
-		"goa.design/structurizr/expr",
-		"goa.design/structurizr/dsl",
-		fmt.Sprintf("goa.design/structurizr@%s/expr", structurizr.Version()),
-		fmt.Sprintf("goa.design/structurizr@%s/dsl", structurizr.Version()),
+		"goa.design/model/expr",
+		"goa.design/model/dsl",
+		fmt.Sprintf("goa.design/model@%s/expr", model.Version()),
+		fmt.Sprintf("goa.design/model@%s/dsl", model.Version()),
 	}
 }
 

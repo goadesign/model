@@ -3,7 +3,7 @@ Package styles provide shared styles used by multiple models.
 */
 package styles
 
-import . "goa.design/structurizr/dsl"
+import . "goa.design/model/dsl"
 
 // DefineAll defines all the styles described in this package.
 func DefineAll() {

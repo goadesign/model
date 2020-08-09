@@ -93,8 +93,7 @@ const (
 	DecisionRejected
 )
 
-// MarshalJSON replaces the constant value with the proper structurizr schema
-// string value.
+// MarshalJSON replaces the constant value with the proper string value.
 func (d DocFormatKind) MarshalJSON() ([]byte, error) {
 	buf := bytes.NewBufferString(`"`)
 	switch d {
@@ -122,8 +121,7 @@ func (d *DocFormatKind) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// MarshalJSON replaces the constant value with the proper structurizr schema
-// string value.
+// MarshalJSON replaces the constant value with the proper string value.
 func (d DecisionStatusKind) MarshalJSON() ([]byte, error) {
 	buf := bytes.NewBufferString(`"`)
 	switch d {

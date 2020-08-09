@@ -35,7 +35,7 @@ overridden by the one defined in the package being generated.
 Using the `stz` command line:
 
 ```bash
-stz gen goa.design/structurizr/examples/nested/model
+stz gen goa.design/model/examples/nested/model
 ```
 
 This generates the file `model.json` that contains the JSON representation of

@@ -2,7 +2,7 @@ package dsl
 
 import (
 	"goa.design/goa/v3/eval"
-	"goa.design/structurizr/expr"
+	"goa.design/model/expr"
 )
 
 // Person defines a person (user, actor, role or persona).

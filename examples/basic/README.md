@@ -1,4 +1,4 @@
-# Basic Structurizr Go Example
+# Basic Model Example
 
 This example `model` package contains a valid DSL describing the example used
 in the README of the repo.
@@ -7,12 +7,12 @@ in the README of the repo.
 
 The example can be uploaded to the Structurizr service using the `stz`
 command line tool (this the repo
-[README](https://github.com/goadesign/structurizr/tree/master/README.md) for
+[README](https://github.com/goadesign/model/tree/master/README.md) for
 details on the tool).
 
 ```bash
-stz goa.design/structurizr/examples/basic/model -wid WID -key KEY -secret SECRET
+stz put goa.design/model/examples/basic/model -id ID -key KEY -secret SECRET
 ```
 
-where `WID` is the Structurizr workspace ID, `KEY` is the Structurizr API key
+where `ID` is the Structurizr workspace ID, `KEY` is the Structurizr API key
 and `SECRET` the correpsonding secret.

@@ -10,9 +10,9 @@ import (
 	"path/filepath"
 
 	"goa.design/goa/v3/codegen"
-	"goa.design/structurizr/expr"
-	structurizr "goa.design/structurizr/pkg"
-	"goa.design/structurizr/service"
+	"goa.design/model/expr"
+	model "goa.design/model/pkg"
+	"goa.design/model/service"
 	"golang.org/x/tools/go/packages"
 )
 
@@ -71,7 +71,7 @@ done:
 	case "unlock":
 		err = unlock(*wid, *key, *secret, *debug)
 	case "version":
-		fmt.Printf("%s version %s\n", os.Args[0], structurizr.Version())
+		fmt.Printf("%s version %s\n", os.Args[0], model.Version())
 	case "help":
 		showUsage(fs)
 	default:
@@ -113,7 +113,7 @@ func gen(pkg, out string, debug bool) error {
 			codegen.SimpleImport("io/ioutil"),
 			codegen.SimpleImport("encoding/json"),
 			codegen.SimpleImport("os"),
-			codegen.SimpleImport("goa.design/structurizr/eval"),
+			codegen.SimpleImport("goa.design/model/eval"),
 			codegen.NewImport("_", pkg),
 		}
 		sections = []*codegen.SectionTemplate{

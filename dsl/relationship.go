@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"goa.design/goa/v3/eval"
-	"goa.design/structurizr/expr"
+	"goa.design/model/expr"
 )
 
 const (

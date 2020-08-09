@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"os"
 
-	"goa.design/structurizr/eval"
-	_ "goa.design/structurizr/examples/basic/model" // DSL
-	"goa.design/structurizr/service"
+	"goa.design/model/eval"
+	_ "goa.design/model/examples/basic/model" // DSL
+	"goa.design/model/service"
 )
 
 // Executes the DSL and uploads the corresponding workspace to Structurizr.

@@ -238,8 +238,7 @@ func traverse(e *Element, seen map[string]struct{}) {
 	return
 }
 
-// MarshalJSON replaces the constant value with the proper structurizr schema
-// string value.
+// MarshalJSON replaces the constant value with the proper string value.
 func (l LocationKind) MarshalJSON() ([]byte, error) {
 	buf := bytes.NewBufferString(`"`)
 	switch l {

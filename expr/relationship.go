@@ -128,8 +128,7 @@ func (r *Relationship) MergeTags(tags ...string) {
 	r.Tags = mergeTags(r.Tags, tags)
 }
 
-// MarshalJSON replaces the constant value with the proper structurizr schema
-// string value.
+// MarshalJSON replaces the constant value with the proper string value.
 func (i InteractionStyleKind) MarshalJSON() ([]byte, error) {
 	buf := bytes.NewBufferString(`"`)
 	switch i {

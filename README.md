@@ -1,23 +1,55 @@
-# Structurizr for Go
+# Model
 
 ---
-[![Godoc Packages](https://img.shields.io/badge/godoc-packages-blue)](https://pkg.go.dev/goa.design/structurizr)
-[![Godoc DSL](https://img.shields.io/badge/godoc-DSL-blue)](https://pkg.go.dev/goa.design/structurizr@v0.0.13/dsl?tab=doc)
+[![Go Packages](https://img.shields.io/badge/godoc-packages-blue)](https://pkg.go.dev/goa.design/model)
+[![DSL Reference](https://img.shields.io/badge/godoc-DSL-blue)](https://pkg.go.dev/goa.design/model@v0.0.13/dsl?tab=doc)
 
 ## Overview
 
-This GitHub repository is a non-official client library and tool for the
-[Structurizr](https://structurizr.com/) cloud service and on-premises
-installation, both of which are web-based publishing platforms for software
-architecture models based upon the [C4 model](https://c4model.com).
+Model provides a way to describe software architectures using
+*diagrams as code*. This approach provides many benefit over the use of
+ graphical tools, in particular:
 
-The repository defines a Go DSL that makes it convenient to describe the
-software architecture model so that it can be uploaded to the Structurizr
-service.
+* **Built-in history via source control versioning**: Each change to the software
+  architecture model results in a commit making it natural to implement
+  [Architectural Decision Records](https://adr.github.io/).
+* **Simple and consistent reuse of shared architecture components**: The code
+  of shared architecture components can be imported by other software
+  systems. Apart from the obvious time saving a major advantage is ensuring
+  that all references are automatically kept up-to-date as the shared
+  architecture component evolves. The shared architecture component code can
+  be versioned using traditional source code versioning techniques as well.
+* **Consistent notation and visual styles**: The same mechanism used to import
+  shared architecture diagram can also be used to import shared style
+  definitions.
+* **Ability to control drift between reality and diagrams**: Static code
+  analysis allows writing tools that compare the software models with actual
+  code to detect discrepencies (this repo does not provide such a tool at
+  this time).
 
-This library also provides a [Goa](https://github.com/goadesign/goa)
-plugin so that the design of APIs and microservices written in Goa can be
-augmented with a description of the corresponding software architecture.
+The Model DSL is implemented in [Go](https://golang.org/) and follows the
+[C4 Model](https://c4model.com) to describe the software architecture. Using
+Go to implement the DSL makes it possible to leverage Go packages to share
+and version models. It also allows for extending or customizing the DSL by
+writing simple Go functions.
+
+The C4 (Context, Containers, Components and Code) model provides a clean and
+simple set of constructs (software elements, deployment nodes and views) that
+can be learned in minutes. The C4 model is very flexible and only focuses on
+a few key concepts making it possible to express many different styles of
+architectures while still adding value.
+
+Model includes a tool that uploads the software architecture described via
+its DSL to the [Structurizr](https://structurizr.com) service. This service
+renders the model and includes a visual editor to rearrange the results
+(layout modifications done visually are kept on the next uploads).
+
+Other outputs (such as [Mermaid](https://mermaid-js.github.io/mermaid/#/))
+could be added in the future (consider contributing!).
+
+Model also provides a [Goa](https://github.com/goadesign/goa) plugin so that
+the design of APIs and microservices written in Goa can be augmented with a
+description of the corresponding software architecture.
 
 ## Example
 
@@ -26,7 +58,7 @@ Here is a complete and correct DSL for an architecture model:
 ```Go
 package model
 
-import . "goa.design/structurizr/dsl"
+import . "goa.design/model/dsl"
 
 var _ = Workspace("Getting Started", "This is a model of my software system.", func() {
     var System = SoftwareSystem("Software System", "My software system.", func() {
@@ -63,14 +95,14 @@ single view and adds some styling.
 ![Getting Started Diagram](https://structurizr.com/static/img/getting-started.png)
 
 Other examples can be found in the repo
-[examples](https://github.com/goadesign/structurizr/tree/master/examples)
+[examples](https://github.com/goadesign/model/tree/master/examples)
 directory.
 
 ## Library
 
-The [eval](https://github.com/goadesign/structurizr/tree/master/eval) package
+The [eval](https://github.com/goadesign/model/tree/master/eval) package
 makes it convenient to run the DSL above. The
-[service](https://github.com/goadesign/structurizr/tree/master/service)
+[service](https://github.com/goadesign/model/tree/master/service)
 package contains a client library for the
 [Structurizr service APIs](https://structurizr.com/help/web-api).
 
@@ -84,9 +116,9 @@ import (
     "fmt"
     "os"
 
-    . "goa.design/structurizr/dsl"
-    "goa.design/structurizr/eval"
-    "goa.design/structurizr/service"
+    . "goa.design/model/dsl"
+    "goa.design/model/eval"
+    "goa.design/model/service"
 )
 
 // DSL that describes software architecture model.
@@ -154,10 +186,10 @@ The tool can can also retrieve or upload such files from and to the
 Structurizr service. Finally the tool can also lock or unlock a workspace in
 the service.
 
-Upload DSL defined in package `goa.design/structurizr/examples/basic`:
+Upload DSL defined in package `goa.design/model/examples/basic`:
 
 ```bash
-stz gen goa.design/structurizr/examples/basic && stz put -id ID -key KEY -secret SECRET
+stz gen goa.design/model/examples/basic && stz put -id ID -key KEY -secret SECRET
 ```
 
 Where `ID` is the Structurizr service workspace ID, `KEY` the
@@ -196,7 +228,7 @@ the Goa design:
 package design
 
 import . "goa.design/goa/v3/dsl"
-import "goa.design/structurizr/dsl"
+import "goa.design/model/dsl"
 
 // ... DSL describing API, services and architecture model
 ```
@@ -255,7 +287,7 @@ refer to the container instance in deployment views (when using `Add` or
 
 The code snippet below describes the entire syntax of the DSL. The complete
 reference can be found in the `dsl`
-[package documentation](https://pkg.go.dev/goa.design/structurizr@v0.0.6/dsl?tab=doc)
+[package documentation](https://pkg.go.dev/goa.design/model@v0.0.13/dsl?tab=doc)
 
 ```Go
 // Workspace defines the workspace containing the models and views. Workspace
@@ -686,8 +718,7 @@ var _ = Workspace("[name]", "[description]", func() {
         Styles(func() {
 
             // ElementStyle defines an element style. All nested properties
-            // (shape, icon, etc) are optional, see Structurizr - Notation for
-            // more details.
+            // (shape, icon, etc) are optional.
             ElementStyle("<tag>", func() {
                 Shape(ShapeBox) // ShapeBox, ShapeRoundedBox, ShapeCircle, ShapeEllipse,
                                 // ShapeHexagon, ShapeCylinder, ShapePipe, ShapePerson
@@ -708,8 +739,7 @@ var _ = Workspace("[name]", "[description]", func() {
             })
 
             // RelationshipStyle defines a relationship style. All nested
-            // properties (thickness, color, etc) are optional, see Structurizr
-            // - Notation for more details.
+            // properties (thickness, color, etc) are optional.
             RelationshipStyle("<tag>", func() {
                 Thickness(42)
                 Color("#<rrggbb>")
@@ -723,12 +753,11 @@ var _ = Workspace("[name]", "[description]", func() {
         })
 
         // Theme specifies one or more themes that should be used when
-        // rendering diagrams. See Structurizr - Themes for more details.
+        // rendering diagrams.
         Theme("<theme URL>", "[theme URL]") // as many theme URLs as needed
 
         // Branding defines custom branding that should be used when rendering
-        // diagrams and documentation. See Structurizr - Branding for more
-        // details.
+        // diagrams and documentation.
         Branding(func() {
             Logo("<file>")
             Font("<name>", "[url]")

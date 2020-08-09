@@ -4,7 +4,7 @@ import (
 	"regexp"
 
 	"goa.design/goa/v3/eval"
-	"goa.design/structurizr/expr"
+	"goa.design/model/expr"
 )
 
 const (
@@ -182,8 +182,6 @@ func RelationshipStyle(tag string, dsl func()) {
 // ShapeEllipse, ShapeHexagon, ShapeCylinder, ShapePipe, ShapePerson ShapeRobot,
 // ShapeFolder, ShapeWebBrowser, ShapeMobileDevicePortrait,
 // ShapeMobileDeviceLandscape or ShapeComponent.
-//
-// See https://structurizr.com/help/shapes.
 func Shape(s expr.ShapeKind) {
 	if es, ok := eval.Current().(*expr.ElementStyle); ok {
 		es.Shape = s
@@ -198,8 +196,6 @@ func Shape(s expr.ShapeKind) {
 // Tip: Generating icons programatically can be done using the "image" package
 // (to draw the image), "image/png" to render the image and "encoding/base64" to
 // encode the result into a data URI.
-//
-// See https://structurizr.com/help/icons.
 func Icon(file string) {
 	if es, ok := eval.Current().(*expr.ElementStyle); ok {
 		es.Icon = file

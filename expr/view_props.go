@@ -263,8 +263,7 @@ func (v *ElementView) EvalName() string { return "element view" }
 // EvalName returns the generic expression name used in error messages.
 func (v *RelationshipView) EvalName() string { return "relationship view" }
 
-// MarshalJSON replaces the constant value with the proper structurizr schema
-// string value.
+// MarshalJSON replaces the constant value with the proper string value.
 func (p PaperSizeKind) MarshalJSON() ([]byte, error) {
 	buf := bytes.NewBufferString(`"`)
 	switch p {
@@ -370,8 +369,7 @@ func (p *PaperSizeKind) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// MarshalJSON replaces the constant value with the proper structurizr schema
-// string value.
+// MarshalJSON replaces the constant value with the proper string value.
 func (r RoutingKind) MarshalJSON() ([]byte, error) {
 	buf := bytes.NewBufferString(`"`)
 	switch r {
@@ -403,8 +401,7 @@ func (r *RoutingKind) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// MarshalJSON replaces the constant value with the proper structurizr schema
-// string value.
+// MarshalJSON replaces the constant value with the proper string value.
 func (r RankDirectionKind) MarshalJSON() ([]byte, error) {
 	buf := bytes.NewBufferString(`"`)
 	switch r {

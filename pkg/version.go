@@ -1,4 +1,4 @@
-package structurizr
+package model
 
 import (
 	"fmt"

@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/kylelemons/godebug/diff"
-	"goa.design/structurizr/expr"
+	"goa.design/model/expr"
 )
 
 func TestGet(t *testing.T) {

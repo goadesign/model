@@ -21,7 +21,7 @@ import (
 	"time"
 
 	goahttp "goa.design/goa/v3/http"
-	"goa.design/structurizr/expr"
+	"goa.design/model/expr"
 )
 
 var (

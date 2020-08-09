@@ -182,8 +182,7 @@ func (rs *RelationshipStyle) EvalName() string {
 	return fmt.Sprintf("relationship style for tag %q", rs.Tag)
 }
 
-// MarshalJSON replaces the constant value with the proper structurizr schema
-// string value.
+// MarshalJSON replaces the constant value with the proper string value.
 func (s SymbolKind) MarshalJSON() ([]byte, error) {
 	buf := bytes.NewBufferString(`"`)
 	switch s {
@@ -227,8 +226,7 @@ func (s *SymbolKind) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// MarshalJSON replaces the constant value with the proper structurizr schema
-// string value.
+// MarshalJSON replaces the constant value with the proper string value.
 func (s ShapeKind) MarshalJSON() ([]byte, error) {
 	buf := bytes.NewBufferString(`"`)
 	switch s {
@@ -304,8 +302,7 @@ func (s *ShapeKind) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// MarshalJSON replaces the constant value with the proper structurizr schema
-// string value.
+// MarshalJSON replaces the constant value with the proper string value.
 func (b BorderKind) MarshalJSON() ([]byte, error) {
 	buf := bytes.NewBufferString(`"`)
 	switch b {

@@ -2,7 +2,7 @@ package dsl
 
 import (
 	"goa.design/goa/v3/eval"
-	"goa.design/structurizr/expr"
+	"goa.design/model/expr"
 )
 
 // DeploymentEnvironment defines a deployment environment (e.g. development,

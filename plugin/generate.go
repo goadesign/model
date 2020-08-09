@@ -7,7 +7,7 @@ import (
 
 // init registers the plugin generator function.
 func init() {
-	codegen.RegisterPlugin("structurizr", "gen", nil, Generate)
+	codegen.RegisterPlugin("model", "gen", nil, Generate)
 }
 
 // Generate produces the documentation JSON file.

@@ -1,8 +1,8 @@
 package model
 
 import (
-	. "goa.design/structurizr/dsl"
-	"goa.design/structurizr/examples/nested/styles"
+	. "goa.design/model/dsl"
+	"goa.design/model/examples/nested/styles"
 )
 
 var Subsystem2 = Workspace("Subsystem 2", "This is a model of subsystem 2.", func() {
