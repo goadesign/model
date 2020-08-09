@@ -10,7 +10,7 @@
 #
 # Meta targets:
 # - "all" is the default target, it runs "lint" and "test"
-# - "travis" runs "depend" and "all"
+# - "ci" runs "depend" and "all"
 #
 MAJOR=1
 MINOR=0
@@ -25,7 +25,7 @@ DEPEND=\
 
 all: lint test
 
-travis: depend all
+ci: depend all
 
 depend:
 	@echo INSTALLING DEPENDENCIES...
