@@ -235,7 +235,6 @@ func traverse(e *Element, seen map[string]struct{}) {
 			}
 		}
 	}
-	return
 }
 
 // MarshalJSON replaces the constant value with the proper string value.

@@ -2,7 +2,6 @@ package model
 
 import (
 	"fmt"
-	"regexp"
 )
 
 const (
@@ -14,11 +13,6 @@ const (
 	Build = 1
 	// Suffix - set to empty string in release tag commits.
 	Suffix = ""
-)
-
-var (
-	// Version format
-	versionFormat = regexp.MustCompile(`v(\d+?)\.(\d+?)\.(\d+?)(?:-.+)?`)
 )
 
 // Version returns the complete version number.

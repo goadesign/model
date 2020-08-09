@@ -16,10 +16,11 @@ MAJOR=1
 MINOR=0
 BUILD=1
 
+GO_FILES=$(shell find . -type f -name '*.go')
+
 # Only list test and build dependencies
 # Standard dependencies are installed via go get
 DEPEND=\
-	golang.org/x/lint/golint \
 	golang.org/x/tools/cmd/goimports \
 	honnef.co/go/tools/cmd/staticcheck
 
@@ -28,20 +29,15 @@ all: lint test
 ci: depend all
 
 depend:
-	@echo INSTALLING DEPENDENCIES...
 	@go mod download
 	@go get -v $(DEPEND)
 
 lint:
 ifneq ($(GOOS),windows)
-	@echo LINTING...
 	@if [ "`goimports -l $(GO_FILES) | tee /dev/stderr`" ]; then \
 		echo "^ - Repo contains improperly formatted go files" && echo && exit 1; \
 	fi
-	@if [ "`golint ./... | grep -vf .golint_exclude | tee /dev/stderr`" ]; then \
-		echo "^ - Lint errors!" && echo && exit 1; \
-	fi
-	@if [ "`staticcheck -checks all ./... | grep -v ".pb.go" | grep -v "SA1019" | tee /dev/stderr`" ]; then \
+	@if [ "`staticcheck ./... | tee /dev/stderr`" ]; then \
 		echo "^ - staticcheck errors!" && echo && exit 1; \
 	fi
 endif

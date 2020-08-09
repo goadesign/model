@@ -526,9 +526,7 @@ loop:
 func addAnimation(v *ViewProps, ehs []ElementHolder) error {
 	var known []string
 	for _, s := range v.Animations {
-		for _, id := range s.ElementIDs {
-			known = append(known, id)
-		}
+		known = append(known, s.ElementIDs...)
 	}
 	n := &Animation{Order: len(v.Animations) + 1}
 loop:
