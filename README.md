@@ -1,7 +1,8 @@
 # Model
 
 ---
-![Version](https://img.shields.io/badge/Version-v1.0.0
+![Version](https://img.shields.io/badge/Version-v1.0.0-green.svg)
+[![Go version](https://img.shields.io/github/go-mod/go-version/gomods/athens.svg)](https://github.com/goadesign/model)
 [![DSL Reference](https://img.shields.io/badge/godoc-DSL-blue)](https://pkg.go.dev/goa.design/model@v1.0.0/dsl?tab=doc)
 [![Go Packages](https://img.shields.io/badge/godoc-packages-blue)](https://pkg.go.dev/goa.design/model)
 
