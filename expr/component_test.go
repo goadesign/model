@@ -1,6 +1,9 @@
 package expr
 
-import "testing"
+import (
+	"fmt"
+	"testing"
+)
 
 func TestComponentEvalName(t *testing.T) {
 	t.Parallel()
@@ -20,6 +23,34 @@ func TestComponentEvalName(t *testing.T) {
 				},
 			}
 			if got := component.EvalName(); got != tt.want {
+				t.Errorf("got %s, want %s", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestComponentFinalize(t *testing.T) {
+	t.Parallel()
+	component := Component{
+		Element: &Element{
+			Name: "foo",
+		},
+	}
+	tests := []struct {
+		pre  func()
+		want string
+	}{
+		{want: ""},
+		{pre: func() { component.Tags = "foo" }, want: "foo"},
+		{pre: func() { component.Finalize() }, want: "foo,Element,Component"},
+	}
+	for i, tt := range tests {
+		tt := tt
+		t.Run(fmt.Sprint(i), func(t *testing.T) {
+			if tt.pre != nil {
+				tt.pre()
+			}
+			if got := component.Tags; got != tt.want {
 				t.Errorf("got %s, want %s", got, tt.want)
 			}
 		})
