@@ -25,3 +25,15 @@ func TestComponentEvalName(t *testing.T) {
 		})
 	}
 }
+
+func TestComponentsElements(t *testing.T) {
+	t.Parallel()
+	components := Components{
+		{Element: &Element{Name: "foo"}},
+		{Element: &Element{Name: "bar"}},
+		{Element: &Element{Name: "baz"}},
+	}
+	if got := components.Elements(); len(got) != len(components) {
+		t.Errorf("got %d, want %d", len(got), len(components))
+	}
+}
