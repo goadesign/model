@@ -19,9 +19,9 @@ type (
 		Key string `json:"key"`
 		// PaperSize is the paper size that should be used to render this view.
 		PaperSize PaperSizeKind `json:"paperSize,omitempty"`
-		// Layout describes the automatic layout mode for the diagram if
+		// AutoLayout describes the automatic layout mode for the diagram if
 		// defined.
-		Layout *Layout `json:"automaticLayout,omitempty"`
+		AutoLayout *AutoLayout `json:"automaticLayout,omitempty"`
 		// ElementViews list the elements included in the view.
 		ElementViews []*ElementView `json:"elements,omitempty"`
 		// RelationshipViews list the relationships included in the view.
@@ -84,8 +84,8 @@ type (
 		Elements []ElementHolder `json:"-"`
 	}
 
-	// Layout describes an automatic layout.
-	Layout struct {
+	// AutoLayout describes an automatic layout.
+	AutoLayout struct {
 		// Algorithm rank direction.
 		RankDirection RankDirectionKind `json:"rankDirection,omitempty"`
 		// RankSep defines the separation between ranks in pixels.
@@ -255,7 +255,7 @@ func (v *ViewProps) EvalName() string {
 }
 
 // EvalName returns the generic expression name used in error messages.
-func (l *Layout) EvalName() string { return "automatic layout" }
+func (l *AutoLayout) EvalName() string { return "automatic layout" }
 
 // EvalName returns the generic expression name used in error messages.
 func (v *ElementView) EvalName() string { return "element view" }

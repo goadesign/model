@@ -12,6 +12,7 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -106,10 +107,10 @@ func (c *Client) Put(id string, w *expr.Workspace) error {
 }
 
 // Lock locks the given workspace.
-func (c *Client) Lock(id string) (*Response, error) { return c.lockUnlock(id, true) }
+func (c *Client) Lock(id string) error { return c.lockUnlock(id, true) }
 
 // Unlock unlocks a previously locked workspace.
-func (c *Client) Unlock(id string) (*Response, error) { return c.lockUnlock(id, false) }
+func (c *Client) Unlock(id string) error { return c.lockUnlock(id, false) }
 
 // EnableDebug causes the client to print debug information to Stderr.
 func (c *Client) EnableDebug() {
@@ -117,7 +118,7 @@ func (c *Client) EnableDebug() {
 }
 
 // lockUnlock implements the Lock and Unlock calls.
-func (c *Client) lockUnlock(id string, lock bool) (*Response, error) {
+func (c *Client) lockUnlock(id string, lock bool) error {
 	u := &url.URL{Scheme: Scheme, Host: Host, Path: fmt.Sprintf("/workspace/%s/lock", id)}
 	name := "anon"
 	if usr, err := user.Current(); err == nil {
@@ -137,18 +138,21 @@ func (c *Client) lockUnlock(id string, lock bool) (*Response, error) {
 	c.sign(req, "", "")
 	resp, err := c.HTTP.Do(req)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	defer resp.Body.Close()
+
 	if resp.StatusCode != http.StatusOK {
-		body, _ := ioutil.ReadAll(resp.Body)
-		return nil, fmt.Errorf("service error: %s", string(body))
+		var res Response
+		json.NewDecoder(resp.Body).Decode(&res) // ignore error, just trying
+		err = fmt.Errorf("service error: %s", resp.Status)
+		if res.Message != "" {
+			err = errors.New(res.Message)
+		}
+		return err
 	}
-	var res Response
-	if err := json.NewDecoder(resp.Body).Decode(&res); err != nil {
-		return nil, err
-	}
-	return &res, nil
+
+	return nil
 }
 
 // sign signs the requests as per https://structurizr.com/help/web-api

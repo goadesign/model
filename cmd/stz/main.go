@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 
 	"goa.design/goa/v3/codegen"
 	"goa.design/model/expr"
@@ -37,8 +38,10 @@ func main() {
 		case "":
 			cmd = arg
 		case "gen", "put":
-			path = arg
-			idx++
+			if !strings.HasPrefix(arg, "-") {
+				path = arg
+				idx++
+			}
 			goto done
 		default:
 			goto done
@@ -161,30 +164,57 @@ func get(out, wid, key, secret string, debug bool) error {
 }
 
 func put(path, wid, key, secret string, debug bool) error {
-	local := &expr.Workspace{}
+	// Load local workspace
+	var local expr.Workspace
 	f, err := os.Open(path)
 	if err != nil {
 		return err
 	}
 	defer f.Close()
-	if err = json.NewDecoder(f).Decode(local); err != nil {
+	if err = json.NewDecoder(f).Decode(&local); err != nil {
 		return err
 	}
 
+	// Apply local layout if any
+	ext := filepath.Ext(path)
+	layoutPath := strings.TrimSuffix(path, ext) + ".layout" + ext
+	if _, err := os.Stat(layoutPath); err == nil {
+		llf, err := os.Open(layoutPath)
+		if err != nil {
+			return err
+		}
+		defer llf.Close()
+		layout := make(expr.WorkspaceLayout)
+		if err := json.NewDecoder(llf).Decode(&layout); err != nil {
+			return err
+		}
+		local.ApplyLayout(layout)
+	}
+
+	// Get remote workspace
 	c := service.NewClient(key, secret)
 	if debug {
 		c.EnableDebug()
 	}
-
 	remote, err := c.Get(wid)
 	if err != nil {
 		return err
 	}
 
+	// Merge layouts and persist result
 	local.MergeLayout(remote)
-	local.Revision = remote.Revision
+	lf, err := os.Create(layoutPath)
+	if err != nil {
+		return err
+	}
+	defer lf.Close()
+	if err := json.NewEncoder(lf).Encode(local.Layout()); err != nil {
+		return err
+	}
 
-	return c.Put(wid, local)
+	// Upload result to Structurizr
+	local.Revision = remote.Revision
+	return c.Put(wid, &local)
 }
 
 func lock(wid, key, secret string, debug bool) error {
@@ -192,8 +222,7 @@ func lock(wid, key, secret string, debug bool) error {
 	if debug {
 		c.EnableDebug()
 	}
-	_, err := c.Lock(wid)
-	return err
+	return c.Lock(wid)
 }
 
 func unlock(wid, key, secret string, debug bool) error {
@@ -201,8 +230,7 @@ func unlock(wid, key, secret string, debug bool) error {
 	if debug {
 		c.EnableDebug()
 	}
-	_, err := c.Unlock(wid)
-	return err
+	return c.Unlock(wid)
 }
 
 func fail(format string, args ...interface{}) {
@@ -213,8 +241,8 @@ func fail(format string, args ...interface{}) {
 func showUsage(fs *flag.FlagSet) {
 	fmt.Fprintln(os.Stderr, "Usage:")
 	fmt.Fprintf(os.Stderr, "\n%s gen PACKAGE [FLAGS]\t# Generate workspace JSON from DSL.\n", os.Args[0])
-	fmt.Fprintf(os.Stderr, "%s get [FLAGS]\t\t# Fetch workspace from Structurizr service.\n", os.Args[0])
-	fmt.Fprintf(os.Stderr, "%s put FILE FLAGS\t# Upload workspace to Structurizr service.\n", os.Args[0])
+	fmt.Fprintf(os.Stderr, "%s get [FLAGS]\t\t# Get remote workspace.\n", os.Args[0])
+	fmt.Fprintf(os.Stderr, "%s put FILE FLAGS\t# Sync layout with remote workspace if any and upload local workspace.\n", os.Args[0])
 	fmt.Fprintf(os.Stderr, "%s lock [FLAGS]\t# Prevent changes to workspace in Structurizr service.\n", os.Args[0])
 	fmt.Fprintf(os.Stderr, "%s unlock [FLAGS]\t# Allow changes to workspace in Structurizr service.\n", os.Args[0])
 	fmt.Fprintf(os.Stderr, "%s help\t\t# Print this help message.\n", os.Args[0])

@@ -1331,7 +1331,7 @@ func AutoLayout(rank expr.RankDirectionKind, args ...func()) {
 		}
 	}
 	r, n, e := 300, 600, 200
-	layout := &expr.Layout{
+	layout := &expr.AutoLayout{
 		RankDirection: rank,
 		RankSep:       &r,
 		NodeSep:       &n,
@@ -1340,7 +1340,7 @@ func AutoLayout(rank expr.RankDirectionKind, args ...func()) {
 	if dsl != nil {
 		eval.Execute(dsl, layout)
 	}
-	v.Props().Layout = layout
+	v.Props().AutoLayout = layout
 }
 
 // Animation defines an animation step consisting of the specified elements.
@@ -1693,7 +1693,7 @@ func RankSeparation(s int) {
 		eval.ReportError("rank separation must be positive")
 		return
 	}
-	if a, ok := eval.Current().(*expr.Layout); ok {
+	if a, ok := eval.Current().(*expr.AutoLayout); ok {
 		a.RankSep = &s
 		return
 	}
@@ -1724,7 +1724,7 @@ func NodeSeparation(s int) {
 		eval.ReportError("rank separation must be positive")
 		return
 	}
-	if a, ok := eval.Current().(*expr.Layout); ok {
+	if a, ok := eval.Current().(*expr.AutoLayout); ok {
 		a.NodeSep = &s
 		return
 	}
@@ -1755,7 +1755,7 @@ func EdgeSeparation(s int) {
 		eval.ReportError("rank separation must be positive")
 		return
 	}
-	if a, ok := eval.Current().(*expr.Layout); ok {
+	if a, ok := eval.Current().(*expr.AutoLayout); ok {
 		a.EdgeSep = &s
 		return
 	}
@@ -1783,7 +1783,7 @@ func EdgeSeparation(s int) {
 //     })
 //
 func RenderVertices() {
-	if a, ok := eval.Current().(*expr.Layout); ok {
+	if a, ok := eval.Current().(*expr.AutoLayout); ok {
 		t := true
 		a.Vertices = &t
 		return
