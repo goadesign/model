@@ -176,6 +176,7 @@ func InfrastructureNode(name string, args ...interface{}) *expr.InfrastructureNo
 			DSLFunc:     dsl,
 		},
 		Environment: d.Environment,
+		Parent:      d,
 	}
 	return d.AddInfrastructureNode(node)
 }
