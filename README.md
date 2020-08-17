@@ -1,9 +1,9 @@
 # Model
 
 ![Build](https://github.com/goadesign/model/workflows/CI/badge.svg)
-![Version](https://img.shields.io/badge/Version-v1.0.5-blue.svg)
+![Version](https://img.shields.io/badge/Version-v1.0.6-blue.svg)
 ![Go version](https://img.shields.io/github/go-mod/go-version/gomods/athens.svg)
-[![DSL Reference](https://img.shields.io/badge/Doc-DSL-orange)](https://pkg.go.dev/goa.design/model@v1.0.5/dsl?tab=doc)
+[![DSL Reference](https://img.shields.io/badge/Doc-DSL-orange)](https://pkg.go.dev/goa.design/model@v1.0.6/dsl?tab=doc)
 [![Go Packages](https://img.shields.io/badge/Doc-packages-orange)](https://pkg.go.dev/goa.design/model)
 
 ## Overview
@@ -289,7 +289,7 @@ refer to the container instance in deployment views (when using `Add` or
 
 The code snippet below describes the entire syntax of the DSL. The complete
 reference can be found in the `dsl`
-[package documentation](https://pkg.go.dev/goa.design/model@v1.0.5/dsl?tab=doc)
+[package documentation](https://pkg.go.dev/goa.design/model@v1.0.6/dsl?tab=doc)
 
 ```Go
 // Workspace defines the workspace containing the models and views. Workspace
