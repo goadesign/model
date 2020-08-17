@@ -207,9 +207,7 @@ func (m *Model) addMissingRelationships(src *Element, destID string, existing *R
 			return
 		}
 	}
-	r := existing.Dup()
-	r.SourceID = src.ID
-	r.DestinationID = destID
+	r := existing.Dup(src.ID, destID)
 	src.Rels = append(src.Rels, r)
 
 	// Add relationships to destination parents as well.

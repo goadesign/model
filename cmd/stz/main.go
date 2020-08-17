@@ -203,12 +203,11 @@ func put(path, wid, key, secret string, debug bool) error {
 
 	// Merge layouts and persist result
 	local.MergeLayout(remote)
-	lf, err := os.Create(layoutPath)
+	b, err := json.MarshalIndent(local.Layout(), "", "   ")
 	if err != nil {
 		return err
 	}
-	defer lf.Close()
-	if err := json.NewEncoder(lf).Encode(local.Layout()); err != nil {
+	if err := ioutil.WriteFile(layoutPath, b, 0777); err != nil {
 		return err
 	}
 

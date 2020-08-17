@@ -246,9 +246,7 @@ func (ci *ContainerInstance) Finalize() {
 				continue
 			}
 			if eci.ContainerID == dc.ID {
-				rc := r.Dup()
-				rc.SourceID = ci.ID
-				rc.DestinationID = eci.ID
+				rc := r.Dup(ci.ID, eci.ID)
 				rc.Destination = eci.Element
 				rc.LinkedRelationshipID = r.ID
 				ci.Rels = append(ci.Rels, rc)

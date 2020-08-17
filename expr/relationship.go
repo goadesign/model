@@ -111,8 +111,10 @@ func (r *Relationship) FindDestination() *Element {
 // Dup creates a new relationship with identical description, tags, URL,
 // technology and interaction style as r. Dup also creates a new ID for the
 // result.
-func (r *Relationship) Dup() *Relationship {
+func (r *Relationship) Dup(newSrc, newDest string) *Relationship {
 	dup := &Relationship{
+		SourceID:         newSrc,
+		DestinationID:    newDest,
 		Description:      r.Description,
 		Tags:             r.Tags,
 		URL:              r.URL,
