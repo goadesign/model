@@ -50,26 +50,31 @@ func Identify(element interface{}) {
 	}
 }
 
-var bigRadix = big.NewInt(36)
-var bigZero = big.NewInt(0)
 var h = fnv.New32a()
 
 func idify(s string) string {
 	h.Reset()
 	h.Write([]byte(s))
-	b := h.Sum(nil)
+	return encodeToBase36(h.Sum(nil))
+}
+
+var encodeStd = [36]byte{
+	'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e',
+	'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't',
+	'u', 'v', 'w', 'x', 'y', 'z',
+}
+
+var bigRadix = big.NewInt(36)
+var bigZero = big.NewInt(0)
+
+func encodeToBase36(b []byte) string {
 	x := new(big.Int)
 	x.SetBytes(b)
 	res := make([]byte, 0, len(b)*136/100)
 	for x.Cmp(bigZero) > 0 {
 		mod := new(big.Int)
 		x.DivMod(x, bigRadix, mod)
-		offset := mod.Int64()
-		if offset < 10 {
-			res = append(res, byte(48+offset))
-		} else {
-			res = append(res, byte(87+offset))
-		}
+		res = append(res, encodeStd[mod.Int64()])
 	}
 	for _, i := range b {
 		if i != 0 {
