@@ -37,7 +37,7 @@ func main() {
 		switch cmd {
 		case "":
 			cmd = arg
-		case "gen", "put":
+		case "gen", "sync":
 			if !strings.HasPrefix(arg, "-") {
 				path = arg
 				idx++
@@ -67,12 +67,8 @@ done:
 		err = gen(path, *out, *debug)
 	case "get":
 		err = get(pathOrDefault(*out), *wid, *key, *secret, *debug)
-	case "put":
-		err = put(pathOrDefault(path), *wid, *key, *secret, *debug)
-	case "lock":
-		err = lock(*wid, *key, *secret, *debug)
-	case "unlock":
-		err = unlock(*wid, *key, *secret, *debug)
+	case "sync":
+		err = sync(pathOrDefault(path), *wid, *key, *secret, *debug)
 	case "version":
 		fmt.Printf("%s version %s\n", os.Args[0], model.Version())
 	case "help":
@@ -163,7 +159,7 @@ func get(out, wid, key, secret string, debug bool) error {
 	return ioutil.WriteFile(out, b, 0644)
 }
 
-func put(path, wid, key, secret string, debug bool) error {
+func sync(path, wid, key, secret string, debug bool) error {
 	// Load local workspace
 	var local expr.Workspace
 	f, err := os.Open(path)
@@ -216,22 +212,6 @@ func put(path, wid, key, secret string, debug bool) error {
 	return c.Put(wid, &local)
 }
 
-func lock(wid, key, secret string, debug bool) error {
-	c := service.NewClient(key, secret)
-	if debug {
-		c.EnableDebug()
-	}
-	return c.Lock(wid)
-}
-
-func unlock(wid, key, secret string, debug bool) error {
-	c := service.NewClient(key, secret)
-	if debug {
-		c.EnableDebug()
-	}
-	return c.Unlock(wid)
-}
-
 func fail(format string, args ...interface{}) {
 	fmt.Fprintf(os.Stderr, format+"\n", args...)
 	os.Exit(1)
@@ -241,9 +221,7 @@ func showUsage(fs *flag.FlagSet) {
 	fmt.Fprintln(os.Stderr, "Usage:")
 	fmt.Fprintf(os.Stderr, "\n%s gen PACKAGE [FLAGS]\t# Generate workspace JSON from DSL.\n", os.Args[0])
 	fmt.Fprintf(os.Stderr, "%s get [FLAGS]\t\t# Get remote workspace.\n", os.Args[0])
-	fmt.Fprintf(os.Stderr, "%s put FILE FLAGS\t# Sync layout with remote workspace if any and upload local workspace.\n", os.Args[0])
-	fmt.Fprintf(os.Stderr, "%s lock [FLAGS]\t# Prevent changes to workspace in Structurizr service.\n", os.Args[0])
-	fmt.Fprintf(os.Stderr, "%s unlock [FLAGS]\t# Allow changes to workspace in Structurizr service.\n", os.Args[0])
+	fmt.Fprintf(os.Stderr, "%s sync FILE FLAGS\t# Sync local workspace layout with remote workspace if any and upload result.\n", os.Args[0])
 	fmt.Fprintf(os.Stderr, "%s help\t\t# Print this help message.\n", os.Args[0])
 	fmt.Fprintf(os.Stderr, "%s version\t\t# Print the tool version.\n\n", os.Args[0])
 	fmt.Fprintln(os.Stderr, "Where:")
