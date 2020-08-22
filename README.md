@@ -58,11 +58,11 @@ description of the corresponding software architecture.
 Here is a complete and correct DSL for an architecture model:
 
 ```Go
-package model
+package design
 
 import . "goa.design/model/dsl"
 
-var _ = Workspace("Getting Started", "This is a model of my software system.", func() {
+var _ = Design("Getting Started", "This is a model of my software system.", func() {
     var System = SoftwareSystem("Software System", "My software system.", func() {
         Tag("system")
     })
@@ -124,7 +124,7 @@ import (
 )
 
 // DSL that describes software architecture model.
-var _ = Workspace("Getting Started", "This is a model of my software system.", func() {
+var _ = Design("Getting Started", "This is a model of my software system.", func() {
     var System = SoftwareSystem("Software System", "My software system.", func() {
         Tag("system")
     })
@@ -182,16 +182,15 @@ func main() {
 ## Tool
 
 Alternatively, the `stz` tool included in this repo can be used to generate a
-file containing the JSON representation of the structurizr API
-[Workspace object](https://github.com/structurizr/json) described via DSL.
-The tool can can also retrieve or upload such files from and to the
-Structurizr service. Finally the tool can also lock or unlock a workspace in
-the service.
+file containing the JSON representation of the design described via DSL. The
+tool can then upload the generated file to the Structurizr service. The tool
+can also retrieve the JSON representation of
+[Workspace objects](https://github.com/structurizr/json) from the service.
 
 Upload DSL defined in package `goa.design/model/examples/basic`:
 
 ```bash
-stz gen goa.design/model/examples/basic && stz put -id ID -key KEY -secret SECRET
+stz gen goa.design/model/examples/basic && stz put model.json -id ID -key KEY -secret SECRET
 ```
 
 Where `ID` is the Structurizr service workspace ID, `KEY` the
@@ -200,13 +199,7 @@ Structurizr service API key and `SECRET` the corresponding secret.
 Retrieve the JSON representation of a workspace from the service:
 
 ```bash
-stz get -id ID -key KEY -secret SECRET -out model.json
-```
-
-Upload an existing file to the Structurizr service:
-
-```bash
-stz put model.json -id ID -key KEY -secret SECRET
+stz get -id ID -key KEY -secret SECRET -out workspace.json
 ```
 
 ### Tool Setup
@@ -278,12 +271,13 @@ add new relationships.
 The functions `Uses`, `Delivers`, `InteractsWith`, `Add` and `Link` accept
 references to other elements as argument. The reference can be done either
 through a variable (which holds the element being referred to) or the name of
-the element. Note that names do not necessarily have to be globally unique
-(see rules above) so it may sometimes be necessary to use a variable to
-disambiguate. Also container instances do not have names per se however the
-`RefName` function makes it possible to define a name that can be used to
-refer to the container instance in deployment views (when using `Add` or
-`Link`).
+the element and its scope if not the current scope. The scope of an element
+referred to by name is provided via additional arguments that identify the
+container recursively. For example consider the following model:
+
+```go
+var _ = Design("My design",)
+```
 
 ### Syntax
 
@@ -292,10 +286,9 @@ reference can be found in the `dsl`
 [package documentation](https://pkg.go.dev/goa.design/model@v1.0.7/dsl?tab=doc)
 
 ```Go
-// Workspace defines the workspace containing the models and views. Workspace
-// must appear exactly once in a given design. A name must be provided if a
-// description is.
-var _ = Workspace("[name]", "[description]", func() {
+// Design defines the architecture design containing the models and views.
+// Design must appear exactly once.
+var _ = Design("[name]", "[description]", func() {
 
     // Version number.
     Version("<version>")
@@ -316,7 +309,7 @@ var _ = Workspace("[name]", "[description]", func() {
         External()
 
         // Prop defines an arbitrary set of associated key-value pairs.
-        Prop("<name>", "<value">)
+        Prop("<name>", "<value>")
 
         // Adds a uni-directional relationship between this person and the given element.
         Uses(Element, "<description>", "[technology]", Synchronous /* or Asynchronous */, func() {
@@ -341,7 +334,7 @@ var _ = Workspace("[name]", "[description]", func() {
         External()
 
         // Prop defines an arbitrary set of associated key-value pairs.
-        Prop("<name>", "<value">)
+        Prop("<name>", "<value>")
 
         // Adds a uni-directional relationship between this software system and the given element.
         Uses(Element, "<description>", "[technology]", Synchronous /* or Asynchronous */, func() {
@@ -437,9 +430,6 @@ var _ = Workspace("[name]", "[description]", func() {
             // container that is deployed on the parent deployment node.
             var ContainerInstance = ContainerInstance(Container, func() {
                 Tag("<name>",  "[name]") // as many tags as needed
-
-                // Sets a name that can be used in deployment views.
-                RefName("<name>")
 
                 // Sets instance number or index.
                 InstanceID(1)
@@ -538,11 +528,11 @@ var _ = Workspace("[name]", "[description]", func() {
             // Remove given element or person from view.
             Remove(ElementOrPerson)
 
-            // Remove given relationship from view.
-            Remove(Source, Destination)
+            // RemoveTagged removes elements and relationships with the given tag.
+            RemoveTagged("<tag>")
 
-            // Remove elements and relationships with given tag.
-            Remove("<tag>")
+            // Remove given relationship from view.
+            Unlink(Source, Destination)
 
             // Remove all elements and people that cannot be reached by
             // traversing the graph of relationships starting with given element

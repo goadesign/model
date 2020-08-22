@@ -11,19 +11,18 @@ import (
 	"strings"
 
 	"goa.design/goa/v3/codegen"
-	"goa.design/model/expr"
 	model "goa.design/model/pkg"
-	"goa.design/model/service"
+	"goa.design/model/stz"
 	"golang.org/x/tools/go/packages"
 )
 
 func main() {
 	var (
 		fs     = flag.NewFlagSet("flags", flag.ContinueOnError)
-		out    = fs.String("out", "model.json", "Write structurizr JSON to given file path [use with get or gen].")
-		wid    = fs.String("id", "", "Structurizr workspace ID [ignored for gen]")
-		key    = fs.String("key", "", "Structurizr API key [ignored for gen]")
-		secret = fs.String("secret", "", "Structurizr API secret [ignored for gen]")
+		out    = fs.String("out", "model.json", "Write output to given file path [use with 'stz get' or 'gen'].")
+		wid    = fs.String("id", "", "Structurizr workspace ID [only needed for 'stz' command]")
+		key    = fs.String("key", "", "Structurizr API key [only needed for 'stz' command]")
+		secret = fs.String("secret", "", "Structurizr API secret [only needed for 'stz' command]")
 		debug  = fs.Bool("debug", false, "Print debug information to stderr.")
 	)
 
@@ -37,7 +36,7 @@ func main() {
 		switch cmd {
 		case "":
 			cmd = arg
-		case "gen", "sync":
+		case "gen", "get", "put":
 			if !strings.HasPrefix(arg, "-") {
 				path = arg
 				idx++
@@ -67,8 +66,8 @@ done:
 		err = gen(path, *out, *debug)
 	case "get":
 		err = get(pathOrDefault(*out), *wid, *key, *secret, *debug)
-	case "sync":
-		err = sync(pathOrDefault(path), *wid, *key, *secret, *debug)
+	case "put":
+		err = put(pathOrDefault(path), *wid, *key, *secret, *debug)
 	case "version":
 		fmt.Printf("%s version %s\n", os.Args[0], model.Version())
 	case "help":
@@ -82,7 +81,7 @@ done:
 	}
 }
 
-func gen(pkg, out string, debug bool) error {
+func gen(pkg string, out string, debug bool) error {
 	// Validate package import path
 	if _, err := packages.Load(&packages.Config{Mode: packages.NeedName}, pkg); err != nil {
 		return err
@@ -113,6 +112,7 @@ func gen(pkg, out string, debug bool) error {
 			codegen.SimpleImport("encoding/json"),
 			codegen.SimpleImport("os"),
 			codegen.SimpleImport("goa.design/model/eval"),
+			codegen.SimpleImport("goa.design/model/stz"),
 			codegen.NewImport("_", pkg),
 		}
 		sections = []*codegen.SectionTemplate{
@@ -144,7 +144,7 @@ func gen(pkg, out string, debug bool) error {
 }
 
 func get(out, wid, key, secret string, debug bool) error {
-	c := service.NewClient(key, secret)
+	c := stz.NewClient(key, secret)
 	if debug {
 		c.EnableDebug()
 	}
@@ -159,15 +159,15 @@ func get(out, wid, key, secret string, debug bool) error {
 	return ioutil.WriteFile(out, b, 0644)
 }
 
-func sync(path, wid, key, secret string, debug bool) error {
-	// Load local workspace
-	var local expr.Workspace
+func put(path, wid, key, secret string, debug bool) error {
+	// Load local design
 	f, err := os.Open(path)
 	if err != nil {
 		return err
 	}
 	defer f.Close()
-	if err = json.NewDecoder(f).Decode(&local); err != nil {
+	local := &stz.Workspace{}
+	if err = json.NewDecoder(f).Decode(local); err != nil {
 		return err
 	}
 
@@ -180,7 +180,7 @@ func sync(path, wid, key, secret string, debug bool) error {
 			return err
 		}
 		defer llf.Close()
-		layout := make(expr.WorkspaceLayout)
+		layout := make(stz.WorkspaceLayout)
 		if err := json.NewDecoder(llf).Decode(&layout); err != nil {
 			return err
 		}
@@ -188,7 +188,7 @@ func sync(path, wid, key, secret string, debug bool) error {
 	}
 
 	// Get remote workspace
-	c := service.NewClient(key, secret)
+	c := stz.NewClient(key, secret)
 	if debug {
 		c.EnableDebug()
 	}
@@ -209,7 +209,7 @@ func sync(path, wid, key, secret string, debug bool) error {
 
 	// Upload result to Structurizr
 	local.Revision = remote.Revision
-	return c.Put(wid, &local)
+	return c.Put(wid, local)
 }
 
 func fail(format string, args ...interface{}) {
@@ -219,14 +219,14 @@ func fail(format string, args ...interface{}) {
 
 func showUsage(fs *flag.FlagSet) {
 	fmt.Fprintln(os.Stderr, "Usage:")
-	fmt.Fprintf(os.Stderr, "\n%s gen PACKAGE [FLAGS]\t# Generate workspace JSON from DSL.\n", os.Args[0])
-	fmt.Fprintf(os.Stderr, "%s get [FLAGS]\t\t# Get remote workspace.\n", os.Args[0])
-	fmt.Fprintf(os.Stderr, "%s sync FILE FLAGS\t# Sync local workspace layout with remote workspace if any and upload result.\n", os.Args[0])
+	fmt.Fprintf(os.Stderr, "%s gen PACKAGE [FLAGS]\t# Generate Structurizr workspace JSON representation from DSL.\n", os.Args[0])
+	fmt.Fprintf(os.Stderr, "%s get [FLAGS]\t\t# Download workspace JSON representation from Structurizr service.\n", os.Args[0])
+	fmt.Fprintf(os.Stderr, "%s put FILE FLAGS\t# Upload generated design JSON representation to Structurizr service,\n\t\t\t# merges layout (if a layout file is present) with workspace in Structurizr\n\t\t\t# service and generates or updates the merged layout file.\n", os.Args[0])
 	fmt.Fprintf(os.Stderr, "%s help\t\t# Print this help message.\n", os.Args[0])
 	fmt.Fprintf(os.Stderr, "%s version\t\t# Print the tool version.\n\n", os.Args[0])
 	fmt.Fprintln(os.Stderr, "Where:")
 	fmt.Fprintln(os.Stderr, "\nPACKAGE is the import path to a Go package containing the DSL describing a Structurizr workspace.")
-	fmt.Fprintln(os.Stderr, "FILE is the path to a file containing a valid JSON representation of a Structurizr workspace.")
+	fmt.Fprintf(os.Stderr, "FILE is the path to a file previously created via '%s gen'\n", os.Args[0])
 	fmt.Fprintln(os.Stderr, "FLAGS is a sequence of:")
 	fs.PrintDefaults()
 }
@@ -250,14 +250,15 @@ const mainT = `func main() {
 	out := os.Args[1]
 		
     // Run the model DSL
-    w, err := eval.RunDSL()
+    d, err := eval.RunDSL()
     if err != nil {
         fmt.Fprint(os.Stderr, err.Error())
         os.Exit(1)
-    }
+	}
+	w := stz.WorkspaceFromDesign(d)
 	b, err := json.MarshalIndent(w, "", "    ")
     if err != nil {
-        fmt.Fprintf(os.Stderr, "failed to encode JSON: %s", err.Error())
+        fmt.Fprintf(os.Stderr, "failed to encode into JSON: %s", err.Error())
         os.Exit(1)
 	}
 	if err := ioutil.WriteFile(out, b, 0644); err != nil {

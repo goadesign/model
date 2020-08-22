@@ -8,8 +8,7 @@ type (
 	// Component represents a component.
 	Component struct {
 		*Element
-		// Container is the parent container.
-		Container *Container `json:"-"`
+		Container *Container
 	}
 
 	// Components is a slice of components that can be easily converted into
@@ -27,8 +26,7 @@ func (c *Component) EvalName() string {
 
 // Finalize adds the 'Component' tag ands finalizes relationships.
 func (c *Component) Finalize() {
-	c.MergeTags("Element", "Component")
-	c.Element.Finalize()
+	c.PrefixTags("Element", "Component")
 }
 
 // Elements returns a slice of ElementHolder that contains the elements of c.

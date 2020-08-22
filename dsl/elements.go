@@ -1,6 +1,9 @@
 package dsl
 
 import (
+	"fmt"
+	"strings"
+
 	"goa.design/goa/v3/eval"
 	goaexpr "goa.design/goa/v3/expr"
 	"goa.design/model/expr"
@@ -8,7 +11,7 @@ import (
 
 // SoftwareSystem defines a software system.
 //
-// SoftwareSystem must appear in a Workspace expression.
+// SoftwareSystem must appear in a Design expression.
 //
 // Software system takes 1 to 3 arguments. The first argument is the software
 // system name and the last argument a function that contains the expressions
@@ -27,7 +30,7 @@ import (
 //
 // Example:
 //
-//    var _ = Workspace(func() {
+//    var _ = Design(func() {
 //        SoftwareSystem("My system", "A system with a great architecture", func() {
 //            Tag("bill processing")
 //            URL("https://goa.design/mysystem")
@@ -38,19 +41,25 @@ import (
 //    })
 //
 func SoftwareSystem(name string, args ...interface{}) *expr.SoftwareSystem {
-	w, ok := eval.Current().(*expr.Workspace)
+	w, ok := eval.Current().(*expr.Design)
 	if !ok {
 		eval.IncompatibleDSL()
 		return nil
 	}
-	description, _, dsl := parseElementArgs(args...)
+	if strings.Contains(name, "/") {
+		eval.ReportError("SoftwareSystem: name cannot include slashes")
+	}
+	description, _, dsl, err := parseElementArgs(args...)
+	if err != nil {
+		eval.ReportError("SoftwareSystem: " + err.Error())
+		return nil
+	}
 	s := &expr.SoftwareSystem{
 		Element: &expr.Element{
+			DSLFunc:     dsl,
 			Name:        name,
 			Description: description,
-			DSLFunc:     dsl,
 		},
-		Location: expr.LocationInternal,
 	}
 	return w.Model.AddSystem(s)
 }
@@ -89,7 +98,7 @@ func SoftwareSystem(name string, args ...interface{}) *expr.SoftwareSystem {
 //
 // Example:
 //
-//    var _ = Workspace(func() {
+//    var _ = Design(func() {
 //        SoftwareSystem("My system", "A system with a great architecture", func() {
 //            Container("My service", "A service", "Go and Goa", func() {
 //                Tag("bill processing")
@@ -112,7 +121,7 @@ func Container(args ...interface{}) *expr.Container {
 		return nil
 	}
 	if len(args) == 0 {
-		eval.ReportError("missing argument")
+		eval.ReportError("Container: missing argument")
 		return nil
 	}
 	var (
@@ -124,7 +133,12 @@ func Container(args ...interface{}) *expr.Container {
 	switch a := args[0].(type) {
 	case string:
 		name = a
-		description, technology, dsl = parseElementArgs(args[1:]...)
+		var err error
+		description, technology, dsl, err = parseElementArgs(args[1:]...)
+		if err != nil {
+			eval.ReportError("Container: " + err.Error())
+			return nil
+		}
 	case *goaexpr.ServiceExpr:
 		name = a.Name
 		description = a.Description
@@ -137,18 +151,22 @@ func Container(args ...interface{}) *expr.Container {
 			}
 		}
 		if len(args) > 2 {
-			eval.ReportError("too many arguments")
+			eval.ReportError("Container: too many arguments")
 		}
 	default:
 		eval.InvalidArgError("name or Goa service", args[0])
 	}
 
+	if strings.Contains(name, "/") {
+		eval.ReportError("Container: name cannot include slashes")
+	}
+
 	c := &expr.Container{
 		Element: &expr.Element{
+			DSLFunc:     dsl,
 			Name:        name,
 			Description: description,
 			Technology:  technology,
-			DSLFunc:     dsl,
 		},
 		System: system,
 	}
@@ -181,7 +199,7 @@ func Container(args ...interface{}) *expr.Container {
 //
 // Example:
 //
-//    var _ = Workspace(func() {
+//    var _ = Design(func() {
 //        SoftwareSystem("My system", "A system with a great architecture", func() {
 //            Container("My container", "A container with a great architecture", "Go and Goa", func() {
 //                Component(Container, "My component", "A component", "Go and Goa", func() {
@@ -200,7 +218,14 @@ func Component(name string, args ...interface{}) *expr.Component {
 		eval.IncompatibleDSL()
 		return nil
 	}
-	description, technology, dsl := parseElementArgs(args...)
+	if strings.Contains(name, "/") {
+		eval.ReportError("Component: name cannot include slashes")
+	}
+	description, technology, dsl, err := parseElementArgs(args...)
+	if err != nil {
+		eval.ReportError("Component: " + err.Error())
+		return nil
+	}
 	c := &expr.Component{
 		Element: &expr.Element{
 			Name:        name,
@@ -222,7 +247,7 @@ func Component(name string, args ...interface{}) *expr.Component {
 //     "[description]", func()
 //     "[description]", "[technology]", func()
 //
-func parseElementArgs(args ...interface{}) (description, technology string, dsl func()) {
+func parseElementArgs(args ...interface{}) (description, technology string, dsl func(), err error) {
 	if len(args) == 0 {
 		return
 	}
@@ -232,11 +257,13 @@ func parseElementArgs(args ...interface{}) (description, technology string, dsl 
 	case func():
 		dsl = a
 	default:
-		eval.InvalidArgError("description or DSL function", args[0])
+		err = fmt.Errorf("expected description or DSL function, got %T", args[0])
+		return
 	}
 	if len(args) > 1 {
 		if dsl != nil {
-			eval.ReportError("DSL function must be last argument")
+			err = fmt.Errorf("DSL function must be last argument")
+			return
 		}
 		switch a := args[1].(type) {
 		case string:
@@ -244,11 +271,13 @@ func parseElementArgs(args ...interface{}) (description, technology string, dsl 
 		case func():
 			dsl = a
 		default:
-			eval.InvalidArgError("technology or DSL function", args[1])
+			err = fmt.Errorf("expected technology or DSL function, got %T", args[1])
+			return
 		}
 		if len(args) > 2 {
 			if dsl != nil {
-				eval.ReportError("DSL function must be last argument")
+				err = fmt.Errorf("DSL function must be last argument")
+				return
 			}
 			if d, ok := args[2].(func()); ok {
 				dsl = d
@@ -256,7 +285,8 @@ func parseElementArgs(args ...interface{}) (description, technology string, dsl 
 				eval.InvalidArgError("DSL function", args[2])
 			}
 			if len(args) > 3 {
-				eval.ReportError("too many arguments")
+				err = fmt.Errorf("too many arguments")
+				return
 			}
 		}
 	}

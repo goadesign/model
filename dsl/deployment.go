@@ -1,6 +1,8 @@
 package dsl
 
 import (
+	"strings"
+
 	"goa.design/goa/v3/eval"
 	"goa.design/model/expr"
 )
@@ -8,14 +10,14 @@ import (
 // DeploymentEnvironment defines a deployment environment (e.g. development,
 // production).
 //
-// DeploymentEnvironment must appear in a Workspace expression.
+// DeploymentEnvironment must appear in a Design expression.
 //
 // DeploymentEnvironment accepts two arguments: the environment name and a DSL
 // function used to describe the nodes within the environment.
 //
 // Example:
 //
-//    var _ = Workspace(func() {
+//    var _ = Design(func() {
 //         DeploymentEnvironment("production", func() {
 //             DeploymentNode("AppServer", "Application server", "Go and Goa v3")
 //             InfrastructureNote("Router", "External traffic router", "AWS Route 53")
@@ -24,7 +26,7 @@ import (
 //     })
 //
 func DeploymentEnvironment(name string, dsl func()) {
-	_, ok := eval.Current().(*expr.Workspace)
+	_, ok := eval.Current().(*expr.Design)
 	if !ok {
 		eval.IncompatibleDSL()
 		return
@@ -47,7 +49,7 @@ func DeploymentEnvironment(name string, dsl func()) {
 // Finally DeploymentNode may take a func() as last argument to define
 // additional properties of the component.
 //
-// The valid syntax for DeploymentNode is thus:
+// Usage:
 //
 //    DeploymentNode("<name>")
 //
@@ -63,7 +65,7 @@ func DeploymentEnvironment(name string, dsl func()) {
 //
 // Example:
 //
-//    var _ = Workspace(func() {
+//    var _ = Design(func() {
 //        DeploymentEnvironment("Production", func() {
 //            DeploymentNode("US", "US shard", func() {
 //                Tag("shard")
@@ -73,7 +75,7 @@ func DeploymentEnvironment(name string, dsl func()) {
 //                    Tag("gateway")
 //                    URL("https://goa.design/docs/shards/us")
 //                })
-//                ContainerInstance(func() {
+//                ContainerInstance("Container", "System", func() {
 //                    Tag("service")
 //                    InstanceID(1)
 //                    HealthCheck("check", func() {
@@ -90,6 +92,9 @@ func DeploymentEnvironment(name string, dsl func()) {
 //    })
 //
 func DeploymentNode(name string, args ...interface{}) *expr.DeploymentNode {
+	if strings.Contains(name, "/") {
+		eval.ReportError("DeploymentNode: name cannot include slashes")
+	}
 	var (
 		parent *expr.DeploymentNode
 		env    string
@@ -104,7 +109,11 @@ func DeploymentNode(name string, args ...interface{}) *expr.DeploymentNode {
 		eval.IncompatibleDSL()
 		return nil
 	}
-	description, technology, dsl := parseElementArgs(args...)
+	description, technology, dsl, err := parseElementArgs(args...)
+	if err != nil {
+		eval.ReportError("DeploymentNode: " + err.Error())
+		return nil
+	}
 	one := 1
 	node := &expr.DeploymentNode{
 		Element: &expr.Element{
@@ -134,7 +143,7 @@ func DeploymentNode(name string, args ...interface{}) *expr.DeploymentNode {
 // technology details used by the component. Finally InfrastructureNode may take
 // a func() as last argument to define additional properties of the component.
 //
-// The valid syntax for InfrastructureNode is thus:
+// Usage:
 //
 //    InfrastructureNode("<name>")
 //
@@ -150,7 +159,7 @@ func DeploymentNode(name string, args ...interface{}) *expr.DeploymentNode {
 //
 // Example:
 //
-//    var _ = Workspace(func() {
+//    var _ = Design(func() {
 //        DeploymentEnvironment("Production", func() {
 //            DeploymentNode("US", "US shard", func() {
 //                InfrastructureNode("Gateway", "US gateway", func() {
@@ -167,7 +176,14 @@ func InfrastructureNode(name string, args ...interface{}) *expr.InfrastructureNo
 		eval.IncompatibleDSL()
 		return nil
 	}
-	description, technology, dsl := parseElementArgs(args...)
+	if strings.Contains(name, "/") {
+		eval.ReportError("InfrastructureNode: name cannot include slashes")
+	}
+	description, technology, dsl, err := parseElementArgs(args...)
+	if err != nil {
+		eval.ReportError("InfrastructureNode: " + err.Error())
+		return nil
+	}
 	node := &expr.InfrastructureNode{
 		Element: &expr.Element{
 			Name:        name,
@@ -186,17 +202,32 @@ func InfrastructureNode(name string, args ...interface{}) *expr.InfrastructureNo
 //
 // ContainerInstance must appear in a DeploymentNode expression.
 //
-// ContainerInstance takes three arguments: the container instance name used to
-// refer to it in deployment views, the container or its name and an optional
-// func() that defines additional properties on the container instance.
+// ContainerInstance takes one or two arguments: the first argument identifies
+// the container by reference or by path (software system name followed by colon
+// and container name). The second optional argument is a func() that defines
+// additional properties on the container instance including the container
+// instance ID.
+//
+// Usage:
+//
+//    ContainerInstance(Container)
+//
+//    ContainerInstance(Container, func())
+//
+//    ContainerInstance("<Software System>:<Container>")
+//
+//    ContainerInstance("<Software System>:<Container>", func())
 //
 // Example:
 //
-//    var _ = Workspace(func() {
+//    var _ = Design(func() {
+//        var MyContainer *expr.Container
+//        SoftwareSystem("SoftwareSystem", "A software system", func() {
+//            MyContainer = Container("Container")
+//        })
 //        DeploymentEnvironment("Production", func() {
 //            DeploymentNode("US", "US shard", func() {
-//                ContainerInstance(Container, func() {
-//                    RefName("instance")
+//                ContainerInstance(MyContainer, func() {
 //                    Tag("service")
 //                    InstanceID(1)
 //                    HealthCheck("check", func() {
@@ -204,6 +235,10 @@ func InfrastructureNode(name string, args ...interface{}) *expr.InfrastructureNo
 //                        Interval(10)
 //                        Timeout(1000)
 //                    })
+//                })
+//                // Using the name instead:
+//                ContainerInstance("SoftwareSystem:Container", func() {
+//                    InstanceID(2)
 //                })
 //            })
 //        })
@@ -214,69 +249,40 @@ func ContainerInstance(container interface{}, dsl ...func()) *expr.ContainerInst
 	if !ok {
 		eval.IncompatibleDSL()
 	}
-	var cid string
+	var cont *expr.Container
 	switch c := container.(type) {
 	case *expr.Container:
-		cid = c.ID
+		cont = c
 	case string:
-		eh := expr.Root.Model.FindElement(c)
-		if eh == nil {
-			eval.ReportError("no container named %q", c)
-			return nil
+		eh, err := expr.Root.Model.FindElement(nil, c)
+		if err != nil {
+			eval.ReportError("ContainerInstance: " + err.Error())
 		}
-		cc, ok := eh.(*expr.Container)
+		var ok bool
+		cont, ok = eh.(*expr.Container)
 		if !ok {
-			eval.ReportError("no container named %q (found a %T with that name)", c, eh)
+			eval.ReportError("ContainerInstance: expected path to container, got %T", eh)
 			return nil
 		}
-		cid = cc.ID
 	default:
-		eval.InvalidArgError("container or container name", container)
+		eval.ReportError("ContainerInstance: expected container or path to container, got %T", container)
 		return nil
 	}
 	var f func()
 	if len(dsl) > 0 {
 		f = dsl[0]
 		if len(dsl) > 1 {
-			eval.ReportError("too many arguments")
+			eval.ReportError("ContainerInstance: too many arguments")
 		}
 	}
 	ci := &expr.ContainerInstance{
 		Element:     &expr.Element{DSLFunc: f},
 		Parent:      d,
 		Environment: d.Environment,
-		ContainerID: cid,
+		ContainerID: cont.ID,
 		InstanceID:  1,
 	}
 	return d.AddContainerInstance(ci)
-}
-
-// RefName provides a name to a container instance that can be used to reference
-// it in deployment views (as an alternative to using a variable).
-//
-// RefName must appear in a ContainerInstance expression.
-//
-// RefName accepts a single argument which is the name that can be used to reference the container instance.
-//
-// Example:
-//
-//    var _ = Workspace(func() {
-//        DeploymentEnvironment("Production", func() {
-//            DeploymentNode("US", "US shard", func() {
-//                ContainerInstance("container", func() {
-//                    RefName("instance")
-//                })
-//            })
-//        })
-//    })
-//
-func RefName(name string) {
-	ci, ok := eval.Current().(*expr.ContainerInstance)
-	if !ok {
-		eval.IncompatibleDSL()
-		return
-	}
-	ci.Name = name
 }
 
 // Instances sets the number of instances of the deployment node.
@@ -287,7 +293,7 @@ func RefName(name string) {
 //
 // Example:
 //
-//    var _ = Workspace(func() {
+//    var _ = Design(func() {
 //        DeploymentEnvironment("Production", func() {
 //            DeploymentNode("Web app", func() {
 //                Instances(3)
@@ -312,7 +318,7 @@ func Instances(n int) {
 //
 // Example:
 //
-//    var _ = Workspace(func() {
+//    var _ = Design(func() {
 //        DeploymentEnvironment("Production", func() {
 //            ContainerInstance(Container, func() {
 //                InstanceID(3)
@@ -338,7 +344,7 @@ func InstanceID(n int) {
 //
 // Example:
 //
-//    var _ = Workspace(func() {
+//    var _ = Design(func() {
 //        DeploymentEnvironment("Production", func() {
 //            ContainerInstance(Container, func() {
 //                HealthCheck("check", func() {
@@ -370,7 +376,7 @@ func HealthCheck(name string, dsl func()) {
 //
 // Example:
 //
-//    var _ = Workspace(func() {
+//    var _ = Design(func() {
 //        DeploymentEnvironment("Production", func() {
 //            ContainerInstance(Container, func() {
 //                HealthCheck("check", func() {
@@ -397,7 +403,7 @@ func Interval(n int) {
 //
 // Example:
 //
-//    var _ = Workspace(func() {
+//    var _ = Design(func() {
 //        DeploymentEnvironment("Production", func() {
 //            ContainerInstance(Container, func() {
 //                HealthCheck("check", func() {
@@ -425,7 +431,7 @@ func Timeout(n int) {
 //
 // Example:
 //
-//    var _ = Workspace(func() {
+//    var _ = Design(func() {
 //        DeploymentEnvironment("Production", func() {
 //            ContainerInstance(Container, func() {
 //                HealthCheck("check", func() {

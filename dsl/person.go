@@ -1,6 +1,8 @@
 package dsl
 
 import (
+	"strings"
+
 	"goa.design/goa/v3/eval"
 	"goa.design/model/expr"
 )
@@ -25,7 +27,7 @@ import (
 //
 // Example:
 //
-//    var _ = Workspace(func() {
+//    var _ = Design(func() {
 //        Person("Employee")
 //        Person("Customer", "A customer", func() {
 //            Tag("system")
@@ -37,10 +39,13 @@ import (
 //    })
 //
 func Person(name string, args ...interface{}) *expr.Person {
-	w, ok := eval.Current().(*expr.Workspace)
+	w, ok := eval.Current().(*expr.Design)
 	if !ok {
 		eval.IncompatibleDSL()
 		return nil
+	}
+	if strings.Contains(name, "/") {
+		eval.ReportError("Person: name cannot include slashes")
 	}
 	var (
 		desc string
@@ -57,14 +62,14 @@ func Person(name string, args ...interface{}) *expr.Person {
 		}
 		if len(args) > 1 {
 			if dsl != nil {
-				eval.ReportError("DSL function must be last argument")
+				eval.ReportError("Person: DSL function must be last argument")
 			}
 			dsl, ok = args[1].(func())
 			if !ok {
 				eval.InvalidArgError("DSL function", args[1])
 			}
 			if len(args) > 2 {
-				eval.ReportError("too many arguments")
+				eval.ReportError("Person: too many arguments")
 			}
 		}
 	}
@@ -74,7 +79,6 @@ func Person(name string, args ...interface{}) *expr.Person {
 			Description: desc,
 			DSLFunc:     dsl,
 		},
-		Location: expr.LocationInternal,
 	}
 	return w.Model.AddPerson(p)
 }

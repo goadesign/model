@@ -1,4 +1,11 @@
-package expr
+package stz
+
+import (
+	"encoding/json"
+	"sort"
+
+	"goa.design/model/design"
+)
 
 type (
 	// WorkspaceLayout describes the view layouts of a workspace. The layout
@@ -8,9 +15,12 @@ type (
 
 	// ViewLayout contains the layout information for a given view.
 	ViewLayout struct {
-		Elements      []*ElementView      `json:"elements,omitempty"`
-		Relationships []*RelationshipView `json:"relationships,omitempty"`
+		Elements      []*design.ElementView      `json:"elements,omitempty"`
+		Relationships []*design.RelationshipView `json:"relationships,omitempty"`
 	}
+
+	// for json.Marshal, see ViewLayout.MarshalJSON
+	_layout ViewLayout
 )
 
 // Layout returns the workspace layout. It makes sure to only return relevant
@@ -18,21 +28,20 @@ type (
 // field value (X or Y not 0 for elements, position not 0 or routing not
 // undefined or vertices exist for relationships).
 func (w *Workspace) Layout() WorkspaceLayout {
-	views := w.Views
-	if views == nil {
+	if w.Views == nil {
 		return nil
 	}
 	layout := make(map[string]*ViewLayout)
-	for _, v := range views.all() {
-		var evs []*ElementView
+	for _, v := range allViews(w.Views) {
+		var evs []*design.ElementView
 		for _, ev := range v.ElementViews {
 			if ev.X != nil && *ev.X != 0 || ev.Y != nil && *ev.Y != 0 {
 				evs = append(evs, ev)
 			}
 		}
-		var rvs []*RelationshipView
+		var rvs []*design.RelationshipView
 		for _, rv := range v.RelationshipViews {
-			if rv.Position != nil || rv.Routing != RoutingUndefined || len(rv.Vertices) > 0 {
+			if rv.Position != nil || rv.Routing != design.RoutingUndefined || len(rv.Vertices) > 0 {
 				rvs = append(rvs, rv)
 			}
 		}
@@ -48,7 +57,7 @@ func (w *Workspace) Layout() WorkspaceLayout {
 
 // ApplyLayout merges the layout into the views of w.
 func (w *Workspace) ApplyLayout(layout WorkspaceLayout) {
-	for _, v := range w.Views.all() {
+	for _, v := range allViews(w.Views) {
 		if vl, ok := layout[v.Key]; ok {
 			for _, el := range v.ElementViews {
 				for _, vle := range vl.Elements {
@@ -102,6 +111,15 @@ func (w *Workspace) MergeLayout(remote *Workspace) {
 	w.ApplyLayout(wl)
 }
 
+// MarshalJSON guarantees the order of elements in generated JSON arrays that
+// correspond to sets.
+func (l *ViewLayout) MarshalJSON() ([]byte, error) {
+	sort.Slice(l.Elements, func(i, j int) bool { return l.Elements[i].ID < l.Elements[j].ID })
+	sort.Slice(l.Relationships, func(i, j int) bool { return l.Relationships[i].ID < l.Relationships[j].ID })
+	ll := _layout(*l)
+	return json.Marshal(&ll)
+}
+
 // buildIDMap returns a map that indexes the IDs of elements and relationships
 // of remote with the IDs of matching elements and relationships of local. Two
 // elements match if they have the same name in their scope (model for software
@@ -153,7 +171,7 @@ func buildIDMap(remote, local *Workspace) map[string]string {
 	for _, rp := range rm.People {
 		for _, lp := range lm.People {
 			if rp.Name == lp.Name {
-				buildRelationshipIDMap(rp.Rels, lp.Rels, idmap)
+				buildRelationshipIDMap(rp.Relationships, lp.Relationships, idmap)
 				break
 			}
 		}
@@ -161,15 +179,15 @@ func buildIDMap(remote, local *Workspace) map[string]string {
 	for _, rs := range rm.Systems {
 		for _, ls := range lm.Systems {
 			if rs.Name == ls.Name {
-				buildRelationshipIDMap(rs.Rels, ls.Rels, idmap)
+				buildRelationshipIDMap(rs.Relationships, ls.Relationships, idmap)
 				for _, rc := range rs.Containers {
 					for _, lc := range ls.Containers {
 						if rc.Name == lc.Name {
-							buildRelationshipIDMap(rc.Rels, lc.Rels, idmap)
+							buildRelationshipIDMap(rc.Relationships, lc.Relationships, idmap)
 							for _, rcmp := range rc.Components {
 								for _, lcmp := range lc.Components {
 									if rcmp.Name == lcmp.Name {
-										buildRelationshipIDMap(rcmp.Rels, lcmp.Rels, idmap)
+										buildRelationshipIDMap(rcmp.Relationships, lcmp.Relationships, idmap)
 									}
 								}
 							}
@@ -184,7 +202,7 @@ func buildIDMap(remote, local *Workspace) map[string]string {
 	return idmap
 }
 
-func buildRelationshipIDMap(remote, local []*Relationship, idmap map[string]string) {
+func buildRelationshipIDMap(remote, local []*design.Relationship, idmap map[string]string) {
 	for _, lrel := range local {
 		srcID := lrel.SourceID
 		if mapped, ok := idmap[srcID]; ok {
@@ -201,4 +219,27 @@ func buildRelationshipIDMap(remote, local []*Relationship, idmap map[string]stri
 			}
 		}
 	}
+}
+
+// allViews returns all the views in a single slice.
+func allViews(vs *Views) (vps []*design.ViewProps) {
+	for _, lv := range vs.LandscapeViews {
+		vps = append(vps, lv.ViewProps)
+	}
+	for _, cv := range vs.ContextViews {
+		vps = append(vps, cv.ViewProps)
+	}
+	for _, cv := range vs.ContainerViews {
+		vps = append(vps, cv.ViewProps)
+	}
+	for _, cv := range vs.ComponentViews {
+		vps = append(vps, cv.ViewProps)
+	}
+	for _, dv := range vs.DynamicViews {
+		vps = append(vps, dv.ViewProps)
+	}
+	for _, dv := range vs.DeploymentViews {
+		vps = append(vps, dv.ViewProps)
+	}
+	return
 }

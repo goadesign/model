@@ -2,16 +2,16 @@ package expr
 
 import (
 	"fmt"
+
+	"goa.design/model/design"
 )
 
 type (
 	// SoftwareSystem represents a software system.
 	SoftwareSystem struct {
 		*Element
-		// Location of element.
-		Location LocationKind `json:"location"`
-		// Containers list the containers within the software system.
-		Containers Containers `json:"containers,omitempty"`
+		Location   design.LocationKind
+		Containers Containers
 	}
 
 	// SoftwareSystems is a slice of software system that can be easily
@@ -29,8 +29,7 @@ func (s *SoftwareSystem) EvalName() string {
 
 // Finalize adds the 'SoftwareSystem' tag ands finalizes relationships.
 func (s *SoftwareSystem) Finalize() {
-	s.MergeTags("Element", "Software System")
-	s.Element.Finalize()
+	s.PrefixTags("Element", "Software System")
 }
 
 // Elements returns a slice of ElementHolder that contains the elements of s.

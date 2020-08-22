@@ -1,4 +1,4 @@
-package model
+package design
 
 import (
 	_ "goa.design/model/examples/nested/model/subsystem1"
@@ -7,7 +7,7 @@ import (
 	. "goa.design/model/dsl"
 )
 
-var _ = Workspace("Global workspace", "The model for all systems", func() {
+var _ = Design("Global workspace", "The model for all systems", func() {
 	// Add a new dependency for the person "User" defined in subsystem 1 to the
 	// software system defined in subsystem 2.
 	Person("User", "A user of both Subsystems.", func() {

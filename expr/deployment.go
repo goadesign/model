@@ -2,6 +2,8 @@ package expr
 
 import (
 	"fmt"
+
+	"goa.design/model/design"
 )
 
 type (
@@ -14,32 +16,19 @@ type (
 	// DeploymentNode describes a single deployment node.
 	DeploymentNode struct {
 		*Element
-		// Environment is the deployment environment in which this deployment
-		// node resides (e.g. "Development", "Live", etc).
-		Environment string `json:"environment"`
-		// Instances is the number of instances.
-		Instances *int `json:"instances,omitempty"`
-		// Children describe the child deployment nodes if any.
-		Children []*DeploymentNode `json:"children,omitempty"`
-		// Parent is the parent deployment node if any.
-		Parent *DeploymentNode `json:"-"`
-		// InfrastructureNodes describe the infrastructure nodes (load
-		// balancers, firewall etc.)
-		InfrastructureNodes []*InfrastructureNode `json:"infrastructureNodes,omitempty"`
-		// ContainerInstances describe instances of containers deployed in
-		// deployment node.
-		ContainerInstances []*ContainerInstance `json:"containerInstances,omitempty"`
+		Parent              *DeploymentNode
+		Children            []*DeploymentNode
+		InfrastructureNodes []*InfrastructureNode
+		ContainerInstances  []*ContainerInstance
+		Instances           *int
+		Environment         string
 	}
 
 	// InfrastructureNode describes an infrastructure node.
 	InfrastructureNode struct {
 		*Element
-		// Parent deployment node.
-		Parent *DeploymentNode `json:"-"`
-		// Environment is the deployment environment in which this
-		// infrastructure node resides (e.g. "Development", "Live",
-		// etc).
-		Environment string `json:"environment"`
+		Parent      *DeploymentNode
+		Environment string
 	}
 
 	// ContainerInstance describes an instance of a container.
@@ -47,32 +36,24 @@ type (
 		// cheating a bit: a ContainerInstance does not have a name,
 		// description, technology or URL.
 		*Element
-		// Parent deployment node.
-		Parent *DeploymentNode `json:"-"`
-		// ID of container that is instantiated.
-		ContainerID string `json:"containerId"`
-		// InstanceID is the number/index of this instance.
-		InstanceID int `json:"instanceId"`
-		// Environment is the deployment environment of this instance.
-		Environment string `json:"environment"`
-		// HealthChecks is the set of HTTP-based health checks for this
-		// container instance.
-		HealthChecks []*HealthCheck `json:"healthChecks,omitempty"`
+		Parent       *DeploymentNode
+		Container    *Container
+		HealthChecks []*HealthCheck
+		ContainerID  string
+		InstanceID   int
+		Environment  string
 	}
 
+	// InfrastructureNodes is a slice of infrastructure nodes that can be
+	// converted into a slice of ElementHolder.
+	InfrastructureNodes []*InfrastructureNode
+
+	// ContainerInstances is a slice of container instances that can be
+	// converted into a slice of ElementHolder.
+	ContainerInstances []*ContainerInstance
+
 	// HealthCheck is a HTTP-based health check.
-	HealthCheck struct {
-		// Name of health check.
-		Name string `json:"name"`
-		// Health check URL/endpoint.
-		URL string `json:"url"`
-		// Polling interval, in seconds.
-		Interval int `json:"interval"`
-		// Timeout after which health check is deemed as failed, in milliseconds.
-		Timeout int `json:"timeout"`
-		// Set of name-value pairs corresponding to HTTP headers to be sent with request.
-		Headers map[string]string `json:"headers"`
-	}
+	HealthCheck design.HealthCheck
 )
 
 // EvalName returns the generic expression name used in error messages.
@@ -85,8 +66,7 @@ func (d *DeploymentNode) EvalName() string { return fmt.Sprintf("deployment node
 
 // Finalize adds the 'Deployment Node' tag ands finalizes relationships.
 func (d *DeploymentNode) Finalize() {
-	d.MergeTags("Element", "Deployment Node")
-	d.Element.Finalize()
+	d.PrefixTags("Element", "Deployment Node")
 }
 
 // Child returns the child deployment node with the given name if any,
@@ -114,9 +94,9 @@ func (d *DeploymentNode) InfrastructureNode(name string) *InfrastructureNode {
 // ContainerInstance returns the container instance for the given container with
 // the given instance ID if any, nil otherwise. container must be an instance of
 // Container or the name of a container.
-func (d *DeploymentNode) ContainerInstance(container *Container, instanceID int) *ContainerInstance {
+func (d *DeploymentNode) ContainerInstance(containerID string, instanceID int) *ContainerInstance {
 	for _, ci := range d.ContainerInstances {
-		if ci.ContainerID == container.ID && ci.InstanceID == instanceID {
+		if ci.ContainerID == containerID && ci.InstanceID == instanceID {
 			return ci
 		}
 	}
@@ -192,7 +172,7 @@ func (d *DeploymentNode) AddInfrastructureNode(n *InfrastructureNode) *Infrastru
 // AddContainerInstance returns the new or merged container instance.
 func (d *DeploymentNode) AddContainerInstance(ci *ContainerInstance) *ContainerInstance {
 	c := Registry[ci.ContainerID].(*Container)
-	existing := d.ContainerInstance(c, ci.InstanceID)
+	existing := d.ContainerInstance(c.ID, ci.InstanceID)
 	if existing == nil {
 		Identify(ci)
 		d.ContainerInstances = append(d.ContainerInstances, ci)
@@ -212,12 +192,13 @@ func (d *DeploymentNode) AddContainerInstance(ci *ContainerInstance) *ContainerI
 }
 
 // EvalName returns the generic expression name used in error messages.
-func (i *InfrastructureNode) EvalName() string { return fmt.Sprintf("infrastructure node %q", i.Name) }
+func (i *InfrastructureNode) EvalName() string {
+	return fmt.Sprintf("infrastructure node %q", i.Name)
+}
 
 // Finalize adds the 'Infrastructure Node' tag ands finalizes relationships.
 func (i *InfrastructureNode) Finalize() {
-	i.MergeTags("Element", "Infrastructure Node")
-	i.Element.Finalize()
+	i.PrefixTags("Element", "Infrastructure Node")
 }
 
 // EvalName returns the generic expression name used in error messages.
@@ -229,35 +210,30 @@ func (ci *ContainerInstance) EvalName() string {
 	return fmt.Sprintf("instance %d of %s", ci.InstanceID, n)
 }
 
-// Finalize removes the name value as it should not appear in the final JSON. It
-// also adds all the implied relationships and the "Container Instance" tag if
-// not present.
+// Finalize adds the "Container Instance" tag if not present.
 func (ci *ContainerInstance) Finalize() {
-	ci.Name = ""
-	c := Registry[ci.ContainerID].(*Container)
-	for _, r := range c.Rels {
-		dc, ok := Registry[r.FindDestination().ID].(*Container)
-		if !ok {
-			continue
-		}
-		for _, e := range Registry {
-			eci, ok := e.(*ContainerInstance)
-			if !ok {
-				continue
-			}
-			if eci.ContainerID == dc.ID {
-				rc := r.Dup(ci.ID, eci.ID)
-				rc.Destination = eci.Element
-				rc.LinkedRelationshipID = r.ID
-				ci.Rels = append(ci.Rels, rc)
-			}
-		}
-	}
-	ci.MergeTags("Container Instance")
-	ci.Element.Finalize()
+	ci.PrefixTags("Container Instance")
 }
 
 // EvalName returns the generic expression name used in error messages.
 func (hc *HealthCheck) EvalName() string {
 	return fmt.Sprintf("health check %q", hc.Name)
+}
+
+// Elements returns a slice of ElementHolder that contains the elements of inf.
+func (inf InfrastructureNodes) Elements() []ElementHolder {
+	res := make([]ElementHolder, len(inf))
+	for i, cc := range inf {
+		res[i] = cc
+	}
+	return res
+}
+
+// Elements returns a slice of ElementHolder that contains the elements of ci.
+func (ci ContainerInstances) Elements() []ElementHolder {
+	res := make([]ElementHolder, len(ci))
+	for i, cc := range ci {
+		res[i] = cc
+	}
+	return res
 }

@@ -1,30 +1,37 @@
 package expr
 
 import (
+	"fmt"
+	"strings"
+
 	"goa.design/goa/v3/eval"
 )
 
 type (
-	// Enterprise describes a named enterprise / organization.
-	Enterprise struct {
-		// Name of enterprise.
-		Name string `json:"name"`
-	}
-
 	// Model describes a software architecture model.
 	Model struct {
-		// Enterprise associated with model if any.
-		Enterprise *Enterprise `json:"enterprise,omitempty"`
-		// People lists Person elements.
-		People People `json:"people,omitempty"`
-		// Systems lists Software System elements.
-		Systems SoftwareSystems `json:"softwareSystems,omitempty"`
-		// DeploymentNodes list the deployment nodes.
-		DeploymentNodes []*DeploymentNode `json:"deploymentNodes,omitempty"`
-		// AddImpliedRelationships adds implied relationships automatically.
-		AddImpliedRelationships bool `json:"-"`
+		Enterprise              string
+		People                  People
+		Systems                 SoftwareSystems
+		DeploymentNodes         []*DeploymentNode
+		AddImpliedRelationships bool
 	}
 )
+
+// Parent returns the parent scope for the given element, nil if eh is a Person
+// or SoftwareSystem.
+func Parent(eh ElementHolder) ElementHolder {
+	switch e := eh.(type) {
+	case *SoftwareSystem, *Person:
+		return nil
+	case *Container:
+		return e.System
+	case *Component:
+		return e.Container
+	default:
+		panic(fmt.Sprintf("unknown element type %T", e)) // bug
+	}
+}
 
 // EvalName is the qualified name of the DSL expression.
 func (m *Model) EvalName() string { return "model" }
@@ -59,27 +66,44 @@ func (m *Model) Validate() error {
 			}
 		}
 	}
+
+	// Finalize all relationship destination now that the DSL has been executed.
+	IterateRelationships(func(r *Relationship) {
+		if r.Destination != nil {
+			return
+		}
+		// Relationship was created with Uses and used one or more strings to
+		// identify the destination.
+		eh, err := m.FindElement(Parent(Registry[r.Source.ID].(ElementHolder)), r.DestinationPath)
+		if err != nil {
+			verr.AddError(r, err)
+			return
+		}
+		r.Destination = eh.GetElement()
+	})
+
 	return verr
 }
 
-// Finalize add all implied relationships if needed.
+// Finalize adds all implied relationships if needed.
 func (m *Model) Finalize() {
 	if !m.AddImpliedRelationships {
 		return
 	}
-	for _, elem := range Registry {
-		r, ok := elem.(*Relationship)
-		if !ok {
-			continue
+	Iterate(func(e interface{}) {
+		switch a := e.(type) {
+		case *Relationship:
+			switch s := Registry[a.Source.ID].(type) {
+			case *Container:
+				addMissingRelationships(s.System.Element, a.Destination, a)
+			case *Component:
+				addMissingRelationships(s.Container.Element, a.Destination, a)
+				addMissingRelationships(s.Container.System.Element, a.Destination, a)
+			}
+		case *ContainerInstance:
+			addImpliedContainerInstanceRelationships(a)
 		}
-		switch s := Registry[r.SourceID].(type) {
-		case *Container:
-			m.addMissingRelationships(s.System.Element, r.FindDestination().ID, r)
-		case *Component:
-			m.addMissingRelationships(s.Container.Element, r.FindDestination().ID, r)
-			m.addMissingRelationships(s.Container.System.Element, r.FindDestination().ID, r)
-		}
-	}
+	})
 }
 
 // Person returns the person with the given name if any, nil otherwise.
@@ -112,6 +136,76 @@ func (m *Model) DeploymentNode(name string) *DeploymentNode {
 		}
 	}
 	return nil
+}
+
+// FindElement finds the element with the given path in the given scope. The path must be one of:
+//
+//    - "<Person>", "<SoftwareSystem>", "<SoftwareSystem>/<Container>" or "<SoftwareSystem>/<Container>/<Component>"
+//    - "<Container>" (if container is a child of the software system scope)
+//    - "<Component>" (if component is a child of the container scope)
+//    - "<Container>/<Component>" (if container is a child of the software system scope)
+//
+// The scope may be nil in which case the path must be rooted with a top level
+// element (person or software system).
+func (m *Model) FindElement(scope ElementHolder, path string) (eh ElementHolder, err error) {
+	elems := strings.Split(path, "/")
+	switch len(elems) {
+	case 1:
+		switch s := scope.(type) {
+		case *SoftwareSystem:
+			if c := s.Container(path); c != nil {
+				eh = c
+			}
+		case *Container:
+			if c := s.Component(path); c != nil {
+				eh = c
+			}
+		}
+		if eh == nil {
+			if p := m.Person(path); p != nil {
+				eh = p
+			} else if sys := m.SoftwareSystem(path); sys != nil {
+				eh = sys
+			} else {
+				if scope == nil {
+					return nil, fmt.Errorf("%q does not match the name of a person, a software system or the path to container or component in scope", path)
+				}
+				return nil, fmt.Errorf("%q does not match the name of a person, a software system or an element in the scope of %q", path, scope.GetElement().Name)
+			}
+		}
+	case 2:
+		if s, ok := scope.(*SoftwareSystem); ok {
+			if c := s.Container(elems[0]); c != nil {
+				if cmp := c.Component(elems[1]); cmp != nil {
+					eh = cmp
+				}
+			}
+		}
+		if eh == nil {
+			if s := m.SoftwareSystem(elems[0]); s != nil {
+				if c := s.Container(elems[1]); c != nil {
+					eh = c
+				}
+			}
+			if eh == nil {
+				return nil, fmt.Errorf("%q does not match the name of a software system and container or the name of a container and component in the scope of %q", path, scope.GetElement().Name)
+			}
+		}
+	case 3:
+		if s := m.SoftwareSystem(elems[0]); s != nil {
+			if c := s.Container(elems[1]); c != nil {
+				if cmp := c.Component(elems[2]); cmp != nil {
+					eh = cmp
+				}
+			}
+		}
+		if eh == nil {
+			return nil, fmt.Errorf("%q does not match the name of a software system, container and component", path)
+		}
+	default:
+		return nil, fmt.Errorf("too many colons in path")
+	}
+	return eh, nil
 }
 
 // AddPerson adds the given person to the model. If there is already a person
@@ -196,41 +290,47 @@ func (m *Model) AddDeploymentNode(d *DeploymentNode) *DeploymentNode {
 	return existing
 }
 
-// defined in the new person. It merges relationships.
-// addRelationshioIfNotExsists adds relationships from src to element with ID
-// destID and its parents (container system software and component container)
-// based on the properties of existing. It only adds a relationship if one
-// doesn't already exist with the same description.
-func (m *Model) addMissingRelationships(src *Element, destID string, existing *Relationship) {
-	for _, r := range src.Rels {
-		if r.FindDestination().ID == destID && r.Description == existing.Description {
+// addMissingRelationships adds relationships from src to element with ID destID
+// and its parents (container system software and component container) based on
+// the properties of existing. It only adds a relationship if one doesn't
+// already exist with the same description.
+func addMissingRelationships(src, dest *Element, existing *Relationship) {
+	for _, r := range src.Relationships {
+		if r.Destination.ID == dest.ID && r.Description == existing.Description {
 			return
 		}
 	}
-	r := existing.Dup(src.ID, destID)
-	src.Rels = append(src.Rels, r)
+	r := existing.Dup(src, dest)
+	src.Relationships = append(src.Relationships, r)
 
 	// Add relationships to destination parents as well.
-	switch e := Registry[destID].(type) {
+	switch e := Registry[dest.ID].(type) {
 	case *Container:
-		m.addMissingRelationships(src, e.System.ID, existing)
+		addMissingRelationships(src, e.System.Element, existing)
 	case *Component:
-		m.addMissingRelationships(src, e.Container.ID, existing)
-		m.addMissingRelationships(src, e.Container.System.ID, existing)
+		addMissingRelationships(src, e.Container.Element, existing)
+		addMissingRelationships(src, e.Container.System.Element, existing)
 	}
 }
 
-// FindElement retrieves the element with the given name or nil if there isn't
-// one.
-func (m *Model) FindElement(n string) ElementHolder {
-	for _, x := range Registry {
-		eh, ok := x.(ElementHolder)
+func addImpliedContainerInstanceRelationships(ci *ContainerInstance) {
+	c := Registry[ci.ContainerID].(*Container)
+	for _, r := range c.Relationships {
+		dc, ok := Registry[r.Destination.ID].(*Container)
 		if !ok {
 			continue
 		}
-		if eh.GetElement().Name == n {
-			return eh
-		}
+		Iterate(func(e interface{}) {
+			eci, ok := e.(*ContainerInstance)
+			if !ok {
+				return
+			}
+			if eci.ContainerID == dc.ID {
+				rc := r.Dup(ci.Element, eci.Element)
+				rc.Destination = eci.Element
+				rc.LinkedRelationshipID = r.ID
+				ci.Relationships = append(ci.Relationships, rc)
+			}
+		})
 	}
-	return nil
 }

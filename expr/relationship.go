@@ -1,125 +1,66 @@
 package expr
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
+
+	"goa.design/model/design"
 )
 
 type (
 	// Relationship describes a uni-directional relationship between two elements.
 	Relationship struct {
-		// ID of relationship.
-		ID string `json:"id"`
-		// Description of relationship if any.
-		Description string `json:"description"`
-		// Tags attached to relationship as comma separated list if any.
-		Tags string `json:"tags,omitempty"`
-		// URL where more information can be found.
-		URL string `json:"url,omitempty"`
-		// SourceID is the ID of the source element.
-		SourceID string `json:"sourceId"`
-		// DestinationID is ID the destination element.
-		DestinationID string `json:"destinationId"`
-		// Technology associated with relationship.
-		Technology string `json:"technology,omitempty"`
-		// InteractionStyle describes whether the interaction is synchronous or asynchronous
-		InteractionStyle InteractionStyleKind `json:"interactionStyle"`
-		// ID of container-container relationship upon which this container
-		// instance-container instance relationship is based.
-		LinkedRelationshipID string `json:"linkedRelationshipId,omitempty"`
-		// Source element.
-		Source *Element `json:"-"`
-		// Destination element.
-		Destination *Element `json:"-"`
-		// DestinationName element name.
-		DestinationName string `json:"-"`
+		ID               string
+		Source           *Element
+		Description      string
+		Technology       string
+		InteractionStyle design.InteractionStyleKind
+		Tags             string
+		URL              string
+
+		// DestinationPath is used to compute the destination after all DSL has
+		// completed execution.
+		DestinationPath string
+
+		// Destination is only guaranteed to be initialized after the DSL has
+		// been executed. It can be used in validations and finalizers.
+		Destination *Element
+
+		// LinkedRelationshipID is the ID of the relationship pointing to the
+		// container corresponding to the container instance with this
+		// relationship.
+		LinkedRelationshipID string
 	}
-
-	// InteractionStyleKind is the enum for possible interaction styles.
-	InteractionStyleKind int
-)
-
-const (
-	// InteractionUndefined means no interaction style specified in design.
-	InteractionUndefined InteractionStyleKind = iota
-	// InteractionSynchronous describes a synchronous interaction.
-	InteractionSynchronous
-	// InteractionAsynchronous describes an asynchronous interaction.
-	InteractionAsynchronous
 )
 
 // EvalName is the qualified name of the expression.
 func (r *Relationship) EvalName() string {
-	var src, dest = "unknown source", "unknown destination"
+	var src, dest = "<unknown source>", "<unknown destination>"
 	if r.Source != nil {
 		src = r.Source.Name
 	}
-	if r.FindDestination() != nil {
+	if r.Destination != nil {
 		dest = r.Destination.Name
 	}
-	return fmt.Sprintf("%s [%s -> %s]", r.Description, src, dest)
+	return fmt.Sprintf("relationship %q [%s -> %s]", r.Description, src, dest)
 }
 
-// Validate makes sure the named destination exists.
-func (r *Relationship) Validate() error {
-	if r.FindDestination() == nil {
-		return fmt.Errorf("could not find relationship destination %q", r.DestinationName)
-	}
-	return nil
-}
-
-// Finalize computes the destinations when name is used to define relationship.
+// Finalize computes the destination and adds the "Relationship" tag.
 func (r *Relationship) Finalize() {
 	r.MergeTags("Relationship")
-	r.FindDestination()
-}
-
-// FindDestination computes the relationship destination.
-func (r *Relationship) FindDestination() *Element {
-	if r.Destination != nil {
-		return r.Destination
-	}
-	srcDepl := false
-	switch Registry[r.Source.ID].(type) {
-	case *DeploymentNode, *InfrastructureNode, *ContainerInstance:
-		srcDepl = true
-	}
-	for _, e := range Registry {
-		eh, ok := e.(ElementHolder)
-		if !ok {
-			continue
-		}
-		destDepl := false
-		switch e.(type) {
-		case *DeploymentNode, *InfrastructureNode, *ContainerInstance:
-			destDepl = true
-		}
-		if (srcDepl || destDepl) && (!srcDepl || !destDepl) {
-			continue
-		}
-		ee := eh.GetElement()
-		if ee.Name == r.DestinationName {
-			r.Destination = ee
-			r.DestinationID = ee.ID
-			return ee
-		}
-	}
-	return nil
 }
 
 // Dup creates a new relationship with identical description, tags, URL,
 // technology and interaction style as r. Dup also creates a new ID for the
 // result.
-func (r *Relationship) Dup(newSrcID, newDestID string) *Relationship {
+func (r *Relationship) Dup(newSrc, newDest *Element) *Relationship {
 	dup := &Relationship{
-		SourceID:         newSrcID,
-		DestinationID:    newDestID,
-		Description:      r.Description,
+		Source:           newSrc,
+		InteractionStyle: r.InteractionStyle,
 		Tags:             r.Tags,
 		URL:              r.URL,
+		Destination:      newDest,
+		Description:      r.Description,
 		Technology:       r.Technology,
-		InteractionStyle: r.InteractionStyle,
 	}
 	Identify(dup)
 	return dup
@@ -128,36 +69,4 @@ func (r *Relationship) Dup(newSrcID, newDestID string) *Relationship {
 // MergeTags adds the given tags. It skips tags already present in e.Tags.
 func (r *Relationship) MergeTags(tags ...string) {
 	r.Tags = mergeTags(r.Tags, tags)
-}
-
-// MarshalJSON replaces the constant value with the proper string value.
-func (i InteractionStyleKind) MarshalJSON() ([]byte, error) {
-	buf := bytes.NewBufferString(`"`)
-	switch i {
-	case InteractionSynchronous:
-		buf.WriteString("Synchronous")
-	case InteractionAsynchronous:
-		buf.WriteString("Asynchronous")
-	case InteractionUndefined:
-		buf.WriteString("Undefined")
-	}
-	buf.WriteString(`"`)
-	return buf.Bytes(), nil
-}
-
-// UnmarshalJSON sets the constant from its JSON representation.
-func (i *InteractionStyleKind) UnmarshalJSON(data []byte) error {
-	var val string
-	if err := json.Unmarshal(data, &val); err != nil {
-		return err
-	}
-	switch val {
-	case "Synchronous":
-		*i = InteractionSynchronous
-	case "Asynchronous":
-		*i = InteractionAsynchronous
-	case "Undefined":
-		*i = InteractionUndefined
-	}
-	return nil
 }

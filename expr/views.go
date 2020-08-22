@@ -4,102 +4,79 @@ import (
 	"fmt"
 
 	"goa.design/goa/v3/eval"
-	model "goa.design/model/pkg"
+	"goa.design/model/design"
 )
 
 type (
 	// Views is the container for all views.
 	Views struct {
-		// LandscapeViewss describe the system landscape views.
-		LandscapeViews []*LandscapeView `json:"systemLandscapeViews,omitempty"`
-		// ContextViews lists the system context views.
-		ContextViews []*ContextView `json:"systemContextViews,omitempty"`
-		// ContainerViews lists the container views.
-		ContainerViews []*ContainerView `json:"containerViews,omitempty"`
-		// ComponentViews lists the component views.
-		ComponentViews []*ComponentView `json:"componentViews,omitempty"`
-		// DynamicViews lists the dynamic views.
-		DynamicViews []*DynamicView `json:"dynamicViews,omitempty"`
-		// DeploymentViews lists the deployment views.
-		DeploymentViews []*DeploymentView `json:"deploymentViews,omitempty"`
-		// FilteredViews lists the filtered views.
-		FilteredViews []*FilteredView `json:"filteredViews,omitempty"`
-		// Styles contains the element and relationship styles.
-		Configuration *Configuration `json:"configuration,omitempty"`
-		// DSL to be run once all elements have been evaluated.
-		DSLFunc func() `json:"-"`
+		LandscapeViews  []*LandscapeView
+		ContextViews    []*ContextView
+		ContainerViews  []*ContainerView
+		ComponentViews  []*ComponentView
+		DynamicViews    []*DynamicView
+		DeploymentViews []*DeploymentView
+		FilteredViews   []*FilteredView
+		Styles          *Styles
+		DSLFunc         func()
 	}
 
 	// LandscapeView describes a system landscape view.
 	LandscapeView struct {
 		*ViewProps
-		// EnterpriseBoundaryVisible specifies whether the enterprise boundary
-		// (to differentiate internal elements from external elements) should be
-		// visible on the resulting diagram.
-		EnterpriseBoundaryVisible *bool `json:"enterpriseBoundaryVisible,omitempty"`
+		EnterpriseBoundaryVisible *bool
 	}
 
 	// ContextView describes a system context view.
 	ContextView struct {
 		*ViewProps
-		// EnterpriseBoundaryVisible specifies whether the enterprise boundary
-		// (to differentiate internal elements from external elements) should be
-		// visible on the resulting diagram.
-		EnterpriseBoundaryVisible *bool `json:"enterpriseBoundaryVisible,omitempty"`
-		// SoftwareSystemID is the ID of the software system this view with is
-		// associated with.
-		SoftwareSystemID string `json:"softwareSystemId"`
+		EnterpriseBoundaryVisible *bool
+		SoftwareSystemID          string
 	}
 
 	// ContainerView describes a container view for a specific software
 	// system.
 	ContainerView struct {
 		*ViewProps
-		// Specifies whether software system boundaries should be visible for
-		// "external" containers (those outside the software system in scope).
-		SystemBoundariesVisible *bool `json:"externalSoftwareSystemBoundariesVisible,omitempty"`
-		// SoftwareSystemID is the ID of the software system this view with is
-		// associated with.
-		SoftwareSystemID string `json:"softwareSystemId"`
+		SystemBoundariesVisible *bool
+		SoftwareSystemID        string
+		AddInfluencers          bool
 	}
 
 	// ComponentView describes a component view for a specific container.
 	ComponentView struct {
 		*ViewProps
-		// Specifies whether container boundaries should be visible for
-		// "external" containers (those outside the container in scope).
-		ContainerBoundariesVisible *bool `json:"externalContainersBoundariesVisible,omitempty"`
-		// The ID of the container this view is associated with.
-		ContainerID string `json:"containerId"`
+		ContainerBoundariesVisible *bool
+		ContainerID                string
 	}
 
 	// DynamicView describes a dynamic view for a specified scope.
 	DynamicView struct {
 		*ViewProps
-		// ElementID is the identifier of the element this view is associated with.
-		ElementID string `json:"elementId"`
+		ElementID string
 	}
 
 	// DeploymentView describes a deployment view.
 	DeploymentView struct {
 		*ViewProps
-		// SoftwareSystemID is the ID of the software system this view with is
-		// associated with if any.
-		SoftwareSystemID string `json:"softwareSystemId,omitempty"`
-		// The name of the environment that this deployment view is for (e.g.
-		// "Development", "Live", etc).
-		Environment string `json:"environment"`
+		SoftwareSystemID string
+		Environment      string
 	}
+
+	// Styles describes the styles for a view.
+	Styles struct {
+		Elements      []*ElementStyle
+		Relationships []*RelationshipStyle
+	}
+
+	// ElementStyle defines an element style.
+	ElementStyle design.ElementStyle
+
+	// RelationshipStyle defines a relationship style.
+	RelationshipStyle design.RelationshipStyle
 
 	// View is the common interface for all views.
 	View interface {
-		ElementView(string) *ElementView
-		RelationshipView(string) *RelationshipView
-		AllTagged(tag string) []*Element
-		AllUnreachable(e ElementHolder) []*Element
-		AllUnrelated() []*Element
-		AddRelationships(...*Relationship)
-		Remove(id string)
 		Props() *ViewProps
 	}
 
@@ -107,7 +84,7 @@ type (
 	// elements and animations explicitly.
 	ViewAdder interface {
 		AddElements(...ElementHolder) error
-		AddAnimation([]ElementHolder) error
+		AddAnimationStep(*AnimationStep) error
 	}
 )
 
@@ -128,26 +105,6 @@ var (
 	_ ViewAdder = &DeploymentView{}
 )
 
-// DependsOn tells the eval engine to run the elements DSL first.
-func (vs *Views) DependsOn() []eval.Root { return []eval.Root{Root} }
-
-// WalkSets iterates over the views.
-func (vs *Views) WalkSets(walk eval.SetWalker) {
-	walk([]eval.Expression{vs})
-}
-
-// Packages returns the import path to the Go packages that make
-// up the DSL. This is used to skip frames that point to files
-// in these packages when computing the location of errors.
-func (vs *Views) Packages() []string {
-	return []string{
-		"goa.design/model/expr",
-		"goa.design/model/dsl",
-		fmt.Sprintf("goa.design/model@%s/expr", model.Version()),
-		fmt.Sprintf("goa.design/model@%s/dsl", model.Version()),
-	}
-}
-
 // DSL returns the DSL to execute.
 func (vs *Views) DSL() func() {
 	return vs.DSLFunc
@@ -162,9 +119,12 @@ func (vs *Views) EvalName() string {
 // sure all animation steps have elements.
 func (vs *Views) Validate() error {
 	verr := new(eval.ValidationErrors)
+
+	// Make sure views don't include elements that are not allowed for that type
+	// of view.
 	checkElements := func(title string, evs []*ElementView, allowContainers bool) {
 		for _, ev := range evs {
-			switch Registry[ev.ID].(type) {
+			switch Registry[ev.Element.ID].(type) {
 			case *SoftwareSystem, *Person:
 				// all good
 			case *Container:
@@ -190,14 +150,40 @@ func (vs *Views) Validate() error {
 		checkElements("container views", cv.ElementViews, true)
 	}
 
-	for _, v := range vs.all() {
-		for i, s := range v.Animations {
-			if len(s.ElementIDs) == 0 {
-				var suf string
-				if v.Key != "" {
-					suf = fmt.Sprintf(" with key %q", v.Key)
+	for _, view := range vs.All() {
+		v := view.Props()
+
+		// Map relationship views created explicitly to model relationships.
+		for _, rv := range v.RelationshipViews {
+			srcID := rv.Source.ID
+			destID := rv.Destination.ID
+			desc := rv.Description
+			IterateRelationships(func(r *Relationship) {
+				if r.Destination == nil {
+					return // a validation error was already created in model.Validate
 				}
-				verr.AddError(v, fmt.Errorf("animation at index %d in view%s introduces no new elements", i, suf))
+				if r.Source.ID == srcID && r.Destination.ID == destID && r.Description == desc {
+					rv.RelationshipID = r.ID
+				}
+			})
+			if rv.RelationshipID == "" {
+				verr.Add(rv, "could not find relationship %q [%s -> %s] to add to view %q", rv.Description, rv.Source.Name, rv.Destination.Name, v.Key)
+			}
+		}
+
+		// Make sure all elements used to remove unreachable are in scope.
+		for _, e := range v.RemoveUnreachable {
+			validateElementInView(v, e, "RemoveUnreachable", verr)
+		}
+
+		for i, s := range v.AnimationSteps {
+			// Make sure all animation steps define at least one element.
+			if len(s.Elements) == 0 {
+				verr.AddError(v, fmt.Errorf("animation step %d in view %q introduces no new elements", i, v.Key))
+			}
+			// Make sure all animation step elements are in scope.
+			for _, eh := range s.Elements {
+				validateElementInView(v, eh.GetElement(), fmt.Sprintf("animation step %d", i), verr)
 			}
 		}
 	}
@@ -207,33 +193,52 @@ func (vs *Views) Validate() error {
 
 // Finalize relationships.
 func (vs *Views) Finalize() {
-	for _, vp := range vs.all() {
-		var rels []*Relationship
-		for _, x := range Registry {
-			r, ok := x.(*Relationship)
-			if !ok {
-				continue
-			}
-			for _, ev := range vp.ElementViews {
-				if r.SourceID == ev.ID {
-					if vp.ElementView(r.FindDestination().ID) != nil {
-						rels = append(rels, r)
-					}
-				}
-			}
+	// Add influencers to container views.
+	for _, view := range vs.ContainerViews {
+		if view.AddInfluencers {
+			addInfluencers(view)
 		}
-		addRelationships(vp, rels)
+	}
+
+	for _, view := range vs.All() {
+		vp := view.Props()
+
+		if vp.AddAll {
+			addAllElements(view)
+		} else if vp.AddDefault {
+			addDefaultElements(view)
+		}
+		for _, e := range vp.AddNeighbors {
+			addNeighbors(e, vp)
+		}
+		addMissingElementsAndRelationships(vp)
+		addAnimationStepRelationships(vp)
+
+		// Then remove elements and relationships that need to be removed
+		// explicitly.
+		for _, e := range vp.RemoveElements {
+			removeElements(vp, e)
+		}
+		for _, r := range vp.RemoveRelationships {
+			removeRelationship(vp, r)
+		}
+		for _, tag := range vp.RemoveTags {
+			removeElements(vp, tagged(vp, tag)...)
+		}
+		for _, e := range vp.RemoveUnreachable {
+			removeElements(vp, unreachable(vp, e)...)
+		}
+		if vp.RemoveUnrelated {
+			removeElements(vp, unrelated(vp)...)
+		}
 		for _, ev := range vp.ElementViews {
 			if ev.NoRelationship {
 				i := 0
 				for _, rv := range vp.RelationshipViews {
-					if rv.Relationship.SourceID != ev.ID && rv.Relationship.FindDestination().ID != ev.ID {
+					if rv.Source.ID != ev.Element.ID && rv.Destination.ID != ev.Element.ID {
 						vp.RelationshipViews[i] = rv
 						i++
 					}
-				}
-				for j := i; j < len(vp.RelationshipViews); j++ {
-					vp.RelationshipViews[j] = nil
 				}
 				vp.RelationshipViews = vp.RelationshipViews[:i]
 			}
@@ -241,25 +246,25 @@ func (vs *Views) Finalize() {
 	}
 }
 
-// all returns all the views in a single slice.
-func (vs Views) all() (vps []*ViewProps) {
+// All returns all the views in a single slice.
+func (vs Views) All() (vps []View) {
 	for _, lv := range vs.LandscapeViews {
-		vps = append(vps, lv.ViewProps)
+		vps = append(vps, lv)
 	}
 	for _, cv := range vs.ContextViews {
-		vps = append(vps, cv.ViewProps)
+		vps = append(vps, cv)
 	}
 	for _, cv := range vs.ContainerViews {
-		vps = append(vps, cv.ViewProps)
+		vps = append(vps, cv)
 	}
 	for _, cv := range vs.ComponentViews {
-		vps = append(vps, cv.ViewProps)
+		vps = append(vps, cv)
 	}
 	for _, dv := range vs.DynamicViews {
-		vps = append(vps, dv.ViewProps)
+		vps = append(vps, dv)
 	}
 	for _, dv := range vs.DeploymentViews {
-		vps = append(vps, dv.ViewProps)
+		vps = append(vps, dv)
 	}
 	return
 }
@@ -275,21 +280,14 @@ func (cv *LandscapeView) AddElements(ehs ...ElementHolder) error {
 	return nil
 }
 
-// AddRelationships adds the given relationships to the view if not already
-// present. It does nothing if the relationship source and destination are not
-// already in the view.
-func (cv *LandscapeView) AddRelationships(rels ...*Relationship) {
-	addRelationships(cv.ViewProps, rels)
-}
-
-// AddAnimation adds the given animation steps to the view.
-func (cv *LandscapeView) AddAnimation(ehs []ElementHolder) error {
-	return addAnimation(cv.ViewProps, ehs)
-}
-
-// Remove given element from view.
-func (cv *LandscapeView) Remove(id string) {
-	remove(cv.ViewProps, id)
+// AddAnimationStep adds the given animation step to the view.
+func (cv *LandscapeView) AddAnimationStep(s *AnimationStep) error {
+	for _, eh := range s.Elements {
+		if !isPS(eh) {
+			return fmt.Errorf("elements of type %T cannot be added to an animation step in a landscape view", eh)
+		}
+	}
+	return addAnimationStep(cv.ViewProps, s)
 }
 
 // AddElements adds the given elements to the view if not already present.
@@ -303,24 +301,14 @@ func (cv *ContextView) AddElements(ehs ...ElementHolder) error {
 	return nil
 }
 
-// AddRelationships adds the given relationships to the view if not already
-// present. It does nothing if the relationship source and destination are not
-// already in the view.
-func (cv *ContextView) AddRelationships(rels ...*Relationship) {
-	addRelationships(cv.ViewProps, rels)
-}
-
-// AddAnimation adds the given animation steps to the view.
-func (cv *ContextView) AddAnimation(ehs []ElementHolder) error {
-	return addAnimation(cv.ViewProps, ehs)
-}
-
-// Remove given element from view if not software system this view is for.
-func (cv *ContextView) Remove(id string) {
-	if id == cv.SoftwareSystemID {
-		return
+// AddAnimationStep adds the given animation step to the view.
+func (cv *ContextView) AddAnimationStep(s *AnimationStep) error {
+	for _, eh := range s.Elements {
+		if !isPS(eh) {
+			return fmt.Errorf("elements of type %T cannot be added to an animation step in a context view", eh)
+		}
 	}
-	remove(cv.ViewProps, id)
+	return addAnimationStep(cv.ViewProps, s)
 }
 
 // AddElements adds the given elements to the view if not already present.
@@ -334,21 +322,14 @@ func (cv *ContainerView) AddElements(ehs ...ElementHolder) error {
 	return nil
 }
 
-// AddRelationships adds the given relationships to the view if not already
-// present. It does nothing if the relationship source and destination are not
-// already in the view.
-func (cv *ContainerView) AddRelationships(rels ...*Relationship) {
-	addRelationships(cv.ViewProps, rels)
-}
-
-// AddAnimation adds the given animation steps to the view.
-func (cv *ContainerView) AddAnimation(ehs []ElementHolder) error {
-	return addAnimation(cv.ViewProps, ehs)
-}
-
-// Remove given element from view if not software system this view is for.
-func (cv *ContainerView) Remove(id string) {
-	remove(cv.ViewProps, id)
+// AddAnimationStep adds the given animation step to the view.
+func (cv *ContainerView) AddAnimationStep(s *AnimationStep) error {
+	for _, eh := range s.Elements {
+		if !isPSC(eh) {
+			return fmt.Errorf("elements of type %T cannot be added to an animation step in a container view", eh)
+		}
+	}
+	return addAnimationStep(cv.ViewProps, s)
 }
 
 // AddElements adds the given elements to the view if not already present.
@@ -362,281 +343,72 @@ func (cv *ComponentView) AddElements(ehs ...ElementHolder) error {
 	return nil
 }
 
-// AddRelationships adds the given relationships to the view if not already
-// present. It does nothing if the relationship source and destination are not
-// already in the view.
-func (cv *ComponentView) AddRelationships(rels ...*Relationship) {
-	addRelationships(cv.ViewProps, rels)
-}
-
-// AddAnimation adds the given animation steps to the view.
-func (cv *ComponentView) AddAnimation(ehs []ElementHolder) error {
-	return addAnimation(cv.ViewProps, ehs)
-}
-
-// Remove given element from view if not software system this view is for.
-func (cv *ComponentView) Remove(id string) {
-	if id == cv.ContainerID || id == Registry[cv.ContainerID].(*Container).System.ID {
-		return
+// AddAnimationStep adds the given animation step to the view.
+func (cv *ComponentView) AddAnimationStep(s *AnimationStep) error {
+	for _, eh := range s.Elements {
+		if !isPSCC(eh) {
+			return fmt.Errorf("elements of type %T cannot be added to an animation step in a component view", eh)
+		}
 	}
-	remove(cv.ViewProps, id)
-}
-
-// AddRelationships adds the given relationships to the view if not already
-// present. It does nothing if the relationship source and destination are not
-// already in the view.
-func (cv *DynamicView) AddRelationships(rels ...*Relationship) {
-	addRelationships(cv.ViewProps, rels)
-}
-
-// Remove given element from view.
-func (cv *DynamicView) Remove(id string) {
-	remove(cv.ViewProps, id)
+	return addAnimationStep(cv.ViewProps, s)
 }
 
 // AddElements adds the given elements to the view if not already present.
 func (dv *DeploymentView) AddElements(ehs ...ElementHolder) error {
 	var nodes []*DeploymentNode
 	for _, eh := range ehs {
-		n, ok := eh.(*DeploymentNode)
-		if !ok {
+		switch e := eh.(type) {
+		case *DeploymentNode:
+			if addDeploymentNodeChildren(dv, e) {
+				nodes = append(nodes, e)
+			}
+		case *ContainerInstance:
+			addElements(dv.ViewProps, e)
+			nodes = append(nodes, e.Parent)
+		case *InfrastructureNode:
+			addElements(dv.ViewProps, e)
+			nodes = append(nodes, e.Parent)
+		default:
 			return fmt.Errorf("elements of type %T cannot be added to deployment views", eh)
 		}
-		nodes = append(nodes, n)
 	}
 
+	// Add deployment node hierarchy.
 	for _, n := range nodes {
-		if addDeploymentNode(dv, n) {
-			p := n.Parent
-			for p != nil {
-				addElements(dv.ViewProps, p)
-				p = p.Parent
-			}
-		}
-	}
-
-	return nil
-}
-
-func addDeploymentNode(dv *DeploymentView, n *DeploymentNode) bool {
-	var nested bool
-	for _, inst := range n.ContainerInstances {
-		if dv.SoftwareSystemID == "" || Registry[inst.ContainerID].(*Container).System.ID == dv.SoftwareSystemID {
-			addElements(dv.ViewProps, inst)
-			nested = true
-		}
-	}
-	for _, inf := range n.InfrastructureNodes {
-		addElements(dv.ViewProps, inf)
-		nested = true
-	}
-	for _, c := range n.Children {
-		nested = nested || addDeploymentNode(dv, c)
-	}
-	if nested {
 		addElements(dv.ViewProps, n)
-	}
-	return nested
-}
-
-// AddRelationships adds the given relationships to the view if not already
-// present. It does nothing if the relationship source and destination are not
-// already in the view.
-func (dv *DeploymentView) AddRelationships(rels ...*Relationship) {
-	addRelationships(dv.ViewProps, rels)
-}
-
-// AddAnimation adds the given animation steps to the view.
-func (dv *DeploymentView) AddAnimation(ehs []ElementHolder) error {
-	return addAnimation(dv.ViewProps, ehs)
-}
-
-// Remove given deployment node from view.
-func (dv *DeploymentView) Remove(id string) {
-	n := Registry[id].(*DeploymentNode)
-	for _, ci := range n.ContainerInstances {
-		remove(dv.ViewProps, ci.ID)
-	}
-	for _, inf := range n.InfrastructureNodes {
-		remove(dv.ViewProps, inf.ID)
-	}
-	for _, c := range n.Children {
-		dv.Remove(c.ID)
-	}
-	remove(dv.ViewProps, id)
-}
-
-// addElements adds the given elements to the view if not already present.
-func addElements(v *ViewProps, ehs ...ElementHolder) {
-loop:
-	for _, eh := range ehs {
-		id := eh.GetElement().ID
-		for _, e := range v.ElementViews {
-			if e.ID == id {
-				continue loop
-			}
-		}
-		v.ElementViews = append(v.ElementViews, &ElementView{ID: id, Element: eh.GetElement()})
-	}
-}
-
-// addRelationships adds the given relationships to the view if not already
-// present. It also adds the relationship source and/or destination if they are
-// not already in the view.
-func addRelationships(v *ViewProps, rels []*Relationship) {
-loop:
-	for _, r := range rels {
-		for _, rv := range v.RelationshipViews {
-			if rv.ID == r.ID {
-				continue loop
-			}
-		}
-		var src, dest bool
-		for _, ev := range v.ElementViews {
-			if ev.ID == r.SourceID {
-				src = true
-				if dest {
-					break
-				}
-			}
-			if ev.ID == r.FindDestination().ID {
-				dest = true
-				if src {
-					break
-				}
-			}
-		}
-		if !src {
-			addElements(v, r.Source)
-		}
-		if !dest {
-			addElements(v, r.Destination)
-		}
-		v.RelationshipViews = append(v.RelationshipViews, &RelationshipView{
-			ID:           r.ID,
-			Relationship: r,
-		})
-	}
-}
-
-// addAnimation adds the animations to the view after normalizing their content.
-// It makes sure that all the elements are in the view, that each element is
-// only included in one animation step, that the relationships are initialized
-// and that any dependent deployment nodes is added.
-func addAnimation(v *ViewProps, ehs []ElementHolder) error {
-	var known []string
-	for _, s := range v.Animations {
-		known = append(known, s.ElementIDs...)
-	}
-	n := &Animation{Order: len(v.Animations) + 1}
-loop:
-	for _, e := range ehs {
-		if e == nil {
-			return fmt.Errorf("element not initialized")
-		}
-		id := e.GetElement().ID
-		if v.ElementView(id) == nil {
-			continue loop // item not in view, skip
-		}
-		for _, k := range known {
-			if k == id {
-				continue loop // item already in a step, skip
-			}
-		}
-
-		known = append(known, id)
-		n.ElementIDs = append(n.ElementIDs, id)
-		n.Elements = append(n.Elements, e)
-
-		// Add parent deployment nodes for infrastructure nodes
-		// and container instances.
-		var node *DeploymentNode
-		if inf, ok := e.(*InfrastructureNode); ok {
-			node = inf.Parent
-		} else if ci, ok := e.(*ContainerInstance); ok {
-			node = ci.Parent
-		}
-		for node != nil {
-			known = append(known, node.ID)
-			n.ElementIDs = append(n.ElementIDs, node.ID)
-			n.Elements = append(n.Elements, node)
-			node = node.Parent
-		}
-	}
-	if len(n.ElementIDs) == 0 {
-		return fmt.Errorf("none of the specified elements exist in this view or do not already appear in previous animation steps")
-	}
-
-	// Add relationships between new elements and elements in
-	// previous steps.
-	for _, rv := range v.RelationshipViews {
-		var newSrc, newDest, oldSrc, oldDest bool
-		for _, s := range v.Animations {
-			for _, id := range s.ElementIDs {
-				if id == rv.Relationship.SourceID {
-					oldSrc = true
-				} else if id == rv.Relationship.FindDestination().ID {
-					oldDest = true
-				}
-				if oldSrc && oldDest {
-					break
-				}
-			}
-			if oldSrc && oldDest {
-				break
-			}
-		}
-		for _, id := range n.ElementIDs {
-			if id == rv.Relationship.SourceID {
-				newSrc = true
-			} else if id == rv.Relationship.FindDestination().ID {
-				newDest = true
-			}
-			if newSrc && newDest {
-				break
-			}
-		}
-		if newSrc && oldDest || oldSrc && newDest {
-			n.Relationships = append(n.Relationships, rv.ID)
+		p := n.Parent
+		for p != nil {
+			addElements(dv.ViewProps, p)
+			p = p.Parent
 		}
 	}
 
-	v.Animations = append(v.Animations, n)
 	return nil
 }
 
-// removes the element with the given ID from the view if present.
-func remove(v *ViewProps, id string) {
-	idx := v.index(id)
-	if idx == -1 {
-		return
+// AddAnimationStep adds the given animation step to the view.
+func (dv *DeploymentView) AddAnimationStep(s *AnimationStep) error {
+	for _, eh := range s.Elements {
+		if !isDCI(eh) {
+			return fmt.Errorf("elements of type %T cannot be added to an animation step in a deployment view", eh)
+		}
 	}
-	v.ElementViews = append(v.ElementViews[:idx], v.ElementViews[idx+1:]...)
+	return addAnimationStep(dv.ViewProps, s)
+}
 
-	// Remove corresponding relationships.
-	var ids []string
-	for _, r := range v.RelationshipViews {
-		if r.Relationship.SourceID == id {
-			ids = append(ids, id)
-		} else if r.Relationship.FindDestination().ID == id {
-			ids = append(ids, id)
-		}
-	}
-	rvs := v.RelationshipViews
-	tmp := rvs[:0]
-	for _, r := range rvs {
-		remove := false
-		for _, id := range ids {
-			if r.ID == id {
-				remove = true
-				break
-			}
-		}
-		if !remove {
-			tmp = append(tmp, r)
-		}
-	}
-	v.RelationshipViews = tmp
+// EvalName returns the generic expression name used in error messages.
+func (c *Styles) EvalName() string {
+	return "styles"
+}
+
+// EvalName returns the generic expression name used in error messages.
+func (es *ElementStyle) EvalName() string {
+	return fmt.Sprintf("element style for tag %q", es.Tag)
+}
+
+// EvalName returns the generic expression name used in error messages.
+func (rs *RelationshipStyle) EvalName() string {
+	return fmt.Sprintf("relationship style for tag %q", rs.Tag)
 }
 
 // isPS returns true if element is a person or software system, false otherwise.
@@ -666,4 +438,107 @@ func isPSCC(eh ElementHolder) bool {
 	}
 	_, ok := eh.(*Component)
 	return ok
+}
+
+// isDCI returns true if element is a deployment node, a container instance or
+// an infrastructure node, false otherwise.
+func isDCI(eh ElementHolder) bool {
+	switch eh.(type) {
+	case *DeploymentNode, *ContainerInstance, *InfrastructureNode:
+		return true
+	}
+	return false
+}
+
+// addElements adds the given elements to the view if not already present.
+func addElements(v *ViewProps, ehs ...ElementHolder) {
+loop:
+	for _, eh := range ehs {
+		e := eh.GetElement()
+		for _, ev := range v.ElementViews {
+			if ev.Element.ID == e.ID {
+				continue loop
+			}
+		}
+		v.ElementViews = append(v.ElementViews, &ElementView{Element: e})
+	}
+}
+
+// addDeploymentNodeChildren adds the children, infrastructure nodes and container
+// instances of n to dv and returns true if anything was added, false otherwise.
+func addDeploymentNodeChildren(dv *DeploymentView, n *DeploymentNode) bool {
+	var nested bool
+	for _, inst := range n.ContainerInstances {
+		if dv.SoftwareSystemID == "" || Registry[inst.ContainerID].(*Container).System.ID == dv.SoftwareSystemID {
+			addElements(dv.ViewProps, inst)
+			nested = true
+		}
+	}
+	for _, inf := range n.InfrastructureNodes {
+		addElements(dv.ViewProps, inf)
+		nested = true
+	}
+	for _, c := range n.Children {
+		nested = nested || addDeploymentNodeChildren(dv, c)
+	}
+	return nested
+}
+
+// addAnimation adds the animations to the view after normalizing their content.
+// It makes sure that all the elements are in the view, that each element is
+// only included in one animation step, that the relationships are initialized
+// and that any dependent deployment nodes is added.
+func addAnimationStep(v *ViewProps, s *AnimationStep) error {
+	var known []ElementHolder
+	for _, as := range v.AnimationSteps {
+		known = append(known, as.Elements...)
+	}
+	s.Order = len(v.AnimationSteps) + 1
+	var filtered []ElementHolder
+loop:
+	for _, e := range s.Elements {
+		if e == nil {
+			return fmt.Errorf("element not initialized")
+		}
+		id := e.GetElement().ID
+		for _, k := range known {
+			if k.GetElement().ID == id {
+				continue loop // item already in a step, skip
+			}
+		}
+		known = append(known, e)
+		filtered = append(filtered, e)
+
+		// Add parent deployment nodes for infrastructure nodes
+		// and container instances.
+		var node *DeploymentNode
+		if inf, ok := e.(*InfrastructureNode); ok {
+			node = inf.Parent
+		} else if ci, ok := e.(*ContainerInstance); ok {
+			node = ci.Parent
+		}
+		for node != nil {
+			known = append(known, node)
+			filtered = append(filtered, node)
+			node = node.Parent
+		}
+	}
+	if len(filtered) == 0 {
+		return fmt.Errorf("none of the specified elements exist in this view or do not already appear in previous animation steps")
+	}
+	s.Elements = filtered
+
+	v.AnimationSteps = append(v.AnimationSteps, s)
+	return nil
+}
+
+// validateElementInView makes sure there is an ElementView corresponding to e
+// in v. It adds an error to verr using title if that's not the case.
+func validateElementInView(v *ViewProps, e *Element, title string, verr *eval.ValidationErrors) {
+	for _, ev := range v.ElementViews {
+		if ev.Element.ID == e.ID {
+			return
+		}
+	}
+	verr.Add(v, "%T %q used in %s not added to the view %q", e, e.Name, title, v.Key)
 }

@@ -4,10 +4,36 @@ import (
 	"fmt"
 	"hash/fnv"
 	"math/big"
+	"sort"
 )
 
 // Registry captures all the elements, people and relationships.
 var Registry = make(map[string]interface{})
+
+// Iterate iterates through all elements, people and relationships in the
+// registry in a consistent order.
+func Iterate(visitor func(elem interface{})) {
+	keys := make([]string, len(Registry))
+	i := 0
+	for k := range Registry {
+		keys[i] = k
+		i++
+	}
+	sort.Strings(keys)
+	for _, k := range keys {
+		visitor(Registry[k])
+	}
+}
+
+// IterateRelationships iterates through all relationships in the registry in a
+// consistent order.
+func IterateRelationships(visitor func(r *Relationship)) {
+	Iterate(func(e interface{}) {
+		if r, ok := e.(*Relationship); ok {
+			visitor(r)
+		}
+	})
+}
 
 // Identify sets the ID field of the given element or relationship and registers
 // it with the global registery. The algorithm first compute a unique moniker
@@ -43,7 +69,13 @@ func Identify(element interface{}) {
 		e.ID = idify(e.Parent.ID + ":" + e.ContainerID)
 		Registry[e.ID] = e
 	case *Relationship:
-		e.ID = idify(e.SourceID + ":" + e.DestinationID + ":" + e.Description)
+		var dest string
+		if e.Destination != nil {
+			dest = e.Destination.ID
+		} else {
+			dest = e.DestinationPath
+		}
+		e.ID = idify(e.Source.ID + ":" + dest + ":" + e.Description)
 		Registry[e.ID] = e
 	default:
 		panic(fmt.Sprintf("element of type %T does not have an ID", element)) // bug

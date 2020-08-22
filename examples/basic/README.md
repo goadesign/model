@@ -6,9 +6,9 @@ in the README of the repo.
 ## Usage
 
 The example can be uploaded to the Structurizr service using the `stz`
-command line tool (this the repo
+command line tool (see the
 [README](https://github.com/goadesign/model/tree/master/README.md) for
-details on the tool).
+details on installing and using the tool).
 
 ```bash
 stz put goa.design/model/examples/basic/model -id ID -key KEY -secret SECRET

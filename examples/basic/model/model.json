@@ -1,0 +1,79 @@
+{
+    "name": "Getting Started",
+    "description": "This is a model of my software system.",
+    "model": {
+        "people": [
+            {
+                "id": "1qbyk9e",
+                "name": "User",
+                "description": "A user of my software system.",
+                "tags": "person,Element,Person",
+                "relationships": [
+                    {
+                        "id": "1t0pjo3",
+                        "description": "Uses",
+                        "tags": "Relationship",
+                        "sourceId": "1qbyk9e",
+                        "destinationId": "122st75",
+                        "interactionStyle": "Undefined"
+                    }
+                ],
+                "location": "Internal"
+            }
+        ],
+        "softwareSystems": [
+            {
+                "id": "122st75",
+                "name": "Software System",
+                "description": "My software system.",
+                "tags": "system,Element,Software System",
+                "location": "Internal"
+            }
+        ]
+    },
+    "views": {
+        "systemContextViews": [
+            {
+                "description": "An example of a System Context diagram.",
+                "key": "SystemContext",
+                "automaticLayout": {
+                    "rankDirection": "LeftRight",
+                    "rankSeparation": 300,
+                    "nodeSeparation": 600,
+                    "edgeSeparation": 200
+                },
+                "elements": [
+                    {
+                        "id": "1qbyk9e"
+                    },
+                    {
+                        "id": "122st75"
+                    }
+                ],
+                "relationships": [
+                    {
+                        "id": "1t0pjo3"
+                    }
+                ],
+                "softwareSystemId": "122st75"
+            }
+        ],
+        "configuration": {
+            "styles": {
+                "elements": [
+                    {
+                        "tag": "system",
+                        "background": "#1168bd",
+                        "color": "#ffffff"
+                    },
+                    {
+                        "tag": "person",
+                        "background": "#08427b",
+                        "color": "#ffffff",
+                        "shape": "Person"
+                    }
+                ]
+            }
+        }
+    }
+}

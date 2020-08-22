@@ -1,8 +1,8 @@
-package model
+package design
 
 import . "goa.design/model/dsl"
 
-var _ = Workspace("Getting Started", "This is a model of my software system.", func() {
+var _ = Design("Getting Started", "This is a model of my software system.", func() {
 	var System = SoftwareSystem("Software System", "My software system.", func() {
 		Tag("system")
 	})
@@ -15,7 +15,7 @@ var _ = Workspace("Getting Started", "This is a model of my software system.", f
 	Views(func() {
 		SystemContextView(System, "SystemContext", "An example of a System Context diagram.", func() {
 			AddAll()
-			AutoLayout(RankTopBottom)
+			AutoLayout(RankLeftRight)
 		})
 		Styles(func() {
 			ElementStyle("system", func() {

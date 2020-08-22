@@ -1,11 +1,11 @@
-package model
+package design
 
 import (
 	. "goa.design/model/dsl"
 	"goa.design/model/examples/nested/styles"
 )
 
-var Subsystem1 = Workspace("Subsystem 1", "This is a model of subsystem 1.", func() {
+var Subsystem1 = Design("Subsystem 1", "This is a model of subsystem 1.", func() {
 	var System = SoftwareSystem("Subsystem 1", "A software system that belongs to subsystem 1.", func() {
 		Tag("system")
 	})

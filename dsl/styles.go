@@ -4,39 +4,31 @@ import (
 	"regexp"
 
 	"goa.design/goa/v3/eval"
+	"goa.design/model/design"
 	"goa.design/model/expr"
 )
 
 const (
-	SymbolSquareBrackets      = expr.SymbolSquareBrackets
-	SymbolRoundBrackets       = expr.SymbolRoundBrackets
-	SymbolCurlyBrackets       = expr.SymbolCurlyBrackets
-	SymbolAngleBrackets       = expr.SymbolAngleBrackets
-	SymbolDoubleAngleBrackets = expr.SymbolDoubleAngleBrackets
-	SymbolNone                = expr.SymbolNone
+	ShapeBox                   = design.ShapeBox
+	ShapeRoundedBox            = design.ShapeRoundedBox
+	ShapeComponent             = design.ShapeComponent
+	ShapeCircle                = design.ShapeCircle
+	ShapeEllipse               = design.ShapeEllipse
+	ShapeHexagon               = design.ShapeHexagon
+	ShapeFolder                = design.ShapeFolder
+	ShapeCylinder              = design.ShapeCylinder
+	ShapePipe                  = design.ShapePipe
+	ShapeWebBrowser            = design.ShapeWebBrowser
+	ShapeMobileDevicePortrait  = design.ShapeMobileDevicePortrait
+	ShapeMobileDeviceLandscape = design.ShapeMobileDeviceLandscape
+	ShapePerson                = design.ShapePerson
+	ShapeRobot                 = design.ShapeRobot
 )
 
 const (
-	ShapeBox                   = expr.ShapeBox
-	ShapeRoundedBox            = expr.ShapeRoundedBox
-	ShapeComponent             = expr.ShapeComponent
-	ShapeCircle                = expr.ShapeCircle
-	ShapeEllipse               = expr.ShapeEllipse
-	ShapeHexagon               = expr.ShapeHexagon
-	ShapeFolder                = expr.ShapeFolder
-	ShapeCylinder              = expr.ShapeCylinder
-	ShapePipe                  = expr.ShapePipe
-	ShapeWebBrowser            = expr.ShapeWebBrowser
-	ShapeMobileDevicePortrait  = expr.ShapeMobileDevicePortrait
-	ShapeMobileDeviceLandscape = expr.ShapeMobileDeviceLandscape
-	ShapePerson                = expr.ShapePerson
-	ShapeRobot                 = expr.ShapeRobot
-)
-
-const (
-	BorderSolid  = expr.BorderSolid
-	BorderDashed = expr.BorderDashed
-	BorderDotted = expr.BorderDotted
+	BorderSolid  = design.BorderSolid
+	BorderDashed = design.BorderDashed
+	BorderDotted = design.BorderDotted
 )
 
 // Styles is a wrapper for one or more element/relationship styles,
@@ -48,7 +40,7 @@ const (
 //
 // Example:
 //
-//     var _ = Workspace(func() {
+//     var _ = Design(func() {
 //         var System = SoftwareSystem("Software System", "Great system.", func() {
 //             Tag("blue")
 //         })
@@ -87,9 +79,9 @@ func Styles(dsl func()) {
 		eval.IncompatibleDSL()
 		return
 	}
-	cfg := &expr.Configuration{Styles: &expr.Styles{}}
-	eval.Execute(dsl, cfg)
-	vs.Configuration = cfg
+	styles := &expr.Styles{}
+	eval.Execute(dsl, styles)
+	vs.Styles = styles
 }
 
 // ElementStyle defines element styles.
@@ -102,7 +94,7 @@ func Styles(dsl func()) {
 //
 // Example:
 //
-//     var _ = Workspace(func() {
+//     var _ = Design(func() {
 //         // ...
 //         Views(func() {
 //             // ...
@@ -126,13 +118,13 @@ func Styles(dsl func()) {
 //     })
 //
 func ElementStyle(tag string, dsl func()) {
-	cfg, ok := eval.Current().(*expr.Configuration)
+	cfg, ok := eval.Current().(*expr.Styles)
 	if !ok {
 		eval.IncompatibleDSL()
 	}
 	es := &expr.ElementStyle{Tag: tag}
 	eval.Execute(dsl, es)
-	cfg.Styles.Elements = append(cfg.Styles.Elements, es)
+	cfg.Elements = append(cfg.Elements, es)
 }
 
 // RelationshipStyle defines relationship styles.
@@ -145,7 +137,7 @@ func ElementStyle(tag string, dsl func()) {
 //
 // Example:
 //
-//     var _ = Workspace(func() {
+//     var _ = Design(func() {
 //         // ...
 //         Views(func() {
 //             // ...
@@ -165,13 +157,13 @@ func ElementStyle(tag string, dsl func()) {
 //     })
 //
 func RelationshipStyle(tag string, dsl func()) {
-	cfg, ok := eval.Current().(*expr.Configuration)
+	cfg, ok := eval.Current().(*expr.Styles)
 	if !ok {
 		eval.IncompatibleDSL()
 	}
 	rs := &expr.RelationshipStyle{Tag: tag}
 	eval.Execute(dsl, rs)
-	cfg.Styles.Relationships = append(cfg.Styles.Relationships, rs)
+	cfg.Relationships = append(cfg.Relationships, rs)
 }
 
 // Shape defines element shapes, default is ShapeBox.
@@ -182,9 +174,9 @@ func RelationshipStyle(tag string, dsl func()) {
 // ShapeEllipse, ShapeHexagon, ShapeCylinder, ShapePipe, ShapePerson ShapeRobot,
 // ShapeFolder, ShapeWebBrowser, ShapeMobileDevicePortrait,
 // ShapeMobileDeviceLandscape or ShapeComponent.
-func Shape(s expr.ShapeKind) {
+func Shape(kind design.ShapeKind) {
 	if es, ok := eval.Current().(*expr.ElementStyle); ok {
-		es.Shape = s
+		es.Shape = kind
 		return
 	}
 	eval.IncompatibleDSL()
@@ -209,12 +201,12 @@ func Icon(file string) {
 // Width must appear in ElementStyle or RelationshipStyle.
 //
 // Width accepts a single argument: the width in pixel.
-func Width(w int) {
+func Width(width int) {
 	switch a := eval.Current().(type) {
 	case *expr.ElementStyle:
-		a.Width = &w
+		a.Width = &width
 	case *expr.RelationshipStyle:
-		a.Width = &w
+		a.Width = &width
 	default:
 		eval.IncompatibleDSL()
 	}
@@ -225,9 +217,9 @@ func Width(w int) {
 // Height must appear in ElementStyle.
 //
 // Height accepts a single argument: the height in pixel.
-func Height(h int) {
+func Height(height int) {
 	if es, ok := eval.Current().(*expr.ElementStyle); ok {
-		es.Height = &h
+		es.Height = &height
 		return
 	}
 	eval.IncompatibleDSL()
@@ -242,12 +234,12 @@ var colorRegex = regexp.MustCompile("#[A-Fa-f0-9]{6}")
 //
 // Background accepts a single argument: the background color encoded as HTML
 // hex value (e.g. "#ffffff").
-func Background(c string) {
-	if !colorRegex.MatchString(c) {
-		eval.InvalidArgError(`color hex value (e.g. "#ffffff")`, c)
+func Background(color string) {
+	if !colorRegex.MatchString(color) {
+		eval.InvalidArgError(`color hex value (e.g. "#ffffff")`, color)
 	}
 	if es, ok := eval.Current().(*expr.ElementStyle); ok {
-		es.Background = c
+		es.Background = color
 		return
 	}
 	eval.IncompatibleDSL()
@@ -259,15 +251,15 @@ func Background(c string) {
 //
 // Color accepts a single argument: the color encoded as HTML hex value (e.g.
 // "#ffffff").
-func Color(c string) {
-	if !colorRegex.MatchString(c) {
-		eval.InvalidArgError(`color hex value (e.g. "#ffffff")`, c)
+func Color(color string) {
+	if !colorRegex.MatchString(color) {
+		eval.InvalidArgError(`color hex value (e.g. "#ffffff")`, color)
 	}
 	switch a := eval.Current().(type) {
 	case *expr.ElementStyle:
-		a.Color = c
+		a.Color = color
 	case *expr.RelationshipStyle:
-		a.Color = c
+		a.Color = color
 	default:
 		eval.IncompatibleDSL()
 	}
@@ -279,12 +271,12 @@ func Color(c string) {
 //
 // Stroke accepts a single argument: the background color encoded as HTML
 // hex value (e.g. "#ffffff").
-func Stroke(c string) {
-	if !colorRegex.MatchString(c) {
-		eval.InvalidArgError(`color hex value (e.g. "#ffffff")`, c)
+func Stroke(color string) {
+	if !colorRegex.MatchString(color) {
+		eval.InvalidArgError(`color hex value (e.g. "#ffffff")`, color)
 	}
 	if es, ok := eval.Current().(*expr.ElementStyle); ok {
-		es.Stroke = c
+		es.Stroke = color
 		return
 	}
 	eval.IncompatibleDSL()
@@ -295,12 +287,12 @@ func Stroke(c string) {
 // FontSize must appear in ElementStyle or RelationshipStyle.
 //
 // FontSize accepts a single argument: the size of the font in pixels.
-func FontSize(s int) {
+func FontSize(pixels int) {
 	switch a := eval.Current().(type) {
 	case *expr.ElementStyle:
-		a.FontSize = &s
+		a.FontSize = &pixels
 	case *expr.RelationshipStyle:
-		a.FontSize = &s
+		a.FontSize = &pixels
 	default:
 		eval.IncompatibleDSL()
 	}
@@ -312,9 +304,9 @@ func FontSize(s int) {
 //
 // Border takes a single argument: one of BorderSolid, BorderDashed or
 // BorderDotted.
-func Border(b expr.BorderKind) {
+func Border(kind design.BorderKind) {
 	if es, ok := eval.Current().(*expr.ElementStyle); ok {
-		es.Border = b
+		es.Border = kind
 		return
 	}
 	eval.IncompatibleDSL()
@@ -326,15 +318,15 @@ func Border(b expr.BorderKind) {
 //
 // Opacity accepts a single argument: the opacity value between 0 (transparent)
 // and 100 (opaque).
-func Opacity(o int) {
-	if o < 0 || 0 > 100 {
-		eval.InvalidArgError("value between 0 and 100", o)
+func Opacity(percent int) {
+	if percent < 0 || 0 > 100 {
+		eval.InvalidArgError("value between 0 and 100", percent)
 	}
 	switch a := eval.Current().(type) {
 	case *expr.ElementStyle:
-		a.Opacity = &o
+		a.Opacity = &percent
 	case *expr.RelationshipStyle:
-		a.Opacity = &o
+		a.Opacity = &percent
 	default:
 		eval.IncompatibleDSL()
 	}
@@ -373,9 +365,9 @@ func ShowDescription() {
 // Thickness must appear in RelationshipStyle.
 //
 // Thickness takes one argument: the thickness in pixels.
-func Thickness(t int) {
+func Thickness(pixels int) {
 	if rs, ok := eval.Current().(*expr.RelationshipStyle); ok {
-		rs.Thickness = &t
+		rs.Thickness = &pixels
 		return
 	}
 	eval.IncompatibleDSL()

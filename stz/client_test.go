@@ -1,4 +1,4 @@
-package service
+package stz
 
 import (
 	"encoding/json"
@@ -10,7 +10,6 @@ import (
 	"testing"
 
 	"github.com/kylelemons/godebug/diff"
-	"goa.design/model/expr"
 )
 
 func TestGet(t *testing.T) {
@@ -75,7 +74,7 @@ func validateHeaders(t *testing.T, req *http.Request) {
 	}
 }
 
-func workspace(t *testing.T) (workspace *expr.Workspace) {
+func workspace(t *testing.T) (workspace *Workspace) {
 	err := json.Unmarshal([]byte(bigBankPLC), &workspace)
 	if err != nil {
 		t.Fatalf("unable to load test workspace: %s", err)

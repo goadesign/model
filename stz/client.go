@@ -1,8 +1,8 @@
 /*
-Package service implements a client for the
+Package stz implements a client for the
 [Structurizr service HTTP APIs](https://structurizr.com/).
 */
-package service
+package stz
 
 import (
 	"bytes"
@@ -22,7 +22,6 @@ import (
 	"time"
 
 	goahttp "goa.design/goa/v3/http"
-	"goa.design/model/expr"
 )
 
 var (
@@ -67,7 +66,7 @@ func NewClient(key, secret string) *Client {
 }
 
 // Get retrieves the given workspace.
-func (c *Client) Get(id string) (*expr.Workspace, error) {
+func (c *Client) Get(id string) (*Workspace, error) {
 	u := &url.URL{Scheme: Scheme, Host: Host, Path: fmt.Sprintf("/workspace/%s", id)}
 	req, _ := http.NewRequest("GET", u.String(), nil)
 	c.sign(req, "", "")
@@ -80,7 +79,7 @@ func (c *Client) Get(id string) (*expr.Workspace, error) {
 		body, _ := ioutil.ReadAll(resp.Body)
 		return nil, fmt.Errorf("service error: %s", string(body))
 	}
-	var workspace expr.Workspace
+	var workspace Workspace
 	if err := json.NewDecoder(resp.Body).Decode(&workspace); err != nil {
 		return nil, err
 	}
@@ -88,7 +87,7 @@ func (c *Client) Get(id string) (*expr.Workspace, error) {
 }
 
 // Put stores the given workspace.
-func (c *Client) Put(id string, w *expr.Workspace) error {
+func (c *Client) Put(id string, w *Workspace) error {
 	u := &url.URL{Scheme: Scheme, Host: Host, Path: fmt.Sprintf("/workspace/%s", id)}
 	body, _ := json.Marshal(w)
 	req, _ := http.NewRequest("PUT", u.String(), bytes.NewReader(body))

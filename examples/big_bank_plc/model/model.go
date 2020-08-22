@@ -1,11 +1,12 @@
-package model
+package design
 
 import (
+	"goa.design/model/design"
 	. "goa.design/model/dsl"
 	"goa.design/model/expr"
 )
 
-var _ = Workspace("Big Bank plc", "This is an example workspace to illustrate the key features of Model, based around a fictional online banking system.", func() {
+var _ = Design("Big Bank plc", "This is an example workspace to illustrate the key features of Model, based around a fictional online banking system.", func() {
 	Enterprise("Big Bank plc")
 
 	var BackOfficeStaff = Person("Back Office Staff", "Administration and support staff within the bank.", func() {
@@ -27,7 +28,7 @@ var _ = Workspace("Big Bank plc", "This is an example workspace to illustrate th
 		InteractsWith("Customer Service Staff", "Asks questions to", "Telephone", Synchronous, func() {
 			Tag("Relationship", "Synchronous")
 		})
-		Uses("Single-Page Application", "Views account balances, and makes payments using", Synchronous, func() {
+		Uses("Internet Banking System/Single-Page Application", "Views account balances, and makes payments using", Synchronous, func() {
 			Tag("Relationship", "Synchronous")
 		})
 		Uses("ATM", "Withdraws cash using", Synchronous, func() {
@@ -36,10 +37,10 @@ var _ = Workspace("Big Bank plc", "This is an example workspace to illustrate th
 		Uses("Internet Banking System", "Views account balances, and makes payments using", Synchronous, func() {
 			Tag("Relationship", "Synchronous")
 		})
-		Uses("Mobile App", "Views account balances, and makes payments using", Synchronous, func() {
+		Uses("Internet Banking System/Mobile App", "Views account balances, and makes payments using", Synchronous, func() {
 			Tag("Relationship", "Synchronous")
 		})
-		Uses("Web Application", "Visits bigbank.com/ib using", "HTTPS", Synchronous, func() {
+		Uses("Internet Banking System/Web Application", "Visits bigbank.com/ib using", "HTTPS", Synchronous, func() {
 			Tag("Relationship", "Synchronous")
 		})
 		Tag("Element", "Person")
@@ -130,7 +131,7 @@ var _ = Workspace("Big Bank plc", "This is an example workspace to illustrate th
 				Tag("Element", "Component")
 			})
 			Component("Sign In Controller", "Allows users to sign in to the Internet Banking System.", "Spring MVC Rest Controller", func() {
-				Uses("Security Component", "Uses", Synchronous, func() {
+				Uses("Security Component", "Calls isAuthenticated() on", Synchronous, func() {
 					Tag("Relationship", "Synchronous")
 				})
 				Tag("Element", "Component")
@@ -138,32 +139,32 @@ var _ = Workspace("Big Bank plc", "This is an example workspace to illustrate th
 		})
 
 		MobileApp = Container("Mobile App", "Provides a limited subset of the Internet banking functionality to customers via their mobile device.", "Xamarin", func() {
-			Uses("Reset Password Controller", "Makes API calls to", "JSON/HTTPS", Synchronous, func() {
+			Uses("API Application/Reset Password Controller", "Makes API calls to", "JSON/HTTPS", Synchronous, func() {
 				Tag("Relationship", "Synchronous")
 			})
 			Uses(APIApplication, "Makes API calls to", "JSON/HTTPS", Synchronous, func() {
 				Tag("Relationship", "Synchronous")
 			})
-			Uses("Sign In Controller", "Makes API calls to", "JSON/HTTPS", Synchronous, func() {
+			Uses("API Application/Sign In Controller", "Makes API calls to", "JSON/HTTPS", Synchronous, func() {
 				Tag("Relationship", "Synchronous")
 			})
-			Uses("Accounts Summary Controller", "Makes API calls to", "JSON/HTTPS", Synchronous, func() {
+			Uses("API Application/Accounts Summary Controller", "Makes API calls to", "JSON/HTTPS", Synchronous, func() {
 				Tag("Relationship", "Synchronous")
 			})
 			Tag("Element", "Container", "Mobile App")
 		})
 
 		SinglePageApp = Container("Single-Page Application", "Provides all of the Internet banking functionality to customers via their web browser.", "JavaScript and Angular", func() {
-			Uses("Accounts Summary Controller", "Makes API calls to", "JSON/HTTPS", Synchronous, func() {
+			Uses("API Application/Accounts Summary Controller", "Makes API calls to", "JSON/HTTPS", Synchronous, func() {
 				Tag("Relationship", "Synchronous")
 			})
-			Uses("Sign In Controller", "Makes API calls to", "JSON/HTTPS", Synchronous, func() {
+			Uses("API Application/Sign In Controller", "Submits credentials to", "JSON/HTTPS", Synchronous, func() {
 				Tag("Relationship", "Synchronous")
 			})
 			Uses(APIApplication, "Makes API calls to", "JSON/HTTPS", Synchronous, func() {
 				Tag("Relationship", "Synchronous")
 			})
-			Uses("Reset Password Controller", "Makes API calls to", "JSON/HTTPS", Synchronous, func() {
+			Uses("API Application/Reset Password Controller", "Makes API calls to", "JSON/HTTPS", Synchronous, func() {
 				Tag("Relationship", "Synchronous")
 			})
 		})
@@ -373,13 +374,13 @@ var _ = Workspace("Big Bank plc", "This is an example workspace to illustrate th
 				Coord(1947, 1241)
 			})
 
-			Link(PersonalBankingCustomer, CustomerServiceStaff, func() {
+			Link(PersonalBankingCustomer, CustomerServiceStaff, "Asks questions to", func() {
 				Vertices(285, 240)
 			})
 
-			Animation(PersonalBankingCustomer, InternetBankingSystem, MainframeBankingSystem, EMailSystem)
-			Animation(ATM)
-			Animation(CustomerServiceStaff, BackOfficeStaff)
+			AnimationStep(PersonalBankingCustomer, InternetBankingSystem, MainframeBankingSystem, EMailSystem)
+			AnimationStep(ATM)
+			AnimationStep(CustomerServiceStaff, BackOfficeStaff)
 		})
 
 		ContainerView("Internet Banking System", "Containers", "The container diagram for the Internet Banking System.", func() {
@@ -410,15 +411,15 @@ var _ = Workspace("Big Bank plc", "This is an example workspace to illustrate th
 				Coord(37, 1214)
 			})
 
-			Animation(PersonalBankingCustomer, MainframeBankingSystem, EMailSystem)
-			Animation(WebApp)
-			Animation(SinglePageApp)
-			Animation(MobileApp)
-			Animation(APIApplication)
-			Animation(Database)
+			AnimationStep(PersonalBankingCustomer, MainframeBankingSystem, EMailSystem)
+			AnimationStep(WebApp)
+			AnimationStep(SinglePageApp)
+			AnimationStep(MobileApp)
+			AnimationStep(APIApplication)
+			AnimationStep(Database)
 		})
 
-		ComponentView("API Application", "Components", "The component diagram for the API Application", func() {
+		ComponentView(APIApplication, "Components", "The component diagram for the API Application", func() {
 			PaperSize(SizeA5Landscape)
 
 			Add("Mainframe Banking System Facade", func() {
@@ -455,23 +456,17 @@ var _ = Workspace("Big Bank plc", "This is an example workspace to illustrate th
 				Coord(105, 817)
 			})
 
-			Animation(MainframeBankingSystem, SinglePageApp, EMailSystem, MobileApp, Database)
-			Animation("Sign In Controller", "Security Component")
-			Animation("Mainframe Banking System Facade", "Accounts Summary Controller")
-			Animation("Email Component", "Reset Password Controller")
+			AnimationStep(MainframeBankingSystem, SinglePageApp, EMailSystem, MobileApp, Database)
+			AnimationStep("Sign In Controller", "Security Component")
+			AnimationStep("Mainframe Banking System Facade", "Accounts Summary Controller")
+			AnimationStep("Email Component", "Reset Password Controller")
 		})
 
-		DynamicView("API Application", "SignIn", "Summarises how the sign in feature works in the single-page application.", func() {
+		DynamicView(APIApplication, "SignIn", "Summarises how the sign in feature works in the single-page application.", func() {
 			PaperSize(SizeA5Landscape)
-			Link(SinglePageApp, "Sign In Controller", func() {
-				Description("Submits credentials to")
-			})
-			Link("Sign In Controller", "Security Component", func() {
-				Description("Calls isAuthenticated() on")
-			})
-			Link("Security Component", Database, func() {
-				Description("select * from users where username = ?")
-			})
+			Link(SinglePageApp, "Sign In Controller", "Submits credentials to")
+			Link("Sign In Controller", "Security Component", "Calls isAuthenticated() on")
+			Link("Security Component", Database, "Reads from and writes to")
 		})
 
 		DeploymentView("Internet Banking System", "Live", "LiveDeployment", "An example live deployment scenario for the Internet Banking System.", func() {
@@ -491,11 +486,11 @@ var _ = Workspace("Big Bank plc", "This is an example workspace to illustrate th
 			Add(BigBankDB02)
 			Add(SecondaryDB)
 
-			Animation(LiveWebBrowser, CustomerSPA, CustomerComputer)
-			Animation(CustomerMobile, CustomerMobileApp)
-			Animation(DataCenter, BigBankWeb, LiveWebApp, LiveWebAppInstance, BigBankAPI, LiveAPIApp, LiveAPIAppInstance)
-			Animation(BigBankDB01, PrimaryDB, PrimaryDBInstance)
-			Animation(BigBankDB02, SecondaryDB, SecondaryDBInstance)
+			AnimationStep(LiveWebBrowser, CustomerSPA, CustomerComputer)
+			AnimationStep(CustomerMobile, CustomerMobileApp)
+			AnimationStep(DataCenter, BigBankWeb, LiveWebApp, LiveWebAppInstance, BigBankAPI, LiveAPIApp, LiveAPIAppInstance)
+			AnimationStep(BigBankDB01, PrimaryDB, PrimaryDBInstance)
+			AnimationStep(BigBankDB02, SecondaryDB, SecondaryDBInstance)
 		})
 
 		DeploymentView("Internet Banking System", "Development", "DevelopmentDeployment", "An example development deployment scenario for the Internet Banking System.", func() {
@@ -509,9 +504,9 @@ var _ = Workspace("Big Bank plc", "This is an example workspace to illustrate th
 			Add(DevDBDocker)
 			Add(DevDB)
 
-			Animation(DevWebBrowser, DevSPAInstance, DevLaptop)
-			Animation(DevWebServerDocker, DevWebServer, DevAPIAppInstance, DevWebAppInstance)
-			Animation(DevDBDocker, DevDB, DevDBInstance)
+			AnimationStep(DevWebBrowser, DevSPAInstance, DevLaptop)
+			AnimationStep(DevWebServerDocker, DevWebServer, DevAPIAppInstance, DevWebAppInstance)
+			AnimationStep(DevDBDocker, DevDB, DevDBInstance)
 		})
 
 		Styles(func() {
@@ -545,7 +540,7 @@ var _ = Workspace("Big Bank plc", "This is an example workspace to illustrate th
 				Shape(ShapeWebBrowser)
 			})
 			ElementStyle("Mobile App", func() {
-				Shape(expr.ShapeMobileDeviceLandscape)
+				Shape(design.ShapeMobileDeviceLandscape)
 			})
 			ElementStyle("Database", func() {
 				Shape(ShapeCylinder)

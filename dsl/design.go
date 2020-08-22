@@ -4,49 +4,49 @@ import (
 	"net/url"
 
 	"goa.design/goa/v3/eval"
+	"goa.design/model/design"
 	"goa.design/model/expr"
 
 	// Register code generators for the model plugin
 	_ "goa.design/model/plugin"
 )
 
-// Workspace defines the workspace containing the models and views. Workspace
-// must appear exactly once in a given design. A name must be provided if a
-// description is.
+// Design defines the architecture design containing the models and views.
+// Design must appear exactly once.
 //
-// Workspace is a top-level DSL function.
+// Design is a top-level DSL function.
 //
-// Workspace takes one to three arguments. The first argument is either a string
+// Design takes one to three arguments. The first argument is either a string
 // or a function. If the first argument is a string then an optional description
 // may be passed as second argument. The last argument must be a function that
 // defines the models and views.
 //
-// The valid syntax for Workspace is thus:
+// The valid syntax for Design is thus:
 //
-//    Workspace(func())
+//    Design(func())
 //
-//    Workspace("name", func())
+//    Design("name", func())
 //
-//    Workspace("name", "description", func())
+//    Design("name", "description", func())
 //
 // Examples:
 //
 //    // Default workspace, no description
-//    var _ = Workspace(func() {
+//    var _ = Design(func() {
 //        SoftwareSystem("My Software System")
 //    })
 //
-//    // Workspace with given name, no description
-//    var _ = Workspace("name", func() {
+//    // Design with given name, no description
+//    var _ = Design("name", func() {
 //        SoftwareSystem("My Software System")
 //    })
 //
-//    // Workspace with given name and description
-//    var _ = Workspace("My Workspace", "A great architecture.", func() {
+//    // Design with given name and description
+//    var _ = Design("My Design", "A great architecture.", func() {
 //        SoftwareSystem("My Software System")
 //    })
 //
-func Workspace(args ...interface{}) *expr.Workspace {
+func Design(args ...interface{}) *expr.Design {
 	_, ok := eval.Current().(eval.TopExpr)
 	if !ok {
 		eval.IncompatibleDSL()
@@ -54,12 +54,12 @@ func Workspace(args ...interface{}) *expr.Workspace {
 	}
 	nargs := len(args)
 	if nargs == 0 {
-		eval.ReportError("missing child DSL")
+		eval.ReportError("Design: missing child DSL")
 		return nil
 	}
 	dsl, ok := args[nargs-1].(func())
 	if !ok {
-		eval.ReportError("missing child DSL (last argument must be a func)")
+		eval.ReportError("Design: missing child DSL (last argument must be a func)")
 		return nil
 	}
 	if nargs > 1 {
@@ -77,7 +77,7 @@ func Workspace(args ...interface{}) *expr.Workspace {
 		expr.Root.Description = desc
 	}
 	if nargs > 3 {
-		eval.ReportError("too many arguments")
+		eval.ReportError("Design: too many arguments")
 		return nil
 	}
 	if !eval.Execute(dsl, expr.Root) {
@@ -86,20 +86,20 @@ func Workspace(args ...interface{}) *expr.Workspace {
 	return expr.Root
 }
 
-// Version specifies a version number for the workspace.
+// Version specifies a version number for the design.
 //
-// Version must appear in a Workspace expression.
+// Version must appear in a Design expression.
 //
 // Version takes exactly one argument: the version number.
 //
 // Example:
 //
-//    var _ = Workspace(func() {
+//    var _ = Design(func() {
 //        Version("1.0")
 //    })
 //
 func Version(v string) {
-	w, ok := eval.Current().(*expr.Workspace)
+	w, ok := eval.Current().(*expr.Design)
 	if !ok {
 		eval.IncompatibleDSL()
 	} else {
@@ -107,50 +107,26 @@ func Version(v string) {
 	}
 }
 
-// Revision specifies a revision number for the workspace. The revision number
-// enforces a sequence with workspace updates. Updating a workspace requires
-// incrementing the revision number which helps alleviate the risk for
-// concurrent uploads clobbering each other.
-//
-// Revision must appear in a Workspace expression.
-//
-// Revision takes exactly one argument: the revision number.
-//
-// Example:
-//
-//    var _ = Workspace(func() {
-//        Revision(2)
-//    })
-//
-func Revision(r int) {
-	w, ok := eval.Current().(*expr.Workspace)
-	if !ok {
-		eval.IncompatibleDSL()
-	} else {
-		w.Revision = r
-	}
-}
-
 // Enterprise defines a named "enterprise" (e.g. an organisation). On System
 // Landscape and System Context diagrams, an enterprise is represented as a
 // dashed box. Only a single enterprise can be defined within a model.
 //
-// Enterprise must appear in a Workspace expression.
+// Enterprise must appear in a Design expression.
 //
 // Enterprise takes exactly one argument: the enterprise name.
 //
 // Example:
 //
-//    var _ = Workspace(func() {
+//    var _ = Design(func() {
 //        Enterprise("Goa Design")
 //    })
 //
 func Enterprise(e string) {
-	w, ok := eval.Current().(*expr.Workspace)
+	w, ok := eval.Current().(*expr.Design)
 	if !ok {
 		eval.IncompatibleDSL()
 	} else {
-		w.Model.Enterprise = &expr.Enterprise{Name: e}
+		w.Model.Enterprise = e
 	}
 }
 
@@ -165,9 +141,9 @@ func Enterprise(e string) {
 //    * Container 1 to Component 2
 //    * Container 1 to Container 2
 //
-// AddImpliedRelationships must appear in Workspace.
+// AddImpliedRelationships must appear in Design.
 func AddImpliedRelationships() {
-	w, ok := eval.Current().(*expr.Workspace)
+	w, ok := eval.Current().(*expr.Design)
 	if !ok {
 		eval.IncompatibleDSL()
 	} else {
@@ -186,7 +162,7 @@ func AddImpliedRelationships() {
 //
 // Example:
 //
-//    var _ = Workspace(func() {
+//    var _ = Design(func() {
 //        System("My system", func() {
 //            Tag("sharded", "critical")
 //            Tag("blue team")
@@ -215,7 +191,7 @@ func Tag(first string, t ...string) {
 //
 // Example:
 //
-//    var _ = Workspace(func() {
+//    var _ = Design(func() {
 //        System("My system", func() {
 //            URL("https://goa.design/docs/mysystem")
 //        })
@@ -223,7 +199,7 @@ func Tag(first string, t ...string) {
 //
 func URL(u string) {
 	if _, err := url.Parse(u); err != nil {
-		eval.ReportError("invalid URL %q: %s", u, err.Error())
+		eval.ReportError("URL: invalid value %q: %s", u, err.Error())
 	}
 	switch e := eval.Current().(type) {
 	case *expr.Person:
@@ -251,18 +227,19 @@ func URL(u string) {
 //
 // Example:
 //
-//    var _ = Workspace(func() {
+//    var _ = Design(func() {
 //        System("My system", func() {
 //            External()
 //        })
 //    })
 //
 func External() {
+	ext := design.LocationExternal
 	switch e := eval.Current().(type) {
 	case *expr.Person:
-		e.Location = expr.LocationExternal
+		e.Location = ext
 	case *expr.SoftwareSystem:
-		e.Location = expr.LocationExternal
+		e.Location = ext
 	default:
 		eval.IncompatibleDSL()
 	}
@@ -278,7 +255,7 @@ func External() {
 //
 // Example:
 //
-//    var _ = Workspace(func() {
+//    var _ = Design(func() {
 //        SoftwareSystem("MySystem", func() {
 //           Prop("name", "value")
 //        })

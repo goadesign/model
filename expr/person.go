@@ -2,14 +2,15 @@ package expr
 
 import (
 	"fmt"
+
+	"goa.design/model/design"
 )
 
 type (
 	// Person represents a person.
 	Person struct {
 		*Element
-		// Location of person.
-		Location LocationKind `json:"location"`
+		Location design.LocationKind
 	}
 
 	// People is a slide of Person that can easily be converted into a slice of ElementHolder.
@@ -26,8 +27,7 @@ func (p *Person) EvalName() string {
 
 // Finalize adds the 'Person' tag ands finalizes relationships.
 func (p *Person) Finalize() {
-	p.MergeTags("Element", "Person")
-	p.Element.Finalize()
+	p.PrefixTags("Element", "Person")
 }
 
 // Elements returns a slice of ElementHolder that contains the people.

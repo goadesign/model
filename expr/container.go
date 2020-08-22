@@ -8,10 +8,8 @@ type (
 	// Container represents a container.
 	Container struct {
 		*Element
-		// Components list the components within the container.
-		Components Components `json:"components,omitempty"`
-		// System is the parent software system.
-		System *SoftwareSystem `json:"-"`
+		Components Components
+		System     *SoftwareSystem
 	}
 
 	// Containers is a slice of containers that can be easily
@@ -29,8 +27,7 @@ func (c *Container) EvalName() string {
 
 // Finalize adds the 'Container' tag ands finalizes relationships.
 func (c *Container) Finalize() {
-	c.MergeTags("Element", "Container")
-	c.Element.Finalize()
+	c.PrefixTags("Element", "Container")
 }
 
 // Elements returns a slice of ElementHolder that contains the elements of c.
@@ -45,7 +42,7 @@ func (c Containers) Elements() []ElementHolder {
 // Component returns the component with the given name if any, nil otherwise.
 func (c *Container) Component(name string) *Component {
 	for _, cc := range c.Components {
-		if cc.Name == c.Name {
+		if cc.Name == name {
 			return cc
 		}
 	}
