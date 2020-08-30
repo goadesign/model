@@ -743,17 +743,6 @@ var _ = Design("[name]", "[description]", func() {
                 Opacity(42)  // Between 0 and 100
             })
         })
-
-        // Theme specifies one or more themes that should be used when
-        // rendering diagrams.
-        Theme("<theme URL>", "[theme URL]") // as many theme URLs as needed
-
-        // Branding defines custom branding that should be used when rendering
-        // diagrams and documentation.
-        Branding(func() {
-            Logo("<file>")
-            Font("<name>", "[url]")
-        })
     })
 })
 ```
