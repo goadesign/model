@@ -1,9 +1,9 @@
 # Model
 
 ![Build](https://github.com/goadesign/model/workflows/CI/badge.svg)
-![Version](https://img.shields.io/badge/Version-v1.0.7-blue.svg)
+![Version](https://img.shields.io/badge/Version-v1.5.0-blue.svg)
 ![Go version](https://img.shields.io/github/go-mod/go-version/gomods/athens.svg)
-[![DSL Reference](https://img.shields.io/badge/Doc-DSL-orange)](https://pkg.go.dev/goa.design/model@v1.0.7/dsl?tab=doc)
+[![DSL Reference](https://img.shields.io/badge/Doc-DSL-orange)](https://pkg.go.dev/goa.design/model@v1.5.0/dsl?tab=doc)
 [![Go Packages](https://img.shields.io/badge/Doc-packages-orange)](https://pkg.go.dev/goa.design/model)
 
 ## Overview
@@ -283,7 +283,7 @@ var _ = Design("My design",)
 
 The code snippet below describes the entire syntax of the DSL. The complete
 reference can be found in the `dsl`
-[package documentation](https://pkg.go.dev/goa.design/model@v1.0.7/dsl?tab=doc)
+[package documentation](https://pkg.go.dev/goa.design/model@v1.5.0/dsl?tab=doc)
 
 ```Go
 // Design defines the architecture design containing the models and views.
