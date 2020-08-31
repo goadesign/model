@@ -253,42 +253,6 @@ func removeRelationship(vp *ViewProps, r *Relationship) {
 	vp.RelationshipViews = vp.RelationshipViews[:i]
 }
 
-// Remove elements and relationships that should be according to design.
-func removeElementsAndRelationships(vp *ViewProps) {
-	for _, e := range vp.RemoveElements {
-		i := 0
-		for _, ev := range vp.ElementViews {
-			if ev.Element.ID != e.ID {
-				vp.ElementViews[i] = ev
-				i++
-			} else {
-				// Remove corresponding relationships.
-				j := 0
-				for _, rv := range vp.RelationshipViews {
-					if rv.Source.ID != e.ID && rv.Destination.ID != e.ID {
-						vp.RelationshipViews[j] = rv
-						j++
-					}
-				}
-				vp.RelationshipViews = vp.RelationshipViews[:j]
-			}
-		}
-		vp.ElementViews = vp.ElementViews[:i]
-	}
-	for _, ev := range vp.ElementViews {
-		if ev.NoRelationship {
-			i := 0
-			for _, rv := range vp.RelationshipViews {
-				if rv.Source.ID != ev.Element.ID && rv.Destination.ID != ev.Element.ID {
-					vp.RelationshipViews[i] = rv
-					i++
-				}
-			}
-			vp.RelationshipViews = vp.RelationshipViews[:i]
-		}
-	}
-}
-
 // allUnrelated fetches all elements that have no relationship to other elements
 // in the view.
 func unrelated(v *ViewProps) (elems []*Element) {
