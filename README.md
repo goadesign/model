@@ -104,7 +104,7 @@ directory.
 
 The [eval](https://github.com/goadesign/model/tree/master/eval) package
 makes it convenient to run the DSL above. The
-[service](https://github.com/goadesign/model/tree/master/service)
+[stz](https://github.com/goadesign/model/tree/master/stz)
 package contains a client library for the
 [Structurizr service APIs](https://structurizr.com/help/web-api).
 
@@ -120,7 +120,7 @@ import (
 
     . "goa.design/model/dsl"
     "goa.design/model/eval"
-    "goa.design/model/service"
+    "goa.design/model/stz"
 )
 
 // DSL that describes software architecture model.
@@ -171,7 +171,7 @@ func main() {
         secret = os.Getenv("STRUCTURIZR_SECRET")
         wid    = os.Getenv("STRUCTURIZR_WORKSPACE_ID")
     )
-    c := service.NewClient(key, secret)
+    c := stz.NewClient(key, secret)
     if err := c.Put(wid, w); err != nil {
         fmt.Fprintf(os.Stderr, "failed to store workspace: %s", err.Error())
         os.Exit(1)
