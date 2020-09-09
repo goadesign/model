@@ -2,12 +2,39 @@ package mdl
 
 import (
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"goa.design/goa/v3/codegen"
 	"goa.design/model/expr"
 	model "goa.design/model/pkg"
 )
+
+// headerData is the data structure used to render the header template.
+type headerData struct {
+	Version   string
+	Direction string
+}
+
+// footerData is the data structure used to render the footer template.
+type footerData struct {
+	Classes         []*elementClassData
+	IDsByClassNames map[string][]string
+	Links           []*linkStyleData
+}
+
+// elementClassData contains the data needed to render element classes.
+type elementClassData struct {
+	Style     string
+	ClassName string
+}
+
+// linkStyleData contains the data needed to render link styles.
+type linkStyleData struct {
+	LinkIndex   int
+	Style       string
+	Interpolate string
+}
 
 func landscapeDiagram(lv *expr.LandscapeView) *codegen.File {
 	ebv := false
@@ -122,31 +149,42 @@ func deploymentDiagram(dv *expr.DeploymentView) *codegen.File {
 	return viewFile(dv.ViewProps, nil)
 }
 
-var funcs = map[string]interface{}{
-	"direction":               direction,
-	"className":               className,
-	"background":              func(ev *expr.ElementView) string { return elemStyle(ev).Background },
-	"stroke":                  stroke,
-	"color":                   func(ev *expr.ElementView) string { return elemStyle(ev).Color },
-	"idsByTags":               idsByTags,
-	"join":                    strings.Join,
-	"indexOfRelationshipView": indexOfRelationshipView,
-	"relColor":                func(rv *expr.RelationshipView) string { return relStyle(rv).Color },
-	"relStroke":               func(rv *expr.RelationshipView) string { return relStyle(rv).Stroke },
-	"relOpacity":              func(rv *expr.RelationshipView) *int { return relStyle(rv).Opacity },
-	"interpolate":             interpolate,
-	"indent":                  indent,
-	"fromPercent":             func(p *int) float64 { return float64(*p) / 100.0 },
-}
+var funcs = map[string]interface{}{"indent": indent, "join": strings.Join}
 
 func viewFile(vp *expr.ViewProps, sections []*codegen.SectionTemplate) *codegen.File {
+	var classes []*elementClassData
 	var styles []*expr.ElementStyle
 	if expr.Root.Views.Styles != nil {
 		styles = expr.Root.Views.Styles.Elements
+		classes = make([]*elementClassData, len(styles))
+		for i, es := range styles {
+			classes[i] = &elementClassData{
+				Style:     styleDef(es.Background, es.Stroke, es.Color, es.Opacity),
+				ClassName: className(es.Tag),
+			}
+		}
 	}
-	data := map[string]interface{}{"ViewProps": vp, "Styles": styles, "Version": model.Version()}
-	header := &codegen.SectionTemplate{Name: "header", Source: headerT, Data: data, FuncMap: funcs}
-	footer := &codegen.SectionTemplate{Name: "footer", Source: footerT, Data: data, FuncMap: funcs}
+	links := make([]*linkStyleData, len(vp.RelationshipViews))
+	for i, rv := range vp.RelationshipViews {
+		rs := relStyle(rv)
+		links[i] = &linkStyleData{
+			LinkIndex:   i,
+			Style:       styleDef("", rs.Stroke, rs.Color, rs.Opacity),
+			Interpolate: interpolate(rv),
+		}
+	}
+	header := &codegen.SectionTemplate{
+		Name:    "header",
+		Source:  headerT,
+		Data:    &headerData{Direction: direction(vp), Version: model.Version()},
+		FuncMap: funcs,
+	}
+	footer := &codegen.SectionTemplate{
+		Name:    "footer",
+		Source:  footerT,
+		Data:    &footerData{Classes: classes, Links: links, IDsByClassNames: idsByClassNames(vp.ElementViews, styles)},
+		FuncMap: funcs,
+	}
 	sections = append([]*codegen.SectionTemplate{header}, append(sections, footer)...)
 	path := filepath.Join(codegen.Gendir, filepath.Join(codegen.Gendir, "diagrams", vp.Key+".mmd"))
 
@@ -169,15 +207,38 @@ func direction(vp *expr.ViewProps) string {
 	}
 }
 
+// className attempts to produce a mermaid safe styles class name from the given
+// tag value.
 func className(tag string) string {
 	res := strings.ReplaceAll(tag, "-", "--")
 	return strings.ReplaceAll(res, " ", "-")
 }
 
+// styleDef renders a valid mermaid/SVG style line from the given values.
+func styleDef(fill, stroke, color string, opacity *int) string {
+	var elems []string
+	if fill != "" {
+		elems = append(elems, "fill:"+fill)
+	}
+	if stroke != "" {
+		elems = append(elems, "stroke:"+stroke)
+	}
+	if color != "" {
+		elems = append(elems, "color:"+color)
+	}
+	if opacity != nil {
+		elems = append(elems, "opacity:"+strconv.FormatFloat(float64(*opacity)/100.0, 'f', 2, 64))
+	}
+	if len(elems) == 0 {
+		return ""
+	}
+	return strings.Join(elems, ",") + ",foo; %% yeah FOO! https://github.com/mermaid-js/mermaid/issues/1666"
+}
+
 // idsByTags maps the ids of the elements in evs to the corresponding element
 // tags. It returns a map of ids indexed by tag names. Entries are only added if
 // they have a style defined in styles.
-func idsByTags(evs []*expr.ElementView, styles []*expr.ElementStyle) map[string][]string {
+func idsByClassNames(evs []*expr.ElementView, styles []*expr.ElementStyle) map[string][]string {
 	res := make(map[string][]string)
 	for _, ev := range evs {
 		tags := strings.Split(ev.Element.Tags, ",")
@@ -185,7 +246,7 @@ func idsByTags(evs []*expr.ElementView, styles []*expr.ElementStyle) map[string]
 		for _, tag := range tags {
 			for _, es := range styles {
 				if es.Tag == tag {
-					res[tag] = append(res[tag], ev.Element.ID)
+					res[className(tag)] = append(res[className(tag)], ev.Element.ID)
 					continue loop
 				}
 			}
@@ -208,25 +269,17 @@ func indent(i int) string {
 }
 
 const headerT = `%% Graph generated by mdl {{ .Version }} - DO NOT EDIT
-graph {{ direction .ViewProps }}
+graph {{ .Direction }}
 `
 
-const footerT = `{{- range .Styles }}
-	{{- if or (.Background) (.Stroke) (.Color) }}{{ indent 1 }}classDef {{ className .Tag }}
-        {{- if .Background }} fill:{{ .Background }}{{ if or .Stroke .Color }},{{ end }}{{ end }}
-		{{- if .Stroke }} stroke:{{ .Stroke }}{{ if .Color }},{{ end }}{{ end }}
-		{{- if .Color }} color:{{ .Color }}{{ end }}
-		{{- if .Opacity }} opacity:{{ fromPercent .Opacity }}{{ end }};
+const footerT = `{{- range .Classes }}
+{{- if .Style }}{{ indent 1 }}classDef {{ .ClassName }} {{ .Style }}
 {{ end }}
 {{- end }}
-{{- range $tag, $ids := (idsByTags .ViewProps.ElementViews .Styles) }}{{ indent 1 }}class {{ join $ids "," }} {{ className $tag }};
+{{- range $className, $ids := .IDsByClassNames }}{{ indent 1 }}class {{ join $ids "," }} {{ $className }};
 {{ end }}
-{{- range .ViewProps.RelationshipViews }}
-	{{- if or (relStroke .) (relColor .) (relOpacity .) }}{{ indent 1 }}linkStyle {{ indexOfRelationshipView . $.ViewProps.RelationshipViews }}
-		{{- if relStroke . }} stroke:{{ relStroke . }}{{- if relColor . }},{{ end }}{{ end }}
-		{{- if relColor . }} color:{{ relColor . }}{{ end }}
-		{{- if relOpacity . }} opacity:{{ fromPercent (relOpacity .) }}{{ end }};
-{{ end }}
-	{{- if not (eq (interpolate .) "linear") }}{{ indent 1 }}linkStyle {{ indexOfRelationshipView . $.ViewProps.RelationshipViews }} interpolate {{ interpolate . }};
+{{- range .Links }}
+	{{- if .Style }}{{ indent 1 }}linkStyle {{ .LinkIndex }} {{ .Style }}
+	{{ end }}{{ if .Interpolate }}{{ indent 1 }}linkStyle {{ .LinkIndex }} interpolate {{ .Interpolate }};
 {{ end }}
 {{- end }}`

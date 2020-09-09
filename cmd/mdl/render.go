@@ -78,6 +78,10 @@ body {
 
 .element-title {
 	font-weight: bold;
+}
+
+.element-technology {
+	font-size: 70%;
 	padding-bottom: 0.8em;
 }
 
@@ -87,14 +91,15 @@ body {
 
 .relationship {
 	font-family: Arial;
-	font-size: 80%;
 	background-color: white;
 }
 
 .relationship-label {
+	font-size: 80%;
 }
 
 .relationship-technology {
+	font-size: 70%;
 }
 `
 
