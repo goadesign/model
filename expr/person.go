@@ -26,6 +26,7 @@ func (p *Person) EvalName() string {
 // Finalize adds the 'Person' tag ands finalizes relationships.
 func (p *Person) Finalize() {
 	p.PrefixTags("Element", "Person")
+	p.Element.Finalize()
 }
 
 // Elements returns a slice of ElementHolder that contains the people.

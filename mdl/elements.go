@@ -127,11 +127,8 @@ func wrap(s string, n uint) string {
 		spaceBuf.WriteTo(buf)
 		wordBuf.WriteTo(buf)
 	}
-	return mermaidReplacer.Replace(buf.String())
+	return strings.ReplaceAll(buf.String(), "\n", "<br/>")
 }
-
-// Best guess as to what characters mermaid doesn't like in descriptions
-var mermaidReplacer = strings.NewReplacer("(", "-", ")", "-", "\n", "<br/>", "[", "<i>", "]", "</i>")
 
 func nodeStartEnd(ev *expr.ElementView) (string, string) {
 	// Look for explicit shape first
@@ -179,5 +176,5 @@ const elementT = `{{ if .BoundaryName }}{{ indent 1 }}subgraph boundary [{{ .Bou
 {{ end }}
 {{ end }}
 {{- if .BoundaryName }}{{ indent 1 }}end
-{{ indent 1 }}style boundary fill:#ffffff,stroke:#909090,color:#000000,stroke-dasharray: 15 5
+{{ indent 1 }}style boundary fill:#ffffff,stroke:#909090,color:#000000,stroke-dasharray: 15 5;
 {{ end }}`

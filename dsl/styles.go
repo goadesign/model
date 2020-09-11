@@ -395,12 +395,12 @@ func FontSize(pixels int) {
 
 // Border sets elements border style, default is BorderSolid.
 //
-// Border must appear in StructurizrElementStyle.
+// Border must appear in ElementStyle.
 //
 // Border takes a single argument: one of BorderSolid, BorderDashed or
 // BorderDotted.
 func Border(kind BorderKind) {
-	if es, ok := eval.Current().(*expr.StructurizrElementStyle); ok {
+	if es, ok := eval.Current().(*expr.ElementStyle); ok {
 		es.Border = expr.BorderKind(kind)
 		return
 	}
@@ -414,7 +414,7 @@ func Border(kind BorderKind) {
 // Opacity accepts a single argument: the opacity value between 0 (transparent)
 // and 100 (opaque).
 func Opacity(percent int) {
-	if percent < 0 || 0 > 100 {
+	if percent < 0 || percent > 100 {
 		eval.InvalidArgError("value between 0 and 100", percent)
 	}
 	switch a := eval.Current().(type) {

@@ -28,6 +28,7 @@ func (c *Container) EvalName() string {
 // Finalize adds the 'Container' tag ands finalizes relationships.
 func (c *Container) Finalize() {
 	c.PrefixTags("Element", "Container")
+	c.Element.Finalize()
 }
 
 // Elements returns a slice of ElementHolder that contains the elements of c.

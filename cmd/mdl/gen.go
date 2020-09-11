@@ -11,6 +11,10 @@ import (
 	"golang.org/x/tools/go/packages"
 )
 
+// tmpDirPrefix is the prefix used to create the temporary directory where the
+// code generation tool source code is generated and compiled.
+const tmpDirPrefix = "mdl--"
+
 func gen(pkg string, out string, debug bool) error {
 	// Validate package import path
 	if _, err := packages.Load(&packages.Config{Mode: packages.NeedName}, pkg); err != nil {
@@ -22,7 +26,7 @@ func gen(pkg string, out string, debug bool) error {
 	if err != nil {
 		cwd = "."
 	}
-	tmpDir, err := ioutil.TempDir(cwd, "mdl")
+	tmpDir, err := ioutil.TempDir(cwd, tmpDirPrefix)
 	if err != nil {
 		return err
 	}

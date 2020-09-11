@@ -1,7 +1,9 @@
 package mdl
 
 import (
+	"fmt"
 	"path/filepath"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -10,31 +12,60 @@ import (
 	model "goa.design/model/pkg"
 )
 
-// headerData is the data structure used to render the header template.
-type headerData struct {
-	Version   string
-	Direction string
-}
+type (
+	// headerData is the data structure used to render the header template.
+	headerData struct {
+		Version   string
+		Direction string
+	}
 
-// footerData is the data structure used to render the footer template.
-type footerData struct {
-	Classes         []*elementClassData
-	IDsByClassNames map[string][]string
-	Links           []*linkStyleData
-}
+	// footerData is the data structure used to render the footer template.
+	footerData struct {
+		Classes         []*elementClassData
+		IDsByClassNames map[string][]string
+		Links           []*linkStyleData
+	}
 
-// elementClassData contains the data needed to render element classes.
-type elementClassData struct {
-	Style     string
-	ClassName string
-}
+	// elementClassData contains the data needed to render element classes.
+	elementClassData struct {
+		Style     string
+		ClassName string
+	}
 
-// linkStyleData contains the data needed to render link styles.
-type linkStyleData struct {
-	LinkIndex   int
-	Style       string
-	Interpolate string
-}
+	// linkStyleData contains the data needed to render link styles.
+	linkStyleData struct {
+		LinkIndex   int
+		Style       string
+		Interpolate string
+	}
+
+	// legendData contains the data needed to render a diagram legend.
+	legendData struct {
+		LegendElements      []*legendElementData
+		LegendRelationships []*legendRelationshipData
+	}
+
+	// legendElementData contains the data needed to render an element style legend.
+	legendElementData struct {
+		ID          string
+		Name        string
+		Description string
+		Start, End  string
+		Style       string
+		IconURL     string
+	}
+
+	// legendRelationshipData contains the data needed to render a relationship
+	// style legend.
+	legendRelationshipData struct {
+		SourceID, DestinationID string
+		Start, End              string
+		LinkIndex               int
+		Style                   string
+		Interpolate             string
+		Description             string
+	}
+)
 
 func landscapeDiagram(lv *expr.LandscapeView) *codegen.File {
 	ebv := false
@@ -149,6 +180,130 @@ func deploymentDiagram(dv *expr.DeploymentView) *codegen.File {
 	return viewFile(dv.ViewProps, nil)
 }
 
+func legendDiagram(vp *expr.ViewProps) *codegen.File {
+	// There is a many to many relationship between element types and styles. We
+	// need to compute the set of unique combinations to produce the legend.
+	styleMap := make(map[string]*legendElementData)
+	seen := make(map[string]struct{})
+	for i, ev := range vp.ElementViews {
+		var id, name, tags string
+		{
+			id = strconv.Itoa(i)
+
+			switch expr.Registry[ev.Element.ID].(type) {
+			case *expr.Person:
+				name = "Person"
+			case *expr.SoftwareSystem:
+				name = "Software System"
+			case *expr.Container:
+				name = "Container"
+			case *expr.Component:
+				name = "Component"
+			case *expr.DeploymentNode:
+				name = "Deployment Node"
+			case *expr.InfrastructureNode:
+				name = "Infrastructure Node"
+			case *expr.ContainerInstance:
+				name = "Container Instance"
+			default:
+				panic("unknown element type:" + fmt.Sprintf("%T", expr.Registry[ev.Element.ID]))
+			}
+
+			elems := strings.Split(ev.Element.Tags, ",")
+			elems = remove(elems, "Element", "Person", "Software System", "Container", "Component", "Deployment Node", "Infrastructure Node", "Container Instance")
+			sort.Strings(elems)
+			tags = strings.Join(elems, "<br/>")
+			key := tags + "--" + name
+			if _, ok := seen[key]; ok {
+				continue
+			}
+			seen[key] = struct{}{}
+		}
+		if _, ok := styleMap[id]; !ok {
+			es := elemStyle(ev)
+			start, end := nodeStartEnd(ev)
+			styleMap[id] = &legendElementData{
+				ID:          id,
+				Name:        name,
+				Description: tags,
+				Start:       start,
+				End:         end,
+				Style:       styleDef(es.Background, es.Stroke, es.Color, es.Border, es.Opacity, nil),
+				IconURL:     es.Icon,
+			}
+		}
+	}
+	legelems := make([]*legendElementData, len(styleMap))
+	i := 0 // no need to sort, mermaid rendering reorders arbitrarily
+	for _, le := range styleMap {
+		legelems[i] = le
+		i++
+	}
+
+	// Relationships are easier: there is only one type of relationship.
+	legrels := make(map[string]*legendRelationshipData)
+	for _, rv := range vp.RelationshipViews {
+		var desc string
+		{
+			rel := expr.Registry[rv.RelationshipID].(*expr.Relationship)
+			tags := strings.Split(rel.Tags, ",")
+			for i, tag := range tags {
+				if tag == "Relationship" {
+					tags = append(tags[:i], tags[i+1:]...)
+					break
+				}
+			}
+			if len(tags) == 0 {
+				continue
+			}
+			sort.Strings(tags)
+			desc = strings.Join(tags, "<br/>")
+		}
+		if _, ok := legrels[desc]; ok {
+			continue
+		}
+		rs := relStyle(rv)
+		start, end := lineStartEnd(rs)
+		border := expr.BorderUndefined
+		if rs.Dashed != nil && *rs.Dashed {
+			border = expr.BorderDashed
+		}
+		legrels[desc] = &legendRelationshipData{
+			SourceID:      "src" + rs.Tag,
+			DestinationID: "dest" + rs.Tag,
+			Start:         start,
+			End:           end,
+			Style:         styleDef("", rs.Stroke, rs.Color, border, rs.Opacity, rs.Thick),
+			Interpolate:   interpolate(rs),
+			Description:   desc,
+		}
+	}
+	keys := make([]string, len(legrels))
+	i = 0
+	for d := range legrels {
+		keys[i] = d
+		i++
+	}
+	srels := make([]*legendRelationshipData, len(keys))
+	for i, d := range keys {
+		data := legrels[d]
+		data.LinkIndex = i
+		srels[i] = data
+	}
+	legend := &codegen.SectionTemplate{
+		Name:   "legend",
+		Source: legendT,
+		Data: &legendData{
+			LegendElements:      legelems,
+			LegendRelationships: srels,
+		},
+		FuncMap: funcs,
+	}
+	path := filepath.Join(codegen.Gendir, filepath.Join(codegen.Gendir, "diagrams", vp.Key+".legend.mmd"))
+
+	return &codegen.File{Path: path, SectionTemplates: []*codegen.SectionTemplate{legend}}
+}
+
 var funcs = map[string]interface{}{"indent": indent, "join": strings.Join}
 
 func viewFile(vp *expr.ViewProps, sections []*codegen.SectionTemplate) *codegen.File {
@@ -158,19 +313,25 @@ func viewFile(vp *expr.ViewProps, sections []*codegen.SectionTemplate) *codegen.
 		styles = expr.Root.Views.Styles.Elements
 		classes = make([]*elementClassData, len(styles))
 		for i, es := range styles {
+			style := styleDef(es.Background, es.Stroke, es.Color, es.Border, es.Opacity, nil)
 			classes[i] = &elementClassData{
-				Style:     styleDef(es.Background, es.Stroke, es.Color, es.Opacity),
+				Style:     style,
 				ClassName: className(es.Tag),
 			}
 		}
 	}
+
 	links := make([]*linkStyleData, len(vp.RelationshipViews))
 	for i, rv := range vp.RelationshipViews {
 		rs := relStyle(rv)
+		border := expr.BorderUndefined
+		if rs.Dashed != nil && *rs.Dashed {
+			border = expr.BorderDashed
+		}
 		links[i] = &linkStyleData{
 			LinkIndex:   i,
-			Style:       styleDef("", rs.Stroke, rs.Color, rs.Opacity),
-			Interpolate: interpolate(rv),
+			Style:       styleDef("", rs.Stroke, rs.Color, border, rs.Opacity, rs.Thick),
+			Interpolate: interpolate(relStyle(rv)),
 		}
 	}
 	header := &codegen.SectionTemplate{
@@ -180,9 +341,13 @@ func viewFile(vp *expr.ViewProps, sections []*codegen.SectionTemplate) *codegen.
 		FuncMap: funcs,
 	}
 	footer := &codegen.SectionTemplate{
-		Name:    "footer",
-		Source:  footerT,
-		Data:    &footerData{Classes: classes, Links: links, IDsByClassNames: idsByClassNames(vp.ElementViews, styles)},
+		Name:   "footer",
+		Source: footerT,
+		Data: &footerData{
+			Classes:         classes,
+			Links:           links,
+			IDsByClassNames: idsByClassNames(vp.ElementViews, styles),
+		},
 		FuncMap: funcs,
 	}
 	sections = append([]*codegen.SectionTemplate{header}, append(sections, footer)...)
@@ -215,7 +380,7 @@ func className(tag string) string {
 }
 
 // styleDef renders a valid mermaid/SVG style line from the given values.
-func styleDef(fill, stroke, color string, opacity *int) string {
+func styleDef(fill, stroke, color string, border expr.BorderKind, opacity *int, thick *bool) string {
 	var elems []string
 	if fill != "" {
 		elems = append(elems, "fill:"+fill)
@@ -226,8 +391,17 @@ func styleDef(fill, stroke, color string, opacity *int) string {
 	if color != "" {
 		elems = append(elems, "color:"+color)
 	}
+	switch border {
+	case expr.BorderDashed:
+		elems = append(elems, "stroke-dasharray: 15 5")
+	case expr.BorderDotted:
+		elems = append(elems, "stroke-dasharray: 3 3")
+	}
 	if opacity != nil {
 		elems = append(elems, "opacity:"+strconv.FormatFloat(float64(*opacity)/100.0, 'f', 2, 64))
+	}
+	if thick != nil && *thick {
+		elems = append(elems, "stroke-width:4")
 	}
 	if len(elems) == 0 {
 		return ""
@@ -254,18 +428,25 @@ func idsByClassNames(evs []*expr.ElementView, styles []*expr.ElementStyle) map[s
 	}
 	return res
 }
-func indexOfRelationshipView(rv *expr.RelationshipView, set []*expr.RelationshipView) (index int) {
-	for _, rrv := range set {
-		if rrv.RelationshipID == rv.RelationshipID {
-			return
-		}
-		index++
-	}
-	panic("relationship missing") // bug
-}
 
 func indent(i int) string {
 	return strings.Repeat(" ", 4*i)
+}
+
+func remove(slice []string, vals ...string) []string {
+	for _, val := range vals {
+		idx := -1
+		for i, elem := range slice {
+			if elem == val {
+				idx = i
+				break
+			}
+		}
+		if idx > -1 {
+			slice = append(slice[:idx], slice[idx+1:]...)
+		}
+	}
+	return slice
 }
 
 const headerT = `%% Graph generated by mdl {{ .Version }} - DO NOT EDIT
@@ -278,8 +459,23 @@ const footerT = `{{- range .Classes }}
 {{- end }}
 {{- range $className, $ids := .IDsByClassNames }}{{ indent 1 }}class {{ join $ids "," }} {{ $className }};
 {{ end }}
+
 {{- range .Links }}
 	{{- if .Style }}{{ indent 1 }}linkStyle {{ .LinkIndex }} {{ .Style }}
-	{{ end }}{{ if .Interpolate }}{{ indent 1 }}linkStyle {{ .LinkIndex }} interpolate {{ .Interpolate }};
+{{ end }}{{ if .Interpolate }}{{ indent 1 }}linkStyle {{ .LinkIndex }} interpolate {{ .Interpolate }};
+{{ end }}
+{{- end }}`
+
+const legendT = `graph TD
+{{ range .LegendElements }}
+{{- indent 1 }}{{ .ID }}{{ .Start }}"{{ if .IconURL }}<img src='{{ .IconURL }}'/>
+	{{- end }}<div class='element'><div class='element-title'>{{ .Name }}</div class='element-title'><div class='element-technology'></div><div class='element-description'>{{ .Description }}</div class='element-description'></div>"{{ .End }}
+{{ indent 1 }}style {{ .ID }} {{ .Style }}
+{{ end }}
+
+{{- range .LegendRelationships }}
+{{- indent 1 }}{{ .SourceID }}[A]{{ .Start }}{{ .Description }}{{ .End }}{{ .DestinationID }}[B]
+{{ if .Style }}{{ indent 1 }}linkStyle {{ .LinkIndex }} {{ .Style }}
+{{ end }}{{ if .Interpolate }}{{ indent 2 }}linkStyle {{ .LinkIndex }} interpolate {{ .Interpolate }}
 {{ end }}
 {{- end }}`

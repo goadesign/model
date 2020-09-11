@@ -35,8 +35,8 @@ func stroke(data *elementData) string {
 
 // interpolate returns the D3 curve shape for the given relationship view if not
 // "linear" (https://github.com/d3/d3-shape/blob/master/README.md#curves).
-func interpolate(rv *expr.RelationshipView) string {
-	switch relStyle(rv).Routing {
+func interpolate(rs *expr.RelationshipStyle) string {
+	switch rs.Routing {
 	case expr.RoutingCurved:
 		return "basis"
 	case expr.RoutingOrthogonal:
@@ -82,6 +82,9 @@ loop:
 				}
 				if es.Description != nil {
 					style.Description = es.Description
+				}
+				if es.Border != expr.BorderUndefined {
+					style.Border = es.Border
 				}
 				continue loop
 			}

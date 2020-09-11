@@ -20,6 +20,8 @@ type (
 		Description string
 		// Mermaid contains the Mermaid source for the diagram.
 		Mermaid string
+		// Legend contains the Mermaid source for the legend.
+		Legend string
 		// Nodes contains additional information for each node rendered in the
 		// diagram and is indexed by node ID (which corresponds to the ID of the
 		// underlying element).
@@ -51,21 +53,27 @@ func MermaidFiles(d *expr.Design) (files []*codegen.File) {
 	}
 	for _, lv := range views.LandscapeViews {
 		files = append(files, landscapeDiagram(lv))
+		files = append(files, legendDiagram(lv.ViewProps))
 	}
 	for _, cv := range views.ContextViews {
 		files = append(files, contextDiagram(cv))
+		files = append(files, legendDiagram(cv.ViewProps))
 	}
 	for _, cv := range views.ContainerViews {
 		files = append(files, containerDiagram(cv))
+		files = append(files, legendDiagram(cv.ViewProps))
 	}
 	for _, cv := range views.ComponentViews {
 		files = append(files, componentDiagram(cv))
+		files = append(files, legendDiagram(cv.ViewProps))
 	}
 	for _, dv := range views.DynamicViews {
 		files = append(files, dynamicDiagram(dv))
+		files = append(files, legendDiagram(dv.ViewProps))
 	}
 	for _, dv := range views.DeploymentViews {
 		files = append(files, deploymentDiagram(dv))
+		files = append(files, legendDiagram(dv.ViewProps))
 	}
 	return
 }
@@ -78,30 +86,35 @@ func Render(d *expr.Design) []*RenderedView {
 	}
 	var rvs []*RenderedView
 	for _, lv := range views.LandscapeViews {
-		rvs = append(rvs, render(landscapeDiagram(lv), lv, d))
+		rvs = append(rvs, render(landscapeDiagram(lv), legendDiagram(lv.ViewProps), lv, d))
 	}
 	for _, cv := range views.ContextViews {
-		rvs = append(rvs, render(contextDiagram(cv), cv, d))
+		rvs = append(rvs, render(contextDiagram(cv), legendDiagram(cv.ViewProps), cv, d))
 	}
 	for _, cv := range views.ContainerViews {
-		rvs = append(rvs, render(containerDiagram(cv), cv, d))
+		rvs = append(rvs, render(containerDiagram(cv), legendDiagram(cv.ViewProps), cv, d))
 	}
 	for _, cv := range views.ComponentViews {
-		rvs = append(rvs, render(componentDiagram(cv), cv, d))
+		rvs = append(rvs, render(componentDiagram(cv), legendDiagram(cv.ViewProps), cv, d))
 	}
 	for _, dv := range views.DynamicViews {
-		rvs = append(rvs, render(dynamicDiagram(dv), dv, d))
+		rvs = append(rvs, render(dynamicDiagram(dv), legendDiagram(dv.ViewProps), dv, d))
 	}
 	for _, dv := range views.DeploymentViews {
-		rvs = append(rvs, render(deploymentDiagram(dv), dv, d))
+		rvs = append(rvs, render(deploymentDiagram(dv), legendDiagram(dv.ViewProps), dv, d))
 	}
 	return rvs
 }
 
-func render(f *codegen.File, view expr.View, d *expr.Design) *RenderedView {
-	var buf bytes.Buffer
-	for _, s := range f.SectionTemplates {
-		if err := s.Write(&buf); err != nil {
+func render(sourceFile, legendFile *codegen.File, view expr.View, d *expr.Design) *RenderedView {
+	var source, legend bytes.Buffer
+	for _, s := range sourceFile.SectionTemplates {
+		if err := s.Write(&source); err != nil {
+			panic("render: " + err.Error()) // bug
+		}
+	}
+	for _, s := range legendFile.SectionTemplates {
+		if err := s.Write(&legend); err != nil {
 			panic("render: " + err.Error()) // bug
 		}
 	}
@@ -141,7 +154,8 @@ func render(f *codegen.File, view expr.View, d *expr.Design) *RenderedView {
 		Title:       title,
 		Version:     d.Version,
 		Description: vp.Description,
-		Mermaid:     buf.String(),
+		Mermaid:     source.String(),
+		Legend:      legend.String(),
 		Nodes:       nodes,
 	}
 }

@@ -278,6 +278,7 @@ func modelizeStyles(s *expr.Styles) *Styles {
 			Metadata:    es.Metadata,
 			Description: es.Description,
 			Opacity:     es.Opacity,
+			Border:      BorderKind(es.Border),
 		}
 	}
 loopelem:
@@ -288,7 +289,6 @@ loopelem:
 				es.Height = ses.Height
 				es.FontSize = ses.FontSize
 				es.Icon = ses.Icon
-				es.Border = BorderKind(ses.Border)
 				continue loopelem
 			}
 		}
@@ -298,7 +298,6 @@ loopelem:
 			Height:   ses.Height,
 			FontSize: ses.FontSize,
 			Icon:     ses.Icon,
-			Border:   BorderKind(ses.Border),
 		})
 	}
 	rels := make([]*RelationshipStyle, len(s.Relationships))

@@ -28,6 +28,7 @@ func (s *SoftwareSystem) EvalName() string {
 // Finalize adds the 'SoftwareSystem' tag ands finalizes relationships.
 func (s *SoftwareSystem) Finalize() {
 	s.PrefixTags("Element", "Software System")
+	s.Element.Finalize()
 }
 
 // Elements returns a slice of ElementHolder that contains the elements of s.
