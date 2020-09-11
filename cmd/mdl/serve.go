@@ -47,8 +47,10 @@ func serve(pkg, config, out string, port int, debug bool) error {
 		for {
 			select {
 			case ev := <-watcher.Events:
-				views, err = loadViews(pkg, out, debug)
-				lr.Reload(ev.Name)
+				if !strings.HasPrefix(filepath.Base(ev.Name), tmpDirPrefix) {
+					views, err = loadViews(pkg, out, debug)
+					lr.Reload(ev.Name)
+				}
 			case err := <-watcher.Errors:
 				fmt.Fprintln(os.Stderr, err.Error())
 			}
@@ -75,12 +77,13 @@ func serve(pkg, config, out string, port int, debug bool) error {
 			return
 		}
 		data := &ViewData{
-			Title:         view.Title,
-			Description:   view.Description,
-			Version:       view.Version,
-			MermaidSource: template.JS(view.Mermaid),
-			MermaidConfig: template.JS(config),
-			CSS:           template.CSS(DefaultCSS),
+			Title:               view.Title,
+			Description:         view.Description,
+			Version:             view.Version,
+			MermaidSource:       template.JS(view.Mermaid),
+			MermaidLegendSource: template.JS(view.Legend),
+			MermaidConfig:       template.JS(config),
+			CSS:                 template.CSS(DefaultCSS),
 		}
 		if err = indexTmpl.Execute(w, data); err != nil {
 			errindex.Execute(w, err.Error())

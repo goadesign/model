@@ -27,6 +27,7 @@ func (c *Component) EvalName() string {
 // Finalize adds the 'Component' tag ands finalizes relationships.
 func (c *Component) Finalize() {
 	c.PrefixTags("Element", "Component")
+	c.Element.Finalize()
 }
 
 // Elements returns a slice of ElementHolder that contains the elements of c.

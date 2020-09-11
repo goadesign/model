@@ -71,6 +71,7 @@ func (d *DeploymentNode) EvalName() string { return fmt.Sprintf("deployment node
 // Finalize adds the 'Deployment Node' tag ands finalizes relationships.
 func (d *DeploymentNode) Finalize() {
 	d.PrefixTags("Element", "Deployment Node")
+	d.Element.Finalize()
 }
 
 // Child returns the child deployment node with the given name if any,
@@ -203,6 +204,7 @@ func (i *InfrastructureNode) EvalName() string {
 // Finalize adds the 'Infrastructure Node' tag ands finalizes relationships.
 func (i *InfrastructureNode) Finalize() {
 	i.PrefixTags("Element", "Infrastructure Node")
+	i.Element.Finalize()
 }
 
 // EvalName returns the generic expression name used in error messages.
@@ -217,6 +219,7 @@ func (ci *ContainerInstance) EvalName() string {
 // Finalize adds the "Container Instance" tag if not present.
 func (ci *ContainerInstance) Finalize() {
 	ci.PrefixTags("Container Instance")
+	ci.Element.Finalize()
 }
 
 // EvalName returns the generic expression name used in error messages.

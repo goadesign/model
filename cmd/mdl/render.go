@@ -34,9 +34,19 @@ const DefaultTemplate = `<!DOCTYPE html>
 		</div>
 	</div>
 	<div id="diagram"></div>
+	<div class="legend-container">
+		<div class="legend-title">
+			Legend <span id="toggle">≚</span>
+		</div>
+		<div style="display:none" id="legend"></div>
+	</div>
 	<script src="http://localhost:35729/livereload.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
 	<script>
+		function renderSvg(src, id) {
+			var diagram = document.getElementById(id);
+			mermaidAPI.render("mermaid"+id, src, function(svgCode) { diagram.innerHTML = svgCode; });
+		} 
 		var mermaidAPI = mermaid.mermaidAPI;
 		mermaidAPI.initialize({
 			securityLevel: 'loose',
@@ -44,12 +54,22 @@ const DefaultTemplate = `<!DOCTYPE html>
 			startOnLoad:false{{ if .MermaidConfig }},
 			...{{ .MermaidConfig }}{{ end }}
 		});
-		var element = document.getElementById("diagram");
-		var insertSvg = function(svgCode, bindFunctions) {
-			element.innerHTML = svgCode;
-		};
-		var src = ` + "`{{ .MermaidSource }}`;" + `
-		var graph = mermaidAPI.render("mermaid", src, insertSvg);
+		var diagramSrc = ` + "`{{ .MermaidSource }}`;" + `
+		renderSvg(diagramSrc, "diagram")
+		var legendSrc = ` + "`{{ .MermaidLegendSource }}`;" + `
+		renderSvg(legendSrc, "legend")
+	</script>
+	<script>
+		var toggle = document.getElementById("toggle");
+		toggle.addEventListener('click', function (event) {
+			if (legend.style.display == "") {
+				legend.style.display = "none";
+				toggle.innerHTML = "≚";
+			} else {
+				legend.style.display = "";
+				toggle.innerHTML = "≙";
+			}
+		});
 	</script>
 </body>
 </html>
@@ -78,6 +98,10 @@ body {
 
 .element-title {
 	font-weight: bold;
+}
+
+.element-technology {
+	font-size: 70%;
 	padding-bottom: 0.8em;
 }
 
@@ -87,14 +111,35 @@ body {
 
 .relationship {
 	font-family: Arial;
-	font-size: 80%;
 	background-color: white;
 }
 
 .relationship-label {
+	font-size: 80%;
 }
 
 .relationship-technology {
+	font-size: 70%;
+}
+
+.legend-container {
+	margin-top: 2em;
+	padding: 1em;
+	border: 1px double #909090;
+	border-radius: 5px;
+	display: inline-block;
+}
+
+.legend-title {
+	font-family: Arial;
+}
+
+#toggle {
+	border: 1px solid #909090;
+	border-radius: 3px;
+	background-color: black;
+	color: white;
+	cursor: pointer;
 }
 `
 
@@ -109,6 +154,8 @@ type ViewData struct {
 	Version string
 	// MermaidSource is the Mermaid diagram source code.
 	MermaidSource template.JS
+	// MermaidLegendSource is the Mermaid legend source code.
+	MermaidLegendSource template.JS
 	// MermaidConfig is the Mermaid config JSON.
 	MermaidConfig template.JS
 	// CSS rendered inline
@@ -161,12 +208,13 @@ func render(pkg, config, out string, debug bool) error {
 			return err
 		}
 		data := &ViewData{
-			Title:         view.Title,
-			Description:   view.Description,
-			Version:       view.Version,
-			MermaidSource: template.JS(view.Mermaid),
-			MermaidConfig: template.JS(config),
-			CSS:           template.CSS(DefaultCSS),
+			Title:               view.Title,
+			Description:         view.Description,
+			Version:             view.Version,
+			MermaidSource:       template.JS(view.Mermaid),
+			MermaidLegendSource: template.JS(view.Legend),
+			MermaidConfig:       template.JS(config),
+			CSS:                 template.CSS(DefaultCSS),
 		}
 		if err := indexTmpl.Execute(f, data); err != nil {
 			return err

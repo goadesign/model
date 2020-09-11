@@ -81,6 +81,7 @@ type (
 		Metadata    *bool
 		Description *bool
 		Opacity     *int
+		Border      BorderKind
 	}
 
 	// StructurizrElementStyle defines additional element styles that only
@@ -92,7 +93,6 @@ type (
 		Width    *int
 		Height   *int
 		FontSize *int
-		Border   BorderKind
 	}
 
 	// RelationshipStyle defines a relationship style.

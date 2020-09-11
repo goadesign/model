@@ -2,6 +2,7 @@ package mdl
 
 import (
 	"bytes"
+	"strings"
 	"unicode"
 
 	"goa.design/goa/v3/codegen"
@@ -29,6 +30,8 @@ type (
 		Name string
 		// Description of element
 		Description string
+		// Technology used by element if any
+		Technology string
 		// URL to redirect to when element is clicked if any
 		URL string
 		// IconURL is the URL to an icon if any
@@ -56,6 +59,7 @@ func elements(evs []*expr.ElementView, boundary string) *codegen.SectionTemplate
 			End:         end,
 			Name:        ev.Element.Name,
 			Description: ev.Element.Description,
+			Technology:  ev.Element.Technology,
 			URL:         ev.Element.URL,
 			IconURL:     es.Icon,
 			Background:  es.Background,
@@ -70,9 +74,10 @@ func elements(evs []*expr.ElementView, boundary string) *codegen.SectionTemplate
 	return &codegen.SectionTemplate{Name: "elements", Source: elementT, Data: data, FuncMap: funcs}
 }
 
-// wrap wraps the given string to 30 charaters per line and separates each line
-// with <br/> .
-func wrap(s string) string {
+// wrap wraps the given string to n charaters per line, encodes the
+// results so mermaid is happy to use them as element description and separates
+// each line with <br/> .
+func wrap(s string, n uint) string {
 	init := make([]byte, 0, len(s))
 	buf := bytes.NewBuffer(init)
 	var current uint
@@ -80,7 +85,7 @@ func wrap(s string) string {
 	for _, char := range s {
 		if char == '\n' {
 			if wordBuf.Len() == 0 {
-				if current+uint(spaceBuf.Len()) > 30 {
+				if current+uint(spaceBuf.Len()) > n {
 					current = 0
 				} else {
 					current += uint(spaceBuf.Len())
@@ -107,7 +112,7 @@ func wrap(s string) string {
 			spaceBuf.WriteRune(char)
 		} else {
 			wordBuf.WriteRune(char)
-			if current+uint(spaceBuf.Len()+wordBuf.Len()) > 30 && uint(wordBuf.Len()) < 30 {
+			if current+uint(spaceBuf.Len()+wordBuf.Len()) > n && uint(wordBuf.Len()) < n {
 				buf.WriteString("<br/>")
 				current = 0
 				spaceBuf.Reset()
@@ -115,14 +120,14 @@ func wrap(s string) string {
 		}
 	}
 	if wordBuf.Len() == 0 {
-		if current+uint(spaceBuf.Len()) <= 30 {
+		if current+uint(spaceBuf.Len()) <= n {
 			spaceBuf.WriteTo(buf)
 		}
 	} else {
 		spaceBuf.WriteTo(buf)
 		wordBuf.WriteTo(buf)
 	}
-	return buf.String()
+	return strings.ReplaceAll(buf.String(), "\n", "<br/>")
 }
 
 func nodeStartEnd(ev *expr.ElementView) (string, string) {
@@ -159,17 +164,17 @@ func nodeStartEnd(ev *expr.ElementView) (string, string) {
 // input: ElementsData
 const elementT = `{{ if .BoundaryName }}{{ indent 1 }}subgraph boundary [{{ .BoundaryName }}]
 {{ end }}
-{{- range .Elements }}{{ indent .Indent }}{{ .ID }}{{ .Start }}
+{{- range .Elements }}{{ indent .Indent }}{{ .ID }}{{ .Start }}"
 {{- if .IconURL }}<img src='{{ .IconURL }}'/>
 {{ end -}}
-<div class='element'><div class='element-title'>{{ .Name }}</div><div class='element-description'>{{ wrap .Description }}</div></div>{{ .End }}
+<div class='element'><div class='element-title'>{{ wrap .Name 25 }}</div><div class='element-technology'>{{ if .Technology }}[{{ wrap .Technology 30 }}]{{ end }}</div><div class='element-description'>{{ wrap .Description 30 }}</div></div>"{{ .End }}
 {{- if .URL }}
 {{ indent .Indent }}click {{ .ID }} "{{ .URL }}"{{ if .URLTooltip }} "{{ .URLTooltip }}"{{ end }}
 {{ end }}
 {{- if not .Stroke }}
 {{ indent .Indent }}style {{ .ID }} stroke:{{ stroke . }}
 {{ end }}
-{{- end }}
+{{ end }}
 {{- if .BoundaryName }}{{ indent 1 }}end
-{{ indent 1 }}style boundary fill:#ffffff,stroke:#909090,color:#000000,stroke-width:2px,stroke-dasharray: 5 5
+{{ indent 1 }}style boundary fill:#ffffff,stroke:#909090,color:#000000,stroke-dasharray: 15 5;
 {{ end }}`

@@ -17,7 +17,7 @@ func main() {
 		fs     = flag.NewFlagSet("flags", flag.ExitOnError)
 		out    = fs.String("out", codegen.Gendir, "Write diagrams to given directory")
 		config = fs.String("config", "", "Path to Mermaid config JSON used to serve diagrams")
-		port   = fs.Int("port", 6060, "Listen port used to serve diagrams")
+		port   = fs.Int("port", 6070, "Listen port used to serve diagrams")
 		debug  = fs.Bool("debug", false, "Pring debug output")
 	)
 

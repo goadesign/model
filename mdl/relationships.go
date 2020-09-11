@@ -22,7 +22,7 @@ func relationships(rvs []*expr.RelationshipView) *codegen.SectionTemplate {
 	data := make([]*relationshipData, len(rvs))
 	for i, rv := range rvs {
 		rel := expr.Registry[rv.RelationshipID].(*expr.Relationship)
-		start, end := lineStartEnd(rv)
+		start, end := lineStartEnd(relStyle(rv))
 		data[i] = &relationshipData{
 			SourceID:      rv.Source.ID,
 			DestinationID: rv.Destination.ID,
@@ -36,19 +36,18 @@ func relationships(rvs []*expr.RelationshipView) *codegen.SectionTemplate {
 	return &codegen.SectionTemplate{Name: "relationships", Source: relationshipT, Data: data, FuncMap: funcs}
 }
 
-func lineStartEnd(rv *expr.RelationshipView) (string, string) {
-	rs := relStyle(rv)
-	if rs.Dashed == nil || *rs.Dashed {
-		return "-.", ".->"
-	}
+func lineStartEnd(rs *expr.RelationshipStyle) (string, string) {
 	if rs.Thick != nil && *rs.Thick {
 		return "==", "==>"
+	}
+	if rs.Dashed == nil || *rs.Dashed {
+		return "-.", ".->"
 	}
 	return "--", "-->"
 }
 
 const relationshipT = `{{ range . -}}
-{{ indent 1 }}{{ .SourceID }} {{ .Start }}"<div class='relationship'><div class='relationship-label'>{{ wrap .Description }}</div>
+{{ indent 1 }}{{ .SourceID }} {{ .Start }}"<div class='relationship'><div class='relationship-label'>{{ wrap .Description 30 }}</div>
 {{- if .Technology }}<div class='relationship-technology'>[{{ .Technology }}]</div></div>
 {{- end }}"{{ .End }}{{ .DestinationID }}
 {{ end }}`

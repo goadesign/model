@@ -33,18 +33,16 @@ func stroke(data *elementData) string {
 	return fmt.Sprintf("#%02x%02x%02x", r, g, b)
 }
 
-// interpolate returns the D3 curve shape for the given relationship view
-// (https://github.com/d3/d3-shape/blob/master/README.md#curves).
-func interpolate(rv *expr.RelationshipView) string {
-	switch relStyle(rv).Routing {
+// interpolate returns the D3 curve shape for the given relationship view if not
+// "linear" (https://github.com/d3/d3-shape/blob/master/README.md#curves).
+func interpolate(rs *expr.RelationshipStyle) string {
+	switch rs.Routing {
 	case expr.RoutingCurved:
 		return "basis"
-	case expr.RoutingDirect:
-		return "linear"
 	case expr.RoutingOrthogonal:
 		return "step"
 	default:
-		return "linear"
+		return ""
 	}
 }
 
@@ -76,11 +74,17 @@ loop:
 				if es.Icon != "" {
 					style.Icon = es.Icon
 				}
+				if es.Opacity != nil {
+					style.Opacity = es.Opacity
+				}
 				if es.Metadata != nil {
 					style.Metadata = es.Metadata
 				}
 				if es.Description != nil {
 					style.Description = es.Description
+				}
+				if es.Border != expr.BorderUndefined {
+					style.Border = es.Border
 				}
 				continue loop
 			}
@@ -109,11 +113,17 @@ loop:
 				if rs.Color != "" {
 					style.Color = rs.Color
 				}
+				if rs.Stroke != "" {
+					style.Stroke = rs.Stroke
+				}
 				if rs.Dashed != nil {
 					style.Dashed = rs.Dashed
 				}
 				if rs.Routing != expr.RoutingUndefined {
 					style.Routing = rs.Routing
+				}
+				if rs.Opacity != nil {
+					style.Opacity = rs.Opacity
 				}
 				continue loop
 			}

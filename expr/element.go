@@ -39,6 +39,13 @@ const (
 // DSL returns the attached DSL.
 func (e *Element) DSL() func() { return e.DSLFunc }
 
+// Finalize finalizes the relationships.
+func (e *Element) Finalize() {
+	for _, rel := range e.Relationships {
+		rel.Finalize()
+	}
+}
+
 // GetElement returns the underlying element.
 func (e *Element) GetElement() *Element { return e }
 
