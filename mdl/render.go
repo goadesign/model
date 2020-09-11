@@ -4,6 +4,7 @@ import (
 	"bytes"
 
 	"goa.design/goa/v3/codegen"
+	"goa.design/goa/v3/eval"
 	"goa.design/model/expr"
 )
 
@@ -42,6 +43,15 @@ type (
 		ElementViewKey string
 	}
 )
+
+// RunDSL runs the DSL defined in a global variable and returns the corresponding
+// rendered views.
+func RunDSL() ([]*RenderedView, error) {
+	if err := eval.RunDSL(); err != nil {
+		return nil, err
+	}
+	return Render(expr.Root), nil
+}
 
 // MermaidFiles returns codegen files that render Mermaid diagrams describing
 // the views described in the given design. There is one file generated per view

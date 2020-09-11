@@ -134,6 +134,10 @@ body {
 	font-family: Arial;
 }
 
+#diagram {
+	margin-top: 2em;
+}
+
 #toggle {
 	border: 1px solid #909090;
 	border-radius: 3px;
