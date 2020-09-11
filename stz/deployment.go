@@ -1,4 +1,4 @@
-package design
+package stz
 
 type (
 	// DeploymentNode describes a single deployment node.

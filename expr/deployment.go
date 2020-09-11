@@ -2,8 +2,6 @@ package expr
 
 import (
 	"fmt"
-
-	"goa.design/model/design"
 )
 
 type (
@@ -53,7 +51,13 @@ type (
 	ContainerInstances []*ContainerInstance
 
 	// HealthCheck is a HTTP-based health check.
-	HealthCheck design.HealthCheck
+	HealthCheck struct {
+		Name     string
+		URL      string
+		Interval int
+		Timeout  int
+		Headers  map[string]string
+	}
 )
 
 // EvalName returns the generic expression name used in error messages.

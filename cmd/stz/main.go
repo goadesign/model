@@ -69,7 +69,7 @@ done:
 	case "put":
 		err = put(pathOrDefault(path), *wid, *key, *secret, *debug)
 	case "version":
-		fmt.Printf("%s version %s\n", os.Args[0], model.Version())
+		fmt.Printf("%s %s\n", os.Args[0], model.Version())
 	case "help":
 		showUsage(fs)
 	default:
@@ -106,12 +106,10 @@ func gen(pkg string, out string, debug bool) error {
 	var sections []*codegen.SectionTemplate
 	{
 		imports := []*codegen.ImportSpec{
-			codegen.SimpleImport("flag"),
 			codegen.SimpleImport("fmt"),
 			codegen.SimpleImport("io/ioutil"),
 			codegen.SimpleImport("encoding/json"),
 			codegen.SimpleImport("os"),
-			codegen.SimpleImport("goa.design/model/eval"),
 			codegen.SimpleImport("goa.design/model/stz"),
 			codegen.NewImport("_", pkg),
 		}
@@ -250,12 +248,11 @@ const mainT = `func main() {
 	out := os.Args[1]
 		
     // Run the model DSL
-    d, err := eval.RunDSL()
+    w, err := stz.RunDSL()
     if err != nil {
         fmt.Fprint(os.Stderr, err.Error())
         os.Exit(1)
 	}
-	w := stz.WorkspaceFromDesign(d)
 	b, err := json.MarshalIndent(w, "", "    ")
     if err != nil {
         fmt.Fprintf(os.Stderr, "failed to encode into JSON: %s", err.Error())

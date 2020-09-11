@@ -1,4 +1,4 @@
-package design
+package stz
 
 import (
 	"encoding/json"

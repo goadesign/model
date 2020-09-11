@@ -2,15 +2,13 @@ package expr
 
 import (
 	"fmt"
-
-	"goa.design/model/design"
 )
 
 type (
 	// Person represents a person.
 	Person struct {
 		*Element
-		Location design.LocationKind
+		Location LocationKind
 	}
 
 	// People is a slide of Person that can easily be converted into a slice of ElementHolder.

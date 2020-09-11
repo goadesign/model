@@ -4,7 +4,6 @@ import (
 	"net/url"
 
 	"goa.design/goa/v3/eval"
-	"goa.design/model/design"
 	"goa.design/model/expr"
 
 	// Register code generators for the model plugin
@@ -234,7 +233,7 @@ func URL(u string) {
 //    })
 //
 func External() {
-	ext := design.LocationExternal
+	ext := expr.LocationExternal
 	switch e := eval.Current().(type) {
 	case *expr.Person:
 		e.Location = ext

@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"goa.design/goa/v3/eval"
-	"goa.design/model/design"
 )
 
 type (
@@ -65,15 +64,57 @@ type (
 
 	// Styles describes the styles for a view.
 	Styles struct {
-		Elements      []*ElementStyle
-		Relationships []*RelationshipStyle
+		Elements                 []*ElementStyle
+		Relationships            []*RelationshipStyle
+		StructurizrElements      []*StructurizrElementStyle
+		StructurizrRelationships []*StructurizrRelationshipStyle
 	}
 
 	// ElementStyle defines an element style.
-	ElementStyle design.ElementStyle
+	ElementStyle struct {
+		Tag         string
+		Shape       ShapeKind
+		Icon        string
+		Background  string
+		Color       string
+		Stroke      string
+		Metadata    *bool
+		Description *bool
+		Opacity     *int
+	}
+
+	// StructurizrElementStyle defines additional element styles that only
+	// applies to views rendered in the Structurizr service.
+	StructurizrElementStyle struct {
+		Tag      string
+		Shape    ExtendedShapeKind
+		Icon     string
+		Width    *int
+		Height   *int
+		FontSize *int
+		Border   BorderKind
+	}
 
 	// RelationshipStyle defines a relationship style.
-	RelationshipStyle design.RelationshipStyle
+	RelationshipStyle struct {
+		Tag     string
+		Thick   *bool
+		Color   string
+		Stroke  string
+		Dashed  *bool
+		Routing RoutingKind
+		Opacity *int
+	}
+
+	// StructurizrRelationshipStyle defines additional relationship styles that
+	// only apply to views rendered in the Structurizr service.
+	StructurizrRelationshipStyle struct {
+		Tag       string
+		Thickness *int
+		FontSize  *int
+		Width     *int
+		Position  *int
+	}
 
 	// View is the common interface for all views.
 	View interface {
@@ -86,6 +127,45 @@ type (
 		AddElements(...ElementHolder) error
 		AddAnimationStep(*AnimationStep) error
 	}
+
+	// ShapeKind is the enum used to represent shapes used to render elements.
+	ShapeKind int
+
+	// ExtendedShapeKind is the enum used to represent shapes used to render
+	// elements in the Structurizr service.
+	ExtendedShapeKind int
+
+	// BorderKind is the enum used to represent element border styles.
+	BorderKind int
+)
+
+const (
+	ShapeUndefined ShapeKind = iota
+	ShapeBox
+	ShapeCircle
+	ShapeCylinder
+	ShapeEllipse
+	ShapeHexagon
+	ShapeRoundedBox
+	ShapeLast
+)
+
+const (
+	ShapeComponent ExtendedShapeKind = ExtendedShapeKind(ShapeLast)
+	ShapeFolder
+	ShapeMobileDeviceLandscape
+	ShapeMobileDevicePortrait
+	ShapePerson
+	ShapePipe
+	ShapeRobot
+	ShapeWebBrowser
+)
+
+const (
+	BorderUndefined BorderKind = iota
+	BorderSolid
+	BorderDashed
+	BorderDotted
 )
 
 var (
@@ -211,7 +291,16 @@ func (vs *Views) Finalize() {
 		for _, e := range vp.AddNeighbors {
 			addNeighbors(e, vp)
 		}
-		addMissingElementsAndRelationships(vp)
+		var scope ElementHolder
+		switch v := view.(type) {
+		case ContextView:
+			scope = Registry[v.SoftwareSystemID].(*SoftwareSystem)
+		case ContainerView:
+			scope = Registry[v.SoftwareSystemID].(*SoftwareSystem)
+		case ComponentView:
+			scope = Registry[v.ContainerID].(*Container)
+		}
+		addMissingElementsAndRelationships(vp, scope)
 		addAnimationStepRelationships(vp)
 
 		// Then remove elements and relationships that need to be removed
@@ -409,6 +498,16 @@ func (es *ElementStyle) EvalName() string {
 // EvalName returns the generic expression name used in error messages.
 func (rs *RelationshipStyle) EvalName() string {
 	return fmt.Sprintf("relationship style for tag %q", rs.Tag)
+}
+
+// EvalName returns the generic expression name used in error messages.
+func (es *StructurizrElementStyle) EvalName() string {
+	return fmt.Sprintf("additional element styles for tag %q", es.Tag)
+}
+
+// EvalName returns the generic expression name used in error messages.
+func (rs *StructurizrRelationshipStyle) EvalName() string {
+	return fmt.Sprintf("additional relationship styles for tag %q", rs.Tag)
 }
 
 // isPS returns true if element is a person or software system, false otherwise.

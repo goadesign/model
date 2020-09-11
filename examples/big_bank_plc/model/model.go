@@ -1,13 +1,13 @@
 package design
 
 import (
-	"goa.design/model/design"
 	. "goa.design/model/dsl"
 	"goa.design/model/expr"
 )
 
 var _ = Design("Big Bank plc", "This is an example workspace to illustrate the key features of Model, based around a fictional online banking system.", func() {
 	Enterprise("Big Bank plc")
+	Version("v1.0")
 
 	var BackOfficeStaff = Person("Back Office Staff", "Administration and support staff within the bank.", func() {
 		Uses("Mainframe Banking System", "Uses", Synchronous, func() {
@@ -525,6 +525,8 @@ var _ = Design("Big Bank plc", "This is an example workspace to illustrate the k
 			ElementStyle("Person", func() {
 				Background("#08427b")
 				Color("#ffffff")
+			})
+			StructurizrElementStyle("Person", func() {
 				FontSize(22)
 				Shape(ShapePerson)
 			})
@@ -536,11 +538,11 @@ var _ = Design("Big Bank plc", "This is an example workspace to illustrate the k
 				Background("#999999")
 				Color("#ffffff")
 			})
-			ElementStyle("Web Browser", func() {
+			StructurizrElementStyle("Web Browser", func() {
 				Shape(ShapeWebBrowser)
 			})
-			ElementStyle("Mobile App", func() {
-				Shape(design.ShapeMobileDeviceLandscape)
+			StructurizrElementStyle("Mobile App", func() {
+				Shape(ShapeMobileDeviceLandscape)
 			})
 			ElementStyle("Database", func() {
 				Shape(ShapeCylinder)
@@ -549,7 +551,6 @@ var _ = Design("Big Bank plc", "This is an example workspace to illustrate the k
 				Opacity(25)
 			})
 			RelationshipStyle("Failover", func() {
-				Position(70)
 				Opacity(25)
 			})
 		})

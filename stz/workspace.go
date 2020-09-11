@@ -3,9 +3,6 @@ package stz
 import (
 	"bytes"
 	"encoding/json"
-	"sort"
-
-	"goa.design/model/design"
 )
 
 type (
@@ -33,88 +30,13 @@ type (
 		//  (e.g. "model-go/1.2.0").
 		LastModifiedAgent string `json:"lastModifiedAgent,omitempty"`
 		// Model is the software architecture model.
-		Model *design.Model `json:"model,omitempty"`
+		Model *Model `json:"model,omitempty"`
 		// Views contains the views if any.
 		Views *Views `json:"views,omitempty"`
 		// Documentation associated with software architecture model.
 		Documentation *Documentation `json:"documentation,omitempty"`
 		// Configuration of workspace.
 		Configuration *WorkspaceConfiguration `json:"configuration,omitempty"`
-	}
-
-	// Views adds Structurizr specific configuration to the model views.
-	Views struct {
-		// LandscapeViewss describe the system landscape views.
-		LandscapeViews []*design.LandscapeView `json:"systemLandscapeViews,omitempty"`
-		// ContextViews lists the system context views.
-		ContextViews []*design.ContextView `json:"systemContextViews,omitempty"`
-		// ContainerViews lists the container views.
-		ContainerViews []*design.ContainerView `json:"containerViews,omitempty"`
-		// ComponentViews lists the component views.
-		ComponentViews []*design.ComponentView `json:"componentViews,omitempty"`
-		// DynamicViews lists the dynamic views.
-		DynamicViews []*design.DynamicView `json:"dynamicViews,omitempty"`
-		// DeploymentViews lists the deployment views.
-		DeploymentViews []*design.DeploymentView `json:"deploymentViews,omitempty"`
-		// FilteredViews lists the filtered views.
-		FilteredViews []*design.FilteredView `json:"filteredViews,omitempty"`
-		// Configuration contains view specific configuration information.
-		Configuration *Configuration `json:"configuration,omitempty"`
-	}
-
-	// Configuration encapsulate Structurizr service specific view configuration information.
-	Configuration struct {
-		// Styles associated with views.
-		Styles *design.Styles `json:"styles,omitempty"`
-		// Key of view that was saved most recently.
-		LastSavedView string `json:"lastSavedView,omitempty"`
-		// Key of view shown by default.
-		DefaultView string `json:"defaultView,omitempty"`
-		// URL(s) of theme(s) used when rendering diagram.
-		Themes []string `json:"themes,omitempty"`
-		// Branding used in views.
-		Branding *Branding `json:"branding,omitempty"`
-		// Terminology used in workspace.
-		Terminology *Terminology `json:"terminology,omitempty"`
-		// Type of symbols used when rendering metadata.
-		MetadataSymbols SymbolKind `json:"metadataSymbols,omitempty"`
-	}
-
-	// Branding is a wrapper for font and logo for diagram/documentation
-	// branding purposes.
-	Branding struct {
-		// URL of PNG/JPG/GIF file, or Base64 data URI representation.
-		Logo string `json:"logo,omitempty"`
-		// Font details.
-		Font *Font `json:"font,omitempty"`
-	}
-
-	// Terminology used on diagrams.
-	Terminology struct {
-		// Terminology used when rendering enterprise boundaries.
-		Enterprise string `json:"enterprise,omitempty"`
-		// Terminology used when rendering people.
-		Person string `json:"person,omitempty"`
-		// Terminology used when rendering software systems.
-		SoftwareSystem string `json:"softwareSystem,omitempty"`
-		// Terminology used when rendering containers.
-		Container string `json:"container,omitempty"`
-		// Terminology used when rendering components.
-		Component string `json:"component,omitempty"`
-		// Terminology used when rendering code elements.
-		Code string `json:"code,omitempty"`
-		// Terminology used when rendering deployment nodes.
-		DeploymentNode string `json:"deploymentNode,omitempty"`
-		// Terminology used when rendering relationships.
-		Relationship string `json:"relationship,omitempty"`
-	}
-
-	// Font details including name and optional URL for web fonts.
-	Font struct {
-		// Name of font.
-		Name string `json:"name,omitempty"`
-		// Web font URL.
-		URL string `json:"url,omitempty"`
 	}
 
 	// WorkspaceConfiguration describes the workspace configuration.
@@ -195,27 +117,11 @@ type (
 		URL string `json:"url,omitempty"`
 	}
 
-	// SymbolKind is the enum used to represent symbols used to render metadata.
-	SymbolKind int
-
 	// DocFormatKind is the enum used to represent documentation format.
 	DocFormatKind int
 
 	// DecisionStatusKind is the enum used to represent status of decision.
 	DecisionStatusKind int
-
-	// for calling json.Marshal.
-	_views Views
-)
-
-const (
-	SymbolUndefined SymbolKind = iota
-	SymbolSquareBrackets
-	SymbolRoundBrackets
-	SymbolCurlyBrackets
-	SymbolAngleBrackets
-	SymbolDoubleAngleBrackets
-	SymbolNone
 )
 
 const (
@@ -232,87 +138,6 @@ const (
 	DecisionDeprecated
 	DecisionRejected
 )
-
-// WorkspaceFromDesign creates a Workspace data structure compatible with the
-// Structurizr service API from a design.
-func WorkspaceFromDesign(d *design.Design) *Workspace {
-	return &Workspace{
-		Name:        d.Name,
-		Description: d.Description,
-		Version:     d.Version,
-		Model:       d.Model,
-		Views: &Views{
-			LandscapeViews:  d.Views.LandscapeViews,
-			ContextViews:    d.Views.ContextViews,
-			ContainerViews:  d.Views.ContainerViews,
-			ComponentViews:  d.Views.ComponentViews,
-			DynamicViews:    d.Views.DynamicViews,
-			DeploymentViews: d.Views.DeploymentViews,
-			FilteredViews:   d.Views.FilteredViews,
-			Configuration: &Configuration{
-				Styles: d.Views.Styles,
-			},
-		},
-	}
-}
-
-// MarshalJSON guarantees the order of elements in generated JSON arrays that
-// correspond to sets.
-func (v *Views) MarshalJSON() ([]byte, error) {
-	sort.Slice(v.LandscapeViews, func(i, j int) bool { return v.LandscapeViews[i].Key < v.LandscapeViews[j].Key })
-	sort.Slice(v.ContextViews, func(i, j int) bool { return v.ContextViews[i].Key < v.ContextViews[j].Key })
-	sort.Slice(v.ContainerViews, func(i, j int) bool { return v.ContainerViews[i].Key < v.ContainerViews[j].Key })
-	sort.Slice(v.ComponentViews, func(i, j int) bool { return v.ComponentViews[i].Key < v.ComponentViews[j].Key })
-	sort.Slice(v.DynamicViews, func(i, j int) bool { return v.DynamicViews[i].Key < v.DynamicViews[j].Key })
-	sort.Slice(v.DeploymentViews, func(i, j int) bool { return v.DeploymentViews[i].Key < v.DeploymentViews[j].Key })
-	sort.Slice(v.FilteredViews, func(i, j int) bool { return v.FilteredViews[i].Key < v.FilteredViews[j].Key })
-	vv := _views(*v)
-	return json.Marshal(&vv)
-}
-
-// MarshalJSON replaces the constant value with the proper string value.
-func (s SymbolKind) MarshalJSON() ([]byte, error) {
-	buf := bytes.NewBufferString(`"`)
-	switch s {
-	case SymbolSquareBrackets:
-		buf.WriteString("SquareBrackets")
-	case SymbolRoundBrackets:
-		buf.WriteString("RoundBrackets")
-	case SymbolCurlyBrackets:
-		buf.WriteString("CurlyBrackets")
-	case SymbolAngleBrackets:
-		buf.WriteString("AngleBrackets")
-	case SymbolDoubleAngleBrackets:
-		buf.WriteString("DoubleAngleBrackets")
-	case SymbolNone:
-		buf.WriteString("None")
-	}
-	buf.WriteString(`"`)
-	return buf.Bytes(), nil
-}
-
-// UnmarshalJSON sets the constant from its JSON representation.
-func (s *SymbolKind) UnmarshalJSON(data []byte) error {
-	var val string
-	if err := json.Unmarshal(data, &val); err != nil {
-		return err
-	}
-	switch val {
-	case "SquareBrackets":
-		*s = SymbolSquareBrackets
-	case "RoundBrackets":
-		*s = SymbolRoundBrackets
-	case "CurlyBrackets":
-		*s = SymbolCurlyBrackets
-	case "AngleBrackets":
-		*s = SymbolAngleBrackets
-	case "DoubleAngleBrackets":
-		*s = SymbolDoubleAngleBrackets
-	case "None":
-		*s = SymbolNone
-	}
-	return nil
-}
 
 // MarshalJSON replaces the constant value with the proper string value.
 func (d DocFormatKind) MarshalJSON() ([]byte, error) {

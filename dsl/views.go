@@ -6,8 +6,19 @@ import (
 	"strings"
 
 	"goa.design/goa/v3/eval"
-	"goa.design/model/design"
 	"goa.design/model/expr"
+)
+
+type (
+	// PaperSizeKind is the enum for possible paper kinds.
+	PaperSizeKind int
+
+	// RoutingKind is the enum for possible routing algorithms.
+	RoutingKind int
+
+	// RankDirectionKind is the enum for possible automatic layout rank
+	// directions.
+	RankDirectionKind int
 )
 
 // Global is the keyword used to define dynamic views with global scope. See
@@ -16,67 +27,67 @@ const Global = 0
 
 const (
 	// RankTopBottom indicates a layout that uses top to bottom rank.
-	RankTopBottom = design.RankTopBottom
+	RankTopBottom RankDirectionKind = iota + 1
 	// RankBottomTop indicates a layout that uses bottom to top rank.
-	RankBottomTop = design.RankBottomTop
+	RankBottomTop
 	// RankLeftRight indicates a layout that uses left to right rank.
-	RankLeftRight = design.RankLeftRight
+	RankLeftRight
 	// RankRightLeft indicates a layout that uses right to left rank.
-	RankRightLeft = design.RankRightLeft
+	RankRightLeft
 )
 
 const (
 	// SizeA0Landscape defines a render page size of A0 in landscape mode (46-13/16 x 33-1/8).
-	SizeA0Landscape = design.SizeA0Landscape
+	SizeA0Landscape PaperSizeKind = iota + 1
 	// SizeA0Portrait defines a render page size of A0 in portrait mode (33-1/8 x 46-13/16).
-	SizeA0Portrait = design.SizeA0Portrait
+	SizeA0Portrait
 	// SizeA1Landscape defines a render page size of A1 in landscape mode (33-1/8 x 23-3/8).
-	SizeA1Landscape = design.SizeA1Landscape
+	SizeA1Landscape
 	// SizeA1Portrait defines a render page size of A1 in portrait mode (23-3/8 x 33-1/8).
-	SizeA1Portrait = design.SizeA1Portrait
+	SizeA1Portrait
 	// SizeA2Landscape defines a render page size of A2 in landscape mode (23-3/8 x 16-1/2).
-	SizeA2Landscape = design.SizeA2Landscape
+	SizeA2Landscape
 	// SizeA2Portrait defines a render page size of A2 in portrait mode (16-1/2 x 23-3/8).
-	SizeA2Portrait = design.SizeA2Portrait
+	SizeA2Portrait
 	// SizeA3Landscape defines a render page size of A3 in landscape mode (16-1/2 x 11-3/4).
-	SizeA3Landscape = design.SizeA3Landscape
+	SizeA3Landscape
 	// SizeA3Portrait defines a render page size of A3 in portrait mode (11-3/4 x 16-1/2).
-	SizeA3Portrait = design.SizeA3Portrait
+	SizeA3Portrait
 	// SizeA4Landscape defines a render page size of A4 in landscape mode (11-3/4 x 8-1/4).
-	SizeA4Landscape = design.SizeA4Landscape
+	SizeA4Landscape
 	// SizeA4Portrait defines a render page size of A4 in portrait mode (8-1/4 x 11-3/4).
-	SizeA4Portrait = design.SizeA4Portrait
+	SizeA4Portrait
 	// SizeA5Landscape defines a render page size of A5 in landscape mode (8-1/4  x 5-7/8).
-	SizeA5Landscape = design.SizeA5Landscape
+	SizeA5Landscape
 	// SizeA5Portrait defines a render page size of A5 in portrait mode (5-7/8 x 8-1/4).
-	SizeA5Portrait = design.SizeA5Portrait
+	SizeA5Portrait
 	// SizeA6Landscape defines a render page size of A6 in landscape mode (4-1/8 x 5-7/8).
-	SizeA6Landscape = design.SizeA6Landscape
+	SizeA6Landscape
 	// SizeA6Portrait defines a render page size of A6 in portrait mode (5-7/8 x 4-1/8).
-	SizeA6Portrait = design.SizeA6Portrait
+	SizeA6Portrait
 	// SizeLegalLandscape defines a render page size of Legal in landscape mode (14 x 8-1/2).
-	SizeLegalLandscape = design.SizeLegalLandscape
+	SizeLegalLandscape
 	// SizeLegalPortrait defines a render page size of Legal in portrait mode (8-1/2 x 14).
-	SizeLegalPortrait = design.SizeLegalPortrait
+	SizeLegalPortrait
 	// SizeLetterLandscape defines a render page size of Letter in landscape mode (11 x 8-1/2).
-	SizeLetterLandscape = design.SizeLetterLandscape
+	SizeLetterLandscape
 	// SizeLetterPortrait defines a render page size of Letter in portrait mode (8-1/2 x 11).
-	SizeLetterPortrait = design.SizeLetterPortrait
+	SizeLetterPortrait
 	// SizeSlide16X10 defines a render page size ratio of 16 x 10.
-	SizeSlide16X10 = design.SizeSlide16X10
+	SizeSlide16X10
 	// SizeSlide16X9 defines a render page size ratio of 16 x 9.
-	SizeSlide16X9 = design.SizeSlide16X9
+	SizeSlide16X9
 	// SizeSlide4X3 defines a render page size ratio of 4 x 3.
-	SizeSlide4X3 = design.SizeSlide4X3
+	SizeSlide4X3
 )
 
 const (
 	// RoutingDirect draws straight lines between ends of relationships.
-	RoutingDirect = design.RoutingDirect
+	RoutingDirect RoutingKind = iota + 1
 	// RoutingOrthogonal draws lines with right angles between ends of relationships.
-	RoutingOrthogonal = design.RoutingOrthogonal
+	RoutingOrthogonal
 	// RoutingCurved draws curved lines between ends of relationships.
-	RoutingCurved = design.RoutingCurved
+	RoutingCurved
 )
 
 // Views defines one or more views.
@@ -1467,7 +1478,7 @@ func RemoveUnrelated() {
 //         })
 //     })
 //
-func AutoLayout(rank design.RankDirectionKind, args ...func()) {
+func AutoLayout(rank RankDirectionKind, args ...func()) {
 	v, ok := eval.Current().(expr.View)
 	if !ok {
 		eval.IncompatibleDSL()
@@ -1482,7 +1493,7 @@ func AutoLayout(rank design.RankDirectionKind, args ...func()) {
 	}
 	r, n, e := 300, 600, 200
 	layout := &expr.AutoLayout{
-		RankDirection: rank,
+		RankDirection: expr.RankDirectionKind(rank),
 		RankSep:       &r,
 		NodeSep:       &n,
 		EdgeSep:       &e,
@@ -1549,7 +1560,7 @@ func AnimationStep(elements ...interface{}) {
 }
 
 // PaperSize defines the paper size that should be used to render
-// the view.
+// the view in the Structurizr service.
 //
 // PaperSize must appear in SystemLandscapeView, SystemContextView,
 // ContainerView, ComponentView, DynamicView or DeploymentView.
@@ -1577,13 +1588,13 @@ func AnimationStep(elements ...interface{}) {
 //         })
 //     })
 //
-func PaperSize(size design.PaperSizeKind) {
+func PaperSize(size PaperSizeKind) {
 	v, ok := eval.Current().(expr.View)
 	if !ok {
 		eval.IncompatibleDSL()
 		return
 	}
-	v.Props().PaperSize = size
+	v.Props().PaperSize = expr.PaperSizeKind(size)
 }
 
 // EnterpriseBoundaryVisible makes the enterprise boundary visible to differentiate internal
@@ -1635,6 +1646,7 @@ func ContainerBoundariesVisible() {
 }
 
 // Coord defines explicit coordinates for where to render a person or element.
+// Coord only applies for views rendered in the Structurizr service.
 //
 // Coord must appear in Add.
 //
@@ -1698,8 +1710,9 @@ func NoRelationship() {
 	eval.IncompatibleDSL()
 }
 
-// Vertices lists the x and y coordinate of the vertices used to
-// render the relationship.
+// Vertices lists the x and y coordinate of the vertices used to render the
+// relationship. Vertices only applies to views rendered in the Structurizr
+// service.
 //
 // Vertices must appear in Add when adding relationships.
 //
@@ -1732,7 +1745,7 @@ func Vertices(args ...int) {
 		eval.IncompatibleDSL()
 	}
 	for i := 0; i < len(args); i += 2 {
-		rv.Vertices = append(rv.Vertices, &design.Vertex{args[i], args[i+1]})
+		rv.Vertices = append(rv.Vertices, &expr.Vertex{args[i], args[i+1]})
 	}
 }
 
@@ -1762,20 +1775,21 @@ func Vertices(args ...int) {
 //         })
 //     })
 //
-func Routing(kind design.RoutingKind) {
+func Routing(kind RoutingKind) {
 	switch a := eval.Current().(type) {
 	case *expr.RelationshipView:
-		a.Routing = kind
+		a.Routing = expr.RoutingKind(kind)
 	case *expr.RelationshipStyle:
-		a.Routing = kind
+		a.Routing = expr.RoutingKind(kind)
 	default:
 		eval.IncompatibleDSL()
 	}
 }
 
 // Position sets the position of a relationship annotation along the line.
+// Position only applies to views rendered in the Structurizr service.
 //
-// Position must appear in a Add expr.ssion that adds a relationship or in
+// Position must appear in a Add expression that adds a relationship or in
 // RelationshipStyle.
 //
 // Position takes one argument: the position value between 0 (start of line) and
@@ -1806,7 +1820,7 @@ func Position(pos int) {
 	switch a := eval.Current().(type) {
 	case *expr.RelationshipView:
 		a.Position = &pos
-	case *expr.RelationshipStyle:
+	case *expr.StructurizrRelationshipStyle:
 		a.Position = &pos
 	default:
 		eval.IncompatibleDSL()
@@ -1814,6 +1828,7 @@ func Position(pos int) {
 }
 
 // RankSeparation sets the separation between ranks in pixels, defaults to 300.
+// RankSeparation only applies to views rendered in the Structurizr service.
 //
 // RankSeparation must appear in AutoLayout.
 //
@@ -1845,6 +1860,7 @@ func RankSeparation(sep int) {
 }
 
 // NodeSeparation sets the separation between nodes in pixels, defaults to 600.
+// NodeSeparation only applies to views rendered in the Structurizr service.
 //
 // NodeSeparation must appear in AutoLayout.
 //
@@ -1876,6 +1892,7 @@ func NodeSeparation(sep int) {
 }
 
 // EdgeSeparation sets the separation between edges in pixels, defaults to 200.
+// EdgeSeparation only applies to views rendered in the Structurizr service.
 //
 // EdgeSeparation must appear in AutoLayout.
 //
@@ -1908,6 +1925,7 @@ func EdgeSeparation(sep int) {
 
 // RenderVertices indicates that vertices should be created during automatic
 // layout, false by default.
+// RenderVertices only applies to views rendered in the Structurizr service.
 //
 // RenderVertices must appear in AutoLayout.
 //

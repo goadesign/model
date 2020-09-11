@@ -23,7 +23,6 @@ var _ = Design("Getting Started", "This is a model of my software system.", func
 				Color("#ffffff")
 			})
 			ElementStyle("person", func() {
-				Shape(ShapePerson)
 				Background("#08427b")
 				Color("#ffffff")
 			})

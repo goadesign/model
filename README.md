@@ -1,4 +1,4 @@
-# Model
+//Model
 
 ![Build](https://github.com/goadesign/model/workflows/CI/badge.svg)
 ![Version](https://img.shields.io/badge/Version-v1.5.0-blue.svg)
@@ -119,7 +119,6 @@ import (
     "os"
 
     . "goa.design/model/dsl"
-    "goa.design/model/eval"
     "goa.design/model/stz"
 )
 
@@ -156,13 +155,13 @@ var _ = Design("Getting Started", "This is a model of my software system.", func
 // Executes the DSL and uploads the corresponding workspace to Structurizr.
 func main() {
     // Run the model DSL
-    w, err := eval.RunDSL()
+    w, err := stz.RunDSL()
     if err != nil {
-        fmt.Fprintf(os.Stderr, "invalid model: %s", err.Error())
+        fmt.Fprintf(os.Stderr, "invalid design: %s", err.Error())
         os.Exit(1)
     }
 
-    // Upload the model to the Structurizr service.
+    // Upload the design to the Structurizr service.
     // The API key and secret must be set in the STRUCTURIZR_KEY and
     // STRUCTURIZR_SECRET environment variables respectively. The
     // workspace ID must be set in STRUCTURIZR_WORKSPACE_ID.
@@ -171,9 +170,13 @@ func main() {
         secret = os.Getenv("STRUCTURIZR_SECRET")
         wid    = os.Getenv("STRUCTURIZR_WORKSPACE_ID")
     )
+    if key == "" || secret == "" || wid == "" {
+        fmt.Fprintln(os.Stderr, "missing STRUCTURIZR_KEY, STRUCTURIZR_SECRET or STRUCTURIZR_WORKSPACE_ID environment variable.")
+        os.Exit(1)
+    }
     c := stz.NewClient(key, secret)
     if err := c.Put(wid, w); err != nil {
-        fmt.Fprintf(os.Stderr, "failed to store workspace: %s", err.Error())
+        fmt.Fprintf(os.Stderr, "failed to store workspace: %s\n", err.Error())
         os.Exit(1)
     }
 }
@@ -709,34 +712,47 @@ var _ = Design("[name]", "[description]", func() {
         // which are used when rendering diagrams.
         Styles(func() {
 
-            // ElementStyle defines an element style. All nested properties
-            // (shape, icon, etc) are optional.
+            // ElementStyle defines an element style.
             ElementStyle("<tag>", func() {
+                Shape(ShapeBox) // ShapeBox, ShapeRoundedBox, ShapeCircle, ShapeEllipse,
+                                // ShapeHexagon, ShapeCylinder.
+                Icon("<url>")
+                Background("#<rrggbb>")
+                Color("#<rrggbb>")
+                Stroke("#<rrggbb>")
+                ShowMetadata()
+                ShowDescription()
+            })
+
+            // StructurizrElementStyle defines additional element style properties
+            // used for views rendered in the Structurizr service.
+            StructurizrElementStyle("<tag>", func() {
                 Shape(ShapeBox) // ShapeBox, ShapeRoundedBox, ShapeCircle, ShapeEllipse,
                                 // ShapeHexagon, ShapeCylinder, ShapePipe, ShapePerson
                                 // ShapeRobot, ShapeFolder, ShapeWebBrowser,
                                 // ShapeMobileDevicePortrait, ShapeMobileDeviceLandscape,
                                 // ShapeComponent.
-                Icon("<file>")
                 Width(42)
                 Height(42)
-                Background("#<rrggbb>")
-                Color("#<rrggbb>")
-                Stroke("#<rrggbb>")
                 FontSize(42)
                 Border(BorderSolid) // BorderSolid, BorderDashed, BorderDotted
                 Opacity(42) // Between 0 and 100
-                ShowMetadata()
-                ShowDescription()
             })
 
             // RelationshipStyle defines a relationship style. All nested
             // properties (thickness, color, etc) are optional.
             RelationshipStyle("<tag>", func() {
-                Thickness(42)
+                Thick()
                 Color("#<rrggbb>")
                 Solid()
                 Routing(RoutingDirect) // RoutingDirect, RoutingOrthogonal, RoutingCurved
+            })
+
+            // StructurizrRelationshipStyle defines additional relationship
+            // style properties used for views rendered in the Structurizr
+            // service.
+            StructurizrRelationshipStyle("<tag>", func() {
+                Thickness(42)
                 FontSize(42)
                 Width(42)
                 Position(42) // Between 0 and 100

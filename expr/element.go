@@ -22,6 +22,18 @@ type (
 	ElementHolder interface {
 		GetElement() *Element
 	}
+
+	// LocationKind is the enum for possible locations.
+	LocationKind int
+)
+
+const (
+	// LocationUndefined means no location specified in design.
+	LocationUndefined LocationKind = iota
+	// LocationInternal defines an element internal to the enterprise.
+	LocationInternal
+	// LocationExternal defines an element external to the enterprise.
+	LocationExternal
 )
 
 // DSL returns the attached DSL.

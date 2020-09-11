@@ -57,11 +57,11 @@ general shape of the DSL is:
         ├── InfrastructureNode              │   ├── Add
         │   ├── Tag                         ├── DeploymentView
         │   ├── URL                         │   └── ... (same as SystemLandscapeView*)
-        │   └── Prop                        ├── Style
-        └── ContainerInstance               │   ├── ElementStyle
-            ├── Tag                         │   └── RelationshipsStyle
-            ├── HealthCheck                 ├── Theme
-            └── Prop                        └── Branding
+        │   └── Prop                        └── Style
+        └── ContainerInstance                   ├── ElementStyle
+            ├── Tag                             ├── StructurizrElementStyle
+            ├── HealthCheck                     ├── RelationshipStyle
+            └── Prop                            └── StructurizrRelationshipStyle
                                             (* minus EnterpriseBoundaryVisible)
 */
 package dsl

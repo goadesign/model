@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 
-	"goa.design/model/eval"
 	_ "goa.design/model/examples/basic/model" // DSL
 	"goa.design/model/stz"
 )
@@ -12,7 +11,7 @@ import (
 // Executes the DSL and uploads the corresponding workspace to Structurizr.
 func main() {
 	// Run the model DSL
-	d, err := eval.RunDSL()
+	w, err := stz.RunDSL()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "invalid design: %s", err.Error())
 		os.Exit(1)
@@ -32,7 +31,7 @@ func main() {
 		os.Exit(1)
 	}
 	c := stz.NewClient(key, secret)
-	if err := c.Put(wid, stz.WorkspaceFromDesign(d)); err != nil {
+	if err := c.Put(wid, w); err != nil {
 		fmt.Fprintf(os.Stderr, "failed to store workspace: %s\n", err.Error())
 		os.Exit(1)
 	}

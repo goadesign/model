@@ -1,4 +1,4 @@
-package docs
+package plugin
 
 import (
 	"encoding/json"
@@ -8,7 +8,9 @@ import (
 
 	"goa.design/goa/v3/codegen"
 	"goa.design/goa/v3/eval"
-	meval "goa.design/model/eval"
+	"goa.design/model/expr"
+	"goa.design/model/mdl"
+	"goa.design/model/stz"
 )
 
 // init registers the plugin generator function.
@@ -19,11 +21,13 @@ func init() {
 // Generate produces the design JSON representation inside the top level gen
 // directory.
 func Generate(_ string, roots []eval.Root, files []*codegen.File) ([]*codegen.File, error) {
-	d, err := meval.RunDSL()
+	err := eval.RunDSL()
 	if err != nil {
 		return nil, err
 	}
-	path := filepath.Join(codegen.Gendir, "model.json")
+
+	// Generate structurizr JSON
+	path := filepath.Join(codegen.Gendir, "structurizr", "model.json")
 	if _, err := os.Stat(path); !os.IsNotExist(err) {
 		if err := os.Remove(path); err != nil {
 			return nil, err
@@ -33,12 +37,17 @@ func Generate(_ string, roots []eval.Root, files []*codegen.File) ([]*codegen.Fi
 		Name:    "model",
 		FuncMap: template.FuncMap{"toJSON": toJSON},
 		Source:  "{{ toJSON . }}",
-		Data:    d,
+		Data:    stz.WorkspaceFromDesign(expr.Root),
 	}
-	return append(files, &codegen.File{
+	files = append(files, &codegen.File{
 		Path:             path,
 		SectionTemplates: []*codegen.SectionTemplate{section},
-	}), nil
+	})
+
+	// Generate Mermaid diagrams
+	files = append(files, mdl.MermaidFiles(expr.Root)...)
+
+	return files, nil
 }
 
 func toJSON(d interface{}) string {

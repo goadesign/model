@@ -67,9 +67,10 @@ func addDefaultElements(view View) {
 	}
 }
 
-// addMissingElementsAndRelationships adds all that form edges of relationships
-// in the view and adds all relationships between elements that are in the view.
-func addMissingElementsAndRelationships(vp *ViewProps) {
+// addMissingElementsAndRelationships adds all elements that form edges of
+// relationships in the view and adds all relationships between elements that
+// are in the view.
+func addMissingElementsAndRelationships(vp *ViewProps, scope ElementHolder) {
 	for _, rv := range vp.RelationshipViews {
 		addElements(vp, rv.Source)
 		addElements(vp, rv.Destination)
@@ -78,10 +79,12 @@ func addMissingElementsAndRelationships(vp *ViewProps) {
 		var rels []*Relationship
 		IterateRelationships(func(r *Relationship) {
 			if r.Source.ID == ev.Element.ID {
-				rels = append(rels, r)
-			}
-			if r.Destination.ID == ev.Element.ID {
-				rels = append(rels, r)
+				for _, ev2 := range vp.ElementViews {
+					if r.Destination.ID == ev2.Element.ID {
+						rels = append(rels, r)
+						break
+					}
+				}
 			}
 		})
 	loop:

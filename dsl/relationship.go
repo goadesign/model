@@ -4,15 +4,17 @@ import (
 	"fmt"
 
 	"goa.design/goa/v3/eval"
-	"goa.design/model/design"
 	"goa.design/model/expr"
 )
 
+// InteractionStyleKind is the enum for possible interaction styles.
+type InteractionStyleKind int
+
 const (
 	// Synchronous describes a synchronous interaction.
-	Synchronous = design.InteractionSynchronous
+	Synchronous InteractionStyleKind = iota + 1
 	// Asynchronous describes an asynchronous interaction.
-	Asynchronous = design.InteractionAsynchronous
+	Asynchronous
 )
 
 // Uses adds a uni-directional relationship between two elements.
@@ -84,10 +86,6 @@ const (
 //     })
 //
 func Uses(element interface{}, description string, args ...interface{}) {
-	if len(args) < 1 {
-		eval.ReportError("missing arguments")
-		return
-	}
 	var src *expr.Element
 	switch e := eval.Current().(type) {
 	case *expr.Person:
@@ -264,14 +262,14 @@ func Description(desc string) {
 func uses(src *expr.Element, dest interface{}, desc string, args ...interface{}) error {
 	var (
 		technology string
-		style      design.InteractionStyleKind
+		style      InteractionStyleKind
 		dsl        func()
 	)
 	if len(args) > 0 {
 		switch a := args[0].(type) {
 		case string:
 			technology = a
-		case design.InteractionStyleKind:
+		case InteractionStyleKind:
 			style = a
 		case func():
 			dsl = a
@@ -283,7 +281,7 @@ func uses(src *expr.Element, dest interface{}, desc string, args ...interface{})
 				return fmt.Errorf("function DSL must be last argument")
 			}
 			switch a := args[1].(type) {
-			case design.InteractionStyleKind:
+			case InteractionStyleKind:
 				style = a
 			case func():
 				dsl = a
@@ -306,7 +304,7 @@ func uses(src *expr.Element, dest interface{}, desc string, args ...interface{})
 		Description:      desc,
 		Source:           src,
 		Technology:       technology,
-		InteractionStyle: style,
+		InteractionStyle: expr.InteractionStyleKind(style),
 	}
 	// Note: we need to check the types explicitly below because
 	// (*expr.Person)(nil) != (expr.ElementHolder)(nil) for example.

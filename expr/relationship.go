@@ -2,8 +2,6 @@ package expr
 
 import (
 	"fmt"
-
-	"goa.design/model/design"
 )
 
 type (
@@ -13,7 +11,7 @@ type (
 		Source           *Element
 		Description      string
 		Technology       string
-		InteractionStyle design.InteractionStyleKind
+		InteractionStyle InteractionStyleKind
 		Tags             string
 		URL              string
 
@@ -30,6 +28,18 @@ type (
 		// relationship.
 		LinkedRelationshipID string
 	}
+
+	// InteractionStyleKind is the enum for possible interaction styles.
+	InteractionStyleKind int
+)
+
+const (
+	// InteractionUndefined means no interaction style specified in design.
+	InteractionUndefined InteractionStyleKind = iota
+	// InteractionSynchronous describes a synchronous interaction.
+	InteractionSynchronous
+	// InteractionAsynchronous describes an asynchronous interaction.
+	InteractionAsynchronous
 )
 
 // EvalName is the qualified name of the expression.

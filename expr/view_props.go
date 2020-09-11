@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"goa.design/goa/v3/eval"
-	"goa.design/model/design"
 )
 
 type (
@@ -15,7 +14,7 @@ type (
 		Description       string
 		Title             string
 		AutoLayout        *AutoLayout
-		PaperSize         design.PaperSizeKind
+		PaperSize         PaperSizeKind
 		ElementViews      []*ElementView
 		RelationshipViews []*RelationshipView
 		AnimationSteps    []*AnimationStep
@@ -48,8 +47,8 @@ type (
 		Destination *Element
 		Description string
 		Order       string
-		Vertices    []*design.Vertex
-		Routing     design.RoutingKind
+		Vertices    []*Vertex
+		Routing     RoutingKind
 		Position    *int
 
 		// RelationshipID is computed in finalize.
@@ -58,11 +57,17 @@ type (
 
 	// AutoLayout describes an automatic layout.
 	AutoLayout struct {
-		RankDirection design.RankDirectionKind
+		RankDirection RankDirectionKind
 		RankSep       *int
 		NodeSep       *int
 		EdgeSep       *int
 		Vertices      *bool
+	}
+
+	// Vertex describes the x and y coordinate of a bend in a line.
+	Vertex struct {
+		X int
+		Y int
 	}
 
 	// AnimationStep represents an animation step.
@@ -72,6 +77,55 @@ type (
 		Order           int
 		View            View
 	}
+	// PaperSizeKind is the enum for possible paper kinds.
+	PaperSizeKind int
+
+	// RoutingKind is the enum for possible routing algorithms.
+	RoutingKind int
+
+	// RankDirectionKind is the enum for possible automatic layout rank
+	// directions.
+	RankDirectionKind int
+)
+
+const (
+	SizeUndefined PaperSizeKind = iota
+	SizeA0Landscape
+	SizeA0Portrait
+	SizeA1Landscape
+	SizeA1Portrait
+	SizeA2Landscape
+	SizeA2Portrait
+	SizeA3Landscape
+	SizeA3Portrait
+	SizeA4Landscape
+	SizeA4Portrait
+	SizeA5Landscape
+	SizeA5Portrait
+	SizeA6Landscape
+	SizeA6Portrait
+	SizeLegalLandscape
+	SizeLegalPortrait
+	SizeLetterLandscape
+	SizeLetterPortrait
+	SizeSlide16X10
+	SizeSlide16X9
+	SizeSlide4X3
+)
+
+const (
+	RoutingUndefined RoutingKind = iota
+	RoutingDirect
+	RoutingOrthogonal
+	RoutingCurved
+)
+
+const (
+	RankUndefined RankDirectionKind = iota
+	RankTopBottom
+	RankBottomTop
+	RankLeftRight
+	RankRightLeft
 )
 
 // ElementView returns the element view for the element with the given ID if

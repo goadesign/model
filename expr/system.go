@@ -2,15 +2,13 @@ package expr
 
 import (
 	"fmt"
-
-	"goa.design/model/design"
 )
 
 type (
 	// SoftwareSystem represents a software system.
 	SoftwareSystem struct {
 		*Element
-		Location   design.LocationKind
+		Location   LocationKind
 		Containers Containers
 	}
 
