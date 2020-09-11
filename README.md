@@ -102,9 +102,11 @@ This code creates a model containing elements and relationships, creates a
 single view and adds some styling.
 
 Static page rendering:
+
 ![Getting Started Diagram](https://raw.githubusercontent.com/goadesign/model/master/model.png)
 
 Structurizr rendering:
+
 ![Getting Started Diagram](https://structurizr.com/static/img/getting-started.png)
 
 Additional examples can be found in the
