@@ -276,7 +276,13 @@ func ContainerInstance(container interface{}, dsl ...func()) *expr.ContainerInst
 		}
 	}
 	ci := &expr.ContainerInstance{
-		Element:     &expr.Element{DSLFunc: f},
+		Element: &expr.Element{
+			Name:        cont.Name,
+			Description: cont.Description,
+			URL:         cont.URL,
+			Technology:  cont.Technology,
+			DSLFunc:     f,
+		},
 		Parent:      d,
 		Environment: d.Environment,
 		ContainerID: cont.ID,

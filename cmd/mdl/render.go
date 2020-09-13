@@ -22,23 +22,23 @@ const DefaultTemplate = `<!DOCTYPE html>
 	</style>
 </head>
 <body>
-	<div class="title">
-		{{ .Title }}
-	</div>
-	<div>
-		<div class="description">
-			{{ .Description }}
-		</div>
-		<div class="version" style="text: align-right">
-			{{ .Version }}
-		</div>
-	</div>
 	<div id="diagram"></div>
-	<div class="legend-container">
-		<div class="legend-title">
-			Legend <span id="toggle">≚</span>
+	<div class="footer">
+		<div class="title">
+			{{ .Title }}
+			<div class="description">
+				{{ .Description }}
+			</div>
+			<div class="version">
+				{{ .Version }}
+			</div>
 		</div>
-		<div style="display:none" id="legend"></div>
+		<div class="legend">
+			<div class="legend-title">
+				Legend <span id="toggle">≚</span>
+			</div>
+			<div id="legend-diagram" style="display:none"></div>
+		</div>
 	</div>
 	<script src="http://localhost:35729/livereload.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
@@ -57,10 +57,11 @@ const DefaultTemplate = `<!DOCTYPE html>
 		var diagramSrc = ` + "`{{ .MermaidSource }}`;" + `
 		renderSvg(diagramSrc, "diagram")
 		var legendSrc = ` + "`{{ .MermaidLegendSource }}`;" + `
-		renderSvg(legendSrc, "legend")
+		renderSvg(legendSrc, "legend-diagram")
 	</script>
 	<script>
 		var toggle = document.getElementById("toggle");
+		var legend = document.getElementById("legend-diagram");
 		toggle.addEventListener('click', function (event) {
 			if (legend.style.display == "") {
 				legend.style.display = "none";
@@ -82,15 +83,9 @@ body {
 	font-family: Arial;
 }
 
-.title {
-	font-size: 120%;
-	font-weight: bold;
-	padding-bottom: 1em;
-}
-
-.version {
-	font-size: 80%;
-}
+//-----------------
+// Diagram elements
+//-----------------
 
 .element {
 	font-family: Arial;
@@ -116,32 +111,74 @@ body {
 
 .relationship-label {
 	font-size: 80%;
+	font-weight: bold;
+	color: #909090;
 }
 
 .relationship-technology {
 	font-size: 70%;
+	font-weight: bold;
+	color: #909090;
 }
 
-.legend-container {
+//-----------------
+// Footer
+//-----------------
+
+.footer {
+	-ms-box-orient: horizontal;
+	display: -webkit-box;
+	display: -moz-box;
+	display: -ms-flexbox;
+	display: -moz-flex;
+	display: -webkit-flex;
+	display: flex;
+	-webkit-align-items: flex-start;
+}
+
+.title {
 	margin-top: 2em;
-	padding: 1em;
-	border: 1px double #909090;
+	font-size: 110%;
+	font-weight: bold;
+	vertical-align: top;
+	display: inline-block;
+}
+
+.description {
+	color: #A0A0A0;
+	font-size: 90%;
+}
+
+.version {
+	color: #A0A0A0;
+	font-size: 80%;
+}
+
+.legend {
+	margin-top: 2em;
+	margin-left: 2em;
+	padding-top: 1em;
+	padding-bottom: 1em;
+	border: 2px solid #A0A0A0;
 	border-radius: 5px;
+	vertical-align: top;
 	display: inline-block;
 }
 
 .legend-title {
-	font-family: Arial;
-}
-
-#diagram {
-	margin-top: 2em;
+	border-bottom: 1px solid #A0A0A0;
+	margin-bottom: 0.5em;
+	padding-left: 0.5em;
+	padding-right: 0.5em;
+	padding-bottom: 0.5em;
 }
 
 #toggle {
-	border: 1px solid #909090;
-	border-radius: 3px;
-	background-color: black;
+	margin-left: 0.2em;
+	padding: 0.1em;
+	border: 1px solid #A0A0A0;
+	border-radius: 5px;
+	background-color: #606060;
 	color: white;
 	cursor: pointer;
 }

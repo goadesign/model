@@ -291,16 +291,7 @@ func (vs *Views) Finalize() {
 		for _, e := range vp.AddNeighbors {
 			addNeighbors(e, vp)
 		}
-		var scope ElementHolder
-		switch v := view.(type) {
-		case ContextView:
-			scope = Registry[v.SoftwareSystemID].(*SoftwareSystem)
-		case ContainerView:
-			scope = Registry[v.SoftwareSystemID].(*SoftwareSystem)
-		case ComponentView:
-			scope = Registry[v.ContainerID].(*Container)
-		}
-		addMissingElementsAndRelationships(vp, scope)
+		addMissingElementsAndRelationships(vp)
 		addAnimationStepRelationships(vp)
 
 		// Then remove elements and relationships that need to be removed
@@ -452,8 +443,10 @@ func (dv *DeploymentView) AddElements(ehs ...ElementHolder) error {
 				nodes = append(nodes, e)
 			}
 		case *ContainerInstance:
-			addElements(dv.ViewProps, e)
-			nodes = append(nodes, e.Parent)
+			if dv.SoftwareSystemID == "" || dv.SoftwareSystemID == Registry[e.ContainerID].(*Container).System.ID {
+				addElements(dv.ViewProps, e)
+				nodes = append(nodes, e.Parent)
+			}
 		case *InfrastructureNode:
 			addElements(dv.ViewProps, e)
 			nodes = append(nodes, e.Parent)
@@ -578,7 +571,10 @@ func addDeploymentNodeChildren(dv *DeploymentView, n *DeploymentNode) bool {
 		nested = true
 	}
 	for _, c := range n.Children {
-		nested = nested || addDeploymentNodeChildren(dv, c)
+		if nest := addDeploymentNodeChildren(dv, c); nest {
+			addElements(dv.ViewProps, c)
+			nested = true
+		}
 	}
 	return nested
 }

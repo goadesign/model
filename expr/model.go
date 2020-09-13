@@ -87,21 +87,42 @@ func (m *Model) Validate() error {
 
 // Finalize adds all implied relationships if needed.
 func (m *Model) Finalize() {
+	// Add relationships between container instances.
+	Iterate(func(e interface{}) {
+		if ci, ok := e.(*ContainerInstance); ok {
+			c := Registry[ci.ContainerID].(*Container)
+			for _, r := range c.Relationships {
+				dc, ok := Registry[r.Destination.ID].(*Container)
+				if !ok {
+					continue
+				}
+				Iterate(func(e interface{}) {
+					eci, ok := e.(*ContainerInstance)
+					if !ok {
+						return
+					}
+					if eci.ContainerID == dc.ID {
+						rc := r.Dup(ci.Element, eci.Element)
+						rc.LinkedRelationshipID = r.ID
+						ci.Relationships = append(ci.Relationships, rc)
+					}
+				})
+			}
+		}
+	})
 	if !m.AddImpliedRelationships {
 		return
 	}
+	// Add relationship between element parents.
 	Iterate(func(e interface{}) {
-		switch a := e.(type) {
-		case *Relationship:
-			switch s := Registry[a.Source.ID].(type) {
+		if r, ok := e.(*Relationship); ok {
+			switch s := Registry[r.Source.ID].(type) {
 			case *Container:
-				addMissingRelationships(s.System.Element, a.Destination, a)
+				addMissingRelationships(s.System.Element, r.Destination, r)
 			case *Component:
-				addMissingRelationships(s.Container.Element, a.Destination, a)
-				addMissingRelationships(s.Container.System.Element, a.Destination, a)
+				addMissingRelationships(s.Container.Element, r.Destination, r)
+				addMissingRelationships(s.Container.System.Element, r.Destination, r)
 			}
-		case *ContainerInstance:
-			addImpliedContainerInstanceRelationships(a)
 		}
 	})
 }
@@ -310,27 +331,5 @@ func addMissingRelationships(src, dest *Element, existing *Relationship) {
 	case *Component:
 		addMissingRelationships(src, e.Container.Element, existing)
 		addMissingRelationships(src, e.Container.System.Element, existing)
-	}
-}
-
-func addImpliedContainerInstanceRelationships(ci *ContainerInstance) {
-	c := Registry[ci.ContainerID].(*Container)
-	for _, r := range c.Relationships {
-		dc, ok := Registry[r.Destination.ID].(*Container)
-		if !ok {
-			continue
-		}
-		Iterate(func(e interface{}) {
-			eci, ok := e.(*ContainerInstance)
-			if !ok {
-				return
-			}
-			if eci.ContainerID == dc.ID {
-				rc := r.Dup(ci.Element, eci.Element)
-				rc.Destination = eci.Element
-				rc.LinkedRelationshipID = r.ID
-				ci.Relationships = append(ci.Relationships, rc)
-			}
-		})
 	}
 }

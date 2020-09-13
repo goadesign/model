@@ -43,13 +43,33 @@ type (
 	}
 )
 
-func elements(evs []*expr.ElementView, boundary string) *codegen.SectionTemplate {
+func elements(evs []*expr.ElementView, boundary string, ind int) *codegen.SectionTemplate {
 	elems := make([]*elementData, len(evs))
-	ind := 1
 	if boundary != "" {
-		ind = 2
+		ind++
+	}
+	join := func(name, tech string) string {
+		if tech != "" {
+			return name + ": " + tech
+		}
+		return name
 	}
 	for i, ev := range evs {
+		var tech string
+		switch e := expr.Registry[ev.Element.ID].(type) {
+		case *expr.Person:
+			tech = "Person"
+		case *expr.SoftwareSystem:
+			tech = "Software System"
+		case *expr.Container:
+			tech = join("Container", e.Technology)
+		case *expr.Component:
+			tech = join("Component", e.Technology)
+		case *expr.ContainerInstance:
+			tech = join("Container", e.Technology)
+		case *expr.InfrastructureNode:
+			tech = join("Infrastructure Node", e.Technology)
+		}
 		es := elemStyle(ev)
 		start, end := nodeStartEnd(ev)
 		elems[i] = &elementData{
@@ -59,7 +79,7 @@ func elements(evs []*expr.ElementView, boundary string) *codegen.SectionTemplate
 			End:         end,
 			Name:        ev.Element.Name,
 			Description: ev.Element.Description,
-			Technology:  ev.Element.Technology,
+			Technology:  tech,
 			URL:         ev.Element.URL,
 			IconURL:     es.Icon,
 			Background:  es.Background,
@@ -70,7 +90,7 @@ func elements(evs []*expr.ElementView, boundary string) *codegen.SectionTemplate
 		BoundaryName: boundary,
 		Elements:     elems,
 	}
-	funcs := map[string]interface{}{"indent": indent, "wrap": wrap, "stroke": stroke}
+	funcs := map[string]interface{}{"wrap": wrap, "stroke": stroke, "indent": indent}
 	return &codegen.SectionTemplate{Name: "elements", Source: elementT, Data: data, FuncMap: funcs}
 }
 
@@ -130,6 +150,10 @@ func wrap(s string, n uint) string {
 	return strings.ReplaceAll(buf.String(), "\n", "<br/>")
 }
 
+func indent(n int) string {
+	return strings.Repeat(" ", n*4)
+}
+
 func nodeStartEnd(ev *expr.ElementView) (string, string) {
 	// Look for explicit shape first
 	es := elemStyle(ev)
@@ -154,7 +178,7 @@ func nodeStartEnd(ev *expr.ElementView) (string, string) {
 		return `([`, `])`
 	case *expr.SoftwareSystem:
 		return "[", "]"
-	case *expr.Container:
+	case *expr.Container, *expr.ContainerInstance:
 		return "(", ")"
 	default:
 		return "[", "]"
@@ -172,8 +196,8 @@ const elementT = `{{ if .BoundaryName }}{{ indent 1 }}subgraph boundary [{{ .Bou
 {{ indent .Indent }}click {{ .ID }} "{{ .URL }}"{{ if .URLTooltip }} "{{ .URLTooltip }}"{{ end }}
 {{ end }}
 {{- if not .Stroke }}
-{{ indent .Indent }}style {{ .ID }} stroke:{{ stroke . }}
-{{ end }}
+{{ indent .Indent }}style {{ .ID }} stroke:{{ stroke . }};
+{{- end }}
 {{ end }}
 {{- if .BoundaryName }}{{ indent 1 }}end
 {{ indent 1 }}style boundary fill:#ffffff,stroke:#909090,color:#000000,stroke-dasharray: 15 5;

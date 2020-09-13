@@ -48,6 +48,6 @@ func lineStartEnd(rs *expr.RelationshipStyle) (string, string) {
 
 const relationshipT = `{{ range . -}}
 {{ indent 1 }}{{ .SourceID }} {{ .Start }}"<div class='relationship'><div class='relationship-label'>{{ wrap .Description 30 }}</div>
-{{- if .Technology }}<div class='relationship-technology'>[{{ .Technology }}]</div></div>
-{{- end }}"{{ .End }}{{ .DestinationID }}
+{{- if .Technology }}<div class='relationship-technology'>[{{ .Technology }}]</div>
+{{- end }}</div>"{{ .End }}{{ .DestinationID }}
 {{ end }}`

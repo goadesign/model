@@ -668,6 +668,18 @@ func DeploymentView(scope interface{}, env, key string, args ...interface{}) {
 		eval.IncompatibleDSL()
 		return
 	}
+	missing := true
+	expr.Iterate(func(e interface{}) {
+		if dn, ok := e.(*expr.DeploymentNode); ok {
+			if dn.Environment == env {
+				missing = false
+			}
+		}
+	})
+	if missing {
+		eval.ReportError("DeploymentView: environment %q not defined", env)
+		return
+	}
 	description, dsl, err := parseView(args...)
 	if err != nil {
 		eval.ReportError("DeploymentView: " + err.Error())

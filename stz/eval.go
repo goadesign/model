@@ -72,6 +72,14 @@ func WorkspaceFromDesign(d *expr.Design) *Workspace {
 			ElementID: dv.ElementID,
 		}
 	}
+	views.DeploymentViews = make([]*DeploymentView, len(v.DeploymentViews))
+	for i, dv := range v.DeploymentViews {
+		views.DeploymentViews[i] = &DeploymentView{
+			ViewProps:        modelizeProps(dv.Props()),
+			SoftwareSystemID: dv.SoftwareSystemID,
+			Environment:      dv.Environment,
+		}
+	}
 	views.FilteredViews = make([]*FilteredView, len(v.FilteredViews))
 	for i, lv := range v.FilteredViews {
 		mode := "Include"
@@ -183,15 +191,61 @@ func modelizeComponents(cs []*expr.Component) []*Component {
 func modelizeDeploymentNodes(dns []*expr.DeploymentNode) []*DeploymentNode {
 	res := make([]*DeploymentNode, len(dns))
 	for i, dn := range dns {
+		children := modelizeDeploymentNodes(dn.Children)
+		infs := make([]*InfrastructureNode, len(dn.InfrastructureNodes))
+		for i, inf := range dn.InfrastructureNodes {
+			infs[i] = &InfrastructureNode{
+				ID:            inf.ID,
+				Name:          inf.Name,
+				Description:   inf.Description,
+				Technology:    inf.Technology,
+				Tags:          inf.Tags,
+				URL:           inf.URL,
+				Properties:    inf.Properties,
+				Relationships: modelizeRelationships(inf.Relationships),
+				Environment:   inf.Environment,
+			}
+		}
+		cis := make([]*ContainerInstance, len(dn.ContainerInstances))
+		for i, ci := range dn.ContainerInstances {
+			cis[i] = &ContainerInstance{
+				ID:            ci.ID,
+				Tags:          ci.Tags,
+				URL:           ci.URL,
+				Properties:    ci.Properties,
+				Relationships: modelizeRelationships(ci.Relationships),
+				ContainerID:   ci.ContainerID,
+				InstanceID:    ci.InstanceID,
+				Environment:   ci.Environment,
+				HealthChecks:  modelizeHealthChecks(ci.HealthChecks),
+			}
+		}
 		res[i] = &DeploymentNode{
-			ID:          dn.ID,
-			Name:        dn.Name,
-			Description: dn.Description,
-			Technology:  dn.Technology,
-			Environment: dn.Environment,
-			Instances:   dn.Instances,
-			Tags:        dn.Tags,
-			URL:         dn.URL,
+			ID:                  dn.ID,
+			Name:                dn.Name,
+			Description:         dn.Description,
+			Technology:          dn.Technology,
+			Environment:         dn.Environment,
+			Children:            children,
+			InfrastructureNodes: infs,
+			ContainerInstances:  cis,
+			Instances:           dn.Instances,
+			Tags:                dn.Tags,
+			URL:                 dn.URL,
+		}
+	}
+	return res
+}
+
+func modelizeHealthChecks(hcs []*expr.HealthCheck) []*HealthCheck {
+	res := make([]*HealthCheck, len(hcs))
+	for i, hc := range hcs {
+		res[i] = &HealthCheck{
+			Name:     hc.Name,
+			URL:      hc.URL,
+			Interval: hc.Interval,
+			Timeout:  hc.Timeout,
+			Headers:  hc.Headers,
 		}
 	}
 	return res

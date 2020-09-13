@@ -1,9 +1,7 @@
 package mdl
 
 import (
-	"fmt"
 	"path/filepath"
-	"sort"
 	"strconv"
 	"strings"
 
@@ -38,35 +36,13 @@ type (
 		Style       string
 		Interpolate string
 	}
-
-	// legendData contains the data needed to render a diagram legend.
-	legendData struct {
-		LegendElements      []*legendElementData
-		LegendRelationships []*legendRelationshipData
-	}
-
-	// legendElementData contains the data needed to render an element style legend.
-	legendElementData struct {
-		ID          string
-		Name        string
-		Description string
-		Start, End  string
-		Style       string
-		IconURL     string
-	}
-
-	// legendRelationshipData contains the data needed to render a relationship
-	// style legend.
-	legendRelationshipData struct {
-		SourceID, DestinationID string
-		Start, End              string
-		LinkIndex               int
-		Style                   string
-		Interpolate             string
-		Description             string
-	}
 )
 
+// funcs contains the functions used by templates.
+var funcs = map[string]interface{}{"join": strings.Join, "wrap": wrap, "indent": indent}
+
+// landscapeDiagram produces a file that contains Mermaid code representing the
+// given view diagram.
 func landscapeDiagram(lv *expr.LandscapeView) *codegen.File {
 	ebv := false
 	if lv.EnterpriseBoundaryVisible != nil {
@@ -75,6 +51,8 @@ func landscapeDiagram(lv *expr.LandscapeView) *codegen.File {
 	return landscapeOrContextDiagram(lv.ViewProps, ebv)
 }
 
+// contextDiagram produces a file that contains Mermaid code representing the
+// given view diagram.
 func contextDiagram(cv *expr.ContextView) *codegen.File {
 	ebv := false
 	if cv.EnterpriseBoundaryVisible != nil {
@@ -83,6 +61,8 @@ func contextDiagram(cv *expr.ContextView) *codegen.File {
 	return landscapeOrContextDiagram(cv.ViewProps, ebv)
 }
 
+// landscapeOrContextDiagram contains the shared logic between landscapeDiagram
+// and contextDiagram.
 func landscapeOrContextDiagram(vp *expr.ViewProps, ebv bool) *codegen.File {
 	var internal, external []*expr.ElementView
 	for _, ev := range vp.ElementViews {
@@ -111,18 +91,20 @@ func landscapeOrContextDiagram(vp *expr.ViewProps, ebv bool) *codegen.File {
 	}
 	var sections []*codegen.SectionTemplate
 	if len(external) > 0 {
-		sections = append(sections, elements(external, ""))
+		sections = append(sections, elements(external, "", 1))
 	}
 	if len(internal) > 0 {
-		sections = append(sections, elements(internal, boundaryName))
+		sections = append(sections, elements(internal, boundaryName, 1))
 	}
 	if len(vp.RelationshipViews) > 0 {
 		sections = append(sections, relationships(vp.RelationshipViews))
 	}
 
-	return viewFile(vp, sections)
+	return viewDiagram(vp, sections)
 }
 
+// containerDiagram produces a file that contains Mermaid code representing the
+// given view diagram.
 func containerDiagram(cv *expr.ContainerView) *codegen.File {
 	var others []*expr.ElementView
 	bySystem := make(map[string][]*expr.ElementView)
@@ -136,18 +118,20 @@ func containerDiagram(cv *expr.ContainerView) *codegen.File {
 	}
 	var sections []*codegen.SectionTemplate
 	if len(others) > 0 {
-		sections = append(sections, elements(others, ""))
+		sections = append(sections, elements(others, "", 1))
 	}
 	for name, elems := range bySystem {
-		sections = append(sections, elements(elems, name))
+		sections = append(sections, elements(elems, name, 1))
 	}
 	if len(cv.RelationshipViews) > 0 {
 		sections = append(sections, relationships(cv.RelationshipViews))
 	}
 
-	return viewFile(cv.ViewProps, sections)
+	return viewDiagram(cv.ViewProps, sections)
 }
 
+// componentDiagram produces a file that contains Mermaid code representing the
+// given view diagram.
 func componentDiagram(cv *expr.ComponentView) *codegen.File {
 	var others []*expr.ElementView
 	byContainer := make(map[string][]*expr.ElementView)
@@ -161,152 +145,32 @@ func componentDiagram(cv *expr.ComponentView) *codegen.File {
 	}
 	var sections []*codegen.SectionTemplate
 	if len(others) > 0 {
-		sections = append(sections, elements(others, ""))
+		sections = append(sections, elements(others, "", 1))
 	}
 	for name, elems := range byContainer {
-		sections = append(sections, elements(elems, name))
+		sections = append(sections, elements(elems, name, 1))
 	}
 	if len(cv.RelationshipViews) > 0 {
 		sections = append(sections, relationships(cv.RelationshipViews))
 	}
-	return viewFile(cv.ViewProps, sections)
+	return viewDiagram(cv.ViewProps, sections)
 }
 
-func dynamicDiagram(dv *expr.DynamicView) *codegen.File {
-	return viewFile(dv.ViewProps, nil)
-}
-
+// deploymentDiagram produces a file that contains Mermaid code representing the
+// given view diagram.
 func deploymentDiagram(dv *expr.DeploymentView) *codegen.File {
-	return viewFile(dv.ViewProps, nil)
+	var sections []*codegen.SectionTemplate
+	for _, ev := range dv.ElementViews {
+		if dn, ok := expr.Registry[ev.Element.ID].(*expr.DeploymentNode); ok {
+			sections = append(sections, deploymentNodeSections(dv, dn, 1)...)
+		}
+	}
+	return viewDiagram(dv.ViewProps, sections)
 }
 
-func legendDiagram(vp *expr.ViewProps) *codegen.File {
-	// There is a many to many relationship between element types and styles. We
-	// need to compute the set of unique combinations to produce the legend.
-	styleMap := make(map[string]*legendElementData)
-	seen := make(map[string]struct{})
-	for i, ev := range vp.ElementViews {
-		var id, name, tags string
-		{
-			id = strconv.Itoa(i)
-
-			switch expr.Registry[ev.Element.ID].(type) {
-			case *expr.Person:
-				name = "Person"
-			case *expr.SoftwareSystem:
-				name = "Software System"
-			case *expr.Container:
-				name = "Container"
-			case *expr.Component:
-				name = "Component"
-			case *expr.DeploymentNode:
-				name = "Deployment Node"
-			case *expr.InfrastructureNode:
-				name = "Infrastructure Node"
-			case *expr.ContainerInstance:
-				name = "Container Instance"
-			default:
-				panic("unknown element type:" + fmt.Sprintf("%T", expr.Registry[ev.Element.ID]))
-			}
-
-			elems := strings.Split(ev.Element.Tags, ",")
-			elems = remove(elems, "Element", "Person", "Software System", "Container", "Component", "Deployment Node", "Infrastructure Node", "Container Instance")
-			sort.Strings(elems)
-			tags = strings.Join(elems, "<br/>")
-			key := tags + "--" + name
-			if _, ok := seen[key]; ok {
-				continue
-			}
-			seen[key] = struct{}{}
-		}
-		if _, ok := styleMap[id]; !ok {
-			es := elemStyle(ev)
-			start, end := nodeStartEnd(ev)
-			styleMap[id] = &legendElementData{
-				ID:          id,
-				Name:        name,
-				Description: tags,
-				Start:       start,
-				End:         end,
-				Style:       styleDef(es.Background, es.Stroke, es.Color, es.Border, es.Opacity, nil),
-				IconURL:     es.Icon,
-			}
-		}
-	}
-	legelems := make([]*legendElementData, len(styleMap))
-	i := 0 // no need to sort, mermaid rendering reorders arbitrarily
-	for _, le := range styleMap {
-		legelems[i] = le
-		i++
-	}
-
-	// Relationships are easier: there is only one type of relationship.
-	legrels := make(map[string]*legendRelationshipData)
-	for _, rv := range vp.RelationshipViews {
-		var desc string
-		{
-			rel := expr.Registry[rv.RelationshipID].(*expr.Relationship)
-			tags := strings.Split(rel.Tags, ",")
-			for i, tag := range tags {
-				if tag == "Relationship" {
-					tags = append(tags[:i], tags[i+1:]...)
-					break
-				}
-			}
-			if len(tags) == 0 {
-				continue
-			}
-			sort.Strings(tags)
-			desc = strings.Join(tags, "<br/>")
-		}
-		if _, ok := legrels[desc]; ok {
-			continue
-		}
-		rs := relStyle(rv)
-		start, end := lineStartEnd(rs)
-		border := expr.BorderUndefined
-		if rs.Dashed != nil && *rs.Dashed {
-			border = expr.BorderDashed
-		}
-		legrels[desc] = &legendRelationshipData{
-			SourceID:      "src" + rs.Tag,
-			DestinationID: "dest" + rs.Tag,
-			Start:         start,
-			End:           end,
-			Style:         styleDef("", rs.Stroke, rs.Color, border, rs.Opacity, rs.Thick),
-			Interpolate:   interpolate(rs),
-			Description:   desc,
-		}
-	}
-	keys := make([]string, len(legrels))
-	i = 0
-	for d := range legrels {
-		keys[i] = d
-		i++
-	}
-	srels := make([]*legendRelationshipData, len(keys))
-	for i, d := range keys {
-		data := legrels[d]
-		data.LinkIndex = i
-		srels[i] = data
-	}
-	legend := &codegen.SectionTemplate{
-		Name:   "legend",
-		Source: legendT,
-		Data: &legendData{
-			LegendElements:      legelems,
-			LegendRelationships: srels,
-		},
-		FuncMap: funcs,
-	}
-	path := filepath.Join(codegen.Gendir, filepath.Join(codegen.Gendir, "diagrams", vp.Key+".legend.mmd"))
-
-	return &codegen.File{Path: path, SectionTemplates: []*codegen.SectionTemplate{legend}}
-}
-
-var funcs = map[string]interface{}{"indent": indent, "join": strings.Join}
-
-func viewFile(vp *expr.ViewProps, sections []*codegen.SectionTemplate) *codegen.File {
+// viewDiagram renders the common Mermaid code for all types of views. This includes the
+// header and footer with class and style definitions.
+func viewDiagram(vp *expr.ViewProps, sections []*codegen.SectionTemplate) *codegen.File {
 	var classes []*elementClassData
 	var styles []*expr.ElementStyle
 	if expr.Root.Views.Styles != nil {
@@ -356,6 +220,18 @@ func viewFile(vp *expr.ViewProps, sections []*codegen.SectionTemplate) *codegen.
 	return &codegen.File{Path: path, SectionTemplates: sections}
 }
 
+// isInView returns true if vp has an element with ID id, false otherwise.
+func isInView(id string, vp *expr.ViewProps) bool {
+	for _, ev := range vp.ElementViews {
+		if ev.Element.ID == id {
+			return true
+		}
+	}
+	return false
+}
+
+// direction returns the Mermaid value for the AutoLayout direction defined in
+// vp.
 func direction(vp *expr.ViewProps) string {
 	if vp.AutoLayout == nil {
 		return "TB"
@@ -429,26 +305,6 @@ func idsByClassNames(evs []*expr.ElementView, styles []*expr.ElementStyle) map[s
 	return res
 }
 
-func indent(i int) string {
-	return strings.Repeat(" ", 4*i)
-}
-
-func remove(slice []string, vals ...string) []string {
-	for _, val := range vals {
-		idx := -1
-		for i, elem := range slice {
-			if elem == val {
-				idx = i
-				break
-			}
-		}
-		if idx > -1 {
-			slice = append(slice[:idx], slice[idx+1:]...)
-		}
-	}
-	return slice
-}
-
 const headerT = `%% Graph generated by mdl {{ .Version }} - DO NOT EDIT
 graph {{ .Direction }}
 `
@@ -463,19 +319,5 @@ const footerT = `{{- range .Classes }}
 {{- range .Links }}
 	{{- if .Style }}{{ indent 1 }}linkStyle {{ .LinkIndex }} {{ .Style }}
 {{ end }}{{ if .Interpolate }}{{ indent 1 }}linkStyle {{ .LinkIndex }} interpolate {{ .Interpolate }};
-{{ end }}
-{{- end }}`
-
-const legendT = `graph TD
-{{ range .LegendElements }}
-{{- indent 1 }}{{ .ID }}{{ .Start }}"{{ if .IconURL }}<img src='{{ .IconURL }}'/>
-	{{- end }}<div class='element'><div class='element-title'>{{ .Name }}</div class='element-title'><div class='element-technology'></div><div class='element-description'>{{ .Description }}</div class='element-description'></div>"{{ .End }}
-{{ indent 1 }}style {{ .ID }} {{ .Style }}
-{{ end }}
-
-{{- range .LegendRelationships }}
-{{- indent 1 }}{{ .SourceID }}[A]{{ .Start }}{{ .Description }}{{ .End }}{{ .DestinationID }}[B]
-{{ if .Style }}{{ indent 1 }}linkStyle {{ .LinkIndex }} {{ .Style }}
-{{ end }}{{ if .Interpolate }}{{ indent 2 }}linkStyle {{ .LinkIndex }} interpolate {{ .Interpolate }}
 {{ end }}
 {{- end }}`

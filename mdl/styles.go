@@ -14,7 +14,7 @@ func stroke(data *elementData) string {
 		return s
 	}
 	if bg == "" {
-		return ""
+		bg = "#FFFFFF"
 	}
 	// Darken background by 50%
 	var r, g, b int

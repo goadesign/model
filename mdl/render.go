@@ -56,6 +56,8 @@ func RunDSL() ([]*RenderedView, error) {
 // MermaidFiles returns codegen files that render Mermaid diagrams describing
 // the views described in the given design. There is one file generated per view
 // in the design.
+//
+// TBD: dynamic views, animations
 func MermaidFiles(d *expr.Design) (files []*codegen.File) {
 	views := d.Views
 	if views == nil {
@@ -77,10 +79,6 @@ func MermaidFiles(d *expr.Design) (files []*codegen.File) {
 		files = append(files, componentDiagram(cv))
 		files = append(files, legendDiagram(cv.ViewProps))
 	}
-	for _, dv := range views.DynamicViews {
-		files = append(files, dynamicDiagram(dv))
-		files = append(files, legendDiagram(dv.ViewProps))
-	}
 	for _, dv := range views.DeploymentViews {
 		files = append(files, deploymentDiagram(dv))
 		files = append(files, legendDiagram(dv.ViewProps))
@@ -89,6 +87,8 @@ func MermaidFiles(d *expr.Design) (files []*codegen.File) {
 }
 
 // Render renders the views of the given design.
+//
+// TBD: dynamic views, animations
 func Render(d *expr.Design) []*RenderedView {
 	views := d.Views
 	if views == nil {
@@ -106,9 +106,6 @@ func Render(d *expr.Design) []*RenderedView {
 	}
 	for _, cv := range views.ComponentViews {
 		rvs = append(rvs, render(componentDiagram(cv), legendDiagram(cv.ViewProps), cv, d))
-	}
-	for _, dv := range views.DynamicViews {
-		rvs = append(rvs, render(dynamicDiagram(dv), legendDiagram(dv.ViewProps), dv, d))
 	}
 	for _, dv := range views.DeploymentViews {
 		rvs = append(rvs, render(deploymentDiagram(dv), legendDiagram(dv.ViewProps), dv, d))

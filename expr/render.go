@@ -70,7 +70,7 @@ func addDefaultElements(view View) {
 // addMissingElementsAndRelationships adds all elements that form edges of
 // relationships in the view and adds all relationships between elements that
 // are in the view.
-func addMissingElementsAndRelationships(vp *ViewProps, scope ElementHolder) {
+func addMissingElementsAndRelationships(vp *ViewProps) {
 	for _, rv := range vp.RelationshipViews {
 		addElements(vp, rv.Source)
 		addElements(vp, rv.Destination)
