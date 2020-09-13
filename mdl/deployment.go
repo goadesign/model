@@ -58,18 +58,6 @@ func findElement(dv *expr.DeploymentView, elem *expr.Element) *expr.ElementView 
 	return nil
 }
 
-func deploymentNodeStart(dn *expr.DeploymentNode, indent int) *codegen.SectionTemplate {
-	return &codegen.SectionTemplate{
-		Name:    "deploymentNodeStart",
-		Source:  deploymentNodeStartT,
-		FuncMap: funcs,
-		Data: struct {
-			Indent       int
-			BoundaryName string
-		}{indent, dn.Name},
-	}
-}
-
 const deploymentNodeStartT = `{{ indent .Indent }}subgraph {{ .ID }} [{{ .BoundaryName }}{{ if gt .Instances 1 }} x{{ .Instances }}{{ end }}]
 `
 

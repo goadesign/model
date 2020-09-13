@@ -220,16 +220,6 @@ func viewDiagram(vp *expr.ViewProps, sections []*codegen.SectionTemplate) *codeg
 	return &codegen.File{Path: path, SectionTemplates: sections}
 }
 
-// isInView returns true if vp has an element with ID id, false otherwise.
-func isInView(id string, vp *expr.ViewProps) bool {
-	for _, ev := range vp.ElementViews {
-		if ev.Element.ID == id {
-			return true
-		}
-	}
-	return false
-}
-
 // direction returns the Mermaid value for the AutoLayout direction defined in
 // vp.
 func direction(vp *expr.ViewProps) string {
