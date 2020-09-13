@@ -1,6 +1,6 @@
 # Model
 
-![Build](https://github.com/goadesign/model/workflows/CI/badge.svg)
+[![Build](https://github.com/goadesign/model/workflows/CI/badge.svg)](https://github.com/goadesign/model/actions?query=workflow%3ACI)
 ![Version](https://img.shields.io/badge/Version-v1.6.2-blue.svg)
 ![Go version](https://img.shields.io/github/go-mod/go-version/gomods/athens.svg)
 [![DSL Reference](https://img.shields.io/badge/Doc-DSL-orange)](https://pkg.go.dev/goa.design/model@v1.6.2/dsl?tab=doc)
