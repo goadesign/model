@@ -58,7 +58,8 @@ release:
 	@sed 's/model@v.*\/\(.*\)tab=doc/model@v$(MAJOR).$(MINOR).$(BUILD)\/\1tab=doc/' README.md > _tmp && mv _tmp README.md
 	@sed 's/model@v.*\/\(.*\)tab=doc/model@v$(MAJOR).$(MINOR).$(BUILD)\/\1tab=doc/' DSL.md > _tmp && mv _tmp DSL.md
 
-# Make sure stz builds
+# Make sure mdl and stz build
+	@cd cmd/mdl && go install
 	@cd cmd/stz && go install
 
 # Commit and push

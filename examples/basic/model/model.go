@@ -26,6 +26,9 @@ var _ = Design("Getting Started", "This is a model of my software system.", func
 				Background("#08427b")
 				Color("#ffffff")
 			})
+			StructurizrElementStyle("person", func() {
+				Shape(ShapePerson)
+			})
 		})
 	})
 })

@@ -318,19 +318,19 @@ const (
 const (
 	ShapeUndefined ShapeKind = iota
 	ShapeBox
-	ShapeRoundedBox
-	ShapeComponent
 	ShapeCircle
+	ShapeCylinder
 	ShapeEllipse
 	ShapeHexagon
+	ShapeRoundedBox
+	ShapeComponent
 	ShapeFolder
-	ShapeCylinder
-	ShapePipe
-	ShapeWebBrowser
-	ShapeMobileDevicePortrait
 	ShapeMobileDeviceLandscape
+	ShapeMobileDevicePortrait
 	ShapePerson
+	ShapePipe
 	ShapeRobot
+	ShapeWebBrowser
 )
 
 const (

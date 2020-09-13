@@ -343,6 +343,9 @@ loopelem:
 				es.Height = ses.Height
 				es.FontSize = ses.FontSize
 				es.Icon = ses.Icon
+				if ses.Shape != expr.ExtendedShapeKind(expr.ShapeUndefined) {
+					es.Shape = ShapeKind(ses.Shape)
+				}
 				continue loopelem
 			}
 		}

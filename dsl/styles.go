@@ -257,7 +257,7 @@ func StructurizrRelationshipStyle(tag string, dsl func()) {
 func Shape(kind ShapeKind) {
 	switch es := eval.Current().(type) {
 	case *expr.ElementStyle:
-		if int(kind) >= int(expr.ShapeLast) {
+		if int(kind) >= int(expr.ShapeComponent) {
 			eval.ReportError("Shape: value can only be used in StructurizrElementStyle")
 		}
 		es.Shape = expr.ShapeKind(kind)

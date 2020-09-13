@@ -147,11 +147,12 @@ const (
 	ShapeEllipse
 	ShapeHexagon
 	ShapeRoundedBox
-	ShapeLast
 )
 
 const (
-	ShapeComponent ExtendedShapeKind = ExtendedShapeKind(ShapeLast)
+	// The shapes below are only supported when rendering diagrams for the
+	// Structurizr service.
+	ShapeComponent ExtendedShapeKind = ExtendedShapeKind(ShapeRoundedBox) + 1
 	ShapeFolder
 	ShapeMobileDeviceLandscape
 	ShapeMobileDevicePortrait
