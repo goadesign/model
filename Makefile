@@ -55,8 +55,8 @@ release:
 	@sed 's/Minor = .*/Minor = $(MINOR)/' pkg/version.go > _tmp && mv _tmp pkg/version.go
 	@sed 's/Build = .*/Build = $(BUILD)/' pkg/version.go > _tmp && mv _tmp pkg/version.go
 	@sed 's/badge\/Version-.*/badge\/Version-v$(MAJOR).$(MINOR).$(BUILD)-blue.svg)/' README.md > _tmp && mv _tmp README.md
-	@sed 's/model@v.*tab=doc/model@v$(MAJOR).$(MINOR).$(BUILD)\/dsl?tab=doc/' README.md > _tmp && mv _tmp README.md
-	@sed 's/model@v.*tab=doc/model@v$(MAJOR).$(MINOR).$(BUILD)\/dsl?tab=doc/' DSL.md > _tmp && mv _tmp DSL.md
+	@sed 's/model@v.*\/\(.*\)tab=doc/model@v$(MAJOR).$(MINOR).$(BUILD)\/\1tab=doc/' README.md > _tmp && mv _tmp README.md
+	@sed 's/model@v.*\/\(.*\)tab=doc/model@v$(MAJOR).$(MINOR).$(BUILD)\/\1tab=doc/' DSL.md > _tmp && mv _tmp DSL.md
 
 # Make sure stz builds
 	@cd cmd/stz && go install
@@ -64,6 +64,6 @@ release:
 # Commit and push
 	@git add .
 	@git commit -m "Release v$(MAJOR).$(MINOR).$(BUILD)"
-	@git tag v$(MAJOR).$(MINOR).$(BUILD)
+	 @git tag v$(MAJOR).$(MINOR).$(BUILD)
 	@git push origin master
 	@git push origin v$(MAJOR).$(MINOR).$(BUILD)

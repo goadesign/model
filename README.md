@@ -115,14 +115,14 @@ directory.
 
 ## Library
 
-The [mdl](https://pkg.go.dev/goa.design/model@v1.6.1/dsl?tab=doc) package
-[RunDSL](https://pkg.go.dev/goa.design/model@v1.6.1/dsl?tab=doc#RunDSL)
+The [mdl](https://pkg.go.dev/goa.design/model@v1.6.1/mdl?tab=doc) package
+[RunDSL](https://pkg.go.dev/goa.design/model@v1.6.1/mdl?tab=doc#RunDSL)
 method runs the DSL and produces data structures that contain all the
 information needed to render the views it defines including
 [mermaid](https://mermaid-js.github.io) definitions for all the diagrams.
 
-The [stz](https://pkg.go.dev/goa.design/model@v1.6.1/dsl?tab=doc) package
-[RunDSL](https://pkg.go.dev/goa.design/model@v1.6.1/dsl?tab=doc#RunDSL)
+The [stz](https://pkg.go.dev/goa.design/model@v1.6.1/stz?tab=doc) package
+[RunDSL](https://pkg.go.dev/goa.design/model@v1.6.1/stz?tab=doc#RunDSL)
 method runs the DSL and produces a data structure that can be serialized into
 JSON and uploaded to the [Structurizr service](https://structurizr.com).
 
@@ -222,7 +222,7 @@ mdl gen goa.design/model/examples/basic
 The command above created a `gen` folder containing one JSON file per view
 defined in the DSL. In the case of the `basic` example there is a single
 view. The data structure serialized into the JSON is
-[RenderedView](https://pkg.go.dev/goa.design/model@v1.6.1/dsl?tab=doc#RenderedView).
+[RenderedView](https://pkg.go.dev/goa.design/model@v1.6.1/mdl?tab=doc#RenderedView).
 
 Serve static pages produced from the same package:
 
