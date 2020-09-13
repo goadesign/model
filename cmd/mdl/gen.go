@@ -83,7 +83,8 @@ const mainT = `func main() {
 	// Retrieve output path
 	out := os.Args[1]
 
-	// Create directory if needed
+	// (Re)Create directory
+	os.RemoveAll(out)
 	if err := os.MkdirAll(out, 0755); err != nil {
 		fmt.Fprintf(os.Stderr, "failed to create %q: %s", out, err.Error())
 		os.Exit(1)

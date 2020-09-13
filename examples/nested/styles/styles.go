@@ -16,9 +16,11 @@ func DefineAll() {
 func SystemStyle() {
 	Styles(func() {
 		ElementStyle("person", func() {
-			Shape(ShapePerson)
 			Background("#08427b")
 			Color("#ffffff")
+		})
+		StructurizrElementStyle("person", func() {
+			Shape(ShapePerson)
 		})
 	})
 }
@@ -28,9 +30,11 @@ func SystemStyle() {
 func PersonStyle() {
 	Styles(func() {
 		ElementStyle("person", func() {
-			Shape(ShapePerson)
 			Background("#08427b")
 			Color("#ffffff")
+		})
+		StructurizrElementStyle("person", func() {
+			Shape(ShapePerson)
 		})
 	})
 }

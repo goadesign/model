@@ -32,7 +32,31 @@ overridden by the one defined in the package being generated.
 
 ## Running
 
-Using the `stz` command line:
+### Rendering the diagram locally
+
+Use the `mdl` tool to serve the static page:
+
+```bash
+mdl serve goa.design/model/examples/nested/model
+```
+
+Open the pages for each view:
+
+Subsystem 1 context view:
+
+```bash
+open http://http://localhost:6070/Subsystem%201%20context
+```
+
+Subsystem 2 context view:
+
+```bash
+open http://http://localhost:6070/Subsystem%202%20context
+```
+
+### Using the Structurizr service
+
+Generate the Structurizr workspace from the design:
 
 ```bash
 stz gen goa.design/model/examples/nested/model
@@ -45,3 +69,6 @@ using `stz`:
 ```bash
 stz put model.json -id XXX -key YYY -secret ZZZ
 ```
+
+Where `XXX` is the Structurizr workspace ID, `YYY` the API key and `ZZZ` the
+API secret.

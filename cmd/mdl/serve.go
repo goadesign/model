@@ -6,10 +6,12 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/jaschaephraim/lrserver"
+	"goa.design/model/mdl"
 	"golang.org/x/tools/go/packages"
 )
 
@@ -58,6 +60,7 @@ func serve(pkg, config, out string, port int, debug bool) error {
 	}()
 
 	// Serve generated diagrams
+	listindex := template.Must(template.New("listindex").Parse(listindexT))
 	errindex := template.Must(template.New("errindex").Parse(errindexT))
 	http.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
 		if err != nil {
@@ -66,17 +69,13 @@ func serve(pkg, config, out string, port int, debug bool) error {
 		}
 		view, ok := views[req.URL.Path[1:]]
 		if !ok {
-			links := make([]string, len(views))
-			i := 0
-			for v := range views {
-				links[i] = fmt.Sprintf(`<a href="%s">%s</a>`, v, v)
-				i++
+			if err = listindex.Execute(w, listData(views)); err != nil {
+				errindex.Execute(w, err.Error())
 			}
-			data := fmt.Sprintf("no view with key %s, available views:<br/>%s", req.URL.Path[1:], strings.Join(links, "<br/>"))
-			errindex.Execute(w, template.HTML(data))
 			return
 		}
 		data := &ViewData{
+			Key:                 view.Key,
 			Title:               view.Title,
 			Description:         view.Description,
 			Version:             view.Version,
@@ -95,6 +94,30 @@ func serve(pkg, config, out string, port int, debug bool) error {
 	return http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
 }
 
+func listData(views map[string]*mdl.RenderedView) []*ViewData {
+	keys := make([]string, len(views))
+	i := 0
+	for k := range views {
+		keys[i] = k
+		i++
+	}
+	sort.Strings(keys)
+	data := make([]*ViewData, len(keys))
+	for i, k := range keys {
+		view := views[k]
+		title := view.Title
+		if title == "" {
+			title = view.Key
+		}
+		data[i] = &ViewData{
+			Key:         view.Key,
+			Title:       title,
+			Description: view.Description,
+		}
+	}
+	return data
+}
+
 const errindexT = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -107,6 +130,31 @@ const errindexT = `<!DOCTYPE html>
 	{{ . }}
 	</div>
 	<script src="http://localhost:35729/livereload.js"></script>
+</body>
+</html>
+`
+
+const listindexT = `<!DOCTYPE html>
+<html lang="end">
+<head>
+	<meta charset="utf-8">
+	<title>Diagrams</title>
+	<style>
+		body {font-family: Arial;}
+		h1 {font-weight: bold; font-size: 1.5rem;}
+		ul {font-size: 1.2em;}
+		li {line-height: 1.5;}
+        a {color:#001f3f; text-decoration: none;}
+        a:hover {color:#0074d9;}
+	</style>
+</head>
+<body>
+	<h1>Available views:</h1>
+	<ul>
+	{{- range . }}
+		<li><a href="/{{ .Key }}">{{ .Title }}: <i>{{ .Description }}</i></a></li>
+	{{ end }}
+	</ul>
 </body>
 </html>
 `

@@ -187,6 +187,8 @@ body {
 // ViewData is the data structure used to render the HTML template for a
 // given view.
 type ViewData struct {
+	// Key of view
+	Key string
 	// Title of view
 	Title string
 	// Description of view
