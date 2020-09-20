@@ -56,3 +56,15 @@ func TestContainerFinalize(t *testing.T) {
 		})
 	}
 }
+
+func TestContainersElements(t *testing.T) {
+	t.Parallel()
+	containers := Containers{
+		{Element: &Element{Name: "foo"}},
+		{Element: &Element{Name: "bar"}},
+		{Element: &Element{Name: "baz"}},
+	}
+	if got := containers.Elements(); len(got) != len(containers) {
+		t.Errorf("got %d, want %d", len(got), len(containers))
+	}
+}
