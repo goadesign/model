@@ -42,7 +42,7 @@ func TestComponentFinalize(t *testing.T) {
 	}{
 		{want: ""},
 		{pre: func() { component.Tags = "foo" }, want: "foo"},
-		{pre: func() { component.Finalize() }, want: "foo,Element,Component"},
+		{pre: func() { component.Finalize() }, want: "Element,Component,foo"},
 	}
 	for i, tt := range tests {
 		tt := tt
