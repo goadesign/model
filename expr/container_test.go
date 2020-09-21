@@ -68,3 +68,29 @@ func TestContainersElements(t *testing.T) {
 		t.Errorf("got %d, want %d", len(got), len(containers))
 	}
 }
+
+func TestContainerComponent(t *testing.T) {
+	t.Parallel()
+	container := Container{
+		Components: Components{
+			{Element: &Element{Name: "foo"}},
+			{Element: &Element{Name: "bar"}},
+			{Element: &Element{Name: "baz"}},
+		},
+	}
+	tests := []struct {
+		name string
+		want *Component
+	}{
+		{name: "thud", want: nil},
+		{name: "bar", want: container.Components[1]},
+	}
+	for i, tt := range tests {
+		tt := tt
+		t.Run(fmt.Sprint(i), func(t *testing.T) {
+			if got := container.Component(tt.name); got != tt.want {
+				t.Errorf("got %#v, want %#v", got.Element, tt.want.Element)
+			}
+		})
+	}
+}
