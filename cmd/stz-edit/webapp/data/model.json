@@ -1,0 +1,1262 @@
+{
+    "name": "Big Bank plc",
+    "description": "This is an example workspace to illustrate the key features of Model, based around a fictional online banking system.",
+    "model": {
+        "enterprise": {
+            "name": "Big Bank plc"
+        },
+        "people": [
+            {
+                "id": "23ylt4",
+                "name": "Back Office Staff",
+                "description": "Administration and support staff within the bank.",
+                "tags": "Element,Person,Bank Staff",
+                "relationships": [
+                    {
+                        "id": "1xbpzk0",
+                        "description": "Uses",
+                        "tags": "Relationship,Synchronous",
+                        "sourceId": "23ylt4",
+                        "destinationId": "1njagt4",
+                        "interactionStyle": "Synchronous"
+                    }
+                ]
+            },
+            {
+                "id": "1mmpe00",
+                "name": "Customer Service Staff",
+                "description": "Customer service staff within the bank.",
+                "tags": "Element,Person,Bank Staff",
+                "relationships": [
+                    {
+                        "id": "39iqlm",
+                        "description": "Uses",
+                        "tags": "Relationship,Synchronous",
+                        "sourceId": "1mmpe00",
+                        "destinationId": "1njagt4",
+                        "interactionStyle": "Synchronous"
+                    }
+                ]
+            },
+            {
+                "id": "1a44kjx",
+                "name": "Personal Banking Customer",
+                "description": "A customer of the bank, with personal bank accounts.",
+                "tags": "Element,Person",
+                "relationships": [
+                    {
+                        "id": "12qesfm",
+                        "description": "Views account balances, and makes payments using",
+                        "tags": "Relationship,Synchronous",
+                        "sourceId": "1a44kjx",
+                        "destinationId": "1qm4oey",
+                        "interactionStyle": "Synchronous"
+                    },
+                    {
+                        "id": "1mpityh",
+                        "description": "Views account balances, and makes payments using",
+                        "tags": "Relationship,Synchronous",
+                        "sourceId": "1a44kjx",
+                        "destinationId": "gsdtx7",
+                        "interactionStyle": "Synchronous"
+                    },
+                    {
+                        "id": "1yaxhp1",
+                        "description": "Views account balances, and makes payments using",
+                        "tags": "Relationship,Synchronous",
+                        "sourceId": "1a44kjx",
+                        "destinationId": "hd9fd5",
+                        "interactionStyle": "Synchronous"
+                    },
+                    {
+                        "id": "avismw",
+                        "description": "Asks questions to",
+                        "tags": "Relationship,Synchronous",
+                        "sourceId": "1a44kjx",
+                        "destinationId": "1mmpe00",
+                        "technology": "Telephone",
+                        "interactionStyle": "Synchronous"
+                    },
+                    {
+                        "id": "p22im2",
+                        "description": "Visits bigbank.com/ib using",
+                        "tags": "Relationship,Synchronous",
+                        "sourceId": "1a44kjx",
+                        "destinationId": "1rhkirw",
+                        "technology": "HTTPS",
+                        "interactionStyle": "Synchronous"
+                    },
+                    {
+                        "id": "wllptg",
+                        "description": "Withdraws cash using",
+                        "tags": "Relationship,Synchronous",
+                        "sourceId": "1a44kjx",
+                        "destinationId": "o14fz3",
+                        "interactionStyle": "Synchronous"
+                    }
+                ],
+                "location": "External"
+            }
+        ],
+        "softwareSystems": [
+            {
+                "id": "o14fz3",
+                "name": "ATM",
+                "description": "Allows customers to withdraw cash.",
+                "tags": "Element,Software System,Existing System",
+                "relationships": [
+                    {
+                        "id": "yl1v6x",
+                        "description": "Uses",
+                        "tags": "Relationship,Synchronous",
+                        "sourceId": "o14fz3",
+                        "destinationId": "1njagt4",
+                        "interactionStyle": "Synchronous"
+                    }
+                ]
+            },
+            {
+                "id": "ay5wb5",
+                "name": "E-mail System",
+                "description": "The internal Microsoft Exchange e-mail system.",
+                "tags": "Element,Software System,Existing System",
+                "relationships": [
+                    {
+                        "id": "1ezo6jr",
+                        "description": "Sends e-mails to",
+                        "tags": "Relationship,Synchronous",
+                        "sourceId": "ay5wb5",
+                        "destinationId": "1a44kjx",
+                        "interactionStyle": "Synchronous"
+                    }
+                ]
+            },
+            {
+                "id": "gsdtx7",
+                "name": "Internet Banking System",
+                "description": "Allows customers to view information about their bank accounts, and make payments.",
+                "tags": "Element,Software System",
+                "relationships": [
+                    {
+                        "id": "127z3ws",
+                        "description": "Sends e-mail using",
+                        "tags": "Relationship,Synchronous",
+                        "sourceId": "gsdtx7",
+                        "destinationId": "ay5wb5",
+                        "interactionStyle": "Synchronous"
+                    },
+                    {
+                        "id": "14fdcvm",
+                        "description": "Gets account information from, and makes payments using",
+                        "tags": "Relationship,Synchronous",
+                        "sourceId": "gsdtx7",
+                        "destinationId": "1njagt4",
+                        "interactionStyle": "Synchronous"
+                    }
+                ],
+                "containers": [
+                    {
+                        "id": "uu8ny2",
+                        "name": "API Application",
+                        "description": "Provides Internet banking functionality via a JSON/HTTPS API.",
+                        "technology": "Java and Spring MVC",
+                        "tags": "Element,Container",
+                        "relationships": [
+                            {
+                                "id": "1uibvv8",
+                                "description": "Makes API calls to",
+                                "tags": "Relationship,Synchronous",
+                                "sourceId": "uu8ny2",
+                                "destinationId": "1njagt4",
+                                "technology": "XML/HTTPS",
+                                "interactionStyle": "Synchronous"
+                            },
+                            {
+                                "id": "7igu77",
+                                "description": "Sends e-mail using",
+                                "tags": "Relationship,Synchronous",
+                                "sourceId": "uu8ny2",
+                                "destinationId": "ay5wb5",
+                                "technology": "SMTP",
+                                "interactionStyle": "Synchronous"
+                            },
+                            {
+                                "id": "hvkdgv",
+                                "description": "Reads from and writes to",
+                                "tags": "Relationship,Synchronous",
+                                "sourceId": "uu8ny2",
+                                "destinationId": "1hfi68p",
+                                "technology": "JDBC",
+                                "interactionStyle": "Synchronous"
+                            }
+                        ],
+                        "components": [
+                            {
+                                "id": "1olxg1c",
+                                "name": "Accounts Summary Controller",
+                                "description": "Provides customers with a summary of their bank accounts.",
+                                "technology": "Spring MVC Rest Controller",
+                                "tags": "Element,Component",
+                                "relationships": [
+                                    {
+                                        "id": "10dj6l9",
+                                        "description": "Uses",
+                                        "tags": "Relationship,Synchronous",
+                                        "sourceId": "1olxg1c",
+                                        "destinationId": "11kj53l",
+                                        "interactionStyle": "Synchronous"
+                                    }
+                                ]
+                            },
+                            {
+                                "id": "do2bvv",
+                                "name": "Email Component",
+                                "description": "Sends e-mails to users.",
+                                "technology": "Spring Bean",
+                                "tags": "Element,Component",
+                                "relationships": [
+                                    {
+                                        "id": "2jug6p",
+                                        "description": "Sends e-mail using",
+                                        "tags": "Relationship,Synchronous",
+                                        "sourceId": "do2bvv",
+                                        "destinationId": "ay5wb5",
+                                        "interactionStyle": "Synchronous"
+                                    }
+                                ]
+                            },
+                            {
+                                "id": "11kj53l",
+                                "name": "Mainframe Banking System Facade",
+                                "description": "A facade onto the mainframe banking system.",
+                                "technology": "Spring Bean",
+                                "tags": "Element,Component",
+                                "relationships": [
+                                    {
+                                        "id": "p9r0zb",
+                                        "description": "Uses",
+                                        "tags": "Relationship,Synchronous",
+                                        "sourceId": "11kj53l",
+                                        "destinationId": "1njagt4",
+                                        "technology": "XML/HTTPS",
+                                        "interactionStyle": "Synchronous"
+                                    }
+                                ]
+                            },
+                            {
+                                "id": "jdi4s4",
+                                "name": "Reset Password Controller",
+                                "description": "Allows users to reset their passwords with a single use URL.",
+                                "technology": "Spring MVC Rest Controller",
+                                "tags": "Element,Component",
+                                "relationships": [
+                                    {
+                                        "id": "152r5l2",
+                                        "description": "Uses",
+                                        "tags": "Relationship,Synchronous",
+                                        "sourceId": "jdi4s4",
+                                        "destinationId": "15o55d9",
+                                        "interactionStyle": "Synchronous"
+                                    },
+                                    {
+                                        "id": "1hwhd1m",
+                                        "description": "Uses",
+                                        "tags": "Relationship,Synchronous",
+                                        "sourceId": "jdi4s4",
+                                        "destinationId": "do2bvv",
+                                        "interactionStyle": "Synchronous"
+                                    }
+                                ]
+                            },
+                            {
+                                "id": "15o55d9",
+                                "name": "Security Component",
+                                "description": "Provides functionality related to signing in, changing passwords, etc..",
+                                "technology": "Spring Bean",
+                                "tags": "Element,Component",
+                                "relationships": [
+                                    {
+                                        "id": "1mdymz6",
+                                        "description": "Reads from and writes to",
+                                        "tags": "Relationship,Synchronous",
+                                        "sourceId": "15o55d9",
+                                        "destinationId": "1hfi68p",
+                                        "technology": "JDBC",
+                                        "interactionStyle": "Synchronous"
+                                    }
+                                ]
+                            },
+                            {
+                                "id": "sks1g4",
+                                "name": "Sign In Controller",
+                                "description": "Allows users to sign in to the Internet Banking System.",
+                                "technology": "Spring MVC Rest Controller",
+                                "tags": "Element,Component",
+                                "relationships": [
+                                    {
+                                        "id": "0zue5",
+                                        "description": "Calls isAuthenticated() on",
+                                        "tags": "Relationship,Synchronous",
+                                        "sourceId": "sks1g4",
+                                        "destinationId": "15o55d9",
+                                        "interactionStyle": "Synchronous"
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "id": "1hfi68p",
+                        "name": "Database",
+                        "description": "Stores user registration information, hashed authentication credentials, access logs, etc.",
+                        "technology": "Oracle Database Schema",
+                        "tags": "Element,Container,Database"
+                    },
+                    {
+                        "id": "hd9fd5",
+                        "name": "Mobile App",
+                        "description": "Provides a limited subset of the Internet banking functionality to customers via their mobile device.",
+                        "technology": "Xamarin",
+                        "tags": "Element,Container,Mobile App",
+                        "relationships": [
+                            {
+                                "id": "11jj6gn",
+                                "description": "Makes API calls to",
+                                "tags": "Relationship,Synchronous",
+                                "sourceId": "hd9fd5",
+                                "destinationId": "jdi4s4",
+                                "technology": "JSON/HTTPS",
+                                "interactionStyle": "Synchronous"
+                            },
+                            {
+                                "id": "196feqn",
+                                "description": "Makes API calls to",
+                                "tags": "Relationship,Synchronous",
+                                "sourceId": "hd9fd5",
+                                "destinationId": "uu8ny2",
+                                "technology": "JSON/HTTPS",
+                                "interactionStyle": "Synchronous"
+                            },
+                            {
+                                "id": "1x518kb",
+                                "description": "Makes API calls to",
+                                "tags": "Relationship,Synchronous",
+                                "sourceId": "hd9fd5",
+                                "destinationId": "1olxg1c",
+                                "technology": "JSON/HTTPS",
+                                "interactionStyle": "Synchronous"
+                            },
+                            {
+                                "id": "1xjmybb",
+                                "description": "Makes API calls to",
+                                "tags": "Relationship,Synchronous",
+                                "sourceId": "hd9fd5",
+                                "destinationId": "sks1g4",
+                                "technology": "JSON/HTTPS",
+                                "interactionStyle": "Synchronous"
+                            }
+                        ]
+                    },
+                    {
+                        "id": "1qm4oey",
+                        "name": "Single-Page Application",
+                        "description": "Provides all of the Internet banking functionality to customers via their web browser.",
+                        "technology": "JavaScript and Angular",
+                        "tags": "Element,Container",
+                        "relationships": [
+                            {
+                                "id": "15i2lls",
+                                "description": "Submits credentials to",
+                                "tags": "Relationship,Synchronous",
+                                "sourceId": "1qm4oey",
+                                "destinationId": "sks1g4",
+                                "technology": "JSON/HTTPS",
+                                "interactionStyle": "Synchronous"
+                            },
+                            {
+                                "id": "18w02sz",
+                                "description": "Makes API calls to",
+                                "tags": "Relationship,Synchronous",
+                                "sourceId": "1qm4oey",
+                                "destinationId": "uu8ny2",
+                                "technology": "JSON/HTTPS",
+                                "interactionStyle": "Synchronous"
+                            },
+                            {
+                                "id": "1czbeuv",
+                                "description": "Makes API calls to",
+                                "tags": "Relationship,Synchronous",
+                                "sourceId": "1qm4oey",
+                                "destinationId": "1olxg1c",
+                                "technology": "JSON/HTTPS",
+                                "interactionStyle": "Synchronous"
+                            },
+                            {
+                                "id": "1hssbq3",
+                                "description": "Makes API calls to",
+                                "tags": "Relationship,Synchronous",
+                                "sourceId": "1qm4oey",
+                                "destinationId": "jdi4s4",
+                                "technology": "JSON/HTTPS",
+                                "interactionStyle": "Synchronous"
+                            }
+                        ]
+                    },
+                    {
+                        "id": "1rhkirw",
+                        "name": "Web Application",
+                        "description": "Delivers the static content and the Internet banking single page application.",
+                        "technology": "Java and Spring MVC",
+                        "tags": "Element,Container",
+                        "relationships": [
+                            {
+                                "id": "wsh5tl",
+                                "description": "Delivers to the customer's web browser",
+                                "tags": "Relationship,Synchronous",
+                                "sourceId": "1rhkirw",
+                                "destinationId": "1qm4oey",
+                                "interactionStyle": "Synchronous"
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "id": "1njagt4",
+                "name": "Mainframe Banking System",
+                "description": "Stores all of the core banking information about customers, accounts, transactions, etc.",
+                "tags": "Element,Software System,Existing System"
+            }
+        ],
+        "deploymentNodes": [
+            {
+                "id": "1o4hmqe",
+                "name": "Big Bank plc",
+                "technology": "Big Bank plc data center",
+                "environment": "Live",
+                "instances": 1,
+                "tags": "Element,Deployment Node"
+            },
+            {
+                "id": "bu6kdy",
+                "name": "Customer's computer",
+                "technology": "Microsoft Windows or Apple macOS",
+                "environment": "Live",
+                "instances": 1,
+                "tags": "Element,Deployment Node"
+            },
+            {
+                "id": "bp51up",
+                "name": "Customer's mobile device",
+                "technology": "Apple iOS or Android",
+                "environment": "Live",
+                "instances": 1,
+                "tags": "Element,Deployment Node"
+            },
+            {
+                "id": "jot3al",
+                "name": "Developer Laptop",
+                "description": "A developer laptop",
+                "technology": "Microsoft Windows 10 or Apple macOS",
+                "environment": "Development",
+                "instances": 1,
+                "tags": "Element,Deployment Node"
+            }
+        ]
+    },
+    "views": {
+        "systemLandscapeViews": [
+            {
+                "description": "The system landscape diagram for Big Bank plc.",
+                "key": "SystemLandscape",
+                "paperSize": "A5_Landscape",
+                "elements": [
+                    {
+                        "id": "1a44kjx",
+                        "x": 87,
+                        "y": 643
+                    },
+                    {
+                        "id": "1mmpe00",
+                        "x": 1947,
+                        "y": 36
+                    },
+                    {
+                        "id": "1njagt4",
+                        "x": 1922,
+                        "y": 693
+                    },
+                    {
+                        "id": "23ylt4",
+                        "x": 1947,
+                        "y": 1241
+                    },
+                    {
+                        "id": "ay5wb5",
+                        "x": 1012,
+                        "y": 1326
+                    },
+                    {
+                        "id": "gsdtx7",
+                        "x": 1012,
+                        "y": 813
+                    },
+                    {
+                        "id": "o14fz3",
+                        "x": 1012,
+                        "y": 301
+                    }
+                ],
+                "relationships": [
+                    {
+                        "id": "127z3ws",
+                        "description": "Sends e-mail using"
+                    },
+                    {
+                        "id": "12qesfm",
+                        "description": "Views account balances, and makes payments using"
+                    },
+                    {
+                        "id": "14fdcvm",
+                        "description": "Gets account information from, and makes payments using"
+                    },
+                    {
+                        "id": "1ezo6jr",
+                        "description": "Sends e-mails to"
+                    },
+                    {
+                        "id": "1mpityh",
+                        "description": "Views account balances, and makes payments using"
+                    },
+                    {
+                        "id": "1uibvv8",
+                        "description": "Makes API calls to"
+                    },
+                    {
+                        "id": "1xbpzk0",
+                        "description": "Uses"
+                    },
+                    {
+                        "id": "1yaxhp1",
+                        "description": "Views account balances, and makes payments using"
+                    },
+                    {
+                        "id": "2jug6p",
+                        "description": "Sends e-mail using"
+                    },
+                    {
+                        "id": "39iqlm",
+                        "description": "Uses"
+                    },
+                    {
+                        "id": "7igu77",
+                        "description": "Sends e-mail using"
+                    },
+                    {
+                        "id": "avismw",
+                        "description": "Asks questions to",
+                        "vertices": [
+                            {
+                                "x": 285,
+                                "y": 240
+                            }
+                        ]
+                    },
+                    {
+                        "id": "p22im2",
+                        "description": "Visits bigbank.com/ib using"
+                    },
+                    {
+                        "id": "p9r0zb",
+                        "description": "Uses"
+                    },
+                    {
+                        "id": "wllptg",
+                        "description": "Withdraws cash using"
+                    },
+                    {
+                        "id": "yl1v6x",
+                        "description": "Uses"
+                    }
+                ],
+                "animations": [
+                    {
+                        "order": 1,
+                        "elements": [
+                            "1a44kjx",
+                            "1njagt4",
+                            "ay5wb5",
+                            "gsdtx7"
+                        ],
+                        "relationships": [
+                            "12qesfm",
+                            "avismw"
+                        ]
+                    },
+                    {
+                        "order": 2,
+                        "elements": [
+                            "o14fz3"
+                        ],
+                        "relationships": [
+                            "127z3ws",
+                            "14fdcvm",
+                            "1uibvv8",
+                            "1xbpzk0",
+                            "39iqlm",
+                            "p9r0zb",
+                            "wllptg"
+                        ]
+                    },
+                    {
+                        "order": 3,
+                        "elements": [
+                            "1mmpe00",
+                            "23ylt4"
+                        ],
+                        "relationships": [
+                            "127z3ws",
+                            "12qesfm",
+                            "14fdcvm",
+                            "1ezo6jr",
+                            "1mpityh",
+                            "1uibvv8",
+                            "1yaxhp1",
+                            "avismw",
+                            "p22im2",
+                            "wllptg"
+                        ]
+                    }
+                ],
+                "enterpriseBoundaryVisible": true
+            }
+        ],
+        "containerViews": [
+            {
+                "description": "The container diagram for the Internet Banking System.",
+                "key": "Containers",
+                "paperSize": "A5_Landscape",
+                "elements": [
+                    {
+                        "id": "1a44kjx",
+                        "x": 1056,
+                        "y": 24
+                    },
+                    {
+                        "id": "1hfi68p",
+                        "x": 37,
+                        "y": 1214
+                    },
+                    {
+                        "id": "1njagt4",
+                        "x": 2012,
+                        "y": 1214
+                    },
+                    {
+                        "id": "1qm4oey",
+                        "x": 780,
+                        "y": 664
+                    },
+                    {
+                        "id": "1rhkirw",
+                        "x": 37,
+                        "y": 664
+                    },
+                    {
+                        "id": "ay5wb5",
+                        "x": 2012,
+                        "y": 664
+                    },
+                    {
+                        "id": "hd9fd5",
+                        "x": 1283,
+                        "y": 664
+                    },
+                    {
+                        "id": "uu8ny2",
+                        "x": 1031,
+                        "y": 1214
+                    }
+                ],
+                "relationships": [
+                    {
+                        "id": "11jj6gn",
+                        "description": "Makes API calls to"
+                    },
+                    {
+                        "id": "127z3ws",
+                        "description": "Sends e-mail using"
+                    },
+                    {
+                        "id": "12qesfm",
+                        "description": "Views account balances, and makes payments using"
+                    },
+                    {
+                        "id": "14fdcvm",
+                        "description": "Gets account information from, and makes payments using"
+                    },
+                    {
+                        "id": "15i2lls",
+                        "description": "Submits credentials to"
+                    },
+                    {
+                        "id": "18w02sz",
+                        "description": "Makes API calls to"
+                    },
+                    {
+                        "id": "196feqn",
+                        "description": "Makes API calls to"
+                    },
+                    {
+                        "id": "1czbeuv",
+                        "description": "Makes API calls to"
+                    },
+                    {
+                        "id": "1ezo6jr",
+                        "description": "Sends e-mails to"
+                    },
+                    {
+                        "id": "1hssbq3",
+                        "description": "Makes API calls to"
+                    },
+                    {
+                        "id": "1mdymz6",
+                        "description": "Reads from and writes to"
+                    },
+                    {
+                        "id": "1mpityh",
+                        "description": "Views account balances, and makes payments using"
+                    },
+                    {
+                        "id": "1uibvv8",
+                        "description": "Makes API calls to"
+                    },
+                    {
+                        "id": "1x518kb",
+                        "description": "Makes API calls to"
+                    },
+                    {
+                        "id": "1xbpzk0",
+                        "description": "Uses"
+                    },
+                    {
+                        "id": "1xjmybb",
+                        "description": "Makes API calls to"
+                    },
+                    {
+                        "id": "1yaxhp1",
+                        "description": "Views account balances, and makes payments using"
+                    },
+                    {
+                        "id": "2jug6p",
+                        "description": "Sends e-mail using"
+                    },
+                    {
+                        "id": "39iqlm",
+                        "description": "Uses"
+                    },
+                    {
+                        "id": "7igu77",
+                        "description": "Sends e-mail using"
+                    },
+                    {
+                        "id": "avismw",
+                        "description": "Asks questions to"
+                    },
+                    {
+                        "id": "hvkdgv",
+                        "description": "Reads from and writes to"
+                    },
+                    {
+                        "id": "p22im2",
+                        "description": "Visits bigbank.com/ib using"
+                    },
+                    {
+                        "id": "p9r0zb",
+                        "description": "Uses"
+                    },
+                    {
+                        "id": "wllptg",
+                        "description": "Withdraws cash using"
+                    },
+                    {
+                        "id": "wsh5tl",
+                        "description": "Delivers to the customer's web browser"
+                    },
+                    {
+                        "id": "yl1v6x",
+                        "description": "Uses"
+                    }
+                ],
+                "animations": [
+                    {
+                        "order": 1,
+                        "elements": [
+                            "1a44kjx",
+                            "1njagt4",
+                            "ay5wb5"
+                        ],
+                        "relationships": [
+                            "12qesfm"
+                        ]
+                    },
+                    {
+                        "order": 2,
+                        "elements": [
+                            "1rhkirw"
+                        ],
+                        "relationships": [
+                            "14fdcvm",
+                            "15i2lls",
+                            "18w02sz",
+                            "1czbeuv",
+                            "1hssbq3",
+                            "1uibvv8",
+                            "1xbpzk0",
+                            "39iqlm",
+                            "p22im2",
+                            "p9r0zb",
+                            "wllptg",
+                            "yl1v6x"
+                        ]
+                    },
+                    {
+                        "order": 3,
+                        "elements": [
+                            "1qm4oey"
+                        ],
+                        "relationships": [
+                            "12qesfm",
+                            "14fdcvm",
+                            "1ezo6jr",
+                            "1mpityh",
+                            "1uibvv8",
+                            "1xbpzk0",
+                            "1yaxhp1",
+                            "39iqlm",
+                            "avismw",
+                            "p22im2",
+                            "p9r0zb",
+                            "wllptg",
+                            "yl1v6x"
+                        ]
+                    },
+                    {
+                        "order": 4,
+                        "elements": [
+                            "hd9fd5"
+                        ],
+                        "relationships": [
+                            "127z3ws",
+                            "14fdcvm",
+                            "15i2lls",
+                            "18w02sz",
+                            "1czbeuv",
+                            "1hssbq3",
+                            "1uibvv8",
+                            "1xbpzk0",
+                            "1yaxhp1",
+                            "2jug6p",
+                            "39iqlm",
+                            "7igu77",
+                            "avismw",
+                            "p22im2",
+                            "p9r0zb",
+                            "wllptg",
+                            "wsh5tl",
+                            "yl1v6x"
+                        ]
+                    },
+                    {
+                        "order": 5,
+                        "elements": [
+                            "uu8ny2"
+                        ],
+                        "relationships": [
+                            "15i2lls",
+                            "1uibvv8",
+                            "1xbpzk0",
+                            "39iqlm",
+                            "p9r0zb",
+                            "yl1v6x"
+                        ]
+                    },
+                    {
+                        "order": 6,
+                        "elements": [
+                            "1hfi68p"
+                        ],
+                        "relationships": [
+                            "1mdymz6",
+                            "hvkdgv"
+                        ]
+                    }
+                ],
+                "softwareSystemId": "gsdtx7"
+            }
+        ],
+        "componentViews": [
+            {
+                "description": "The component diagram for the API Application",
+                "key": "Components",
+                "paperSize": "A5_Landscape",
+                "elements": [
+                    {
+                        "id": "11kj53l",
+                        "x": 1925,
+                        "y": 817
+                    },
+                    {
+                        "id": "15o55d9",
+                        "x": 105,
+                        "y": 817
+                    },
+                    {
+                        "id": "1hfi68p",
+                        "x": 105,
+                        "y": 1307
+                    },
+                    {
+                        "id": "1njagt4",
+                        "x": 1925,
+                        "y": 1307
+                    },
+                    {
+                        "id": "1olxg1c",
+                        "x": 1925,
+                        "y": 436
+                    },
+                    {
+                        "id": "1qm4oey",
+                        "x": 560,
+                        "y": 10
+                    },
+                    {
+                        "id": "ay5wb5",
+                        "x": 1015,
+                        "y": 1307
+                    },
+                    {
+                        "id": "do2bvv",
+                        "x": 1015,
+                        "y": 817
+                    },
+                    {
+                        "id": "hd9fd5",
+                        "x": 1470,
+                        "y": 11
+                    },
+                    {
+                        "id": "jdi4s4",
+                        "x": 1015,
+                        "y": 436
+                    },
+                    {
+                        "id": "sks1g4",
+                        "x": 105,
+                        "y": 436
+                    }
+                ],
+                "relationships": [
+                    {
+                        "id": "0zue5",
+                        "description": "Calls isAuthenticated() on"
+                    },
+                    {
+                        "id": "10dj6l9",
+                        "description": "Uses"
+                    },
+                    {
+                        "id": "11jj6gn",
+                        "description": "Makes API calls to"
+                    },
+                    {
+                        "id": "127z3ws",
+                        "description": "Sends e-mail using"
+                    },
+                    {
+                        "id": "12qesfm",
+                        "description": "Views account balances, and makes payments using"
+                    },
+                    {
+                        "id": "14fdcvm",
+                        "description": "Gets account information from, and makes payments using"
+                    },
+                    {
+                        "id": "152r5l2",
+                        "description": "Uses"
+                    },
+                    {
+                        "id": "15i2lls",
+                        "description": "Submits credentials to"
+                    },
+                    {
+                        "id": "18w02sz",
+                        "description": "Makes API calls to"
+                    },
+                    {
+                        "id": "196feqn",
+                        "description": "Makes API calls to"
+                    },
+                    {
+                        "id": "1czbeuv",
+                        "description": "Makes API calls to"
+                    },
+                    {
+                        "id": "1ezo6jr",
+                        "description": "Sends e-mails to"
+                    },
+                    {
+                        "id": "1hssbq3",
+                        "description": "Makes API calls to"
+                    },
+                    {
+                        "id": "1hwhd1m",
+                        "description": "Uses"
+                    },
+                    {
+                        "id": "1mdymz6",
+                        "description": "Reads from and writes to"
+                    },
+                    {
+                        "id": "1uibvv8",
+                        "description": "Makes API calls to"
+                    },
+                    {
+                        "id": "1x518kb",
+                        "description": "Makes API calls to"
+                    },
+                    {
+                        "id": "1xbpzk0",
+                        "description": "Uses"
+                    },
+                    {
+                        "id": "1xjmybb",
+                        "description": "Makes API calls to"
+                    },
+                    {
+                        "id": "1yaxhp1",
+                        "description": "Views account balances, and makes payments using"
+                    },
+                    {
+                        "id": "2jug6p",
+                        "description": "Sends e-mail using"
+                    },
+                    {
+                        "id": "39iqlm",
+                        "description": "Uses"
+                    },
+                    {
+                        "id": "7igu77",
+                        "description": "Sends e-mail using"
+                    },
+                    {
+                        "id": "hvkdgv",
+                        "description": "Reads from and writes to"
+                    },
+                    {
+                        "id": "p9r0zb",
+                        "description": "Uses"
+                    },
+                    {
+                        "id": "wsh5tl",
+                        "description": "Delivers to the customer's web browser"
+                    },
+                    {
+                        "id": "yl1v6x",
+                        "description": "Uses"
+                    }
+                ],
+                "animations": [
+                    {
+                        "order": 1,
+                        "elements": [
+                            "1hfi68p",
+                            "1njagt4",
+                            "1qm4oey",
+                            "ay5wb5",
+                            "hd9fd5"
+                        ],
+                        "relationships": [
+                            "12qesfm",
+                            "14fdcvm",
+                            "1hwhd1m",
+                            "1uibvv8",
+                            "1xbpzk0",
+                            "2jug6p",
+                            "39iqlm",
+                            "p9r0zb",
+                            "yl1v6x"
+                        ]
+                    },
+                    {
+                        "order": 2,
+                        "elements": [
+                            "15o55d9",
+                            "sks1g4"
+                        ],
+                        "relationships": [
+                            "11jj6gn",
+                            "127z3ws",
+                            "15i2lls",
+                            "18w02sz",
+                            "196feqn",
+                            "1czbeuv",
+                            "1ezo6jr",
+                            "1hssbq3",
+                            "1x518kb",
+                            "1xjmybb",
+                            "1yaxhp1",
+                            "7igu77",
+                            "wsh5tl"
+                        ]
+                    },
+                    {
+                        "order": 3,
+                        "elements": [
+                            "11kj53l",
+                            "1olxg1c"
+                        ]
+                    },
+                    {
+                        "order": 4,
+                        "elements": [
+                            "do2bvv",
+                            "jdi4s4"
+                        ]
+                    }
+                ],
+                "containerId": "uu8ny2"
+            }
+        ],
+        "dynamicViews": [
+            {
+                "description": "Summarises how the sign in feature works in the single-page application.",
+                "key": "SignIn",
+                "paperSize": "A5_Landscape",
+                "elements": [
+                    {
+                        "id": "15o55d9"
+                    },
+                    {
+                        "id": "1hfi68p"
+                    },
+                    {
+                        "id": "1qm4oey"
+                    },
+                    {
+                        "id": "sks1g4"
+                    }
+                ],
+                "relationships": [
+                    {
+                        "id": "0zue5",
+                        "description": "Calls isAuthenticated() on"
+                    },
+                    {
+                        "id": "12qesfm",
+                        "description": "Views account balances, and makes payments using"
+                    },
+                    {
+                        "id": "152r5l2",
+                        "description": "Uses"
+                    },
+                    {
+                        "id": "15i2lls",
+                        "description": "Submits credentials to"
+                    },
+                    {
+                        "id": "18w02sz",
+                        "description": "Makes API calls to"
+                    },
+                    {
+                        "id": "1czbeuv",
+                        "description": "Makes API calls to"
+                    },
+                    {
+                        "id": "1hssbq3",
+                        "description": "Makes API calls to"
+                    },
+                    {
+                        "id": "1mdymz6",
+                        "description": "Reads from and writes to"
+                    },
+                    {
+                        "id": "1xjmybb",
+                        "description": "Makes API calls to"
+                    },
+                    {
+                        "id": "hvkdgv",
+                        "description": "Reads from and writes to"
+                    },
+                    {
+                        "id": "wsh5tl",
+                        "description": "Delivers to the customer's web browser"
+                    }
+                ],
+                "elementId": "uu8ny2"
+            }
+        ],
+        "configuration": {
+            "styles": {
+                "elements": [
+                    {
+                        "tag": "Bank Staff",
+                        "background": "#999999",
+                        "color": "#ffffff"
+                    },
+                    {
+                        "tag": "Component",
+                        "background": "#85bbf0",
+                        "color": "#000000"
+                    },
+                    {
+                        "tag": "Container",
+                        "background": "#438dd5",
+                        "color": "#ffffff"
+                    },
+                    {
+                        "tag": "Database",
+                        "shape": "Cylinder"
+                    },
+                    {
+                        "tag": "Existing System",
+                        "background": "#999999",
+                        "color": "#ffffff"
+                    },
+                    {
+                        "tag": "Failover",
+                        "opacity": 25
+                    },
+                    {
+                        "tag": "Mobile App",
+                        "shape": "MobileDeviceLandscape"
+                    },
+                    {
+                        "tag": "Person",
+                        "background": "#08427b",
+                        "color": "#ffffff",
+                        "fontSize": 22,
+                        "shape": "Person"
+                    },
+                    {
+                        "tag": "Software System",
+                        "background": "#1168bd",
+                        "color": "#ffffff"
+                    },
+                    {
+                        "tag": "Web Browser",
+                        "shape": "WebBrowser"
+                    }
+                ],
+                "relationships": [
+                    {
+                        "tag": "Failover",
+                        "position": 70,
+                        "opacity": 25
+                    }
+                ]
+            }
+        }
+    }
+}
