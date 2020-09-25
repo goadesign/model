@@ -20,5 +20,5 @@ This generates the file `model.json` that contains the JSON representation of
 the design. This file can be uploaded to a Structurizr workspace:
 
 ```bash
-stz stz put model.json -id XXX -key YYY -secret ZZZ
+stz put model.json -id XXX -key YYY -secret ZZZ
 ```
