@@ -80,7 +80,8 @@ func main() {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
-			err = json.Unmarshal(file, &data)
+			// if the file contains garbage, ignore it's content
+			_ = json.Unmarshal(file, &data)
 		}
 		view := make(map[string]interface{})
 		view["elements"] = savedData
