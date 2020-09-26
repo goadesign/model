@@ -107,8 +107,8 @@ loop:
 	for _, tag := range strings.Split(rel.Tags, ",") {
 		for _, rs := range styles.Relationships {
 			if tag == rs.Tag {
-				if rs.Thick != nil {
-					style.Thick = rs.Thick
+				if rs.Thickness != nil {
+					style.Thickness = rs.Thickness
 				}
 				if rs.Color != "" {
 					style.Color = rs.Color

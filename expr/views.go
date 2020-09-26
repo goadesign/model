@@ -64,10 +64,8 @@ type (
 
 	// Styles describes the styles for a view.
 	Styles struct {
-		Elements                 []*ElementStyle
-		Relationships            []*RelationshipStyle
-		StructurizrElements      []*StructurizrElementStyle
-		StructurizrRelationships []*StructurizrRelationshipStyle
+		Elements      []*ElementStyle
+		Relationships []*RelationshipStyle
 	}
 
 	// ElementStyle defines an element style.
@@ -78,42 +76,27 @@ type (
 		Background  string
 		Color       string
 		Stroke      string
+		Width       *int
+		Height      *int
+		FontSize    *int
 		Metadata    *bool
 		Description *bool
 		Opacity     *int
 		Border      BorderKind
 	}
 
-	// StructurizrElementStyle defines additional element styles that only
-	// applies to views rendered in the Structurizr service.
-	StructurizrElementStyle struct {
-		Tag      string
-		Shape    ExtendedShapeKind
-		Icon     string
-		Width    *int
-		Height   *int
-		FontSize *int
-	}
-
 	// RelationshipStyle defines a relationship style.
 	RelationshipStyle struct {
-		Tag     string
-		Thick   *bool
-		Color   string
-		Stroke  string
-		Dashed  *bool
-		Routing RoutingKind
-		Opacity *int
-	}
-
-	// StructurizrRelationshipStyle defines additional relationship styles that
-	// only apply to views rendered in the Structurizr service.
-	StructurizrRelationshipStyle struct {
 		Tag       string
 		Thickness *int
 		FontSize  *int
 		Width     *int
 		Position  *int
+		Color     string
+		Stroke    string
+		Dashed    *bool
+		Routing   RoutingKind
+		Opacity   *int
 	}
 
 	// View is the common interface for all views.
@@ -131,10 +114,6 @@ type (
 	// ShapeKind is the enum used to represent shapes used to render elements.
 	ShapeKind int
 
-	// ExtendedShapeKind is the enum used to represent shapes used to render
-	// elements in the Structurizr service.
-	ExtendedShapeKind int
-
 	// BorderKind is the enum used to represent element border styles.
 	BorderKind int
 )
@@ -147,12 +126,7 @@ const (
 	ShapeEllipse
 	ShapeHexagon
 	ShapeRoundedBox
-)
-
-const (
-	// The shapes below are only supported when rendering diagrams for the
-	// Structurizr service.
-	ShapeComponent ExtendedShapeKind = ExtendedShapeKind(ShapeRoundedBox) + 1
+	ShapeComponent
 	ShapeFolder
 	ShapeMobileDeviceLandscape
 	ShapeMobileDevicePortrait
@@ -492,16 +466,6 @@ func (es *ElementStyle) EvalName() string {
 // EvalName returns the generic expression name used in error messages.
 func (rs *RelationshipStyle) EvalName() string {
 	return fmt.Sprintf("relationship style for tag %q", rs.Tag)
-}
-
-// EvalName returns the generic expression name used in error messages.
-func (es *StructurizrElementStyle) EvalName() string {
-	return fmt.Sprintf("additional element styles for tag %q", es.Tag)
-}
-
-// EvalName returns the generic expression name used in error messages.
-func (rs *StructurizrRelationshipStyle) EvalName() string {
-	return fmt.Sprintf("additional relationship styles for tag %q", rs.Tag)
 }
 
 // isPS returns true if element is a person or software system, false otherwise.

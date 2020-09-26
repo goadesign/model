@@ -194,7 +194,7 @@ func viewDiagram(vp *expr.ViewProps, sections []*codegen.SectionTemplate) *codeg
 		}
 		links[i] = &linkStyleData{
 			LinkIndex:   i,
-			Style:       styleDef("", rs.Stroke, rs.Color, border, rs.Opacity, rs.Thick),
+			Style:       styleDef("", rs.Stroke, rs.Color, border, rs.Opacity, rs.Thickness),
 			Interpolate: interpolate(relStyle(rv)),
 		}
 	}
@@ -246,7 +246,7 @@ func className(tag string) string {
 }
 
 // styleDef renders a valid mermaid/SVG style line from the given values.
-func styleDef(fill, stroke, color string, border expr.BorderKind, opacity *int, thick *bool) string {
+func styleDef(fill, stroke, color string, border expr.BorderKind, opacity, thickness *int) string {
 	var elems []string
 	if fill != "" {
 		elems = append(elems, "fill:"+fill)
@@ -266,8 +266,8 @@ func styleDef(fill, stroke, color string, border expr.BorderKind, opacity *int, 
 	if opacity != nil {
 		elems = append(elems, "opacity:"+strconv.FormatFloat(float64(*opacity)/100.0, 'f', 2, 64))
 	}
-	if thick != nil && *thick {
-		elems = append(elems, "stroke-width:4")
+	if thickness != nil {
+		elems = append(elems, "stroke-width:"+strconv.Itoa(*thickness))
 	}
 	if len(elems) == 0 {
 		return ""

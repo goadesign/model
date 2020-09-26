@@ -37,7 +37,7 @@ func relationships(rvs []*expr.RelationshipView) *codegen.SectionTemplate {
 }
 
 func lineStartEnd(rs *expr.RelationshipStyle) (string, string) {
-	if rs.Thick != nil && *rs.Thick {
+	if rs.Thickness != nil && *rs.Thickness > 3 {
 		return "==", "==>"
 	}
 	if rs.Dashed == nil || *rs.Dashed {

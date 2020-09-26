@@ -132,7 +132,7 @@ func legendDiagram(vp *expr.ViewProps) *codegen.File {
 			DestinationID: "dest" + rs.Tag,
 			Start:         start,
 			End:           end,
-			Style:         styleDef("", rs.Stroke, rs.Color, border, rs.Opacity, rs.Thick),
+			Style:         styleDef("", rs.Stroke, rs.Color, border, rs.Opacity, rs.Thickness),
 			Interpolate:   interpolate(rs),
 			Description:   desc,
 		}

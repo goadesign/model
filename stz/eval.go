@@ -326,6 +326,10 @@ func modelizeStyles(s *expr.Styles) *Styles {
 		elems[i] = &ElementStyle{
 			Tag:         es.Tag,
 			Background:  es.Background,
+			Width:       es.Width,
+			Height:      es.Height,
+			FontSize:    es.FontSize,
+			Icon:        es.Icon,
 			Stroke:      es.Stroke,
 			Color:       es.Color,
 			Shape:       ShapeKind(es.Shape),
@@ -335,60 +339,19 @@ func modelizeStyles(s *expr.Styles) *Styles {
 			Border:      BorderKind(es.Border),
 		}
 	}
-loopelem:
-	for _, ses := range s.StructurizrElements {
-		for _, es := range elems {
-			if ses.Tag == es.Tag {
-				es.Width = ses.Width
-				es.Height = ses.Height
-				es.FontSize = ses.FontSize
-				es.Icon = ses.Icon
-				if ses.Shape != expr.ExtendedShapeKind(expr.ShapeUndefined) {
-					es.Shape = ShapeKind(ses.Shape)
-				}
-				continue loopelem
-			}
-		}
-		elems = append(elems, &ElementStyle{
-			Tag:      ses.Tag,
-			Width:    ses.Width,
-			Height:   ses.Height,
-			FontSize: ses.FontSize,
-			Icon:     ses.Icon,
-		})
-	}
 	rels := make([]*RelationshipStyle, len(s.Relationships))
 	for i, rs := range s.Relationships {
 		rels[i] = &RelationshipStyle{
-			Tag:     rs.Tag,
-			Color:   rs.Color,
-			Dashed:  rs.Dashed,
-			Routing: RoutingKind(rs.Routing),
-			Opacity: rs.Opacity,
+			Tag:       rs.Tag,
+			Color:     rs.Color,
+			Dashed:    rs.Dashed,
+			Routing:   RoutingKind(rs.Routing),
+			Opacity:   rs.Opacity,
+			Thickness: rs.Thickness,
+			Width:     rs.Width,
+			FontSize:  rs.FontSize,
+			Position:  rs.Position,
 		}
-		if rs.Thick != nil && *rs.Thick {
-			six := 6
-			rels[i].Thickness = &six
-		}
-	}
-looprel:
-	for _, res := range s.StructurizrRelationships {
-		for _, rs := range rels {
-			if res.Tag == rs.Tag {
-				rs.Thickness = res.Thickness
-				rs.Width = res.Width
-				rs.FontSize = res.FontSize
-				rs.Position = res.Position
-				continue looprel
-			}
-		}
-		rels = append(rels, &RelationshipStyle{
-			Tag:       res.Tag,
-			Thickness: res.Thickness,
-			Width:     res.Width,
-			FontSize:  res.FontSize,
-			Position:  res.Position,
-		})
 	}
 	return &Styles{
 		Elements:      elems,
