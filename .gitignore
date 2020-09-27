@@ -3,5 +3,6 @@ cmd/stz/stz
 cmd/stz-edit/stz-edit
 cmd/stz-edit/webapp/node_modules
 
+gen
 .idea
 

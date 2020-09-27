@@ -3,7 +3,6 @@ import {getZoomAuto, GraphData} from "./graph-view/graph";
 import {Graph} from "./graph-view/graph-react";
 import {BrowserRouter as Router, Route} from 'react-router-dom'
 import {useHistory} from "react-router";
-import {layoutDx, layoutDy, layoutScale} from "./models";
 
 
 export const Root: FC<{models: GraphData[]}> = ({models}) => <Router>
@@ -36,11 +35,13 @@ const ModelPane: FC<{models:GraphData[]}> = ({models}) => {
 
 	function saveLayout() {
 		setSaving(true)
+
 		fetch('data/save?id=' + encodeURIComponent(crtID), {
 			method: 'post',
-			body: JSON.stringify(graph.exportLayout().map(({id, x, y}) => {
-				return {id, x: (x - layoutDx)/layoutScale, y: (y-layoutDy)/layoutScale}
-			}))
+			body: JSON.stringify({
+				layout: graph.exportLayout(),
+				svg: graph.exportSVG()
+			})
 		}).then(ret => {
 			if (ret.status != 202) {
 				alert('Error saving')
@@ -63,7 +64,7 @@ const ModelPane: FC<{models:GraphData[]}> = ({models}) => {
 				{' '}
 				<button onClick={() => setZoom(1)}>Zoom 100%</button>
 				{' '}
-				<button className="action" disabled={saving} onClick={() => saveLayout()}>Save Layout</button>
+				<button className="action" disabled={saving} onClick={() => saveLayout()}>Save View</button>
 			</div>
 		</div>
 		<Graph key={crtID}

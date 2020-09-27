@@ -32,10 +32,6 @@ interface View {
 	softwareSystemId: string;
 }
 
-export const layoutDx = 150
-export const layoutDy = 100
-export const layoutScale = 1
-
 export const parseModel = (model: any, layouts: any) => {
 
 	const elements = new Map<string, Element>();
@@ -143,12 +139,8 @@ export const parseModel = (model: any, layouts: any) => {
 		}
 
 		//layout
-		if (data.id in layouts && 'elements' in layouts[data.id]) {
-			const layout = layouts[data.id].elements.reduce((o: any, item: any) => {
-				o[item.id] = {x: item.x * layoutScale + layoutDx, y: item.y * layoutScale + layoutDy};
-				return o
-			}, {})
-			data.importLayout(layout)
+		if (data.id in layouts) {
+			data.importLayout(layouts[data.id])
 		}
 		return data
 	}

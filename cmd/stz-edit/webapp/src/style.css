@@ -57,11 +57,6 @@ button.action:disabled {
 }
 
 
-.nodeBorder {
-    fill: #ffffffdd;
-    stroke: #aaa;
-    stroke-width: 2px;
-}
 .node.selected .nodeBorder, .edge.selected path, .edge.selected rect {
     stroke: #29c229;
 }
@@ -73,44 +68,12 @@ button.action:disabled {
 }
 
 g.node {
-    fill: #666;
-    stroke: none;
     user-select: none;
     cursor: default;
 }
 
-g.node .title {
-    /*font-weight: 900;*/
-}
 g.node text {
     pointer-events: none;
-}
-
-g.node .expand {
-    cursor: pointer;
-    fill: #fff;
-    stroke: #aaa;
-    stroke-width: 1;
-}
-
-g.node .expand text {
-    stroke: none;
-    fill: #666;
-    font-weight: 600;
-}
-
-.edge {
-    fill: none;
-    stroke: #aaa;
-    stroke-width: 2;
-}
-.edge text {
-    stroke: none;
-    fill: #777;
-}
-.edge rect {
-    stroke: none;
-    /*fill: #fff;*/
 }
 
 g.group rect {

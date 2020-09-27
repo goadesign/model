@@ -177,7 +177,28 @@ export class GraphData {
 
 	//call this from console: JSON.stringify(gdata.exportLayout())
 	exportLayout() {
-		return this.nodes.map(n => {return {id: n.id, x: n.x, y: n.y}})
+		return this.nodes
+			.reduce<{ [key: string]: { x: number, y: number } }>(
+				(o, n) => {
+					o[n.id] = {x: n.x, y: n.y};
+					return o
+				},
+				{}
+			)
+	}
+
+	exportSVG() {
+		//save svg html
+		let svg: SVGSVGElement = document.querySelector('svg#graph')
+		const elastic = svg.querySelector('rect.elastic')
+		const p = elastic.parentElement
+		p.removeChild(elastic)
+		const zoom = getZoom()
+		setZoom(1)
+		let src = svg.outerHTML
+		p.append(elastic)
+		setZoom(zoom)
+		return src.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"')
 	}
 
 	importLayout(layout: { [key: string]: any }) {
@@ -281,11 +302,13 @@ function buildEdge(edge: Edge) {
 	const
 		cx = (p0.x + pn.x) / 2,
 		fontSize = 14,
-		cy = (p0.y + pn.y) / 2 - 10 + ((edge.count-1) * 50);
+		cy = (p0.y + pn.y) / 2 - 10 + ((edge.count - 1) * 50);
 	let {txt, dy, maxW} = create.textArea(edge.label, 200, fontSize, false, cx, cy, 'middle')
 	maxW += fontSize
-	const bbox = {x: cx-maxW/2, y: cy, width: maxW, height: dy - 7}
+	applyStyle(txt, styles.edgeText)
+	const bbox = {x: cx - maxW / 2, y: cy, width: maxW, height: dy - 7}
 	const bg = create.rect(bbox.width, bbox.height, bbox.x, bbox.y)
+	applyStyle(bg, styles.edgeRect)
 	g.append(bg, txt)
 
 	// the path
@@ -299,10 +322,8 @@ function buildEdge(edge: Edge) {
 	// }).join(' ')
 	const path = `M${p0.x},${p0.y} L${p1.x},${p1.y} M${p2.x},${p2.y} L${pn.x},${pn.y}`
 
-	const p = document.createElementNS(svg.namespaceURI, 'path') as SVGPathElement
-	p.setAttribute('d', path)
-	p.setAttribute('marker-end', 'url(#arrow)')
-	p.classList.add('edge')
+	const p = create.path(path, {'marker-end': 'url(#arrow)'}, 'edge')
+	applyStyle(p, styles.edgePath)
 	g.append(p)
 
 
@@ -329,23 +350,31 @@ function buildNode(n: Node, data: GraphData) {
 	const shape: SVGElement = shapeFn(g, n);
 
 	shape.classList.add('nodeBorder')
+	applyStyle(shape, styles.nodeBorder)
 
 	const tg = create.element('g')
 	let cy = Number(g.getAttribute('label-offset-y')) || 0
 	{
-		const {txt, dy} = create.textArea(n.title, nodeWidth - 40, 16, true, 0, cy, 'middle')
+		const fontSize = styles.nodeText1["font-size"]
+		const bold = styles.nodeText1["font-weight"] == 'bold'
+		const {txt, dy} = create.textArea(n.title, nodeWidth - 40, fontSize, bold, 0, cy, 'middle')
+		applyStyle(txt, styles.nodeText)
+		applyStyle(txt, styles.nodeText1)
 		tg.append(txt)
 		cy += dy
 	}
 	{
 		const txt = create.text(`[${n.sub}]`, 0, cy, 'middle')
-		txt.setAttribute('font-size', '10px')
+		applyStyle(txt, styles.nodeText)
+		applyStyle(txt, styles.nodeText2)
 		tg.append(txt)
 		cy += 10
 	}
 	{
 		cy += 10
 		const {txt, dy} = create.textArea(n.description, nodeWidth - 40, 14, false, 0, cy, 'middle')
+		applyStyle(txt, styles.nodeText)
+		applyStyle(txt, styles.nodeText3)
 		tg.append(txt)
 		cy += dy
 	}
@@ -376,19 +405,14 @@ function buildGroup(group: Group) {
 	const w = Math.max(p1.x - p0.x, 200)
 	const h = p1.y - p0.y + pad
 	const r = create.rect(w + pad * 2, h + pad * 2, p0.x - pad, p0.y - pad)
-	g.append(
-		r,
-		create.text(group.name, p0.x, p1.y + 30)
-	)
+	applyStyle(r, styles.groupRect)
+
+	const txt = create.text(group.name, p0.x, p1.y + 30)
+	applyStyle(txt, styles.groupText)
+
+	g.append(r, txt)
 	group.ref = g
 }
-
-// function cloneText(text: string, x: number, y: number = 0, className = '') {
-// 	const t = create.text(text, x, y)
-// 	className && t.classList.add(className)
-// 	return t
-// }
-
 
 function addCursorInteraction(svg: SVGSVGElement) {
 
@@ -452,8 +476,8 @@ function updatePanning() {
 	const el = svg.querySelector('g.zoom') as SVGGElement
 	const bb = el.getBBox()
 	const zoom = getZoom()
-	const w = Math.max(svg.parentElement.clientWidth/zoom, bb.x + bb.width + svgPadding)
-	const h = Math.max(svg.parentElement.clientHeight/zoom, bb.y + bb.height + svgPadding)
+	const w = Math.max(svg.parentElement.clientWidth / zoom, bb.x + bb.width + svgPadding)
+	const h = Math.max(svg.parentElement.clientHeight / zoom, bb.y + bb.height + svgPadding)
 	svg.setAttribute('width', String(w * zoom))
 	svg.setAttribute('height', String(h * zoom))
 }
@@ -464,6 +488,71 @@ export const getZoomAuto = () => {
 	const zoom = Math.min(
 		(svg.parentElement.clientWidth - 20) / (bb.width + bb.x + svgPadding),
 		(svg.parentElement.clientHeight - 20) / (bb.height + bb.y + svgPadding),
-		)
+	)
 	return Math.max(Math.min(zoom, 1), .2)
+}
+
+const styles = {
+	//node styles
+	nodeBorder: {
+		fill: "rgba(255, 255, 255, 0.86)",
+		stroke: "#aaa",
+		"stroke-width": "2px"
+	},
+	nodeText: {
+		'font-family': 'Arial, sans-serif',
+		fill: "#777",
+		stroke: "none"
+	},
+	nodeText1: {
+		'font-size': 16,
+		'font-weight': 'bold',
+	},
+	nodeText2: {
+		'font-size': 12,
+	},
+	nodeText3: {
+		'font-size': 16,
+	},
+
+	//edge styles
+	edgePath: {
+		stroke: "#aaa",
+		"stroke-width": 2,
+	},
+	edgeText: {
+		stroke: "none",
+		fill: "#777"
+	},
+	edgeRect: {
+		fill: "none",
+		stroke: "none",
+	},
+
+	//group styles
+	groupRect: {
+		// fill: "#ffc80026",
+		fill: "rgba(255, 200, 0, 0.15)",
+		stroke: "#666",
+		"stroke-dasharray": 4,
+	},
+	groupText: {
+		fill: "#666",
+		"font-size": 18,
+		cursor: "default"
+	}
+}
+
+const applyStyle = (el: SVGElement, style: { [key: string]: string | number }) => {
+	Object.keys(style).forEach(name => {
+		if (name == 'font-size') {
+			if (typeof (style[name]) != 'number') {
+				console.error(`All font-sizes in styles have to be numbers representing px! Found:`, style)
+			}
+			el.setAttribute(name, style[name] + 'px')
+		}
+		else {
+			el.setAttribute(name, String(style[name]))
+		}
+	})
 }

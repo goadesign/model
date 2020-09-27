@@ -14,6 +14,12 @@ export const create = {
 		return el
 	},
 
+	path(path: string, attrs? :{ [key: string]: string | number }, className?: string) {
+		const p = create.element("path", attrs, className)
+		p.setAttribute("d", path)
+		return p
+	},
+
 	text(text: string, x: number = 0, y: number = 0, anchor = '') {
 		const t = create.element('text', {x, y}) as SVGTextElement
 		anchor && t.setAttribute('text-anchor', anchor)
