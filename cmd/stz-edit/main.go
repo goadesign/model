@@ -5,9 +5,10 @@ package main
 import (
 	"flag"
 	"fmt"
-	"goa.design/goa/v3/codegen"
 	"os"
 	"path/filepath"
+
+	"goa.design/goa/v3/codegen"
 )
 
 func fileExists(filename string) bool {

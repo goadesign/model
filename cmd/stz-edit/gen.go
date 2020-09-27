@@ -2,12 +2,13 @@ package main
 
 import (
 	"fmt"
-	"goa.design/goa/v3/codegen"
-	"golang.org/x/tools/go/packages"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"path"
+
+	"goa.design/goa/v3/codegen"
+	"golang.org/x/tools/go/packages"
 )
 
 func gen(pkg string, debug bool) ([]byte, error) {
