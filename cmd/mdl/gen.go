@@ -5,44 +5,41 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
-	"path/filepath"
+	"path"
 
 	"goa.design/goa/v3/codegen"
 	"golang.org/x/tools/go/packages"
 )
 
-// tmpDirPrefix is the prefix used to create the temporary directory where the
-// code generation tool source code is generated and compiled.
-const tmpDirPrefix = "mdl--"
-
-func gen(pkg string, out string, debug bool) error {
+func gen(pkg string, debug bool) ([]byte, error) {
 	// Validate package import path
 	if _, err := packages.Load(&packages.Config{Mode: packages.NeedName}, pkg); err != nil {
-		return err
+		return nil, err
 	}
 
-	// Write program that generates Mermaid
+	// Write program that generates JSON
 	cwd, err := os.Getwd()
 	if err != nil {
 		cwd = "."
 	}
-	tmpDir, err := ioutil.TempDir(cwd, tmpDirPrefix)
+	tmpDir, err := ioutil.TempDir(cwd, "mdl-")
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer func() {
-		os.RemoveAll(tmpDir)
+		if debug {
+			fmt.Printf("temp dir: %q\n", tmpDir)
+		} else {
+			os.RemoveAll(tmpDir)
+		}
 	}()
 	var sections []*codegen.SectionTemplate
 	{
 		imports := []*codegen.ImportSpec{
-			codegen.SimpleImport("encoding/json"),
 			codegen.SimpleImport("fmt"),
 			codegen.SimpleImport("io/ioutil"),
+			codegen.SimpleImport("encoding/json"),
 			codegen.SimpleImport("os"),
-			codegen.SimpleImport("path/filepath"),
-			codegen.SimpleImport("goa.design/goa/v3/eval"),
-			codegen.SimpleImport("goa.design/model/expr"),
 			codegen.SimpleImport("goa.design/model/mdl"),
 			codegen.NewImport("_", pkg),
 		}
@@ -53,58 +50,62 @@ func gen(pkg string, out string, debug bool) error {
 	}
 	cf := &codegen.File{Path: "main.go", SectionTemplates: sections}
 	if _, err := cf.Render(tmpDir); err != nil {
-		return err
+		return nil, err
 	}
 
 	// Compile program
 	gobin, err := exec.LookPath("go")
 	if err != nil {
-		return fmt.Errorf(`failed to find a go compiler, looked in "%s"`, os.Getenv("PATH"))
+		return nil, fmt.Errorf(`failed to find a go compiler, looked in "%s"`, os.Getenv("PATH"))
 	}
-	if _, err := runCmd(gobin, tmpDir, gobin, "build", "-o", "mdl"); err != nil {
-		return err
+	if _, err := runCmd(gobin, tmpDir, "build", "-o", "stz"); err != nil {
+		return nil, err
 	}
 
 	// Run program
-	out, _ = filepath.Abs(out)
-	o, err := runCmd(filepath.Join(tmpDir, "mdl"), tmpDir, "-out", out)
-	if err != nil && len(o) > 0 {
-		err = fmt.Errorf("%s, output:\n%s", err.Error(), o)
-	}
+	o, err := runCmd(path.Join(tmpDir, "stz"), tmpDir, "model.json")
 	if debug {
 		fmt.Fprintln(os.Stderr, o)
 	}
-
-	return err
+	if err != nil {
+		return nil, err
+	}
+	return ioutil.ReadFile(path.Join(tmpDir, "model.json"))
 }
 
-// mainT is the template for the generator main package.
+func runCmd(path, dir string, args ...string) (string, error) {
+	_ = os.Setenv("GO111MODULE", "on")
+	args = append([]string{path}, args...) // args[0] becomes exec path
+	c := exec.Cmd{Path: path, Args: args, Dir: dir}
+	b, err := c.CombinedOutput()
+	if err != nil {
+		if len(b) > 0 {
+			return "", fmt.Errorf(string(b))
+		}
+		return "", fmt.Errorf("failed to run command %q in directory %q: %s", path, dir, err)
+	}
+	return string(b), nil
+}
+
+// mainT is the template for the generator main.
 const mainT = `func main() {
 	// Retrieve output path
 	out := os.Args[1]
-
-	// (Re)Create directory
-	os.RemoveAll(out)
-	if err := os.MkdirAll(out, 0755); err != nil {
-		fmt.Fprintf(os.Stderr, "failed to create %q: %s", out, err.Error())
-		os.Exit(1)
-	}
 		
-	// Run the model DSL
-	if err := eval.RunDSL(); err != nil {
-		fmt.Fprintf(os.Stderr, err.Error())
-		os.Exit(1)
+    // Run the model DSL
+    w, err := mdl.RunDSL()
+    if err != nil {
+        fmt.Fprint(os.Stderr, err.Error())
+        os.Exit(1)
 	}
-
-	// Render the views and serialize them
-	views := mdl.Render(expr.Root)
-	for _, view := range views {
-		path := filepath.Join(out, view.Key+".json")
-		js, _ := json.MarshalIndent(view, "", "    ")
-		if err := ioutil.WriteFile(path, js, 0644); err != nil {
-			fmt.Fprintf(os.Stderr, "failed to write %q: %s", view.Key+".json", err.Error())
-			os.Exit(1)
-		}
+	b, err := json.MarshalIndent(w, "", "    ")
+    if err != nil {
+        fmt.Fprintf(os.Stderr, "failed to encode into JSON: %s", err.Error())
+        os.Exit(1)
+	}
+	if err := ioutil.WriteFile(out, b, 0644); err != nil {
+        fmt.Fprintf(os.Stderr, "failed to write file: %s", err.Error())
+        os.Exit(1)
 	}
 }
 `

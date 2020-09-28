@@ -34,7 +34,7 @@ depend:
 	@go get -v $(DEPEND)
 
 generate:
-	go generate ./cmd/stz-edit/
+	go generate ./cmd/mdl/
 
 lint:
 ifneq ($(GOOS),windows)
