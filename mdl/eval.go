@@ -26,10 +26,10 @@ func RunDSL() (*Design, error) {
 	if err := eval.RunDSL(); err != nil {
 		return nil, err
 	}
-	return modelizeDesign(expr.Root), nil
+	return ModelizeDesign(expr.Root), nil
 }
 
-func modelizeDesign(d *expr.Design) *Design {
+func ModelizeDesign(d *expr.Design) *Design {
 	model := &Model{}
 	m := d.Model
 	if name := m.Enterprise; name != "" {

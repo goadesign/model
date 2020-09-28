@@ -3,6 +3,8 @@ package stz
 import (
 	"bytes"
 	"encoding/json"
+
+	"goa.design/model/mdl"
 )
 
 type (
@@ -30,7 +32,7 @@ type (
 		//  (e.g. "model-go/1.2.0").
 		LastModifiedAgent string `json:"lastModifiedAgent,omitempty"`
 		// Model is the software architecture model.
-		Model *Model `json:"model,omitempty"`
+		Model *mdl.Model `json:"model,omitempty"`
 		// Views contains the views if any.
 		Views *Views `json:"views,omitempty"`
 		// Documentation associated with software architecture model.

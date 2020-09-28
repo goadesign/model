@@ -3,6 +3,8 @@ package stz
 import (
 	"encoding/json"
 	"sort"
+
+	"goa.design/model/mdl"
 )
 
 type (
@@ -13,8 +15,8 @@ type (
 
 	// ViewLayout contains the layout information for a given view.
 	ViewLayout struct {
-		Elements      []*ElementView      `json:"elements,omitempty"`
-		Relationships []*RelationshipView `json:"relationships,omitempty"`
+		Elements      []*mdl.ElementView      `json:"elements,omitempty"`
+		Relationships []*mdl.RelationshipView `json:"relationships,omitempty"`
 	}
 
 	// for json.Marshal, see ViewLayout.MarshalJSON
@@ -31,15 +33,15 @@ func (w *Workspace) Layout() WorkspaceLayout {
 	}
 	layout := make(map[string]*ViewLayout)
 	for _, v := range allViews(w.Views) {
-		var evs []*ElementView
+		var evs []*mdl.ElementView
 		for _, ev := range v.ElementViews {
 			if ev.X != nil && *ev.X != 0 || ev.Y != nil && *ev.Y != 0 {
 				evs = append(evs, ev)
 			}
 		}
-		var rvs []*RelationshipView
+		var rvs []*mdl.RelationshipView
 		for _, rv := range v.RelationshipViews {
-			if rv.Position != nil || rv.Routing != RoutingUndefined || len(rv.Vertices) > 0 {
+			if rv.Position != nil || rv.Routing != mdl.RoutingUndefined || len(rv.Vertices) > 0 {
 				rvs = append(rvs, rv)
 			}
 		}
@@ -200,7 +202,7 @@ func buildIDMap(remote, local *Workspace) map[string]string {
 	return idmap
 }
 
-func buildRelationshipIDMap(remote, local []*Relationship, idmap map[string]string) {
+func buildRelationshipIDMap(remote, local []*mdl.Relationship, idmap map[string]string) {
 	for _, lrel := range local {
 		srcID := lrel.SourceID
 		if mapped, ok := idmap[srcID]; ok {
@@ -220,7 +222,7 @@ func buildRelationshipIDMap(remote, local []*Relationship, idmap map[string]stri
 }
 
 // allViews returns all the views in a single slice.
-func allViews(vs *Views) (vps []*ViewProps) {
+func allViews(vs *Views) (vps []*mdl.ViewProps) {
 	for _, lv := range vs.LandscapeViews {
 		vps = append(vps, lv.ViewProps)
 	}
