@@ -6,21 +6,13 @@ import (
 	"io/ioutil"
 	"net/http"
 	"path"
-	"sync"
 )
 
 type Server struct {
-	modelLock sync.Mutex
-	model     []byte
+	model []byte
 }
 
-//func (s Server) setModel(m []byte) {
-//	s.modelLock.Lock()
-//	s.model = m
-//	s.modelLock.Unlock()
-//}
-
-func (s Server) Serve(outDir string, devmode bool, port int) error {
+func (s *Server) Serve(outDir string, devmode bool, port int) error {
 	layoutFile := path.Join(outDir, "layout.json")
 
 	if devmode {
@@ -34,9 +26,7 @@ func (s Server) Serve(outDir string, devmode bool, port int) error {
 	}
 
 	http.HandleFunc("/data/model.json", func(w http.ResponseWriter, r *http.Request) {
-		s.modelLock.Lock()
 		_, _ = w.Write(s.model)
-		s.modelLock.Unlock()
 	})
 	http.HandleFunc("/data/layout.json", func(w http.ResponseWriter, r *http.Request) {
 		if fileExists(layoutFile) {

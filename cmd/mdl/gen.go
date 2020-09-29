@@ -11,6 +11,8 @@ import (
 	"golang.org/x/tools/go/packages"
 )
 
+const tmpDirPrefix = "mdl--"
+
 func gen(pkg string, debug bool) ([]byte, error) {
 	// Validate package import path
 	if _, err := packages.Load(&packages.Config{Mode: packages.NeedName}, pkg); err != nil {
@@ -22,7 +24,7 @@ func gen(pkg string, debug bool) ([]byte, error) {
 	if err != nil {
 		cwd = "."
 	}
-	tmpDir, err := ioutil.TempDir(cwd, "mdl-")
+	tmpDir, err := ioutil.TempDir(cwd, tmpDirPrefix)
 	if err != nil {
 		return nil, err
 	}

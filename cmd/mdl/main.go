@@ -27,21 +27,31 @@ func main() {
 	devmode := os.Getenv("DEVMODE") == "1"
 	flag.Parse()
 
-	_, _, _, _ = out, port, debug, devmode
-
 	outDir, _ := filepath.Abs(*out)
 	err := os.MkdirAll(outDir, 0777)
 	if err != nil {
 		fail(err.Error())
 	}
 
-	model, err := gen(*pkg, *debug)
+	s := Server{}
+
+	s.model, err = gen(*pkg, *debug)
+	if err != nil {
+		fail(err.Error())
+	}
+	err = watch(*pkg, func() {
+		m, err := gen(*pkg, *debug)
+		if err != nil {
+			fmt.Println("Error parsing DSL:\n" + err.Error())
+			return
+		}
+		s.model = m
+	})
 	if err != nil {
 		fail(err.Error())
 	}
 
-	srv := Server{model: model}
-	err = srv.Serve(outDir, devmode, *port)
+	err = s.Serve(outDir, devmode, *port)
 	fail(err.Error())
 }
 

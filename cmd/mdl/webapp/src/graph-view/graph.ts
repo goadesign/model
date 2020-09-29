@@ -391,6 +391,9 @@ function buildNode(n: Node, data: GraphData) {
 
 
 function buildGroup(group: Group) {
+	if (group.nodes.length == 0) {
+		return
+	}
 	const g = create.element('g', {}, 'group') as SVGGElement
 
 	let p0: Point = {x: 1e100, y: 1e100}, p1: Point = {x: 0, y: 0}

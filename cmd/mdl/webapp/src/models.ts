@@ -71,12 +71,35 @@ export const parseModel = (model: any, layouts: any) => {
 						}
 					})
 				}
+				//deploymentNodes have children
+				/*if (Array.isArray(el.children)) {
+					el.children.forEach((el1: Element) => {
+						el1.parent = el;
+						elements.set(el1.id, el1)
+						if (Array.isArray(el1.relationships)) {
+							el1.relationships.forEach(rel => {
+								relations.set(rel.id, rel)
+							})
+						}
+						if (Array.isArray(el1.containerInstances)) {
+							el1.containerInstances.forEach((el2: Element) => {
+								el2.parent = el1;
+								elements.set(el2.id, el2)
+								if (Array.isArray(el2.relationships)) {
+									el2.relationships.forEach(rel => {
+										relations.set(rel.id, rel)
+									})
+								}
+							})
+						}
+					})
+				}*/
 			})
 		}
 	})
 
 	const parseView = (view: View, section: string) => {
-		const data = new GraphData(view.key, section + ' - ' +(view.title || view.key))
+		const data = new GraphData(view.key, section + ' - ' + (view.title || view.key))
 		//nodes
 		view.elements.forEach((ref) => {
 			const id = ref.id;
@@ -99,7 +122,7 @@ export const parseModel = (model: any, layouts: any) => {
 			}
 			data.addNode(
 				ref.id,
-				el ? el.name : ref.id,
+				el ? (el.name || ref.id) : ref.id,
 				sub,
 				(el && el.description) ? el.description : '',
 				shape
@@ -135,7 +158,13 @@ export const parseModel = (model: any, layouts: any) => {
 		//groups
 		if (view.softwareSystemId && elements.has(view.softwareSystemId)) {
 			const systemEl = elements.get(view.softwareSystemId)
-			data.addGroup(systemEl.name, view.elements.map(ref => elements.get(ref.id)).filter(el => el.parent == systemEl).map(el => el.id))
+			console.log(view.key, view.elements.map(ref => elements.get(ref) || ref))
+			data.addGroup(systemEl.name,
+				view.elements
+					.map(ref => elements.get(ref.id))
+					.filter(el => el && el.parent == systemEl)
+					.map(el => el.id)
+			)
 		}
 
 		//layout
