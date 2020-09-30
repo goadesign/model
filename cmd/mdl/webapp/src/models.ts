@@ -12,6 +12,8 @@ interface Element {
 	components?: Element[];
 	relationships: Relation[];
 	properties: { [key: string]: string }
+	children?: Element[];
+	infrastructureNodes?: Element[];
 }
 
 interface Relation {
@@ -36,73 +38,91 @@ export const parseModel = (model: any, layouts: any) => {
 
 	const elements = new Map<string, Element>();
 	const relations = new Map<string, Relation>();
-	Object.entries(model.model).forEach(([k, v]) => {
-		if (Array.isArray(v)) {
-			v.forEach((el: Element) => {
-				elements.set(el.id, el)
-				if (k == 'softwareSystems' && !el.technology) {
-					el.technology = 'Software System';
-				}
-				if (Array.isArray(el.relationships)) {
-					el.relationships.forEach(rel => {
-						relations.set(rel.id, rel)
-					})
-				}
 
-				if (Array.isArray(el.containers)) {
-					el.containers.forEach((el1: Element) => {
-						el1.parent = el;
-						elements.set(el1.id, el1)
-						if (Array.isArray(el1.relationships)) {
-							el1.relationships.forEach(rel => {
-								relations.set(rel.id, rel)
-							})
-						}
-						if (Array.isArray(el1.components)) {
-							el1.components.forEach((el2: Element) => {
-								el2.parent = el1;
-								elements.set(el2.id, el2)
-								if (Array.isArray(el2.relationships)) {
-									el2.relationships.forEach(rel => {
-										relations.set(rel.id, rel)
-									})
-								}
-							})
-						}
+	const collectRels = (el: Element) => {
+		if (Array.isArray(el.relationships)) {
+			el.relationships.forEach(rel => {
+				relations.set(rel.id, rel)
+			})
+		}
+	}
+
+	// People
+	model.model.people.forEach((el: Element) => {
+		elements.set(el.id, el)
+		if (Array.isArray(el.relationships)) {
+			el.relationships.forEach(rel => {
+				relations.set(rel.id, rel)
+			})
+		}
+	})
+	// Software Systems
+	model.model.softwareSystems.forEach((el: Element) => {
+		elements.set(el.id, el)
+		el.technology || (el.technology = 'Software System');
+		collectRels(el)
+
+		if (Array.isArray(el.containers)) {
+			el.containers.forEach((el1: Element) => {
+				el1.parent = el;
+				elements.set(el1.id, el1)
+				collectRels(el1)
+				if (Array.isArray(el1.components)) {
+					el1.components.forEach((el2: Element) => {
+						el2.parent = el1;
+						elements.set(el2.id, el2)
+						collectRels(el2)
 					})
 				}
-				//deploymentNodes have children
-				/*if (Array.isArray(el.children)) {
-					el.children.forEach((el1: Element) => {
-						el1.parent = el;
-						elements.set(el1.id, el1)
-						if (Array.isArray(el1.relationships)) {
-							el1.relationships.forEach(rel => {
-								relations.set(rel.id, rel)
-							})
-						}
-						if (Array.isArray(el1.containerInstances)) {
-							el1.containerInstances.forEach((el2: Element) => {
-								el2.parent = el1;
-								elements.set(el2.id, el2)
-								if (Array.isArray(el2.relationships)) {
-									el2.relationships.forEach(rel => {
-										relations.set(rel.id, rel)
-									})
-								}
-							})
-						}
-					})
-				}*/
 			})
 		}
 	})
 
+	// Deployment Nodes
+	const containerInstances = (el: any) => {
+		el.containerInstances && el.containerInstances.forEach((item: any) => {
+			const el1 = {...elements.get(item.containerId), id: item.id}
+			elements.set(el1.id, el1)
+			el1.parent = el
+			collectRels(item)
+		})
+	}
+
+	const recAddNodes = (el:Element, parent: Element) => {
+		el.parent = parent;
+		elements.set(el.id, el)
+		collectRels(el)
+		containerInstances(el)
+		el.children && el.children.forEach((el1: Element) => recAddNodes(el1, el))
+		el.infrastructureNodes && el.infrastructureNodes.forEach((el1: Element) => recAddNodes(el1, el))
+	}
+
+	model.model.deploymentNodes.forEach((el: Element) => recAddNodes(el, null))
+
+
+	// Views
 	const parseView = (view: View, section: string) => {
 		const data = new GraphData(view.key, section + ' - ' + (view.title || view.key))
+
+		//grouping rules - elements that are groups will not be nodes
+		const groupingIDs: {[key: string]: boolean} = {}
+		if (section == 'deploymentViews') {
+			view.elements.forEach((ref) => {
+				const el = elements.get(ref.id)
+				if (el && el.parent) {
+					groupingIDs[el.parent.id] = true
+				}
+			})
+		} else if (view.softwareSystemId) {
+			groupingIDs[view.softwareSystemId] = true
+		}
+		console.log(view.key, 'grouping:', Object.keys(groupingIDs).map(id => elements.get(id)))
+
 		//nodes
 		view.elements.forEach((ref) => {
-			const id = ref.id;
+			// except grouping elements
+			if (groupingIDs[ref.id]) return
+
 			const el = elements.get(ref.id)
 
 			let shape = 'rect'
@@ -134,6 +154,7 @@ export const parseModel = (model: any, layouts: any) => {
 			view.relationships.forEach(ref => {
 				const rel = relations.get(ref.id)
 				if (!rel) return;
+
 				if (!data.nodesMap.has(rel.sourceId)) {
 					if (elements.has(rel.sourceId)) {
 						const el = elements.get(rel.sourceId)
@@ -156,16 +177,24 @@ export const parseModel = (model: any, layouts: any) => {
 			})
 		}
 		//groups
-		if (view.softwareSystemId && elements.has(view.softwareSystemId)) {
-			const systemEl = elements.get(view.softwareSystemId)
-			console.log(view.key, view.elements.map(ref => elements.get(ref) || ref))
-			data.addGroup(systemEl.name,
+		//sort by depth to solve dependency
+		const level = (el: Element) => {
+			let i = 0
+			for (let p = el.parent; p; p = p.parent) i++;
+			return i
+		}
+		const gElements = Object.keys(groupingIDs)
+			.map(id => elements.get(id))
+			.sort((a, b) => level(a) > level(b) ? -1 : 1)
+
+		gElements.forEach(parent => {
+			data.addGroup(parent.id, parent.name,
 				view.elements
 					.map(ref => elements.get(ref.id))
-					.filter(el => el && el.parent == systemEl)
+					.filter(el => el && el.parent == parent)
 					.map(el => el.id)
 			)
-		}
+		})
 
 		//layout
 		if (data.id in layouts) {
@@ -174,6 +203,7 @@ export const parseModel = (model: any, layouts: any) => {
 		return data
 	}
 
+	// Graph
 	const graphs: GraphData[] = []
 	const sections = Object.keys(model.views).filter(section => section.endsWith('Views'))
 	sections.forEach(s => {

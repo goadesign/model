@@ -4,10 +4,17 @@ import {cursorInteraction} from "svg-editor-tools/lib/cursor-interaction";
 import {intersectRect, shapes} from "./shapes";
 
 
+
 interface Group {
+	id: string;
 	name: string;
-	nodes: Node[];
+	nodes: (Node | Group)[];
 	ref?: SVGGElement;
+
+	x?: number;
+	y?: number;
+	width?: number;
+	height?: number;
 }
 
 interface Node {
@@ -23,7 +30,7 @@ interface Node {
 	x: number;
 	y: number;
 	width: number;
-	height: number
+	height: number;
 	selected?: boolean;
 
 	intersect: (p: Point) => Point
@@ -45,7 +52,6 @@ interface Point {
 export class GraphData {
 	id: string;
 	name: string;
-	nodes: Node[];
 	nodesMap: Map<string, Node>;
 	edges: Edge[];
 	edgeCounts: Map<string, number>;
@@ -55,7 +61,6 @@ export class GraphData {
 		this.id = id;
 		this.name = name;
 
-		this.nodes = [];
 		this.edges = [];
 		this.nodesMap = new Map;
 		this.groupsMap = new Map;
@@ -68,8 +73,11 @@ export class GraphData {
 			id, title: label, sub, description, shape,
 			x: 0, y: 0, width: nodeWidth, height: nodeHeight, intersect: null
 		}
-		this.nodes.push(n)
 		this.nodesMap.set(n.id, n)
+	}
+
+	nodes() {
+		return Array.from(this.nodesMap.values())
 	}
 
 	addEdge(fromNode: string, toNode: string, label: string) {
@@ -88,16 +96,19 @@ export class GraphData {
 		this.edges.push(e)
 	}
 
-	addGroup(name: string, nodes: string[]) {
-		if (this.groupsMap.has(name)) throw Error('Group exists: ' + name)
-		const group: Group = {
-			name, nodes: nodes.map(k => {
-				const n = this.nodesMap.get(k)
-				if (!n) throw new Error('Node not found: ' + k)
-				return n
-			})
+	addGroup(id: string, name: string, nodesOrGroups: string[]) {
+		if (this.groupsMap.has(id)) {
+			console.error(`Group exists: ${id} ${name}`)
+			return
 		}
-		this.groupsMap.set(name, group)
+		const group: Group = {
+			id, name, nodes: nodesOrGroups.map(k => {
+				const n = this.nodesMap.get(k) || this.groupsMap.get(k)
+				if (!n) console.error(`Node or group ${k} not found for group ${id} "${name}"`)
+				return n
+			}).filter(Boolean)
+		}
+		this.groupsMap.set(id, group)
 	}
 
 	setExpanded(node: Node, ex: boolean) {
@@ -116,7 +127,7 @@ export class GraphData {
 	}
 
 	setSelected(nodes: Node[]) {
-		this.nodes.forEach(n => {
+		this.nodesMap.forEach(n => {
 			n.selected = false
 			n.ref.classList.remove('selected')
 		})
@@ -167,7 +178,7 @@ export class GraphData {
 
 	private redrawGroups(node: Node) {
 		this.groupsMap.forEach(group => {
-			if (group.nodes.indexOf(node) == -1) return
+			//if (group.nodes.indexOf(node) == -1) return
 			const p = group.ref.parentElement
 			p.removeChild(group.ref)
 			buildGroup(group)
@@ -177,7 +188,7 @@ export class GraphData {
 
 	//call this from console: JSON.stringify(gdata.exportLayout())
 	exportLayout() {
-		return this.nodes
+		return Array.from(this.nodesMap.values())
 			.reduce<{ [key: string]: { x: number, y: number } }>(
 				(o, n) => {
 					o[n.id] = {x: n.x, y: n.y};
@@ -261,7 +272,7 @@ export const buildGraph = (data: GraphData, onNodeSelect: (n: Node) => void) => 
 	zoomG.append(groupsG, edgesG, nodesG)
 
 
-	data.nodes.forEach((n, i) => {
+	data.nodesMap.forEach((n) => {
 		buildNode(n, data)
 		nodesG.append(n.ref)
 	})
@@ -352,7 +363,7 @@ function buildNode(n: Node, data: GraphData) {
 	shape.classList.add('nodeBorder')
 	applyStyle(shape, styles.nodeBorder)
 
-	const tg = create.element('g')
+	const tg = create.element('g') as SVGGElement
 	let cy = Number(g.getAttribute('label-offset-y')) || 0
 	{
 		const fontSize = styles.nodeText1["font-size"]
@@ -379,7 +390,7 @@ function buildNode(n: Node, data: GraphData) {
 		cy += dy
 	}
 
-	tg.setAttribute('transform', `translate(0, ${(-cy) / 2})`)
+	setPosition(tg, 0, -cy / 2)
 	g.append(tg)
 
 	// @ts-ignore
@@ -398,16 +409,26 @@ function buildGroup(group: Group) {
 
 	let p0: Point = {x: 1e100, y: 1e100}, p1: Point = {x: 0, y: 0}
 	group.nodes.forEach(n => {
-		const b = {x: n.x - n.width / 2, y: n.y - n.height / 2, w: n.width, h: n.height}
+		const b = {x: n.x - n.width / 2, y: n.y - n.height / 2, width: n.width, height: n.height}
 		p0.x = Math.min(p0.x, b.x)
 		p0.y = Math.min(p0.y, b.y)
-		p1.x = Math.max(p1.x, b.x + b.w)
-		p1.y = Math.max(p1.y, b.y + b.h)
+		p1.x = Math.max(p1.x, b.x + b.width)
+		p1.y = Math.max(p1.y, b.y + b.height)
 	})
 	const pad = 25
 	const w = Math.max(p1.x - p0.x, 200)
 	const h = p1.y - p0.y + pad
-	const r = create.rect(w + pad * 2, h + pad * 2, p0.x - pad, p0.y - pad)
+	const bb = {
+		x: p0.x - pad,
+		y: p0.y - pad,
+		width: w + pad * 2,
+		height: h + pad * 2,
+	}
+	const r = create.rect(bb.width, bb.height, bb.x, bb.y)
+	group.x = bb.x + bb.width/2
+	group.y = bb.y + bb.height/2
+	group.width = bb.width
+	group.height = bb.height
 	applyStyle(r, styles.groupRect)
 
 	const txt = create.text(group.name, p0.x, p1.y + 30)
@@ -444,17 +465,17 @@ function addCursorInteraction(svg: SVGSVGElement) {
 			return node.selected
 		},
 		getSelection(): Node[] {
-			return gd().nodes.filter(n => n.selected)
+			return gd().nodes().filter(n => n.selected)
 		},
 		getZoom: getZoom,
 		moveNode(n: Node, x: number, y: number) {
 			gd().moveNode(n, x, y)
 		},
 		boxSelection(box: DOMRect, add) {
-			gd().setSelected(gd().nodes.filter(n => {
+			gd().setSelected(gd().nodes().filter(n => {
 				return (add && n.selected) || svg.checkIntersection(n.ref.firstChild as SVGElement, box)
 			}))
-			selectListener(gd().nodes.find(n => n.selected))
+			selectListener(gd().nodes().find(n => n.selected))
 		},
 		updatePanning: updatePanning,
 	})
@@ -553,8 +574,7 @@ const applyStyle = (el: SVGElement, style: { [key: string]: string | number }) =
 				console.error(`All font-sizes in styles have to be numbers representing px! Found:`, style)
 			}
 			el.setAttribute(name, style[name] + 'px')
-		}
-		else {
+		} else {
 			el.setAttribute(name, String(style[name]))
 		}
 	})
