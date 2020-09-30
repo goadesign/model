@@ -151,12 +151,12 @@ function person(parent: D3Element, bbox: BBox, node: D3Node) {
 
 	const shape =
 		`M ${.38 * w},${h / 3} A${w / 2},${h / 2} 0,0,0 0 ${h / 2}
-		L${w / 11},${2 * h / 3} L${w / 11},${h} L${w - w / 11},${h} L${w - w / 11},${2 * h / 3} L${w},${h / 2}
+		L${w / 11},${h} L${w - w / 11},${h} L${w},${h / 2}
 		A${w / 2},${h / 2} 0,0,0 ${w - .38 * w} ${h / 3} 
 		A${w / 6},${w / 6} 0,1,0 ${.38 * w} ${h / 3}`;
 
 	const shapeSvg = parent
-		.attr('label-offset-y', h / 3)
+		.attr('label-offset-y', h * .4)
 		.insert('path', ':first-child')
 		.attr('d', shape)
 		.attr('transform', 'translate(' + -w / 2 + ',' + -(h / 2) + ')');

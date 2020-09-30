@@ -59,7 +59,6 @@ export const parseModel = (model: any, layouts: any) => {
 	// Software Systems
 	model.model.softwareSystems.forEach((el: Element) => {
 		elements.set(el.id, el)
-		el.technology || (el.technology = 'Software System');
 		collectRels(el)
 
 		if (Array.isArray(el.containers)) {
@@ -104,6 +103,8 @@ export const parseModel = (model: any, layouts: any) => {
 	const parseView = (view: View, section: string) => {
 		const data = new GraphData(view.key, section + ' - ' + (view.title || view.key))
 
+		if (!view.elements) return data
+
 		//grouping rules - elements that are groups will not be nodes
 		const groupingIDs: {[key: string]: boolean} = {}
 		if (section == 'deploymentViews') {
@@ -116,7 +117,7 @@ export const parseModel = (model: any, layouts: any) => {
 		} else if (view.softwareSystemId) {
 			groupingIDs[view.softwareSystemId] = true
 		}
-		console.log(view.key, 'grouping:', Object.keys(groupingIDs).map(id => elements.get(id)))
+		// console.log(view.key, 'grouping:', Object.keys(groupingIDs).map(id => elements.get(id)))
 
 		//nodes
 		view.elements.forEach((ref) => {
@@ -125,27 +126,28 @@ export const parseModel = (model: any, layouts: any) => {
 
 			const el = elements.get(ref.id)
 
-			let shape = 'rect'
-			let sub = el ? el.technology : ''
+			let sub = ''
+			let style = {}
 			if (el) {
 				const tags = el.tags.split(',')
-				if (tags.some(t => t.toLowerCase() == 'database'))
-					shape = 'cylinder'
-				else if (tags.some(t => t.toLowerCase() == 'person')) {
-					shape = 'person'
-					sub = 'Person'
-				} else if (tags.some(t => t.toLowerCase() == 'container')) {
-					sub = 'Container'
-					if (el.technology)
-						sub += ': ' + el.technology
-				}
+				const tagsMap = tags.reduce((o:any, t) => {o[t] = true; return o}, {})
+				sub = tags[tags.length - 1]
+				if (el.technology)
+					sub += ': ' + el.technology
+
+				model.views.styles.elements.forEach((s: any) => {
+					if (tagsMap[s.tag]) {
+						style = {...style, ...s}
+					}
+				})
 			}
+
 			data.addNode(
 				ref.id,
 				el ? (el.name || ref.id) : ref.id,
 				sub,
 				(el && el.description) ? el.description : '',
-				shape
+				style
 			)
 
 		})

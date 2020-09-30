@@ -76,17 +76,6 @@ g.node text {
     pointer-events: none;
 }
 
-g.group rect {
-    fill: #ffc80026;
-    stroke: #666666;
-    stroke-dasharray: 4;
-}
-g.group text {
-    fill: #c16415;
-    font-size: 18px;
-    cursor: default;
-}
-
 .icon {
     fill: #aaa;
     stroke: #fff;

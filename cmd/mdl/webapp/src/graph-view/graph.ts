@@ -23,8 +23,6 @@ interface Node {
 	sub: string;
 	description: string;
 
-	shape: string;
-
 	ref?: SVGGElement;
 	expanded?: boolean;
 	x: number;
@@ -34,6 +32,47 @@ interface Node {
 	selected?: boolean;
 
 	intersect: (p: Point) => Point
+
+	style: NodeStyle
+}
+
+export interface NodeStyle {
+	// Width of element, in pixels.
+	width?: number
+	// Height of element, in pixels.
+	height?: number
+	// Background color of element as HTML RGB hex string (e.g. "#ffffff")
+	background?: string
+	// Stroke color of element as HTML RGB hex string (e.g. "#000000")
+	stroke?: string
+	// Foreground (text) color of element as HTML RGB hex string (e.g. "#ffffff")
+	color?: string
+	// Standard font size used to render text, in pixels.
+	fontSize?: number
+	// Shape used to render element.
+	shape?: string
+	// URL of PNG/JPG/GIF file or Base64 data URI representation.
+	icon?: string
+	// Type of border used to render element.
+	border?: string
+	// Opacity used to render element; 0-100.
+	opacity?: number
+	// Whether element metadata should be shown.
+	metadata?: boolean
+	// Whether element description should be shown.
+	description?: boolean
+}
+
+
+
+const defaultNodeStyle:NodeStyle = {
+	width: 300,
+	height: 300,
+	background: 'rgba(255, 255, 255, .9)',
+	color: '#666',
+	stroke: '#999',
+	fontSize: 22,
+	shape: 'Rect'
 }
 
 interface Edge {
@@ -67,12 +106,13 @@ export class GraphData {
 		this.edgeCounts = new Map;
 	}
 
-	addNode(id: string, label: string, sub: string, description: string, shape: string) {
+	addNode(id: string, label: string, sub: string, description: string, style: NodeStyle) {
 		if (this.nodesMap.has(id)) throw Error('duplicate node: ' + id)
 		const n: Node = {
-			id, title: label, sub, description, shape,
-			x: 0, y: 0, width: nodeWidth, height: nodeHeight, intersect: null
+			id, title: label, sub, description, style: {...defaultNodeStyle, ...style},
+			x: 0, y: 0, width: style.width, height: style.height, intersect: null
 		}
+		// console.log(label, id, style, {...defaultNodeStyle, ...style})
 		this.nodesMap.set(n.id, n)
 	}
 
@@ -312,7 +352,7 @@ function buildEdge(edge: Edge) {
 	// label
 	const
 		cx = (p0.x + pn.x) / 2,
-		fontSize = 14,
+		fontSize = styles.edgeText["font-size"],
 		cy = (p0.y + pn.y) / 2 - 10 + ((edge.count - 1) * 50);
 	let {txt, dy, maxW} = create.textArea(edge.label, 200, fontSize, false, cx, cy, 'middle')
 	maxW += fontSize
@@ -342,50 +382,55 @@ function buildEdge(edge: Edge) {
 	return g
 }
 
-const nodeWidth = 240;
-const nodeHeight = 200;
 
 function buildNode(n: Node, data: GraphData) {
 	// @ts-ignore
 	window.gdata = data
 
-	const w = nodeWidth;//Math.max(60, textWidth(n.id), ...n.fields.map(f => textWidth(f.name))) + 70
-	const h = nodeHeight;
+	const w = n.style.width;//Math.max(60, textWidth(n.id), ...n.fields.map(f => textWidth(f.name))) + 70
+	const h = n.style.height;
 	n.width = w;
+	n.height = h;
 
 	const g = create.element('g', {}, 'node') as SVGGElement
 	n.selected && g.classList.add('selected')
 	setPosition(g, n.x, n.y)
 
-	const shapeFn = shapes[n.shape] || shapes.rect
+	const shapeFn = shapes[n.style.shape.toLowerCase()] || shapes.rect
 	const shape: SVGElement = shapeFn(g, n);
 
 	shape.classList.add('nodeBorder')
+
 	applyStyle(shape, styles.nodeBorder)
+	shape.setAttribute('fill', n.style.background)
+	shape.setAttribute('stroke', n.style.stroke)
+	setBorderStyle(shape, n.style.border)
 
 	const tg = create.element('g') as SVGGElement
 	let cy = Number(g.getAttribute('label-offset-y')) || 0
 	{
-		const fontSize = styles.nodeText1["font-size"]
-		const bold = styles.nodeText1["font-weight"] == 'bold'
-		const {txt, dy} = create.textArea(n.title, nodeWidth - 40, fontSize, bold, 0, cy, 'middle')
+		const fontSize = n.style.fontSize
+		const {txt, dy} = create.textArea(n.title, w - 40, fontSize, true, 0, cy, 'middle')
 		applyStyle(txt, styles.nodeText)
-		applyStyle(txt, styles.nodeText1)
+		txt.setAttribute('fill', n.style.color)
+
 		tg.append(txt)
 		cy += dy
 	}
 	{
 		const txt = create.text(`[${n.sub}]`, 0, cy, 'middle')
 		applyStyle(txt, styles.nodeText)
-		applyStyle(txt, styles.nodeText2)
+		txt.setAttribute('fill', n.style.color)
+		txt.setAttribute('font-size', String(0.75 * n.style.fontSize))
 		tg.append(txt)
 		cy += 10
 	}
 	{
 		cy += 10
-		const {txt, dy} = create.textArea(n.description, nodeWidth - 40, 14, false, 0, cy, 'middle')
+		const fontSize = n.style.fontSize
+		const {txt, dy} = create.textArea(n.description, w - 40, fontSize, false, 0, cy, 'middle')
 		applyStyle(txt, styles.nodeText)
-		applyStyle(txt, styles.nodeText3)
+		txt.setAttribute('fill', n.style.color)
 		tg.append(txt)
 		cy += dy
 	}
@@ -417,7 +462,7 @@ function buildGroup(group: Group) {
 	})
 	const pad = 25
 	const w = Math.max(p1.x - p0.x, 200)
-	const h = p1.y - p0.y + pad
+	const h = p1.y - p0.y + pad*1.5
 	const bb = {
 		x: p0.x - pad,
 		y: p0.y - pad,
@@ -431,7 +476,7 @@ function buildGroup(group: Group) {
 	group.height = bb.height
 	applyStyle(r, styles.groupRect)
 
-	const txt = create.text(group.name, p0.x, p1.y + 30)
+	const txt = create.text(group.name, p0.x, bb.y + bb.height - styles.groupText["font-size"])
 	applyStyle(txt, styles.groupText)
 
 	g.append(r, txt)
@@ -516,35 +561,30 @@ export const getZoomAuto = () => {
 	return Math.max(Math.min(zoom, 1), .2)
 }
 
+const setBorderStyle = (el: SVGElement, style: string) => {
+	if (style == 'Dashed') el.setAttribute('stroke-dasharray', '4')
+	else if (style == 'Dotted') el.setAttribute('stroke-dasharray', '2')
+}
+
 const styles = {
 	//node styles
 	nodeBorder: {
 		fill: "rgba(255, 255, 255, 0.86)",
 		stroke: "#aaa",
-		"stroke-width": "2px"
+		"stroke-width": "3px"
 	},
 	nodeText: {
 		'font-family': 'Arial, sans-serif',
-		fill: "#777",
 		stroke: "none"
-	},
-	nodeText1: {
-		'font-size': 16,
-		'font-weight': 'bold',
-	},
-	nodeText2: {
-		'font-size': 12,
-	},
-	nodeText3: {
-		'font-size': 16,
 	},
 
 	//edge styles
 	edgePath: {
 		stroke: "#aaa",
-		"stroke-width": 2,
+		"stroke-width": 3,
 	},
 	edgeText: {
+		"font-size": 22,
 		stroke: "none",
 		fill: "#777"
 	},
@@ -555,14 +595,14 @@ const styles = {
 
 	//group styles
 	groupRect: {
-		// fill: "#ffc80026",
-		fill: "rgba(255, 200, 0, 0.15)",
+		//fill: "none",
+		fill: "rgba(0, 0, 0, 0.02)",
 		stroke: "#666",
 		"stroke-dasharray": 4,
 	},
 	groupText: {
 		fill: "#666",
-		"font-size": 18,
+		"font-size": 22,
 		cursor: "default"
 	}
 }
