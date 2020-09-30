@@ -353,11 +353,17 @@ function buildEdge(edge: Edge) {
 	const
 		cx = (p0.x + pn.x) / 2,
 		fontSize = styles.edgeText["font-size"],
-		cy = (p0.y + pn.y) / 2 - 10 + ((edge.count - 1) * 50);
+		multipleEdgeSpread = (edge.count - 1) * 50
+	let cy = (p0.y + pn.y) / 2 + multipleEdgeSpread;
 	let {txt, dy, maxW} = create.textArea(edge.label, 200, fontSize, false, cx, cy, 'middle')
+	//move text up to center relative to the edge
+	dy -= fontSize / 2
+	cy -= dy /2
+	txt.setAttribute('y', String(cy))
+
 	maxW += fontSize
 	applyStyle(txt, styles.edgeText)
-	const bbox = {x: cx - maxW / 2, y: cy, width: maxW, height: dy - 7}
+	const bbox = {x: cx - maxW / 2, y: cy, width: maxW, height: dy}
 	const bg = create.rect(bbox.width, bbox.height, bbox.x, bbox.y)
 	applyStyle(bg, styles.edgeRect)
 	g.append(bg, txt)
