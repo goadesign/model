@@ -20,19 +20,23 @@ const DomainSelect: FC<{ views: ViewsList; crtID: string}> = ({views, crtID}) =>
 	return <select
 		onChange={e => history.push('?id=' + encodeURIComponent(e.target.value))} value={crtID}>
 		<option disabled value="" hidden>...</option>
-		{views.map(m => <option key={m.key} value={m.key}>{m.section + ' ' + m.title}</option>)}
+		{views.map(m => <option key={m.key} value={m.key}>{camelToWords(m.section) + ': ' + m.title}</option>)}
 	</select>
 }
+
+// we keep graphs here, in case they are edited but not saved
+const graphs: {[key: string]: GraphData} = {}
 
 const ModelPane: FC<{model: any, layouts: any}> = ({model, layouts}) => {
 	const crtID = getCrtID()
 	const [zoom, setZoom] = useState(1)
 	const [saving, setSaving] = useState(false)
 
-	const [graph] = useState(parseView(model, layouts, crtID))
+	const graph = graphs[crtID] || parseView(model, layouts, crtID)
 	if (!graph) {
 		return <div style={{padding:30}}><DomainSelect views={listViews(model)} crtID=""/></div>
 	}
+	graphs[crtID] = graph
 
 	function saveLayout() {
 		setSaving(true)
@@ -79,4 +83,9 @@ const ModelPane: FC<{model: any, layouts: any}> = ({model, layouts}) => {
 
 function removeEmptyProps(o: any) {
 	return JSON.parse(JSON.stringify(o))
+}
+
+function camelToWords(camel: string) {
+	let split = camel.replace( /([A-Z])/g, " $1" );
+	return split.charAt(0).toUpperCase() + split.slice(1);
 }

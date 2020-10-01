@@ -3,6 +3,9 @@ import {GraphData} from "./graph-view/graph";
 
 interface Model {
 	model: {
+		enterprise: {
+			name: string
+		}
 		people: Element[]
 		softwareSystems: Element[]
 		deploymentNodes: Element[]
@@ -33,15 +36,15 @@ interface Layouts {
 interface Element {
 	id: string;
 	name: string;
-	technology: string;
-	description: string;
-	parent: Element;
-	tags: string;
-	location: string;
+	technology?: string;
+	description?: string;
+	parent?: Element;
+	tags?: string;
+	location?: string;
 	containers?: Element[];
 	components?: Element[];
-	relationships: Relation[];
-	properties: { [key: string]: string }
+	relationships?: Relation[];
+	properties?: { [key: string]: string }
 	children?: Element[];
 	infrastructureNodes?: Element[];
 }
@@ -166,6 +169,13 @@ export const parseView = (model: Model, layouts: Layouts, viewKey: string) => {
 		})
 	} else if (view.softwareSystemId) {
 		groupingIDs[view.softwareSystemId] = true
+	} else if (section == 'systemLandscapeViews') {
+		// create a virtual parent element from enterprise
+		const p: Element = {id: '__enterprise__', ...model.model.enterprise}
+		elements.set(p.id, p)
+		model.model.people.filter(el => el.location != 'External').forEach(el => el.parent = p)
+		model.model.softwareSystems.filter(el => el.location != 'External').forEach(el => el.parent = p)
+		groupingIDs[p.id] = true
 	}
 	// console.log(view.key, 'grouping:', Object.keys(groupingIDs).map(id => elements.get(id)))
 
