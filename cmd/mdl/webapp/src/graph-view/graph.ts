@@ -76,6 +76,7 @@ const defaultNodeStyle:NodeStyle = {
 }
 
 interface Edge {
+	id: string;
 	label: string;
 	from: Node;
 	to: Node;
@@ -95,6 +96,7 @@ export class GraphData {
 	edges: Edge[];
 	edgeCounts: Map<string, number>;
 	groupsMap: Map<string, Group>;
+	metadata: any;
 
 	constructor(id?: string, name?: string) {
 		this.id = id;
@@ -120,18 +122,19 @@ export class GraphData {
 		return Array.from(this.nodesMap.values())
 	}
 
-	addEdge(fromNode: string, toNode: string, label: string) {
-		const id = `${fromNode}->${toNode}`
-		if (this.edgeCounts.has(id)) {
-			this.edgeCounts.set(id, this.edgeCounts.get(id) + 1)
+	addEdge(id: string, fromNode: string, toNode: string, label: string) {
+		const ident = `${fromNode}->${toNode}`
+		if (this.edgeCounts.has(ident)) {
+			this.edgeCounts.set(ident, this.edgeCounts.get(ident) + 1)
 		} else {
-			this.edgeCounts.set(id, 1)
+			this.edgeCounts.set(ident, 1)
 		}
 		const e = {
+			id,
 			from: this.nodesMap.get(fromNode),
 			to: this.nodesMap.get(toNode),
 			label,
-			count: this.edgeCounts.get(id)
+			count: this.edgeCounts.get(ident)
 		}
 		this.edges.push(e)
 	}
@@ -246,7 +249,15 @@ export class GraphData {
 		p.removeChild(elastic)
 		const zoom = getZoom()
 		setZoom(1)
+		// inject metadata
+		const script = document.createElement('script')
+		script.setAttribute('type', 'application/json')
+		script.append('<![CDATA[' + escapeCdata(JSON.stringify(this.metadata, null, 2)) + ']]>')
+		svg.insertBefore(script, svg.firstChild)
+		// read the SVG
 		let src = svg.outerHTML
+		// restore all
+		svg.removeChild(script)
 		p.append(elastic)
 		setZoom(zoom)
 		return src.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"')
@@ -262,6 +273,11 @@ export class GraphData {
 		})
 	}
 }
+
+function escapeCdata(code: string) {
+	return code.replace(/]]>/g, ']]]>]><![CDATA[')
+}
+
 
 let svg: SVGSVGElement = document.querySelector('svg#graph')
 if (!svg) {
@@ -302,9 +318,6 @@ export const buildGraph = (data: GraphData, onNodeSelect: (n: Node) => void) => 
 	}
 
 	//toplevel groups
-	const measureG = create.element('g', {}) as SVGGElement
-	setPosition(measureG, 0, -100)
-	svg.append(measureG)
 	const zoomG = create.element('g', {}, 'zoom') as SVGGElement
 	const nodesG = create.element('g', {}, 'nodes') as SVGGElement
 	const edgesG = create.element('g', {}, 'edges') as SVGGElement
@@ -348,6 +361,7 @@ function buildEdge(edge: Edge) {
 	pn = n2.intersect(n1)
 
 	const g = create.element('g', {}, 'edge') as SVGGElement
+	g.setAttribute('id', edge.id)
 
 	// label
 	const
@@ -367,6 +381,7 @@ function buildEdge(edge: Edge) {
 	const bg = create.rect(bbox.width, bbox.height, bbox.x, bbox.y)
 	applyStyle(bg, styles.edgeRect)
 	g.append(bg, txt)
+	txt.setAttribute('data-field', 'label')
 
 	// the path
 	bbox.x += bbox.width / 2
@@ -399,6 +414,7 @@ function buildNode(n: Node, data: GraphData) {
 	n.height = h;
 
 	const g = create.element('g', {}, 'node') as SVGGElement
+	g.setAttribute('id', n.id)
 	n.selected && g.classList.add('selected')
 	setPosition(g, n.x, n.y)
 
@@ -419,6 +435,7 @@ function buildNode(n: Node, data: GraphData) {
 		const {txt, dy} = create.textArea(n.title, w - 40, fontSize, true, 0, cy, 'middle')
 		applyStyle(txt, styles.nodeText)
 		txt.setAttribute('fill', n.style.color)
+		txt.setAttribute('data-field', 'name')
 
 		tg.append(txt)
 		cy += dy
@@ -437,6 +454,7 @@ function buildNode(n: Node, data: GraphData) {
 		const {txt, dy} = create.textArea(n.description, w - 40, fontSize, false, 0, cy, 'middle')
 		applyStyle(txt, styles.nodeText)
 		txt.setAttribute('fill', n.style.color)
+		txt.setAttribute('data-field', 'description')
 		tg.append(txt)
 		cy += dy
 	}

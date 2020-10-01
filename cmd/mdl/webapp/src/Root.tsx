@@ -3,10 +3,11 @@ import {getZoomAuto, GraphData} from "./graph-view/graph";
 import {Graph} from "./graph-view/graph-react";
 import {BrowserRouter as Router, Route} from 'react-router-dom'
 import {useHistory} from "react-router";
+import {listViews, parseView, ViewsList} from "./parseModel";
 
 
-export const Root: FC<{models: GraphData[]}> = ({models}) => <Router>
-	<Route path="/" component={() => <ModelPane models={models}/>}/>
+export const Root: FC<{model: any, layout: any}> = ({model, layout}) => <Router>
+	<Route path="/" component={() => <ModelPane key={getCrtID()} model={model} layouts={layout}/>}/>
 </Router>
 
 const getCrtID = () => {
@@ -14,23 +15,23 @@ const getCrtID = () => {
 	return p.get('id') || ''
 }
 
-const DomainSelect: FC<{ models: GraphData[]; crtID: string}> = ({models, crtID}) => {
+const DomainSelect: FC<{ views: ViewsList; crtID: string}> = ({views, crtID}) => {
 	const history = useHistory();
 	return <select
 		onChange={e => history.push('?id=' + encodeURIComponent(e.target.value))} value={crtID}>
 		<option disabled value="" hidden>...</option>
-		{models.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
+		{views.map(m => <option key={m.key} value={m.key}>{m.section + ' ' + m.title}</option>)}
 	</select>
 }
 
-const ModelPane: FC<{models:GraphData[]}> = ({models}) => {
+const ModelPane: FC<{model: any, layouts: any}> = ({model, layouts}) => {
 	const crtID = getCrtID()
 	const [zoom, setZoom] = useState(1)
 	const [saving, setSaving] = useState(false)
 
-	const graph = models.find(o => o.id == crtID)
+	const [graph] = useState(parseView(model, layouts, crtID))
 	if (!graph) {
-		return <div style={{padding:30}}><DomainSelect models={models} crtID=""/></div>
+		return <div style={{padding:30}}><DomainSelect views={listViews(model)} crtID=""/></div>
 	}
 
 	function saveLayout() {
@@ -52,7 +53,7 @@ const ModelPane: FC<{models:GraphData[]}> = ({models}) => {
 	return <>
 		<div className="toolbar">
 			<div>
-				View: <DomainSelect models={models} crtID={crtID}/>
+				View: <DomainSelect views={listViews(model)} crtID={crtID}/>
 				{' '}
 			</div>
 			<div>
@@ -70,8 +71,12 @@ const ModelPane: FC<{models:GraphData[]}> = ({models}) => {
 		<Graph key={crtID}
 			   data={graph}
 			   zoom={zoom}
-			   onSelect={name => null}
+			   // print metadata in console
+			   onSelect={id => console.log(removeEmptyProps(graph.metadata.elements.find((m: any) => m.id == id)))}
 			   onInit={() => setZoom(getZoomAuto())}/>
 	</>
 }
 
+function removeEmptyProps(o: any) {
+	return JSON.parse(JSON.stringify(o))
+}
