@@ -4,7 +4,6 @@ import {cursorInteraction} from "svg-editor-tools/lib/cursor-interaction";
 import {intersectRect, shapes} from "./shapes";
 
 
-
 interface Group {
 	id: string;
 	name: string;
@@ -64,8 +63,7 @@ export interface NodeStyle {
 }
 
 
-
-const defaultNodeStyle:NodeStyle = {
+const defaultNodeStyle: NodeStyle = {
 	width: 300,
 	height: 300,
 	background: 'rgba(255, 255, 255, .9)',
@@ -81,7 +79,6 @@ interface Edge {
 	from: Node;
 	to: Node;
 	ref?: SVGGElement;
-	count: number;
 }
 
 interface Point {
@@ -94,7 +91,6 @@ export class GraphData {
 	name: string;
 	nodesMap: Map<string, Node>;
 	edges: Edge[];
-	edgeCounts: Map<string, number>;
 	groupsMap: Map<string, Group>;
 	metadata: any;
 
@@ -105,7 +101,6 @@ export class GraphData {
 		this.edges = [];
 		this.nodesMap = new Map;
 		this.groupsMap = new Map;
-		this.edgeCounts = new Map;
 	}
 
 	addNode(id: string, label: string, sub: string, description: string, style: NodeStyle) {
@@ -123,20 +118,12 @@ export class GraphData {
 	}
 
 	addEdge(id: string, fromNode: string, toNode: string, label: string) {
-		const ident = `${fromNode}->${toNode}`
-		if (this.edgeCounts.has(ident)) {
-			this.edgeCounts.set(ident, this.edgeCounts.get(ident) + 1)
-		} else {
-			this.edgeCounts.set(ident, 1)
-		}
-		const e = {
+		this.edges.push({
 			id,
 			from: this.nodesMap.get(fromNode),
 			to: this.nodesMap.get(toNode),
-			label,
-			count: this.edgeCounts.get(ident)
-		}
-		this.edges.push(e)
+			label
+		})
 	}
 
 	addGroup(id: string, name: string, nodesOrGroups: string[]) {
@@ -206,13 +193,13 @@ export class GraphData {
 			if (e.from == n) {
 				const p = e.ref.parentElement;
 				p.removeChild(e.ref)
-				e.ref = buildEdge(e)
+				e.ref = buildEdge(this, e)
 				p.append(e.ref)
 			}
 			if (e.to == n) {
 				const p = e.ref.parentElement;
 				p.removeChild(e.ref)
-				e.ref = buildEdge(e)
+				e.ref = buildEdge(this, e)
 				p.append(e.ref)
 			}
 		})
@@ -331,7 +318,7 @@ export const buildGraph = (data: GraphData, onNodeSelect: (n: Node) => void) => 
 	})
 
 	data.edges.forEach(e => {
-		buildEdge(e)
+		buildEdge(data, e)
 		edgesG.append(e.ref)
 	})
 
@@ -351,33 +338,48 @@ export const buildGraph = (data: GraphData, onNodeSelect: (n: Node) => void) => 
 	}
 }
 
-function buildEdge(edge: Edge) {
+function buildEdge(data: GraphData, edge: Edge) {
 	const n1 = edge.from, n2 = edge.to;
 	let p0: Point, pn: Point, p1: Point, p2: Point, p3: Point, p4: Point;
 
 	const overlap = (x1: number, w1: number, x2: number, w2: number) => !(x1 + w1 < x2 || x1 > x2 + w2)
 
-	p0 = n1.intersect(n2)
-	pn = n2.intersect(n1)
 
 	const g = create.element('g', {}, 'edge') as SVGGElement
 	g.setAttribute('id', edge.id)
 
+	// for edges with same "from" and "to", we must spread the labels so they don't overlap
+	// lookup the other "same" edges
+	const sameEdges = data.edges.filter(e => e.from == edge.from && e.to == edge.to)
+	let spreadPos = 0
+	if (sameEdges.length) {
+		const idx = sameEdges.indexOf(edge) // my index in the list of same edges
+		spreadPos = idx - (sameEdges.length - 1) / 2
+	}
+	let spreadX = 0, spreadY = 0;
+	if (Math.abs(n1.x - n2.x) > Math.abs(n1.y - n2.y)) {
+		spreadY = spreadPos * 70
+	} else {
+		spreadX = spreadPos * 200
+	}
+
 	// label
 	const
-		cx = (p0.x + pn.x) / 2,
-		fontSize = styles.edgeText["font-size"],
-		multipleEdgeSpread = (edge.count - 1) * 50
-	let cy = (p0.y + pn.y) / 2 + multipleEdgeSpread;
+		cx = (n1.x + n2.x) / 2 + spreadX,
+		fontSize = styles.edgeText["font-size"];
+	let cy = (n1.y + n2.y) / 2 + spreadY;
 	let {txt, dy, maxW} = create.textArea(edge.label, 200, fontSize, false, cx, cy, 'middle')
 	//move text up to center relative to the edge
 	dy -= fontSize / 2
-	cy -= dy /2
-	txt.setAttribute('y', String(cy))
+	txt.setAttribute('y', String(cy - dy / 2))
+
+	p0 = n1.intersect({x: cx, y: cy})
+	pn = n2.intersect({x: cx, y: cy})
+
 
 	maxW += fontSize
 	applyStyle(txt, styles.edgeText)
-	const bbox = {x: cx - maxW / 2, y: cy, width: maxW, height: dy}
+	const bbox = {x: cx - maxW / 2, y: cy - dy / 2, width: maxW, height: dy}
 	const bg = create.rect(bbox.width, bbox.height, bbox.x, bbox.y)
 	applyStyle(bg, styles.edgeRect)
 	g.append(bg, txt)
@@ -389,9 +391,6 @@ function buildEdge(edge: Edge) {
 	p1 = intersectRect(bbox, p0)
 	p2 = intersectRect(bbox, pn)
 
-	// const path = [p0, p1, p2, p3, p4, pn].filter(Boolean).map((p, i) => {
-	// 	return (i == 0 ? 'M' : 'L') + `${p.x},${p.y}`
-	// }).join(' ')
 	const path = `M${p0.x},${p0.y} L${p1.x},${p1.y} M${p2.x},${p2.y} L${pn.x},${pn.y}`
 
 	const p = create.path(path, {'marker-end': 'url(#arrow)'}, 'edge')
@@ -486,7 +485,7 @@ function buildGroup(group: Group) {
 	})
 	const pad = 25
 	const w = Math.max(p1.x - p0.x, 200)
-	const h = p1.y - p0.y + pad*1.5
+	const h = p1.y - p0.y + pad * 1.5
 	const bb = {
 		x: p0.x - pad,
 		y: p0.y - pad,
@@ -494,8 +493,8 @@ function buildGroup(group: Group) {
 		height: h + pad * 2,
 	}
 	const r = create.rect(bb.width, bb.height, bb.x, bb.y)
-	group.x = bb.x + bb.width/2
-	group.y = bb.y + bb.height/2
+	group.x = bb.x + bb.width / 2
+	group.y = bb.y + bb.height / 2
 	group.width = bb.width
 	group.height = bb.height
 	applyStyle(r, styles.groupRect)

@@ -72,7 +72,7 @@ const ModelPane: FC<{model: any, layouts: any}> = ({model, layouts}) => {
 			   data={graph}
 			   zoom={zoom}
 			   // print metadata in console
-			   onSelect={id => console.log(removeEmptyProps(graph.metadata.elements.find((m: any) => m.id == id)))}
+			   onSelect={id => id && console.log(removeEmptyProps(graph.metadata.elements.find((m: any) => m.id == id)))}
 			   onInit={() => setZoom(getZoomAuto())}/>
 	</>
 }
