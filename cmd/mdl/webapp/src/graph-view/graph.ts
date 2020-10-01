@@ -62,12 +62,40 @@ export interface NodeStyle {
 	description?: boolean
 }
 
+// RelationshipStyle defines a relationship style.
+export interface EdgeStyle {
+	// Thickness of line, in pixels.
+	thickness?: number
+	// Color of line as HTML RGB hex string (e.g. "#ffffff").
+	color?: string
+	// Standard font size used to render relationship annotation, in pixels.
+	fontSize?: number
+	// Width of relationship annotation, in pixels.
+	width?: number
+	// Whether line is rendered dashed or not.
+	dashed?: boolean
+	// Routing algorithm used to render lines.
+	routing?: string
+	// Position of annotation along the line; 0 (start) to 100 (end).
+	position?: number
+	// Opacity used to render line; 0-100.
+	opacity?: number
+}
+
+const defaultEdgeStyle: EdgeStyle = {
+	thickness: 3,
+	color: '#999',
+	opacity: 1,
+	fontSize: 22,
+	dashed: false,
+}
 
 const defaultNodeStyle: NodeStyle = {
 	width: 300,
 	height: 300,
 	background: 'rgba(255, 255, 255, .9)',
 	color: '#666',
+	opacity: .9,
 	stroke: '#999',
 	fontSize: 22,
 	shape: 'Rect'
@@ -79,6 +107,7 @@ interface Edge {
 	from: Node;
 	to: Node;
 	ref?: SVGGElement;
+	style: EdgeStyle;
 }
 
 interface Point {
@@ -117,12 +146,13 @@ export class GraphData {
 		return Array.from(this.nodesMap.values())
 	}
 
-	addEdge(id: string, fromNode: string, toNode: string, label: string) {
+	addEdge(id: string, fromNode: string, toNode: string, label: string, style: EdgeStyle) {
 		this.edges.push({
 			id,
 			from: this.nodesMap.get(fromNode),
 			to: this.nodesMap.get(toNode),
-			label
+			label,
+			style: {...defaultEdgeStyle, ...style}
 		})
 	}
 
@@ -366,7 +396,7 @@ function buildEdge(data: GraphData, edge: Edge) {
 	// label
 	const
 		cx = (n1.x + n2.x) / 2 + spreadX,
-		fontSize = styles.edgeText["font-size"];
+		fontSize = edge.style.fontSize;
 	let cy = (n1.y + n2.y) / 2 + spreadY;
 	let {txt, dy, maxW} = create.textArea(edge.label, 200, fontSize, false, cx, cy, 'middle')
 	//move text up to center relative to the edge
@@ -378,7 +408,10 @@ function buildEdge(data: GraphData, edge: Edge) {
 
 
 	maxW += fontSize
-	applyStyle(txt, styles.edgeText)
+	txt.setAttribute('stroke', 'none')
+	txt.setAttribute('font-size', String(edge.style.fontSize))
+	txt.setAttribute('fill', edge.style.color)
+
 	const bbox = {x: cx - maxW / 2, y: cy - dy / 2, width: maxW, height: dy}
 	const bg = create.rect(bbox.width, bbox.height, bbox.x, bbox.y)
 	applyStyle(bg, styles.edgeRect)
@@ -394,7 +427,9 @@ function buildEdge(data: GraphData, edge: Edge) {
 	const path = `M${p0.x},${p0.y} L${p1.x},${p1.y} M${p2.x},${p2.y} L${pn.x},${pn.y}`
 
 	const p = create.path(path, {'marker-end': 'url(#arrow)'}, 'edge')
-	applyStyle(p, styles.edgePath)
+	p.setAttribute('stroke', edge.style.color)
+	p.setAttribute('stroke-width', String(edge.style.thickness))
+	edge.style.dashed && p.setAttribute('stroke-dasharray', '4')
 	g.append(p)
 
 
@@ -425,6 +460,7 @@ function buildNode(n: Node, data: GraphData) {
 	applyStyle(shape, styles.nodeBorder)
 	shape.setAttribute('fill', n.style.background)
 	shape.setAttribute('stroke', n.style.stroke)
+	shape.setAttribute('opacity', String(n.style.opacity))
 	setBorderStyle(shape, n.style.border)
 
 	const tg = create.element('g') as SVGGElement
@@ -602,15 +638,7 @@ const styles = {
 	},
 
 	//edge styles
-	edgePath: {
-		stroke: "#aaa",
-		"stroke-width": 3,
-	},
-	edgeText: {
-		"font-size": 22,
-		stroke: "none",
-		fill: "#777"
-	},
+
 	edgeRect: {
 		fill: "none",
 		stroke: "none",

@@ -16,6 +16,9 @@ interface Model {
 		styles: {
 			elements: {
 				[key: string]: string
+			}[];
+			relationships: {
+				[key: string]: string
 			}[]
 		}
 	}
@@ -23,7 +26,7 @@ interface Model {
 
 interface Layouts {
 	[key: string]: { // keyed by view key
-		[key: string]: {x: number; y: number} // keyed by element id
+		[key: string]: { x: number; y: number } // keyed by element id
 	}
 }
 
@@ -178,10 +181,7 @@ export const parseView = (model: Model, layouts: Layouts, viewKey: string) => {
 		let style = {}
 		if (el) {
 			const tags = el.tags.split(',')
-			const tagsMap = tags.reduce((o: any, t) => {
-				o[t] = true;
-				return o
-			}, {})
+			const tagsMap = reduceToMap(tags)
 			sub = tags[tags.length - 1]
 			if (el.technology)
 				sub += ': ' + el.technology
@@ -232,7 +232,15 @@ export const parseView = (model: Model, layouts: Layouts, viewKey: string) => {
 				}
 				return;
 			}
-			graph.addEdge(rel.id, rel.sourceId, rel.destinationId, rel.description)
+			let style = {}
+			const tagsMap = reduceToMap(rel.tags.split(','))
+			model.views.styles.relationships.forEach((s: any) => {
+				if (tagsMap[s.tag]) {
+					style = {...style, ...s}
+				}
+			})
+
+			graph.addEdge(rel.id, rel.sourceId, rel.destinationId, rel.description, style)
 		})
 	}
 
@@ -264,10 +272,17 @@ export const parseView = (model: Model, layouts: Layouts, viewKey: string) => {
 }
 
 
+function reduceToMap(lst: string[]) {
+	return lst.reduce((o: any, t) => {
+		o[t] = true;
+		return o
+	}, {})
+}
+
 // lookup the view in all Views sections in the model. return the view and the section
 function getView(model: Model, viewKey: string) {
 	let view: View = null, section: string = ''
-	Object.keys(model.views).filter(s => s.endsWith('Views')).some((s:string) => {
+	Object.keys(model.views).filter(s => s.endsWith('Views')).some((s: string) => {
 		return ((model.views as any)[s]).some((v: View) => {
 			if (v.key == viewKey) {
 				view = v
@@ -282,7 +297,7 @@ function getView(model: Model, viewKey: string) {
 
 function lookupElementKeyView(model: any, softwareSystemId: string) {
 	let key: string = undefined
-	Object.keys(model.views).filter(s => s.endsWith('Views')).some((s:string) => {
+	Object.keys(model.views).filter(s => s.endsWith('Views')).some((s: string) => {
 		return ((model.views as any)[s]).some((v: View) => {
 			if (v.softwareSystemId == softwareSystemId) {
 				key = v.key
