@@ -377,6 +377,8 @@ function buildEdge(data: GraphData, edge: Edge) {
 
 	const g = create.element('g', {}, 'edge') as SVGGElement
 	g.setAttribute('id', edge.id)
+	g.setAttribute('data-from', edge.from.id)
+	g.setAttribute('data-to', edge.to.id)
 
 	// for edges with same "from" and "to", we must spread the labels so they don't overlap
 	// lookup the other "same" edges
