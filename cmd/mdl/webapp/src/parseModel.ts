@@ -2,6 +2,9 @@ import {GraphData} from "./graph-view/graph";
 
 
 interface Model {
+	name: string
+	description: string
+	version: string
 	model: {
 		enterprise: {
 			name: string
@@ -62,12 +65,16 @@ interface Relation {
 interface View {
 	key: string;
 	title: string;
+	description: string
 	elements: any[];
 	relationships: any[];
 	softwareSystemId: string;
 }
 
 interface Metadata {
+	name: string
+	description: string
+	version: string
 	elements: {
 		id: string
 		tags?: string;
@@ -153,7 +160,7 @@ export const parseView = (model: Model, layouts: Layouts, viewKey: string) => {
 	if (!view) return null
 
 	const graph = new GraphData(view.key, view.title || view.key)
-	const metadata: Metadata = {elements: []}
+	const metadata: Metadata = {name: graph.name, description: view.description, version: model.version,  elements: []}
 	graph.metadata = metadata
 
 	if (!view.elements) return graph
