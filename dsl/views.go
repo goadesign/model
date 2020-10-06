@@ -640,7 +640,7 @@ func DynamicView(scope interface{}, key string, args ...interface{}) {
 // Example:
 //
 //     var _ = Design(func() {
-//         System("System", func() {
+//         SoftwareSystem("System", func() {
 //              Container("Container")
 //              Container("OtherContainer")
 //         })

@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"goa.design/goa/v3/eval"
+
 	"goa.design/model/expr"
 )
 
@@ -257,6 +258,7 @@ func ContainerInstance(container interface{}, dsl ...func()) *expr.ContainerInst
 		eh, err := expr.Root.Model.FindElement(nil, c)
 		if err != nil {
 			eval.ReportError("ContainerInstance: " + err.Error())
+			return nil
 		}
 		var ok bool
 		cont, ok = eh.(*expr.Container)
