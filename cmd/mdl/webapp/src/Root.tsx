@@ -61,11 +61,14 @@ const ModelPane: FC<{model: any, layouts: any}> = ({model, layouts}) => {
 				{' '}
 			</div>
 			<div>
-				<button onClick={() => setZoom(zoom - .05)}>Zoom -</button>
+				<button onClick={() => setZoom(zoom - .05)} title="Zoom out">Zoom -</button>
 				{' '}
-				<button onClick={() => setZoom(zoom + .05)}>Zoom +</button>
+				<button onClick={() => setZoom(zoom + .05)} title="Zoom in">Zoom +</button>
 				{' '}
-				<button onClick={() => setZoom(getZoomAuto())}>Fit</button>
+				<button onClick={() => {
+					graph.alignTopLeft()
+					setZoom(getZoomAuto())
+				}} title="Zoom/Move to make all graph visible">Fit</button>
 				{' '}
 				<button onClick={() => setZoom(1)}>Zoom 100%</button>
 				{' '}

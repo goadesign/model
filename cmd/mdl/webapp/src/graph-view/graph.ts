@@ -217,6 +217,16 @@ export class GraphData {
 		this.redrawGroups(n)
 	}
 
+	// moves the entire graph to be aligned top-left of the drawing area
+	// used to bring back to visible the nodes that end up at negative coordinates
+	alignTopLeft() {
+		let minX: number = Math.min(...this.nodes().map(n => n.x)) - 250
+		let minY: number = Math.min(...this.nodes().map(n => n.y)) - 250
+		this.nodesMap.forEach(n => {
+			this.moveNode(n, n.x - minX, n.y - minY)
+		})
+	}
+
 	//redraw connected edges
 	private redrawEdges(n: Node) {
 		this.edges.forEach(e => {
@@ -596,6 +606,7 @@ function getZoom() {
 const svgPadding = 20
 
 function setZoom(zoom: number) {
+	console.log('set zoom', zoom)
 	const el = svg.querySelector('g.zoom') as SVGGElement
 	el.setAttribute('transform', `scale(${zoom})`)
 	// also set panning size
