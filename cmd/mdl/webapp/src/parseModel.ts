@@ -134,25 +134,27 @@ export const parseView = (model: Model, layouts: Layouts, viewKey: string) => {
 	})
 
 	// Deployment Nodes
-	const containerInstances = (el: any) => {
-		el.containerInstances && el.containerInstances.forEach((item: any) => {
-			const el1 = {...elements.get(item.containerId), id: item.id}
-			elements.set(el1.id, el1)
-			el1.parent = el
-			collectRels(item)
-		})
-	}
+	if (model.model.deploymentNodes) {
+		const containerInstances = (el: any) => {
+			el.containerInstances && el.containerInstances.forEach((item: any) => {
+				const el1 = {...elements.get(item.containerId), id: item.id}
+				elements.set(el1.id, el1)
+				el1.parent = el
+				collectRels(item)
+			})
+		}
 
-	const recAddNodes = (el: Element, parent: Element) => {
-		el.parent = parent;
-		elements.set(el.id, el)
-		collectRels(el)
-		containerInstances(el)
-		el.children && el.children.forEach((el1: Element) => recAddNodes(el1, el))
-		el.infrastructureNodes && el.infrastructureNodes.forEach((el1: Element) => recAddNodes(el1, el))
-	}
+		const recAddNodes = (el: Element, parent: Element) => {
+			el.parent = parent;
+			elements.set(el.id, el)
+			collectRels(el)
+			containerInstances(el)
+			el.children && el.children.forEach((el1: Element) => recAddNodes(el1, el))
+			el.infrastructureNodes && el.infrastructureNodes.forEach((el1: Element) => recAddNodes(el1, el))
+		}
 
-	model.model.deploymentNodes.forEach((el: Element) => recAddNodes(el, null))
+		model.model.deploymentNodes.forEach((el: Element) => recAddNodes(el, null))
+	}
 
 	// Create graph from selected view
 	const {view, section} = getView(model, viewKey)
@@ -175,7 +177,9 @@ export const parseView = (model: Model, layouts: Layouts, viewKey: string) => {
 			}
 		})
 	} else if (view.softwareSystemId) {
-		groupingIDs[view.softwareSystemId] = true
+		//don't show grouping if the element is listed in the view
+		if (! view.elements.find(ref => ref.id == view.softwareSystemId))
+			groupingIDs[view.softwareSystemId] = true
 	} else if (section == 'systemLandscapeViews') {
 		// create a virtual parent element from enterprise
 		const p: Element = {id: '__enterprise__', ...model.model.enterprise}
@@ -203,7 +207,7 @@ export const parseView = (model: Model, layouts: Layouts, viewKey: string) => {
 			if (el.technology)
 				sub += ': ' + el.technology
 
-			model.views.styles.elements.forEach((s: any) => {
+			model.views.styles.elements && model.views.styles.elements.forEach((s: any) => {
 				if (tagsMap[s.tag]) {
 					style = {...style, ...s}
 				}
@@ -251,7 +255,7 @@ export const parseView = (model: Model, layouts: Layouts, viewKey: string) => {
 			}
 			let style = {}
 			const tagsMap = reduceToMap(rel.tags.split(','))
-			model.views.styles.relationships.forEach((s: any) => {
+			model.views.styles.relationships && model.views.styles.relationships.forEach((s: any) => {
 				if (tagsMap[s.tag]) {
 					style = {...style, ...s}
 				}

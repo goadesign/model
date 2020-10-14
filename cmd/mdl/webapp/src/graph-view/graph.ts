@@ -464,7 +464,7 @@ function buildNode(n: Node, data: GraphData) {
 	n.selected && g.classList.add('selected')
 	setPosition(g, n.x, n.y)
 
-	const shapeFn = shapes[n.style.shape.toLowerCase()] || shapes.rect
+	const shapeFn = shapes[n.style.shape.toLowerCase()] || shapes.box
 	const shape: SVGElement = shapeFn(g, n);
 
 	shape.classList.add('nodeBorder')
@@ -606,7 +606,6 @@ function getZoom() {
 const svgPadding = 20
 
 function setZoom(zoom: number) {
-	console.log('set zoom', zoom)
 	const el = svg.querySelector('g.zoom') as SVGGElement
 	el.setAttribute('transform', `scale(${zoom})`)
 	// also set panning size
