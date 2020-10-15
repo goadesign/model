@@ -66,8 +66,13 @@ interface View {
 	key: string;
 	title: string;
 	description: string
-	elements: any[];
-	relationships: any[];
+	elements: {
+		id: string
+	}[];
+	relationships: {
+		id: string;
+		vertices: { x: number; y: number }[];
+	}[];
 	softwareSystemId: string;
 }
 
@@ -162,7 +167,7 @@ export const parseView = (model: Model, layouts: Layouts, viewKey: string) => {
 	if (!view) return null
 
 	const graph = new GraphData(view.key, view.title || view.key)
-	const metadata: Metadata = {name: graph.name, description: view.description, version: model.version,  elements: []}
+	const metadata: Metadata = {name: graph.name, description: view.description, version: model.version, elements: []}
 	graph.metadata = metadata
 
 	if (!view.elements) return graph
@@ -178,7 +183,7 @@ export const parseView = (model: Model, layouts: Layouts, viewKey: string) => {
 		})
 	} else if (view.softwareSystemId) {
 		//don't show grouping if the element is listed in the view
-		if (! view.elements.find(ref => ref.id == view.softwareSystemId))
+		if (!view.elements.find(ref => ref.id == view.softwareSystemId))
 			groupingIDs[view.softwareSystemId] = true
 	} else if (section == 'systemLandscapeViews') {
 		// create a virtual parent element from enterprise
@@ -190,6 +195,7 @@ export const parseView = (model: Model, layouts: Layouts, viewKey: string) => {
 	}
 	// console.log(view.key, 'grouping:', Object.keys(groupingIDs).map(id => elements.get(id)))
 
+	const styles = model.views.styles
 
 	//nodes
 	view.elements.forEach((ref) => {
@@ -207,7 +213,7 @@ export const parseView = (model: Model, layouts: Layouts, viewKey: string) => {
 			if (el.technology)
 				sub += ': ' + el.technology
 
-			model.views.styles.elements && model.views.styles.elements.forEach((s: any) => {
+			styles && styles.elements && styles.elements.forEach((s: any) => {
 				if (tagsMap[s.tag]) {
 					style = {...style, ...s}
 				}
@@ -255,13 +261,13 @@ export const parseView = (model: Model, layouts: Layouts, viewKey: string) => {
 			}
 			let style = {}
 			const tagsMap = reduceToMap(rel.tags.split(','))
-			model.views.styles.relationships && model.views.styles.relationships.forEach((s: any) => {
+			styles && styles.relationships && styles.relationships.forEach((s: any) => {
 				if (tagsMap[s.tag]) {
 					style = {...style, ...s}
 				}
 			})
 
-			graph.addEdge(rel.id, rel.sourceId, rel.destinationId, rel.description, style)
+			graph.addEdge(rel.id, rel.sourceId, rel.destinationId, rel.description, ref.vertices, style)
 		})
 	}
 

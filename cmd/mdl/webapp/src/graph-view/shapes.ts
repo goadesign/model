@@ -1,3 +1,5 @@
+import {intersectEllipse, intersectRect} from "./intersect";
+
 interface Point {
 	x: number;
 	y: number;
@@ -35,36 +37,6 @@ class D3Element {
 	}
 }
 
-export function intersectRect(node: BBox, point: Point) {
-	const x = node.x;
-	const y = node.y;
-
-	// Rectangle intersection algorithm from:
-	// http://math.stackexchange.com/questions/108113/find-edge-between-two-boxes
-	const dx = point.x - x;
-	const dy = point.y - y;
-	let w = node.width / 2;
-	let h = node.height / 2;
-
-	let sx, sy;
-	if (Math.abs(dy) * w > Math.abs(dx) * h) {
-		// Intersection is top or bottom of rect.
-		if (dy < 0) {
-			h = -h;
-		}
-		sx = dy === 0 ? 0 : h * dx / dy;
-		sy = h;
-	} else {
-		// Intersection is left or right of rect.
-		if (dx < 0) {
-			w = -w;
-		}
-		sx = w;
-		sy = dx === 0 ? 0 : w * dy / dx;
-	}
-
-	return {x: x + sx, y: y + sy};
-}
 
 function rect(parent: D3Element, bbox: BBox, node: D3Node, rounded = false) {
 	const shapeSvg = parent.insert("rect", ":first-child")
@@ -80,37 +52,6 @@ function rect(parent: D3Element, bbox: BBox, node: D3Node, rounded = false) {
 	};
 
 	return shapeSvg;
-}
-
-function intersectEllipse(ellCenter: Point, rx: number, ry: number, nodeCenter: Point, point: Point) {
-
-	//translate all to center ellipse
-	const p1 = {x: point.x - ellCenter.x, y: point.y - ellCenter.y}
-	const p2 = {x: nodeCenter.x - ellCenter.x, y: nodeCenter.y - ellCenter.y}
-
-	if (p2.x == p1.x) { //hack to avoid singularity
-		p1.x += .0000001
-	}
-
-	const s = (p2.y - p1.y) / (p2.x - p1.x);
-	const si = p2.y - (s * p2.x);
-	const a = (ry * ry) + (rx * rx * s * s);
-	const b = 2 * rx * rx * si * s;
-	const c = rx * rx * si * si - rx * rx * ry * ry;
-
-	const radicand_sqrt = Math.sqrt((b * b) - (4 * a * c));
-	const x = p1.x > p2.x ?
-		(-b + radicand_sqrt) / (2 * a) :
-		(-b - radicand_sqrt) / (2 * a)
-	const pos = {
-		x: x,
-		y: s * x + si
-	}
-	//translate back
-	pos.x += ellCenter.x;
-	pos.y += ellCenter.y
-
-	return pos;
 }
 
 
@@ -198,7 +139,7 @@ function hexagon(parent: D3Element, bbox: BBox, node: D3Node) {
 	// [0,1,2,3,4,5,6].map(i=>`${Math.sin(Math.PI/3*i+Math.PI/6).toFixed(4)},${Math.cos(Math.PI/3*i+Math.PI/6).toFixed(4)}`).join(',')
 	const shapeSvg = parent.insert("polygon", ":first-child")
 		.attr("points",
-			[0.5000,0.8660,1.0000,0.0000,0.5000,-0.8660,-0.5000,-0.8660,-1.0000,-0.0000,-0.5000,0.8660,0.5000,0.8660].map(n => n * sz).join(','))
+			[0.5000, 0.8660, 1.0000, 0.0000, 0.5000, -0.8660, -0.5000, -0.8660, -1.0000, -0.0000, -0.5000, 0.8660, 0.5000, 0.8660].map(n => n * sz).join(','))
 		.attr("width", node.width)
 		.attr("height", node.height);
 
@@ -240,7 +181,7 @@ function component(parent: D3Element, bbox: BBox, node: D3Node) {
 function folder(parent: D3Element, bbox: BBox, node: D3Node) {
 	const dy = node.width / 20
 	const shapeSvg = parent
-		.attr('label-offset-y', dy*2)
+		.attr('label-offset-y', dy * 2)
 		.insert('g', ':first-child')
 	shapeSvg.insert("rect", ":first-child")
 		.attr("rx", 3).attr("ry", 3)
@@ -249,7 +190,7 @@ function folder(parent: D3Element, bbox: BBox, node: D3Node) {
 		.attr("width", node.width)
 		.attr("height", node.height - dy * 2);
 	shapeSvg.insert("path", ":first-child")
-		.attr('d', `M0,${-node.height/2+2*dy} l${dy},${-2*dy} h${node.width / 2-dy*2} v${dy*2}`)
+		.attr('d', `M0,${-node.height / 2 + 2 * dy} l${dy},${-2 * dy} h${node.width / 2 - dy * 2} v${dy * 2}`)
 
 	node.intersect = function (point) {
 		return intersectRect({x: node.x, y: node.y + dy / 2, width: node.width, height: node.height + dy}, point);
@@ -387,9 +328,9 @@ function webbrowser(parent: D3Element, bbox: BBox, node: D3Node) {
 		.insert('g', ':first-child')
 	shapeSvg.insert("path", ":first-child")
 		.attr('d', `
-			M${-node.width/2},${-node.height/2+dy} h${node.width}
-			M${-node.width/2 + dy/4},${-node.height/2 + dy/4} h${dy/2} v${dy/2} h${-dy/2} z
-			M${-node.width/2 + dy},${-node.height/2 + dy/4} h${node.width - dy - dy/4} v${dy/2} h${-node.width + dy + dy/4} z
+			M${-node.width / 2},${-node.height / 2 + dy} h${node.width}
+			M${-node.width / 2 + dy / 4},${-node.height / 2 + dy / 4} h${dy / 2} v${dy / 2} h${-dy / 2} z
+			M${-node.width / 2 + dy},${-node.height / 2 + dy / 4} h${node.width - dy - dy / 4} v${dy / 2} h${-node.width + dy + dy / 4} z
 		`)
 	shapeSvg.insert("rect", ":first-child")
 		.attr("rx", 3).attr("ry", 3)

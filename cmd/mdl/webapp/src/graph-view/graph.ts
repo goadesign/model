@@ -1,22 +1,28 @@
 import {defs} from "./defs";
 import {create, setPosition} from "./svg-create";
 import {cursorInteraction} from "svg-editor-tools/lib/cursor-interaction";
-import {intersectRect, shapes} from "./shapes";
+import {shapes} from "./shapes";
+import {intersectPolylineBox, Segment} from "./intersect";
 
 
-interface Group {
+interface Point {
+	x: number;
+	y: number;
+}
+
+interface BBox extends Point {
+	width: number;
+	height: number;
+}
+
+interface Group extends BBox {
 	id: string;
 	name: string;
 	nodes: (Node | Group)[];
 	ref?: SVGGElement;
-
-	x?: number;
-	y?: number;
-	width?: number;
-	height?: number;
 }
 
-interface Node {
+interface Node extends BBox {
 	id: string;
 	title: string;
 	sub: string;
@@ -24,10 +30,6 @@ interface Node {
 
 	ref?: SVGGElement;
 	expanded?: boolean;
-	x: number;
-	y: number;
-	width: number;
-	height: number;
 	selected?: boolean;
 
 	intersect: (p: Point) => Point
@@ -106,13 +108,9 @@ interface Edge {
 	label: string;
 	from: Node;
 	to: Node;
+	vertices: Point[];
 	ref?: SVGGElement;
 	style: EdgeStyle;
-}
-
-interface Point {
-	x: number;
-	y: number;
 }
 
 export class GraphData {
@@ -146,12 +144,13 @@ export class GraphData {
 		return Array.from(this.nodesMap.values())
 	}
 
-	addEdge(id: string, fromNode: string, toNode: string, label: string, style: EdgeStyle) {
+	addEdge(id: string, fromNode: string, toNode: string, label: string, vertices: Point[], style: EdgeStyle) {
 		this.edges.push({
 			id,
 			from: this.nodesMap.get(fromNode),
 			to: this.nodesMap.get(toNode),
 			label,
+			vertices,
 			style: {...defaultEdgeStyle, ...style}
 		})
 	}
@@ -162,7 +161,8 @@ export class GraphData {
 			return
 		}
 		const group: Group = {
-			id, name, nodes: nodesOrGroups.map(k => {
+			id, name, x: null, y: null, width: null, height: null,
+			nodes: nodesOrGroups.map(k => {
 				const n = this.nodesMap.get(k) || this.groupsMap.get(k)
 				if (!n) console.error(`Node or group ${k} not found for group ${id} "${name}"`)
 				return n
@@ -380,65 +380,104 @@ export const buildGraph = (data: GraphData, onNodeSelect: (n: Node) => void) => 
 
 function buildEdge(data: GraphData, edge: Edge) {
 	const n1 = edge.from, n2 = edge.to;
-	let p0: Point, pn: Point, p1: Point, p2: Point, p3: Point, p4: Point;
-
-	const overlap = (x1: number, w1: number, x2: number, w2: number) => !(x1 + w1 < x2 || x1 > x2 + w2)
-
 
 	const g = create.element('g', {}, 'edge') as SVGGElement
 	g.setAttribute('id', edge.id)
 	g.setAttribute('data-from', edge.from.id)
 	g.setAttribute('data-to', edge.to.id)
 
-	// for edges with same "from" and "to", we must spread the labels so they don't overlap
-	// lookup the other "same" edges
-	const sameEdges = data.edges.filter(e => e.from == edge.from && e.to == edge.to)
-	let spreadPos = 0
-	if (sameEdges.length) {
-		const idx = sameEdges.indexOf(edge) // my index in the list of same edges
-		spreadPos = idx - (sameEdges.length - 1) / 2
+	const position = (edge.style.position || 50) / 100
+
+	// if vertices exists, follow them
+	let vertices = edge.vertices ? edge.vertices.concat() : [];
+
+	if (vertices.length == 0) {
+		// for edges with same "from" and "to", we must spread the labels so they don't overlap
+		// lookup the other "same" edges
+		const sameEdges = data.edges.filter(e => e.from == edge.from && e.to == edge.to)
+		let spreadPos = 0
+		if (sameEdges.length) {
+			const idx = sameEdges.indexOf(edge) // my index in the list of same edges
+			spreadPos = idx - (sameEdges.length - 1) / 2
+
+			let spreadX = 0, spreadY = 0;
+			if (Math.abs(n1.x - n2.x) > Math.abs(n1.y - n2.y)) {
+				spreadY = spreadPos * 70
+			} else {
+				spreadX = spreadPos * 200
+			}
+			vertices.push({
+				x: (n1.x + n2.x) / 2 + spreadX,
+				y: (n1.y + n2.y) / 2 + spreadY
+			})
+		}
 	}
-	let spreadX = 0, spreadY = 0;
-	if (Math.abs(n1.x - n2.x) > Math.abs(n1.y - n2.y)) {
-		spreadY = spreadPos * 70
-	} else {
-		spreadX = spreadPos * 200
+
+	vertices.unshift(n1)
+	vertices.push(n2)
+
+	vertices[0] = n1.intersect(vertices[1])
+	vertices[vertices.length - 1] = n2.intersect(vertices[vertices.length - 2])
+
+	//where along the edge is the label?
+	let iLabel: number // the segment index where we place the label
+	let pLabel: Point // position of label
+	function distance(p1: Point, p2: Point) {
+		return Math.sqrt((p2.x - p1.x) * (p2.x - p1.x) + (p2.y - p1.y) * (p2.y - p1.y))
 	}
+
+	let sum = 0 // total length of the edge, sum of segments
+	for (let i = 1; i < vertices.length; i++) {
+		sum += distance(vertices[i - 1], vertices[i])
+	}
+	let acc = 0
+	for (let i = 1; i < vertices.length; i++) {
+		const d = distance(vertices[i - 1], vertices[i])
+		if (acc + d > sum * position) {
+			const pos = (sum * position - acc) / d
+			pLabel = {
+				x: vertices[i - 1].x + (vertices[i].x - vertices[i - 1].x) * pos,
+				y: vertices[i - 1].y + (vertices[i].y - vertices[i - 1].y) * pos
+			}
+			iLabel = i
+			break
+		}
+		acc += d
+	}
+
 
 	// label
-	const
-		cx = (n1.x + n2.x) / 2 + spreadX,
-		fontSize = edge.style.fontSize;
-	let cy = (n1.y + n2.y) / 2 + spreadY;
-	let {txt, dy, maxW} = create.textArea(edge.label, 200, fontSize, false, cx, cy, 'middle')
+	const fontSize = edge.style.fontSize
+	let {txt, dy, maxW} = create.textArea(edge.label, 200, fontSize, false, pLabel.x, pLabel.y, 'middle')
 	//move text up to center relative to the edge
 	dy -= fontSize / 2
-	txt.setAttribute('y', String(cy - dy / 2))
-
-	p0 = n1.intersect({x: cx, y: cy})
-	pn = n2.intersect({x: cx, y: cy})
-
+	txt.setAttribute('y', String(pLabel.y - dy / 2))
 
 	maxW += fontSize
 	txt.setAttribute('stroke', 'none')
 	txt.setAttribute('font-size', String(edge.style.fontSize))
 	txt.setAttribute('fill', edge.style.color)
 
-	const bbox = {x: cx - maxW / 2, y: cy - dy / 2, width: maxW, height: dy}
+	const bbox = {x: pLabel.x - maxW / 2, y: pLabel.y - dy / 2, width: maxW, height: dy}
 	const bg = create.rect(bbox.width, bbox.height, bbox.x, bbox.y)
 	applyStyle(bg, styles.edgeRect)
 	g.append(bg, txt)
 	txt.setAttribute('data-field', 'label')
 
-	// the path
 	bbox.x += bbox.width / 2
 	bbox.y += bbox.height / 2
-	p1 = intersectRect(bbox, p0)
-	p2 = intersectRect(bbox, pn)
 
-	const path = `M${p0.x},${p0.y} L${p1.x},${p1.y} M${p2.x},${p2.y} L${pn.x},${pn.y}`
+	const segments: Segment[] = []
+	for (let i = 1; i < vertices.length; i++) {
+		segments.push({p: vertices[i - 1], q: vertices[i]})
+	}
+	// splice edge over label box
+	intersectPolylineBox(segments, bbox)
+
+	const path = segments.map(s => `M${s.p.x},${s.p.y} L${s.q.x},${s.q.y}`).join(' ')
 
 	const p = create.path(path, {'marker-end': 'url(#arrow)'}, 'edge')
+	p.setAttribute('fill', 'none')
 	p.setAttribute('stroke', edge.style.color)
 	p.setAttribute('stroke-width', String(edge.style.thickness))
 	edge.style.dashed && p.setAttribute('stroke-dasharray', '4')

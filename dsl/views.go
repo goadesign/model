@@ -1739,7 +1739,7 @@ func NoRelationship() {
 //         })
 //         Views(func() {
 //             SystemContextView(SoftwareSystem, "context", "An overview diagram.", func() {
-//                 Add(Customer, System, func() {
+//                 Link(Customer, System, func() {
 //                     Vertices(300, 100, 400, 200)
 //                 })
 //             })

@@ -334,6 +334,9 @@ func modelizeAnimationSteps(as []*expr.AnimationStep) []*AnimationStep {
 }
 
 func modelizeStyles(s *expr.Styles) *Styles {
+	if s == nil {
+		return nil
+	}
 	elems := make([]*ElementStyle, len(s.Elements))
 	for i, es := range s.Elements {
 		elems[i] = &ElementStyle{

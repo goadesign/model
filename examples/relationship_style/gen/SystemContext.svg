@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" id="graph" width="1492" height="1005.0495910644531"><script type="application/json"><![CDATA[{
+  "name": "SystemContext",
+  "description": "System Context diagram.",
+  "elements": [
+    {
+      "id": "fphk5f",
+      "tags": "Element,Person,person"
+    },
+    {
+      "id": "fzh5ue",
+      "tags": "Element,Person,person"
+    },
+    {
+      "id": "ucih59",
+      "tags": "Element,Software System",
+      "elementViewKey": "SystemContext"
+    }
+  ]
+}]]></script>
+<defs>
+	<marker id="arrow" viewBox="0 0 5 5" refX="4" refY="2.5" markerWidth="5" markerHeight="5" orient="auto" markerUnits="strokeWidth">
+		<path fill="#aaa" stroke-width="1" stroke="none" d="M0,0 L5,2.5 L0,5 Z" class="arrowHead"></path>
+	</marker>
+	<g id="icon-circle" transform="translate(0,-12)" class="icon">
+		<circle cx="7" cy="7" r="7"></circle>
+	</g>
+	<g id="icon-cube" transform="translate(0, -14)" class="icon">
+		<path d="M 5 0 h 10 v 10 l -5 5 h -10 v -10 l 5 -5 M 0 5 h 10 v 10 M 15 0 l -5 5"></path>
+	</g>
+</defs><g class="zoom" transform="scale(1)"><g class="groups"></g><g class="edges"><g class="edge" id="14eytmf" data-from="fphk5f" data-to="ucih59"><rect x="383.49900047353276" y="402.51462547353276" rx="0" ry="0" width="99.03125" height="61" fill="none" stroke="none"></rect><text x="0" y="402.51462547353276" text-anchor="middle" stroke="none" font-size="22" fill="#999" data-field="label"><tspan x="433.01462547353276" dy="24px" font-size="22px" font-weight="normal">Uses</tspan><tspan x="433.01462547353276" dy="24px" font-size="22px" font-weight="normal">2nd line</tspan></text><path marker-end="url(#arrow)" class="edge" d="M981.4430954884738,253.13708036866365 L300,300 M300,300 L402.51462547353276,402.51462547353276 M463.51462547353276,463.51462547353276 L500,500 M500,500 L436.4546455750281,685.0496188293407" fill="none" stroke="#999" stroke-width="3"></path></g><g class="edge" id="o7eyjl" data-from="fzh5ue" data-to="ucih59"><rect x="742.9519433405735" y="747.5849466947656" rx="0" ry="0" width="109.0625" height="37" fill="none" stroke="none"></rect><text x="0" y="747.5849466947656" text-anchor="middle" stroke="none" font-size="22" fill="#999" data-field="label"><tspan x="797.4831933405735" dy="24px" font-size="22px" font-weight="normal">Writes to</tspan></text><path marker-end="url(#arrow)" class="edge" d="M1063.6388853638312,766.2501622052956 L852.0144433405735,765.8758190697183 M742.9519433405735,775.2010277424981 L534.9452005729481,809.9738658040594" fill="none" stroke="#999" stroke-width="3"></path></g><g class="edge" id="zytrhj" data-from="fzh5ue" data-to="ucih59"><rect x="733.2805800962058" y="816.9801698077391" rx="0" ry="0" width="135.640625" height="37" fill="none" stroke="none"></rect><text x="0" y="816.9801698077391" text-anchor="middle" stroke="none" font-size="22" fill="#999" data-field="label"><tspan x="801.1008925962058" dy="24px" font-size="22px" font-weight="normal">Reads from</tspan></text><path marker-end="url(#arrow)" class="edge" d="M1063.6388853638312,791.5912506984453 L868.9212050962058,824.1425337654231 M733.2805800962058,835.66579036868 L534.9452005729481,835.314954297209" fill="none" stroke="#999" stroke-width="3"></path></g></g><g class="nodes"><g class="node" id="fphk5f" transform="translate(1131.4430954884738,242.8215632092131)"><rect rx="3" ry="3" x="-150" y="-150" width="300" height="300" class="nodeBorder" fill="rgba(255, 255, 255, .9)" stroke="#999" stroke-width="3px" opacity="0.9"></rect><g transform="translate(0,-70)"><text x="0" y="0" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" fill="#666" data-field="name"><tspan x="0" dy="24px" font-size="22px" font-weight="bold">Person1</tspan></text><text x="0" y="48" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" fill="#666" font-size="16.5">[person]</text><text x="0" y="68" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" fill="#666" data-field="description"><tspan x="0" dy="24px" font-size="22px" font-weight="normal">A person using the</tspan><tspan x="0" dy="24px" font-size="22px" font-weight="normal">system.</tspan></text></g></g><g class="node" id="fzh5ue" transform="translate(1213.6388853638312,766.515497673164)"><rect rx="3" ry="3" x="-150" y="-150" width="300" height="300" class="nodeBorder" fill="rgba(255, 255, 255, .9)" stroke="#999" stroke-width="3px" opacity="0.9"></rect><g transform="translate(0,-70)"><text x="0" y="0" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" fill="#666" data-field="name"><tspan x="0" dy="24px" font-size="22px" font-weight="bold">Person2</tspan></text><text x="0" y="48" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" fill="#666" font-size="16.5">[person]</text><text x="0" y="68" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" fill="#666" data-field="description"><tspan x="0" dy="24px" font-size="22px" font-weight="normal">A person using the</tspan><tspan x="0" dy="24px" font-size="22px" font-weight="normal">system.</tspan></text></g></g><g class="node" id="ucih59" transform="translate(384.9452005729482,835.0496188293407)"><rect rx="3" ry="3" x="-150" y="-150" width="300" height="300" class="nodeBorder" fill="rgba(255, 255, 255, .9)" stroke="#999" stroke-width="3px" opacity="0.9"></rect><g transform="translate(0,-58)"><text x="0" y="0" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" fill="#666" data-field="name"><tspan x="0" dy="24px" font-size="22px" font-weight="bold">The System</tspan></text><text x="0" y="48" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" fill="#666" font-size="16.5">[Software System]</text><text x="0" y="68" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" fill="#666" data-field="description"><tspan x="0" dy="24px" font-size="22px" font-weight="normal">My Software System</tspan></text></g></g></g></g></svg>
