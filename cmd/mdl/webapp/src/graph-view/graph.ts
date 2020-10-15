@@ -89,7 +89,7 @@ const defaultEdgeStyle: EdgeStyle = {
 	color: '#999',
 	opacity: 1,
 	fontSize: 22,
-	dashed: false,
+	dashed: true,
 }
 
 const defaultNodeStyle: NodeStyle = {
@@ -389,14 +389,14 @@ function buildEdge(data: GraphData, edge: Edge) {
 	const position = (edge.style.position || 50) / 100
 
 	// if vertices exists, follow them
-	let vertices = edge.vertices ? edge.vertices.concat() : [];
+	const vertices = edge.vertices ? edge.vertices.concat() : [];
 
 	if (vertices.length == 0) {
 		// for edges with same "from" and "to", we must spread the labels so they don't overlap
 		// lookup the other "same" edges
 		const sameEdges = data.edges.filter(e => e.from == edge.from && e.to == edge.to)
 		let spreadPos = 0
-		if (sameEdges.length) {
+		if (sameEdges.length > 1) {
 			const idx = sameEdges.indexOf(edge) // my index in the list of same edges
 			spreadPos = idx - (sameEdges.length - 1) / 2
 
@@ -410,6 +410,9 @@ function buildEdge(data: GraphData, edge: Edge) {
 				x: (n1.x + n2.x) / 2 + spreadX,
 				y: (n1.y + n2.y) / 2 + spreadY
 			})
+		// only if no vertices and no splitting, obey routing style Orthogonal
+		} else if (edge.style.routing == 'Orthogonal') {
+			vertices.push({x: n1.x, y: n2.y})
 		}
 	}
 
@@ -480,9 +483,8 @@ function buildEdge(data: GraphData, edge: Edge) {
 	p.setAttribute('fill', 'none')
 	p.setAttribute('stroke', edge.style.color)
 	p.setAttribute('stroke-width', String(edge.style.thickness))
-	edge.style.dashed && p.setAttribute('stroke-dasharray', '4')
+	edge.style.dashed && p.setAttribute('stroke-dasharray', '8')
 	g.append(p)
-
 
 	edge.ref = g
 	return g

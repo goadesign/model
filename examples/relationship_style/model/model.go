@@ -12,23 +12,32 @@ var _ = Design("Getting Started", "This is a model of my software system.", func
 		})
 		Tag("person")
 	})
-	Person("Person2", "A person using the system.", func() {
+	Person("Person2", "The intellectual.\nTwo relationships\nautomatically spread", func() {
 		Uses("The System", "Reads from")
 		Uses("The System", "Writes to")
 		Tag("person")
+	})
+	Person("Person3", "Another person", func() {
+		Uses("The System", "Solid Orthogonal", func() {
+			Tag("knows")
+		})
 	})
 
 	Views(func() {
 		SystemContextView("The System", "SystemContext", "System Context diagram.", func() {
 			AddAll()
 			Link("Person1", "The System", "Edge\nwith vertices", func() {
-				Vertices(300, 300, 500, 500)
+				Vertices(300, 300, 300, 800)
 			})
 			AutoLayout(RankLeftRight)
 		})
 		Styles(func() {
 			RelationshipStyle("pos75", func() {
-				Position(75)
+				Position(40)
+			})
+			RelationshipStyle("knows", func() {
+				Routing(RoutingOrthogonal)
+				Solid()
 			})
 		})
 	})

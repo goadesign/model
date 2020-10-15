@@ -302,9 +302,9 @@ const (
 
 const (
 	RoutingUndefined RoutingKind = iota
-	RoutingCurved
 	RoutingDirect
 	RoutingOrthogonal
+	RoutingCurved
 )
 
 const (

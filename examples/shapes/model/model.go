@@ -2,6 +2,7 @@ package design
 
 import (
 	"fmt"
+
 	. "goa.design/model/dsl"
 	"goa.design/model/mdl"
 )

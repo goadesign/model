@@ -72,6 +72,7 @@ interface View {
 	relationships: {
 		id: string;
 		vertices: { x: number; y: number }[];
+		routing: string; // takes priority over style
 	}[];
 	softwareSystemId: string;
 }
@@ -259,13 +260,14 @@ export const parseView = (model: Model, layouts: Layouts, viewKey: string) => {
 				}
 				return;
 			}
-			let style = {}
+			let style: any = {}
 			const tagsMap = reduceToMap(rel.tags.split(','))
 			styles && styles.relationships && styles.relationships.forEach((s: any) => {
 				if (tagsMap[s.tag]) {
 					style = {...style, ...s}
 				}
 			})
+			if (ref.routing) style.routing = ref.routing
 
 			graph.addEdge(rel.id, rel.sourceId, rel.destinationId, rel.description, ref.vertices, style)
 		})
