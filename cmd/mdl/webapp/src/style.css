@@ -60,6 +60,14 @@ button.action:disabled {
 .node.selected .nodeBorder, .edge.selected path, .edge.selected rect {
     stroke: #29c229;
 }
+.edge .v-dot {
+    fill: transparent;
+    stroke: none;
+    stroke-width: 3px;
+}
+.edge .v-dot.selected {
+    stroke: #29c229;
+}
 
 .nodeShadow {
     fill: none;

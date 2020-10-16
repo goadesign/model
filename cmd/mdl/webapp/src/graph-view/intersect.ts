@@ -9,8 +9,22 @@ interface BBox extends Point {
 }
 
 
-export function insideBox(p: Point, b: BBox): boolean {
-	return p.x > b.x - b.width / 2 && p.x < b.x + b.width / 2 && p.y > b.y - b.height / 2 && p.y < b.y + b.height / 2
+export function insideBox(p: Point, b: BBox, centeredBox = true): boolean {
+	return centeredBox ?
+		(p.x > b.x - b.width / 2 && p.x < b.x + b.width / 2 && p.y > b.y - b.height / 2 && p.y < b.y + b.height / 2) :
+		(p.x > b.x && p.x < b.x + b.width && p.y > b.y && p.y < b.y + b.height)
+}
+
+export function boxesOverlap(b1: BBox, b2: BBox): boolean {
+	return b1.x < b2.x + b2.width && b1.y < b2.y + b2.height && b1.x + b1.width > b2.x && b1.y + b1.height > b2.y
+}
+
+export function uncenterBox(b: BBox): BBox {
+	return {x: b.x - b.width / 2, y: b.y - b.height / 2, width: b.width, height: b.height}
+}
+
+export function scaleBox(b: BBox, sc: number): BBox {
+	return {x: b.x * sc, y: b.y * sc, width: b.width * sc, height: b.height * sc}
 }
 
 // intersect 2 segments (p1->q1) with (p2, q2)
