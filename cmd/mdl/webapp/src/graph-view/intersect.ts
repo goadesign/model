@@ -38,7 +38,7 @@ function segmentIntersection(p1: Point, q1: Point, p2: Point, q2: Point) {
 			onLine1: false,
 			onLine2: false
 		};
-	denominator = ((q2.y - p2.y) * (q1.x - p1.x)) - ((q2.x - p2.x) * (q1.y - p1.y));
+	denominator = (q2.y - p2.y) * (q1.x - p1.x) - (q2.x - p2.x) * (q1.y - p1.y);
 	if (denominator == 0) {
 		return result;
 	}
@@ -81,7 +81,7 @@ export function intersectRectFull(p1: Point, p2: Point, box: BBox): Point[] {
 // intersects a line that goes from p to the center of the box
 export function intersectRect(box: BBox, p: Point): Point {
 	if (insideBox(p, box)) return {x: box.x, y: box.y}
-	return intersectRectFull(box, p, box)[0]
+	return intersectRectFull(box, p, box)[0] || {x: box.x, y: box.y}
 }
 
 export function intersectEllipse(ellCenter: Point, rx: number, ry: number, nodeCenter: Point, point: Point) {
@@ -150,4 +150,20 @@ export function intersectPolylineBox(segments: Segment[], box: BBox) {
 			}
 		}
 	}
+}
+
+export function project(p: Point, a: Point, b: Point): Point {
+	let atob = {x: b.x - a.x, y: b.y - a.y};
+	let atop = {x: p.x - a.x, y: p.y - a.y};
+	let len = atob.x * atob.x + atob.y * atob.y;
+	let dot = atop.x * atob.x + atop.y * atob.y;
+	let t = Math.min(1, Math.max(0, dot / len));
+	return {
+		x: a.x + atob.x * t,
+		y: a.y + atob.y * t
+	};
+}
+
+export function cabDistance(p1: Point, p2: Point): number {
+	return Math.abs(p2.x - p1.x) + Math.abs(p2.y - p1.y)
 }

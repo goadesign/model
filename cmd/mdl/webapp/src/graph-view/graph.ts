@@ -2,7 +2,17 @@ import {defs} from "./defs";
 import {create, setPosition} from "./svg-create";
 import {cursorInteraction} from "svg-editor-tools/lib/cursor-interaction";
 import {shapes} from "./shapes";
-import {boxesOverlap, insideBox, intersectPolylineBox, scaleBox, Segment, uncenterBox} from "./intersect";
+import {
+	boxesOverlap,
+	cabDistance,
+	insideBox,
+	intersectPolylineBox,
+	project,
+	scaleBox,
+	Segment,
+	uncenterBox
+} from "./intersect";
+import {autoLayout} from "./dagre";
 
 
 interface Point {
@@ -107,15 +117,19 @@ interface Edge {
 	label: string;
 	from: Node;
 	to: Node;
-	vertices: EdgeVertex[];
+	vertices?: EdgeVertex[];
 	ref?: SVGGElement;
 	style: EdgeStyle;
+	initVertex: (p:Point) => EdgeVertex
 }
 
 interface EdgeVertex extends Point {
 	id: string
 	selected?: boolean
+	edge: Edge
 	ref?: SVGElement
+	label?: boolean
+	auto?: boolean
 }
 
 export class GraphData {
@@ -135,6 +149,13 @@ export class GraphData {
 		this.edgeVertices = new Map;
 		this.nodesMap = new Map;
 		this.groupsMap = new Map;
+
+		// @ts-ignore
+		window.graph = this
+	}
+
+	private randomID() {
+		return Math.round(Math.random() * 1e10).toString(36)
 	}
 
 	addNode(id: string, label: string, sub: string, description: string, style: NodeStyle) {
@@ -157,14 +178,28 @@ export class GraphData {
 			v.id = `v-${id}-${i}`
 			this.edgeVertices.set(v.id, v)
 		})
-		this.edges.push({
+		const initVertex = (p:Point) => {
+			const v = p as EdgeVertex
+			if (!v.id) {
+				v.id = `v-${this.randomID()}`
+				this.edgeVertices.set(v.id, v)
+			}
+			v.edge = edge
+			return p as EdgeVertex
+		}
+		const edge = {
 			id,
 			from: this.nodesMap.get(fromNode),
 			to: this.nodesMap.get(toNode),
 			label,
-			vertices: vertices as EdgeVertex[],
-			style: {...defaultEdgeStyle, ...style}
-		})
+			vertices: null as EdgeVertex[],
+			style: {...defaultEdgeStyle, ...style},
+			initVertex
+		}
+		this.edges.push(edge)
+		if (vertices) {
+			edge.vertices = vertices.map(p => edge.initVertex(p))
+		}
 	}
 
 	addGroup(id: string, name: string, nodesOrGroups: string[]) {
@@ -224,10 +259,9 @@ export class GraphData {
 	}
 
 	moveEdgeVertex(v: EdgeVertex, x: number, y: number) {
-		const [, edgeID] = v.id.split('-')
 		v.x = x;
 		v.y = y;
-		this.redrawEdge(this.edges.find(e => e.id == edgeID))
+		this.redrawEdge(v.edge)
 	}
 
 	// moves the entire graph to be aligned top-left of the drawing area
@@ -248,7 +282,7 @@ export class GraphData {
 		this.updateEdgesSel()
 	}
 
-	private redrawEdge(e: Edge) {
+	redrawEdge(e: Edge) {
 		const p = e.ref.parentElement;
 		p.removeChild(e.ref)
 		e.ref = buildEdge(this, e)
@@ -267,15 +301,13 @@ export class GraphData {
 
 	//call this from console: JSON.stringify(gdata.exportLayout())
 	exportLayout() {
-		return Array.from<Point&{id: string}>(this.nodesMap.values())
-			.concat(Array.from(this.edgeVertices.values()))
-			.reduce<{ [key: string]: { x: number, y: number } }>(
-				(o, n) => {
-					o[n.id] = {x: n.x, y: n.y};
-					return o
-				},
-				{}
-			)
+		const ret: { [key: string]: Point | (Point & {label: boolean})[] }  = {}
+		this.nodes().forEach(n => ret[n.id] = {x: n.x, y: n.y})
+		this.edges.forEach(e => {
+			const lst = e.vertices.filter(v => !v.auto).map(v => ({x: v.x, y: v.y, label: v.label}))
+			lst.length && (ret[`e-${e.id}`] = lst)
+		})
+		return ret
 	}
 
 	exportSVG() {
@@ -302,11 +334,53 @@ export class GraphData {
 
 	importLayout(layout: { [key: string]: any }) {
 		Object.entries(layout).forEach(([k, v]) => {
-			const n = this.nodesMap.get(k) || this.edgeVertices.get(k)
+			// nodes
+			const n = this.nodesMap.get(k)
 			if (!n) return
 			n.x = v.x
 			n.y = v.y
+
+			// edge vertices
+			if (k.startsWith('e-')) {
+				const edge = this.edges.find(e => e.id == k.slice(2))
+				if (!edge) return;
+				edge.vertices = v
+				return;
+			}
 		})
+	}
+
+	autoLayout() {
+		const auto = autoLayout(this)
+		auto.nodes.forEach(an => {
+			const n = this.nodesMap.get(an.id)
+			this.moveNode(n, an.x, an.y)
+		})
+		this.edgeVertices.clear()
+		auto.edges.forEach(ae => {
+			const edge = this.edges.find(e => e.id == ae.id)
+			const labelVertex = ae.vertices.find(v => ae.label.x == v.x && ae.label.y == v.y) as EdgeVertex
+			labelVertex && (labelVertex.label = true)
+			edge.vertices = ae.vertices.slice(1, -1).map(p => edge.initVertex(p))
+			this.redrawEdge(edge)
+		})
+		updatePanning()
+	}
+
+	alignSelectionV() {
+		const lst: Point[] = this.nodes().filter(n => n.selected)
+		lst.push(...Array.from(this.edgeVertices.values()).filter(v => v.selected))
+		let minY = Math.min(...lst.map(p => p.y))
+		this.nodesMap.forEach(n => n.selected && this.moveNode(n, n.x, minY))
+		this.edgeVertices.forEach(v => v.selected && this.moveEdgeVertex(v, v.x, minY))
+	}
+
+	alignSelectionH() {
+		const lst: Point[] = this.nodes().filter(n => n.selected)
+		lst.push(...Array.from(this.edgeVertices.values()).filter(v => v.selected))
+		let minX = Math.min(...lst.map(p => p.x))
+		this.nodesMap.forEach(n => n.selected && this.moveNode(n, minX, n.y))
+		this.edgeVertices.forEach(v => v.selected && this.moveEdgeVertex(v, minX, v.y))
 	}
 }
 
@@ -393,7 +467,11 @@ function buildEdge(data: GraphData, edge: Edge) {
 	const position = (edge.style.position || 50) / 100
 
 	// if vertices exists, follow them
-	const vertices: Point[] = edge.vertices ? edge.vertices.concat() : [];
+	let vertices: Point[] = edge.vertices ? edge.vertices.concat() : [];
+	// remove auto vertices, they will be regenerated
+	const tmp = (vertices as EdgeVertex[]);
+	tmp.forEach(v => v.auto && data.edgeVertices.delete(v.id))
+	vertices = tmp.filter(v => !v.auto)
 
 	if (vertices.length == 0) {
 		// for edges with same "from" and "to", we must spread the labels so they don't overlap
@@ -410,13 +488,16 @@ function buildEdge(data: GraphData, edge: Edge) {
 			} else {
 				spreadX = spreadPos * 200
 			}
-			vertices.push({
+			const v = edge.initVertex({
 				x: (n1.x + n2.x) / 2 + spreadX,
 				y: (n1.y + n2.y) / 2 + spreadY
 			})
+			v.label = true
+			v.auto = true
+			vertices.push(v)
 			// only if no vertices and no splitting, obey routing style Orthogonal
 		} else if (edge.style.routing == 'Orthogonal') {
-			vertices.push({x: n1.x, y: n2.y})
+			vertices.push({x: n1.x, y: n2.y, auto: true} as Point)
 		}
 	}
 
@@ -426,53 +507,35 @@ function buildEdge(data: GraphData, edge: Edge) {
 	vertices[0] = n1.intersect(vertices[1])
 	vertices[vertices.length - 1] = n2.intersect(vertices[vertices.length - 2])
 
-	//where along the edge is the label?
-	let iLabel: number // the segment index where we place the label
-	let pLabel: Point // position of label
-	function distance(p1: Point, p2: Point) {
-		return Math.sqrt((p2.x - p1.x) * (p2.x - p1.x) + (p2.y - p1.y) * (p2.y - p1.y))
-	}
+	// where along the edge is the label?
+	// position of label
+	let pLabel: Point = vertices.find(v => (v as EdgeVertex).label)
+	if (!pLabel) {
+		const distance = (p1: Point, p2: Point) =>
+			Math.sqrt((p2.x - p1.x) * (p2.x - p1.x) + (p2.y - p1.y) * (p2.y - p1.y))
 
-	let sum = 0 // total length of the edge, sum of segments
-	for (let i = 1; i < vertices.length; i++) {
-		sum += distance(vertices[i - 1], vertices[i])
-	}
-	let acc = 0
-	for (let i = 1; i < vertices.length; i++) {
-		const d = distance(vertices[i - 1], vertices[i])
-		if (acc + d > sum * position) {
-			const pos = (sum * position - acc) / d
-			pLabel = {
-				x: vertices[i - 1].x + (vertices[i].x - vertices[i - 1].x) * pos,
-				y: vertices[i - 1].y + (vertices[i].y - vertices[i - 1].y) * pos
-			}
-			iLabel = i
-			break
+		let sum = 0 // total length of the edge, sum of segments
+		for (let i = 1; i < vertices.length; i++) {
+			sum += distance(vertices[i - 1], vertices[i])
 		}
-		acc += d
+		pLabel = {x: n1.x, y: n1.y} // fallback for corner cases
+		let acc = 0
+		for (let i = 1; i < vertices.length; i++) {
+			const d = distance(vertices[i - 1], vertices[i])
+			if (acc + d > sum * position) {
+				const pos = (sum * position - acc) / d
+				pLabel = {
+					x: vertices[i - 1].x + (vertices[i].x - vertices[i - 1].x) * pos,
+					y: vertices[i - 1].y + (vertices[i].y - vertices[i - 1].y) * pos
+				}
+				break
+			}
+			acc += d
+		}
 	}
 
-
-	// label
-	const fontSize = edge.style.fontSize
-	let {txt, dy, maxW} = create.textArea(edge.label, 200, fontSize, false, pLabel.x, pLabel.y, 'middle')
-	//move text up to center relative to the edge
-	dy -= fontSize / 2
-	txt.setAttribute('y', String(pLabel.y - dy / 2))
-
-	maxW += fontSize
-	txt.setAttribute('stroke', 'none')
-	txt.setAttribute('font-size', String(edge.style.fontSize))
-	txt.setAttribute('fill', edge.style.color)
-
-	const bbox = {x: pLabel.x - maxW / 2, y: pLabel.y - dy / 2, width: maxW, height: dy}
-	const bg = create.rect(bbox.width, bbox.height, bbox.x, bbox.y)
-	applyStyle(bg, styles.edgeRect)
+	const {bg, txt, bbox} = buildEdgeLabel(pLabel, edge)
 	g.append(bg, txt)
-	txt.setAttribute('data-field', 'label')
-
-	bbox.x += bbox.width / 2
-	bbox.y += bbox.height / 2
 
 	const segments: Segment[] = []
 	for (let i = 1; i < vertices.length; i++) {
@@ -491,15 +554,40 @@ function buildEdge(data: GraphData, edge: Edge) {
 	g.append(p)
 
 	// drag handlers
-	edge.vertices && edge.vertices.forEach((p, i) => {
+	edge.vertices = vertices.slice(1, -1).map(p => edge.initVertex(p))
+	edge.vertices.forEach((p, i) => {
 		const v = p as EdgeVertex
 		v.ref = create.element('circle', {id: v.id, cx: p.x, cy: p.y, r: 7}, 'v-dot')
 		v.selected && v.ref.classList.add('selected')
+		v.auto && v.ref.classList.add('auto')
 		g.append(v.ref)
 	})
 
 	edge.ref = g
 	return g
+}
+
+function buildEdgeLabel(pLabel: Point, edge: Edge) {
+	// label
+	const fontSize = edge.style.fontSize
+	let {txt, dy, maxW} = create.textArea(edge.label, 200, fontSize, false, pLabel.x, pLabel.y, 'middle')
+	//move text up to center relative to the edge
+	dy -= fontSize / 2
+	txt.setAttribute('y', String(pLabel.y - dy / 2))
+
+	maxW += fontSize
+	txt.setAttribute('stroke', 'none')
+	txt.setAttribute('font-size', String(edge.style.fontSize))
+	txt.setAttribute('fill', edge.style.color)
+
+	const bbox = {x: pLabel.x - maxW / 2, y: pLabel.y - dy / 2, width: maxW, height: dy}
+	const bg = create.rect(bbox.width, bbox.height, bbox.x, bbox.y)
+	applyStyle(bg, styles.edgeRect)
+	txt.setAttribute('data-field', 'label')
+
+	bbox.x += bbox.width / 2
+	bbox.y += bbox.height / 2
+	return {bg, txt, bbox}
 }
 
 
@@ -607,6 +695,31 @@ function buildGroup(group: Group) {
 	group.ref = g
 }
 
+function findClosestSegment(graph: GraphData, p: Point) {
+	// find the closest point on a segment
+	let fnd = {dst: Number.POSITIVE_INFINITY, pos: -1, edge: null as Edge, prj: null as Point}
+	graph.edges.forEach(edge => {
+		const vertices = edge.vertices || []
+		const pts = [edge.from, ...vertices, edge.to]
+		for (let i = 1; i < pts.length; i++) {
+			const prj = project(p, pts[i - 1], pts[i])
+			const dst = cabDistance(p, prj)
+			if (dst > 50) continue
+			if (dst < fnd.dst) {
+				fnd = {dst, pos: i, prj, edge}
+			}
+		}
+	})
+	return fnd.edge ? fnd : null
+}
+
+function mouseToDrawing(e: MouseEvent): Point {
+	// transform event coords to drawing coords
+	const b = svg.getBoundingClientRect()
+	const z = getZoom()
+	return {x: (e.clientX - b.x) / z, y: (e.clientY - b.y) / z}
+}
+
 function addCursorInteraction(svg: SVGSVGElement) {
 
 	function getData(el: SVGElement) {
@@ -632,6 +745,66 @@ function addCursorInteraction(svg: SVGSVGElement) {
 		d.selected ? dotEl.classList.add('selected') : dotEl.classList.remove('selected')
 	}
 
+	// show moving dot along edge when ALT is pressed
+	svg.addEventListener('mousemove', e => {
+		if (!e.altKey) return
+		const fnd = findClosestSegment(gd(), mouseToDrawing(e))
+		if (fnd) {
+			const {prj} = fnd
+			const parent = svg.querySelector('g.edges')
+			let dot = parent.querySelector('#prj')
+			if (!dot) {
+				dot = create.element('circle', {id: 'prj', cx: prj.x, cy: prj.y, r: 7})
+				parent.append(dot)
+			}
+			dot.setAttribute('cx', String(prj.x))
+			dot.setAttribute('cy', String(prj.y))
+		} else {
+			removePrjDot()
+		}
+	})
+
+	window.addEventListener('keyup', e => {
+		if (e.code == 'AltLeft' || e.code == 'AltRight') {
+			removePrjDot()
+		}
+	})
+
+	function removePrjDot() {
+		const el = svg.querySelector('g.edges #prj')
+		el && el.parentElement.removeChild(el)
+	}
+
+	svg.addEventListener('click', e => {
+		if (!e.altKey) return
+		const fnd = findClosestSegment(gd(), mouseToDrawing(e))
+		if (fnd) {
+			const {edge, pos, prj} = fnd
+			const v = edge.initVertex(prj)
+			v.selected = true
+			if (e.shiftKey) { // when shift down, make it label position
+				edge.vertices.forEach(v => v.label = false)
+				v.label = true
+			}
+			edge.vertices.splice(pos - 1, 0, v)
+			gd().redrawEdge(edge)
+			removePrjDot()
+		}
+	})
+
+	window.addEventListener('keydown', e => {
+		if (e.code == 'Delete' || e.code == 'Backspace') {
+			Array.from(gd().edgeVertices.values()).filter(v => v.selected).forEach(v => {
+				if (v.auto) {
+					v.auto = true
+				} else {
+					v.edge.vertices.splice(v.edge.vertices.indexOf(v), 1)
+					gd().edgeVertices.delete(v.id)
+				}
+				gd().redrawEdge(v.edge)
+			})
+		}
+	})
 
 	cursorInteraction({
 		svg: svg,
@@ -646,7 +819,6 @@ function addCursorInteraction(svg: SVGSVGElement) {
 			return null
 		},
 		setSelection(handles: Handle[]) {
-			console.log('setSelection', handles.map(h => h.id))
 			// nodes
 			const nodes = handles.filter(isNode) as Node[]
 			gd().setSelected(nodes)
@@ -670,7 +842,8 @@ function addCursorInteraction(svg: SVGSVGElement) {
 			if (gd().nodesMap.has(h.id))
 				gd().moveNode(h as Node, x, y)
 			else {
-				gd().moveEdgeVertex(h, x, y)
+				(h as EdgeVertex).auto = false
+				gd().moveEdgeVertex(h as EdgeVertex, x, y)
 			}
 		},
 		boxSelection(box: DOMRect, add) {

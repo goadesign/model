@@ -58,20 +58,18 @@ const ModelPane: FC<{model: any, layouts: any}> = ({model, layouts}) => {
 		<div className="toolbar">
 			<div>
 				View: <DomainSelect views={listViews(model)} crtID={crtID}/>
-				{' '}
 			</div>
 			<div>
+				<button onClick={() => graph.alignSelectionH()} title="Align selected objects horizontally">H Align</button>
+				<button className="grp" onClick={() => graph.alignSelectionV()} title="Align selected objects vertically">V Align</button>
+				<button className='grp' onClick={() => graph.autoLayout()} title="Automatic layout using DagreJS">Auto Layout</button>
 				<button onClick={() => setZoom(zoom - .05)} title="Zoom out">Zoom -</button>
-				{' '}
 				<button onClick={() => setZoom(zoom + .05)} title="Zoom in">Zoom +</button>
-				{' '}
 				<button onClick={() => {
 					graph.alignTopLeft()
 					setZoom(getZoomAuto())
 				}} title="Zoom/Move to make all graph visible">Fit</button>
-				{' '}
 				<button onClick={() => setZoom(1)}>Zoom 100%</button>
-				{' '}
 				<button className="action" disabled={saving} onClick={() => saveLayout()}>Save View</button>
 			</div>
 		</div>
