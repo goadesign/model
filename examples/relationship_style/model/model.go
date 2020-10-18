@@ -32,6 +32,9 @@ var _ = Design("Getting Started", "This is a model of my software system.", func
 			AutoLayout(RankLeftRight)
 		})
 		Styles(func() {
+			ElementStyle("person", func() {
+				Shape(ShapePerson)
+			})
 			RelationshipStyle("pos75", func() {
 				Position(40)
 			})

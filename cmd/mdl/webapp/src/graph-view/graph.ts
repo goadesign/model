@@ -13,6 +13,7 @@ import {
 	uncenterBox
 } from "./intersect";
 import {autoLayout} from "./dagre";
+import {Undo} from "./undo";
 
 
 interface Point {
@@ -132,6 +133,10 @@ interface EdgeVertex extends Point {
 	auto?: boolean
 }
 
+interface Layout {
+	[k: string]: Point | (Point & {label: boolean})[]
+}
+
 export class GraphData {
 	id: string;
 	name: string;
@@ -140,6 +145,7 @@ export class GraphData {
 	edgeVertices: Map<string, EdgeVertex>
 	groupsMap: Map<string, Group>;
 	metadata: any;
+	private _undo: Undo<Layout>;
 
 	constructor(id?: string, name?: string) {
 		this.id = id;
@@ -149,6 +155,17 @@ export class GraphData {
 		this.edgeVertices = new Map;
 		this.nodesMap = new Map;
 		this.groupsMap = new Map;
+		this._undo = new Undo<Layout>(
+			() => this.exportLayout(true),
+			(lo) => {
+				this.importLayout(lo);
+				this.nodes().forEach(n => setPosition(n.ref, n.x, n.y))
+				this.edges.forEach(e => this.redrawEdge(e))
+				this.updateEdgesSel()
+				this.redrawGroups(null)
+			}
+		)
+		this._undo.change()
 
 		// @ts-ignore
 		window.graph = this
@@ -256,12 +273,22 @@ export class GraphData {
 		setPosition(n.ref, x, y)
 		this.redrawEdges(n);
 		this.redrawGroups(n)
+		this._undo.change()
 	}
 
 	moveEdgeVertex(v: EdgeVertex, x: number, y: number) {
 		v.x = x;
 		v.y = y;
 		this.redrawEdge(v.edge)
+		this._undo.change()
+	}
+
+	undo() {
+		this._undo.undo()
+	}
+
+	redo() {
+		this._undo.redo()
 	}
 
 	// moves the entire graph to be aligned top-left of the drawing area
@@ -299,17 +326,6 @@ export class GraphData {
 		})
 	}
 
-	//call this from console: JSON.stringify(gdata.exportLayout())
-	exportLayout() {
-		const ret: { [key: string]: Point | (Point & {label: boolean})[] }  = {}
-		this.nodes().forEach(n => ret[n.id] = {x: n.x, y: n.y})
-		this.edges.forEach(e => {
-			const lst = e.vertices.filter(v => !v.auto).map(v => ({x: v.x, y: v.y, label: v.label}))
-			lst.length && (ret[`e-${e.id}`] = lst)
-		})
-		return ret
-	}
-
 	exportSVG() {
 		//save svg html
 		let svg: SVGSVGElement = document.querySelector('svg#graph')
@@ -332,19 +348,31 @@ export class GraphData {
 		return src.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"')
 	}
 
+
+	exportLayout(full = false) {
+		const ret: Layout  = {}
+		this.nodes().forEach(n => ret[n.id] = {x: n.x, y: n.y})
+		this.edges.forEach(e => {
+			const lst = e.vertices.filter(v => !v.auto).map(v => ({x: v.x, y: v.y, label: v.label}));
+			(lst.length || full) && (ret[`e-${e.id}`] = lst)
+		})
+		return ret
+	}
+
 	importLayout(layout: { [key: string]: any }) {
 		Object.entries(layout).forEach(([k, v]) => {
 			// nodes
 			const n = this.nodesMap.get(k)
-			if (!n) return
-			n.x = v.x
-			n.y = v.y
-
+			if (n) {
+				n.x = v.x
+				n.y = v.y
+			} else
 			// edge vertices
 			if (k.startsWith('e-')) {
 				const edge = this.edges.find(e => e.id == k.slice(2))
 				if (!edge) return;
-				edge.vertices = v
+				edge.vertices && edge.vertices.forEach(v => this.edgeVertices.delete(v.id))
+				edge.vertices = v.map((p:Point) => edge.initVertex(p))
 				return;
 			}
 		})

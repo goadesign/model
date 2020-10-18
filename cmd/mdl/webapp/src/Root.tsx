@@ -60,9 +60,12 @@ const ModelPane: FC<{model: any, layouts: any}> = ({model, layouts}) => {
 				View: <DomainSelect views={listViews(model)} crtID={crtID}/>
 			</div>
 			<div>
+				<button onClick={() => graph.undo()} title="Undo last change">Undo</button>
+				<button className="grp" onClick={() => graph.redo()} title="Redo undone actions">Redo</button>
+
 				<button onClick={() => graph.alignSelectionH()} title="Align selected objects horizontally">H Align</button>
 				<button className="grp" onClick={() => graph.alignSelectionV()} title="Align selected objects vertically">V Align</button>
-				<button className='grp' onClick={() => graph.autoLayout()} title="Automatic layout using DagreJS">Auto Layout</button>
+				<button className="grp" onClick={() => graph.autoLayout()} title="Automatic layout using DagreJS">Auto Layout</button>
 				<button onClick={() => setZoom(zoom - .05)} title="Zoom out">Zoom -</button>
 				<button onClick={() => setZoom(zoom + .05)} title="Zoom in">Zoom +</button>
 				<button onClick={() => {
