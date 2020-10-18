@@ -93,7 +93,7 @@ func main() {
 func showUsage() {
 	fmt.Fprintf(os.Stderr, "Usage: %s PACKAGE [FLAGS].\n", os.Args[0])
 	fmt.Fprintln(os.Stderr, "Start a HTTP server that serves a graphical editor for the design described in PACKAGE.")
-	fmt.Fprintln(os.Stderr, "PACKAGE must be the import path to a Go package containing Model DSL.\n")
+	fmt.Fprintf(os.Stderr, "PACKAGE must be the import path to a Go package containing Model DSL.\n\n")
 	flag.PrintDefaults()
 }
 
