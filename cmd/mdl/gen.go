@@ -60,12 +60,12 @@ func gen(pkg string, debug bool) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf(`failed to find a go compiler, looked in "%s"`, os.Getenv("PATH"))
 	}
-	if _, err := runCmd(gobin, tmpDir, "build", "-o", "stz"); err != nil {
+	if _, err := runCmd(gobin, tmpDir, "build", "-o", "mdl"); err != nil {
 		return nil, err
 	}
 
 	// Run program
-	o, err := runCmd(path.Join(tmpDir, "stz"), tmpDir, "model.json")
+	o, err := runCmd(path.Join(tmpDir, "mdl"), tmpDir, "model.json")
 	if debug {
 		fmt.Fprintln(os.Stderr, o)
 	}
@@ -94,20 +94,20 @@ const mainT = `func main() {
 	// Retrieve output path
 	out := os.Args[1]
 		
-    // Run the model DSL
-    w, err := mdl.RunDSL()
-    if err != nil {
-        fmt.Fprint(os.Stderr, err.Error())
-        os.Exit(1)
+	// Run the model DSL
+	w, err := mdl.RunDSL()
+	if err != nil {
+		fmt.Fprint(os.Stderr, err.Error())
+		os.Exit(1)
 	}
 	b, err := json.MarshalIndent(w, "", "    ")
-    if err != nil {
-        fmt.Fprintf(os.Stderr, "failed to encode into JSON: %s", err.Error())
-        os.Exit(1)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "failed to encode into JSON: %s", err.Error())
+		os.Exit(1)
 	}
 	if err := ioutil.WriteFile(out, b, 0644); err != nil {
-        fmt.Fprintf(os.Stderr, "failed to write file: %s", err.Error())
-        os.Exit(1)
+		fmt.Fprintf(os.Stderr, "failed to write file: %s", err.Error())
+		os.Exit(1)
 	}
 }
 `

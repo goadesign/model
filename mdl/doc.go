@@ -10,6 +10,5 @@ deployment nodes that represent runtime deployments. Views describes diagrams
 that represent different level of details - from contextual views that
 represent the overall system in context with other systems to component level
 views that render software components and their relationships.
-
 */
 package mdl

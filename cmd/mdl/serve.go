@@ -6,12 +6,46 @@ import (
 	"io/ioutil"
 	"net/http"
 	"path"
+	"sync"
+
+	"goa.design/model/mdl"
 )
 
-type Server struct {
-	model []byte
+type (
+
+	// Server implements a HTTP server with 4 endpoints:
+	//
+	//   * GET requests to "/" return the diagram editor single page app implemented in the "webapp" directory.
+	//   * GET requests to "/data/model.json" return the JSON representation of the architecture model.
+	//   * GET requests to "/data/layout.json" return the view element positions indexed by view id.
+	//   * POST requests to "/data/save?id=<ID>" saves the SVG representation for the view with the given id.
+	//     The request body must be a JSON representation of a SavedView data structure.
+	//
+	// Server is intended to provide the backend for the model single page app diagram editor.
+	Server struct {
+		design []byte
+		lock   sync.Mutex
+	}
+
+	// SavedView is the data structure created and updated by the single page
+	// app for each design view.
+	SavedView struct {
+		Layout interface{} `json:"layout,omitempty"`
+		SVG    string      `json:"svg,omitempty"`
+	}
+)
+
+// NewServer created a server that serves the given design.
+func NewServer(d *mdl.Design) *Server {
+	var s Server
+	s.SetDesign(d)
+	return &s
 }
 
+// Serve starts the HTTP server on localhost with the given port. outDir
+// indicates where the view data structures are located. If devmode is true then
+// the single page app is served directly from the source under the "webapp"
+// directory. Otherwise it is served from the code embedded in the Go executable.
 func (s *Server) Serve(outDir string, devmode bool, port int) error {
 	layoutFile := path.Join(outDir, "layout.json")
 
@@ -26,9 +60,14 @@ func (s *Server) Serve(outDir string, devmode bool, port int) error {
 	}
 
 	http.HandleFunc("/data/model.json", func(w http.ResponseWriter, r *http.Request) {
-		_, _ = w.Write(s.model)
+		s.lock.Lock()
+		defer s.lock.Unlock()
+		_, _ = w.Write(s.design)
 	})
+
 	http.HandleFunc("/data/layout.json", func(w http.ResponseWriter, r *http.Request) {
+		s.lock.Lock()
+		defer s.lock.Unlock()
 		if fileExists(layoutFile) {
 			http.ServeFile(w, r, layoutFile)
 		} else {
@@ -37,18 +76,20 @@ func (s *Server) Serve(outDir string, devmode bool, port int) error {
 	})
 
 	http.HandleFunc("/data/save", func(w http.ResponseWriter, r *http.Request) {
-		savedData := mdl{}
+		var savedData SavedView
 		err := json.NewDecoder(r.Body).Decode(&savedData)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		tmp, ok := r.URL.Query()["id"]
-		if !ok {
+		id := r.URL.Query().Get("id")
+		if id == "" {
 			http.Error(w, "Param id is missing", http.StatusBadRequest)
 			return
 		}
-		id := tmp[0]
+
+		s.lock.Lock()
+		defer s.lock.Unlock()
 
 		data := make(map[string]interface{})
 		if fileExists(layoutFile) {
@@ -84,7 +125,18 @@ func (s *Server) Serve(outDir string, devmode bool, port int) error {
 	return http.ListenAndServe(fmt.Sprintf("127.0.0.1:%d", port), nil)
 }
 
-type mdl struct {
-	Layout interface{} `json:"layout,omitempty"`
-	SVG    string      `json:"svg,omitempty"`
+// SetDesign updates the design served by s.
+//
+// Note: it would have been more efficient to use the raw bytes read from the
+// generated file instead of going through the unmarshal/marshal cycle however
+// this approach is safer, makes it clearer and easier to compose. Also it is
+// not expected that the model would need to be updated often.
+func (s *Server) SetDesign(d *mdl.Design) {
+	b, err := json.Marshal(d)
+	if err != nil {
+		panic("failed to serialize design: " + err.Error()) // bug
+	}
+	s.lock.Lock()
+	defer s.lock.Unlock()
+	s.design = b
 }
