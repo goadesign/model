@@ -293,10 +293,8 @@ export const parseView = (model: Model, layouts: Layouts, viewKey: string) => {
 		)
 	})
 
-	//layout
-	if (graph.id in layouts) {
-		graph.importLayout(layouts[graph.id])
-	}
+	//layout if any and init graph
+	graph.init(layouts[graph.id])
 	return graph
 }
 

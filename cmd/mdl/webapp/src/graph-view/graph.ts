@@ -121,7 +121,7 @@ interface Edge {
 	vertices?: EdgeVertex[];
 	ref?: SVGGElement;
 	style: EdgeStyle;
-	initVertex: (p:Point) => EdgeVertex
+	initVertex: (p: Point) => EdgeVertex
 }
 
 interface EdgeVertex extends Point {
@@ -134,7 +134,7 @@ interface EdgeVertex extends Point {
 }
 
 interface Layout {
-	[k: string]: Point | (Point & {label: boolean})[]
+	[k: string]: Point | (Point & { label: boolean })[]
 }
 
 export class GraphData {
@@ -155,24 +155,28 @@ export class GraphData {
 		this.edgeVertices = new Map;
 		this.nodesMap = new Map;
 		this.groupsMap = new Map;
+
 		this._undo = new Undo<Layout>(
+			this.id,
 			() => this.exportLayout(true),
-			(lo) => {
-				this.importLayout(lo);
-				this.nodes().forEach(n => setPosition(n.ref, n.x, n.y))
-				this.edges.forEach(e => this.redrawEdge(e))
-				this.updateEdgesSel()
-				this.redrawGroups(null)
-			}
+			(lo) => this.importLayout(lo, true)
 		)
-		this._undo.change()
 
 		// @ts-ignore
 		window.graph = this
 	}
 
-	private randomID() {
-		return Math.round(Math.random() * 1e10).toString(36)
+	// after the graph model is build using addNode, addEdge etc, initialize
+	init(layout?: Layout) {
+		layout && this.importLayout(layout)
+		this._undo = new Undo<Layout>(
+			this.id,
+			() => this.exportLayout(true),
+			(lo) => this.importLayout(lo, true)
+		)
+		if (this._undo.length()) {
+			this.importLayout(this._undo.currentState())
+		}
 	}
 
 	addNode(id: string, label: string, sub: string, description: string, style: NodeStyle) {
@@ -195,10 +199,11 @@ export class GraphData {
 			v.id = `v-${id}-${i}`
 			this.edgeVertices.set(v.id, v)
 		})
-		const initVertex = (p:Point) => {
+		const randomID = () => Math.round(Math.random() * 1e10).toString(36)
+		const initVertex = (p: Point) => {
 			const v = p as EdgeVertex
 			if (!v.id) {
-				v.id = `v-${this.randomID()}`
+				v.id = `v-${randomID()}`
 				this.edgeVertices.set(v.id, v)
 			}
 			v.edge = edge
@@ -244,17 +249,12 @@ export class GraphData {
 	// 	this.redrawGroups(node)
 	// }
 
-	setSelected(nodes: Node[]) {
-		this.nodesMap.forEach(n => {
-			n.selected = false
-			n.ref.classList.remove('selected')
-		})
-		nodes.forEach(n => {
-			n.selected = true
-			n.ref.classList.add('selected')
-		});
+	setNodeSelected(node: Node, selected: boolean) {
+		node.selected = selected
+		selected ?
+			node.ref.classList.add('selected') :
+			node.ref.classList.remove('selected')
 		this.updateEdgesSel()
-		//console.log(nodes.map(n => `'${n.name}'`).join(', '))
 	}
 
 	private updateEdgesSel() {
@@ -268,6 +268,7 @@ export class GraphData {
 	}
 
 	moveNode(n: Node, x: number, y: number) {
+		this._undo.beforeChange()
 		n.x = x;
 		n.y = y;
 		setPosition(n.ref, x, y)
@@ -277,9 +278,23 @@ export class GraphData {
 	}
 
 	moveEdgeVertex(v: EdgeVertex, x: number, y: number) {
+		this._undo.beforeChange()
 		v.x = x;
 		v.y = y;
 		this.redrawEdge(v.edge)
+		this._undo.change()
+	}
+
+	insertEdgeVertex(edge: Edge, p: Point, pos: number, isLabel: boolean) {
+		this._undo.beforeChange()
+		const v = edge.initVertex(p)
+		v.selected = true
+		if (isLabel) { // when shift down, make it label position
+			edge.vertices.forEach(v => v.label = false)
+			v.label = true
+		}
+		edge.vertices.splice(pos - 1, 0, v)
+		this.redrawEdge(edge)
 		this._undo.change()
 	}
 
@@ -350,7 +365,7 @@ export class GraphData {
 
 
 	exportLayout(full = false) {
-		const ret: Layout  = {}
+		const ret: Layout = {}
 		this.nodes().forEach(n => ret[n.id] = {x: n.x, y: n.y})
 		this.edges.forEach(e => {
 			const lst = e.vertices.filter(v => !v.auto).map(v => ({x: v.x, y: v.y, label: v.label}));
@@ -359,7 +374,7 @@ export class GraphData {
 		return ret
 	}
 
-	importLayout(layout: { [key: string]: any }) {
+	importLayout(layout: { [key: string]: any }, rerender = false) {
 		Object.entries(layout).forEach(([k, v]) => {
 			// nodes
 			const n = this.nodesMap.get(k)
@@ -367,15 +382,21 @@ export class GraphData {
 				n.x = v.x
 				n.y = v.y
 			} else
-			// edge vertices
+				// edge vertices
 			if (k.startsWith('e-')) {
 				const edge = this.edges.find(e => e.id == k.slice(2))
 				if (!edge) return;
 				edge.vertices && edge.vertices.forEach(v => this.edgeVertices.delete(v.id))
-				edge.vertices = v.map((p:Point) => edge.initVertex(p))
+				edge.vertices = v.map((p: Point) => edge.initVertex(p))
 				return;
 			}
 		})
+		if (rerender) {
+			this.nodes().forEach(n => setPosition(n.ref, n.x, n.y))
+			this.edges.forEach(e => this.redrawEdge(e))
+			this.updateEdgesSel()
+			this.redrawGroups(null)
+		}
 	}
 
 	autoLayout() {
@@ -763,10 +784,6 @@ function addCursorInteraction(svg: SVGSVGElement) {
 		ref?: SVGElement
 	}
 
-	function isNode(h: Handle) {
-		return gd().nodesMap.has(h.id)
-	}
-
 	function setDotSelected(d: Handle, selected: boolean) {
 		d.selected = selected
 		const dotEl = svg.querySelector('#' + d.id)
@@ -808,14 +825,8 @@ function addCursorInteraction(svg: SVGSVGElement) {
 		const fnd = findClosestSegment(gd(), mouseToDrawing(e))
 		if (fnd) {
 			const {edge, pos, prj} = fnd
-			const v = edge.initVertex(prj)
-			v.selected = true
-			if (e.shiftKey) { // when shift down, make it label position
-				edge.vertices.forEach(v => v.label = false)
-				v.label = true
-			}
-			edge.vertices.splice(pos - 1, 0, v)
-			gd().redrawEdge(edge)
+			// when shift down, make it label position
+			gd().insertEdgeVertex(edge, prj, pos, e.shiftKey)
 			removePrjDot()
 		}
 	})
@@ -843,16 +854,17 @@ function addCursorInteraction(svg: SVGSVGElement) {
 			if (el) return getData(el)
 			// vertex dot clicked
 			el = (e.target as SVGElement).closest('g.edges g.edge .v-dot') as SVGElement
-			if (el) return gd().edgeVertices.get(el.id)
+			if (el) {
+				return gd().edgeVertices.get(el.id)
+			}
 			return null
 		},
 		setSelection(handles: Handle[]) {
 			// nodes
-			const nodes = handles.filter(isNode) as Node[]
-			gd().setSelected(nodes)
+			gd().nodes().forEach(n => gd().setNodeSelected(n, handles.some(h => h.id == n.id)))
 			// dots
 			gd().edgeVertices.forEach(d => setDotSelected(d, handles.some(h => h.id == d.id)))
-			selectListener(nodes[0])
+			selectListener(gd().nodes().find(n => n.selected))
 		},
 		setDragging(d: boolean) {
 			dragging = d
@@ -877,10 +889,7 @@ function addCursorInteraction(svg: SVGSVGElement) {
 		boxSelection(box: DOMRect, add) {
 			const b = scaleBox(box, 1 / getZoom())
 			// nodes
-			const nodes = gd().nodes().filter(n =>
-				(add && n.selected) || boxesOverlap(uncenterBox(n), b)
-			)
-			gd().setSelected(nodes)
+			gd().nodesMap.forEach(n => gd().setNodeSelected(n, (add && n.selected) || boxesOverlap(uncenterBox(n), b)))
 			// dots
 			gd().edgeVertices.forEach(d => setDotSelected(d, (add && d.selected) || insideBox(d, b, false)))
 

@@ -26,6 +26,9 @@ const DomainSelect: FC<{ views: ViewsList; crtID: string}> = ({views, crtID}) =>
 
 // we keep graphs here, in case they are edited but not saved
 const graphs: {[key: string]: GraphData} = {}
+export const refreshGraph = () => {
+	delete graphs[getCrtID()]
+}
 
 const ModelPane: FC<{model: any, layouts: any}> = ({model, layouts}) => {
 	const crtID = getCrtID()
@@ -34,7 +37,9 @@ const ModelPane: FC<{model: any, layouts: any}> = ({model, layouts}) => {
 
 	const graph = graphs[crtID] || parseView(model, layouts, crtID)
 	if (!graph) {
-		return <div style={{padding:30}}><DomainSelect views={listViews(model)} crtID=""/></div>
+		const lst = listViews(model)
+		document.location.href = '?id=' + lst[0].key
+		return <>Redirecting to {lst[0].title}</>
 	}
 	graphs[crtID] = graph
 

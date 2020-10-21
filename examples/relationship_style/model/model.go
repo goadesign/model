@@ -13,14 +13,21 @@ var _ = Design("Getting Started", "This is a model of my software system.", func
 		Tag("person")
 	})
 	Person("Person2", "The intellectual.\nTwo relationships\nautomatically spread", func() {
-		Uses("The System", "Reads from")
-		Uses("The System", "Writes to")
+		Uses("The System", "Left")
+		Uses("The System", "Right")
 		Tag("person")
 	})
 	Person("Person3", "Another person", func() {
 		Uses("The System", "Solid Orthogonal", func() {
 			Tag("knows")
 		})
+	})
+
+	SoftwareSystem("System 2", "Software System 2")
+	Person("Person4", "", func() {
+		Tag("person")
+		Uses("System 2", "O")
+		Uses("The System", "O")
 	})
 
 	Views(func() {
@@ -40,6 +47,7 @@ var _ = Design("Getting Started", "This is a model of my software system.", func
 			})
 			RelationshipStyle("knows", func() {
 				Routing(RoutingOrthogonal)
+				//Routing(RoutingDirect)
 				Solid()
 			})
 		})
