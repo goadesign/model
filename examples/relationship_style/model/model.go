@@ -23,13 +23,6 @@ var _ = Design("Getting Started", "This is a model of my software system.", func
 		})
 	})
 
-	SoftwareSystem("System 2", "Software System 2")
-	Person("Person4", "", func() {
-		Tag("person")
-		Uses("System 2", "O")
-		Uses("The System", "O")
-	})
-
 	Views(func() {
 		SystemContextView("The System", "SystemContext", "System Context diagram.", func() {
 			AddAll()

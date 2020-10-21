@@ -36,6 +36,10 @@ export class Undo<Doc> {
 		}
 	}
 
+	// the state previous to the changes collected in the debounce period is stored here
+	// we use this as the state to revert to on "Undo"
+	// this state might differ from the previously saved one because we allow model changes
+	// via websocket
 	beforeChange() {
 		this.tmpPreviousState || (this.tmpPreviousState = this.deepClone(this.exportDoc()))
 	}
