@@ -268,6 +268,7 @@ export class GraphData {
 	}
 
 	moveNode(n: Node, x: number, y: number) {
+		if (n.x == x && n.y == y) return
 		this._undo.beforeChange()
 		n.x = x;
 		n.y = y;
@@ -278,6 +279,7 @@ export class GraphData {
 	}
 
 	moveEdgeVertex(v: EdgeVertex, x: number, y: number) {
+		if (v.x == x && v.y == y) return
 		this._undo.beforeChange()
 		v.x = x;
 		v.y = y;
@@ -295,6 +297,18 @@ export class GraphData {
 		}
 		edge.vertices.splice(pos - 1, 0, v)
 		this.redrawEdge(edge)
+		this._undo.change()
+	}
+
+	deleteEdgeVertex(v: EdgeVertex) {
+		this._undo.beforeChange()
+		if (v.auto) {
+			v.auto = true
+		} else {
+			v.edge.vertices.splice(v.edge.vertices.indexOf(v), 1)
+			this.edgeVertices.delete(v.id)
+		}
+		this.redrawEdge(v.edge)
 		this._undo.change()
 	}
 
@@ -834,13 +848,7 @@ function addCursorInteraction(svg: SVGSVGElement) {
 	window.addEventListener('keydown', e => {
 		if (e.code == 'Delete' || e.code == 'Backspace') {
 			Array.from(gd().edgeVertices.values()).filter(v => v.selected).forEach(v => {
-				if (v.auto) {
-					v.auto = true
-				} else {
-					v.edge.vertices.splice(v.edge.vertices.indexOf(v), 1)
-					gd().edgeVertices.delete(v.id)
-				}
-				gd().redrawEdge(v.edge)
+				gd().deleteEdgeVertex(v)
 			})
 		}
 	})
