@@ -112,18 +112,3 @@ rect.elastic {
 rect.elastic.on {
     display: block;
 }
-
-.github-source {
-    position: absolute;
-    display: block;
-    bottom: 0;
-    right: 0;
-    border: solid 1px #ccc;
-    padding: 3px 8px;
-    font-size: 13px;
-    background: #fff;
-}
-.github-source a {
-    color: inherit;
-    text-decoration: none;
-}

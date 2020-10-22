@@ -45,6 +45,7 @@
 	},
 	"scripts": {
 		"build": "NODE_ENV=production webpack",
+		"build:static": "NODE_ENV=production webpack --config webpack.config.static.js",
 		"start": "webpack-dev-server",
 		"watch": "NODE_ENV=production webpack -w",
 		"clean": "rm -f dist/*"

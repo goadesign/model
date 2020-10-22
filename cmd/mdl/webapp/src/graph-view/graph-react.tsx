@@ -21,5 +21,5 @@ export const Graph: FC<Props> = ({data, zoom, onInit, onSelect}) => {
 		graphState.setZoom(zoom)
 	}
 	const ref = useRef<HTMLDivElement>()
-	return <div className="graph" ref={ref}>{}</div>
+	return <div className="graph" ref={ref}/>
 }

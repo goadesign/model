@@ -485,6 +485,24 @@ export const buildGraph = (data: GraphData, onNodeSelect: (n: Node) => void) => 
 		// let el = (e.target as any).closest('.node > .expand');
 	}
 
+	_buildGraph(data)
+	const elasticEl = create.rect(300, 300, 50, 50, 0, 'elastic')
+	svg.append(elasticEl)
+
+	return {
+		svg,
+		setZoom,
+	}
+}
+
+export const buildGraphView = (data: GraphData) => {
+	svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+	svg.setAttribute('id', 'graph')
+	_buildGraph(data)
+	return svg
+}
+
+const _buildGraph = (data: GraphData) => {
 	//toplevel groups
 	const zoomG = create.element('g', {}, 'zoom') as SVGGElement
 	const nodesG = create.element('g', {}, 'nodes') as SVGGElement
@@ -509,14 +527,6 @@ export const buildGraph = (data: GraphData, onNodeSelect: (n: Node) => void) => 
 	})
 
 	svg.append(zoomG)
-
-	const elasticEl = create.rect(300, 300, 50, 50, 0, 'elastic')
-	svg.append(elasticEl)
-
-	return {
-		svg,
-		setZoom,
-	}
 }
 
 function buildEdge(data: GraphData, edge: Edge) {

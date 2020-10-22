@@ -4,15 +4,10 @@ const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin'
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 const isDevelopment = process.env.NODE_ENV !== 'production';
-const path = require('path');
 
 module.exports = {
 	mode: isDevelopment ? 'development' : 'production',
-	output: {
-		path: path.resolve(__dirname, 'dist/'),
-		publicPath: '/',
-		// chunkFilename: '[name].[chunkhash].js',
-	},
+
 	devtool: isDevelopment ? 'eval-source-map' : 'source-map',
 	resolve: {
 		extensions: ['.ts', '.tsx', '.js', '.jsx']
