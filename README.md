@@ -8,7 +8,7 @@
 
 ## Overview
 
-Model provides a way to describe software architectures using
+Model provides a way to describe software architecture models using
 *diagrams as code*. This approach provides many benefit over the use of
  graphical tools, in particular:
 
@@ -41,27 +41,10 @@ can be learned in minutes. The C4 model is very flexible and only focuses on
 a few key concepts making it possible to express many different styles of
 architectures while still adding value.
 
-Model includes a couple of code generation tools that generate diagrams from
-the DSL:
-
-* The `mdl` tool generates static web pages for all the views defined in the
-  DSL. The tool can also serve the pages and includes live reload so that
-  edits to the DSL are reflected in real-time making it convenient to author
-  diagrams.
-
-* The `stz` tool uploads the software architecture described via
-  the DSL to the [Structurizr](https://structurizr.com) service. This service
-  renders the model and includes a visual editor to rearrange the results
-  (the tool takes care of keeping any change made graphically on the next
-  upload).
-
-Model also provides a [Goa](https://github.com/goadesign/goa) plugin so that
-the design of APIs and microservices written in Goa can be augmented with a
-description of the corresponding software architecture.
-
 ## Example
 
-Here is a complete and correct DSL for an architecture model:
+Here is a complete design describing a simple architecture model composed of
+a user and a software system:
 
 ```Go
 package design
@@ -98,24 +81,125 @@ var _ = Design("Getting Started", "This is a model of my software system.", func
 })
 ```
 
-This code creates a model containing elements and relationships, creates a
-single view and adds some styling.
-
-Structurizr rendering:
-
-![Getting Started Diagram](https://structurizr.com/static/img/getting-started.png)
+This code creates a model containing two elements, a relationship, a single
+view and some styling information. Running the `mdl` tool (see [installation
+instructions](#installation) below) renders the following diagram:
 
 Additional examples can be found in the
 [examples](https://github.com/goadesign/model/tree/master/examples)
 directory.
 
-## Library
+## Installation
+
+Model uses Go modules and thus requires Go version 1.11 or greater. Assuming
+a working installation of Go, the `mdl` and `stz` tools can be installed
+using:
+
+```bash
+go get goa.design/model/cmd/mdl
+go get goa.design/model/cmd/stz
+```
+
+## Usage
+
+Model includes two command line tools supporting two different workflows:
+
+* The `mdl` tool serves a graphical editor that makes it possible to
+  position the elements and relationships in each view defined in the design.
+  The graphical editor saves the rendered views as SVG files in a directory
+  specified when running the tool. `mdl` can also generate a JSON
+  representation of the model.
+
+* The `stz` tool uploads the software architecture described in the DSL
+  to the [Structurizr](https://structurizr.com) service. This service renders
+  the model and includes a visual editor to rearrange the results (the tool
+  takes care of keeping any change made graphically on the next upload).
+
+Model also provides a [Goa](https://github.com/goadesign/goa) plugin so that
+the design of APIs and microservices written in Goa can be augmented with a
+description of the corresponding software architecture.
+
+### Using `mdl`
+
+The `mdl serve` command starts a local HTTP server that serves a graphical
+editor. The command takes the Go import path to the package containing the
+DSL as argument. The path to the directory used to save the SVG files can be
+provided via the `-dir` flag, by default the editor creates a `gen` folder
+under the current path. For example:
+
+```bash
+mdl serve goa.design/model/examples/basic/model -dir gen
+Watching: /home/raphael/go/src/goa.design/model/examples/basic/model
+Editor started. Open http://localhost:8080 in your browser.
+```
+
+Modifying and saving the DSL while the editor is running causes it to
+automatically update and reflect the latest changes making it convenient to
+work on the model while editing the view layouts.
+
+The `mdl gen` command generates the JSON representation of a design, it accepts
+the Go import path to the package containing the design DSL as argument. For
+example the following command generates the JSON for the `basic` example
+
+```bash
+mdl gen goa.design/model/examples/basic/model -out design.json
+```
+
+The generated file `design.json` contains a JSON representation of the
+[Design](https://pkg.go.dev/goa.design/model@v1.7.0/mdl#Design) struct.
+
+### Using `stz`
+
+Alternatively, the `stz` tool generates a file containing a
+[JSON representation of a Structurize service workspace](https://github.com/structurizr/json)
+that corresponds to the design described in the DSL. The tool can then upload
+the workspace to the [Structurizr service](https://structurizr.com). The tool
+can also retrieve the JSON representation of a workspace from the service.
+
+This example uploads a workspace corresponding to the DSL defined in the Go
+package `goa.design/model/examples/basic`:
+
+```bash
+stz gen goa.design/model/examples/basic
+stz put workspace.json -id ID -key KEY -secret SECRET
+```
+
+In this example `ID` is the Structurizr service workspace ID, `KEY` the
+Structurizr service API key and `SECRET` the corresponding secret.
+
+The example below retrieves the JSON representation of a workspace from
+Structurizr:
+
+```bash
+stz get -id ID -key KEY -secret SECRET -out workspace.json
+```
+
+### Using the Goa Plugin
+
+This package can also be used as a [Goa](https://github.com/goadesign/goa)
+plugin by including the DSL package in the Goa design:
+
+```Go
+package design
+
+import . "goa.design/goa/v3/dsl"
+import "goa.design/model/dsl"
+
+// ... DSL describing API, services and architecture model
+```
+
+Running `goa gen` creates both a `design.json` and a `workspace.json` file in
+the `gen` folder. The `workspace.json` file follows the
+[structurizr JSON schema](https://github.com/structurizr/json) and can be
+uploaded to the Structurizr service for example using the `stz` tool included
+in this repo.
+
+### Using Model as a library
 
 The [mdl](https://pkg.go.dev/goa.design/model@v1.6.3/mdl?tab=doc) package
 [RunDSL](https://pkg.go.dev/goa.design/model@v1.6.3/mdl?tab=doc#RunDSL)
 method runs the DSL and produces data structures that contain all the
-information needed to render the views it defines including
-[mermaid](https://mermaid-js.github.io) definitions for all the diagrams.
+information needed to render the views it defines.
 
 The [stz](https://pkg.go.dev/goa.design/model@v1.6.3/stz?tab=doc) package
 [RunDSL](https://pkg.go.dev/goa.design/model@v1.6.3/stz?tab=doc#RunDSL)
@@ -126,8 +210,8 @@ The [stz](https://github.com/goadesign/model/tree/master/stz)
 package also contains a client library for the
 [Structurizr service APIs](https://structurizr.com/help/web-api).
 
-Here is a complete example that takes advantage of both to upload the
-workspace described in a DSL to the Structurizr service:
+Here is a complete example that uploads the design described in a DSL to the
+Structurizr service:
 
 ```Go
 package main
@@ -200,91 +284,28 @@ func main() {
 }
 ```
 
-## Tools
+## Graphical Editor
 
-### mdl
+The graphical editor is started using the `mdl serve` command. This command
+accepts the import path to the Go package containing the model DSL. The
+editor makes it possible to position the elements and their relationships in
+each view.
 
-The `mdl` tool can be used to render JSON files that contain all the
-information needed to render the diagrams. The tool can also serve static
-pages that reload when the DSL changes.
+The editor automatically saves the layout when editing, edits can done using
+undo (CTRL+Z).
 
-Generate the JSON files for the diagrams described in package
-`goa.design/model/examples/basic`:
+### Keyboard Shortcuts
 
-```bash
-mdl gen goa.design/model/examples/basic
-```
-
-The command above created a `gen` folder containing one JSON file per view
-defined in the DSL. In the case of the `basic` example there is a single
-view. The data structure serialized into the JSON is
-[RenderedView](https://pkg.go.dev/goa.design/model@v1.6.3/mdl?tab=doc#RenderedView).
-
-Serve static pages produced from the same package:
-
-```bash
-mdl serve goa.design/model/examples/basic
-[Model] listening on :6070
-```
-
-The pages can be browsed by visiting localhost:6070. Modifying and saving the
-DSL will cause the page to reload and reflect the changes.
-
-### stz
-
-Alternatively, the `stz` tool included in this repo can be used to generate a
-file containing the JSON representation of the design described via DSL. The
-tool can then upload the generated file to the Structurizr service. The tool
-can also retrieve the JSON representation of
-[Workspace objects](https://github.com/structurizr/json) from the service.
-
-Upload DSL defined in package `goa.design/model/examples/basic`:
-
-```bash
-stz gen goa.design/model/examples/basic && stz put model.json -id ID -key KEY -secret SECRET
-```
-
-Where `ID` is the Structurizr service workspace ID, `KEY` the
-Structurizr service API key and `SECRET` the corresponding secret.
-
-Retrieve the JSON representation of a workspace from the service:
-
-```bash
-stz get -id ID -key KEY -secret SECRET -out workspace.json
-```
-
-### Tools Setup
-
-Assuming a working Go setup, run the following commands in the root of the
-repo:
-
-```bash
-go install cmd/mdl
-go install cmd/stz
-```
-
-This will create both a `mdl` and `stz` executables under `$GOPATH/bin` which
-should be in your `PATH` environment variable.
-
-## Goa Plugin
-
-This package can also be used as a Goa plugin by including the DSL package in
-the Goa design:
-
-```Go
-package design
-
-import . "goa.design/goa/v3/dsl"
-import "goa.design/model/dsl"
-
-// ... DSL describing API, services and architecture model
-```
-
-Running `goa gen` creates a `model.json` file in the `gen` folder as well as
-a `model` subdirectory. `model.json` follows the [structurizr JSON
-schema](https://github.com/structurizr/json) and can be uploaded to the
-Structurizr service for example using the `stz` tool included in this repo.
-The `model` subdirectory contains the static rendered views JSON.
+| Command             | Effect                    |
+| ------------------- | ------------------------- |
+| ALT + Click         | Add relationship vertex   |
+| ALT + SHIFT + Click | Add label position vertex |
+| DELETE              | Delete vertex             |
+| CTRL + Z            | Undo                      |
+| CTRL + Y            | Redo                      |
+| CTRL + Mouse wheel  | Zoom / Unzoom             |
+| CTRL + Up arrow     | Align horizontal          |
+| CTRL + Left arrow   | Align vertical            |
 
 ## DSL Syntax
 
@@ -327,7 +348,7 @@ the path of the element. The path of an element is constructured by appending
 the parent element names separated by slashes (/) and the name of the
 element. For example the path of the component 'C' in the container 'CO' and
 software system 'S' is 'S/CO/C'. The path can be relative when the reference
-is made within a scoped function. For example when adding an element to a
+is made within a scoped function, for example when adding an element to a
 view that is scoped to a parent element.
 
 ### Syntax

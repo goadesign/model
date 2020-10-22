@@ -8,36 +8,34 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"path"
 	"path/filepath"
-	"strings"
 
 	"goa.design/goa/v3/codegen"
 	"goa.design/model/mdl"
 	model "goa.design/model/pkg"
 )
 
-func fileExists(filename string) bool {
-	info, err := os.Stat(filename)
-	if os.IsNotExist(err) {
-		return false
-	}
-	return !info.IsDir()
-}
-
 func main() {
 	var (
-		fs      = flag.NewFlagSet("flags", flag.ContinueOnError)
-		out     = fs.String("out", codegen.Gendir, "set output directory used to save model JSON and SVGs")
-		port    = fs.Int("port", 8080, "set local HTTP port used to serve diagram editor")
-		debug   = fs.Bool("debug", false, "pring debug output")
+		gset  = flag.NewFlagSet("global", flag.ExitOnError)
+		debug = gset.Bool("debug", false, "print debug output")
+		help  = gset.Bool("help", false, "print this information")
+		h     = gset.Bool("h", false, "print this information")
+
+		genset = flag.NewFlagSet("gen", flag.ExitOnError)
+		out    = genset.String("out", "design.json", "set path to generated JSON representation")
+
+		svrset = flag.NewFlagSet("serve", flag.ExitOnError)
+		dir    = svrset.String("dir", codegen.Gendir, "set output directory used by editor to save SVGs")
+		port   = svrset.Int("port", 8080, "set local HTTP port used to serve diagram editor")
+
 		devmode = os.Getenv("DEVMODE") == "1"
 	)
 
 	var (
-		cmd   string
-		fpath string
-		idx   int
+		cmd string
+		pkg string
+		idx int
 	)
 	for _, arg := range os.Args[1:] {
 		idx++
@@ -45,47 +43,58 @@ func main() {
 		case "":
 			cmd = arg
 		case "serve", "gen":
-			if !strings.HasPrefix(arg, "-") {
-				fpath = arg
-				idx++
+			if arg == "-h" || arg == "-help" || arg == "--h" || arg == "--help" {
+				if cmd == "serve" {
+					showUsage(cmd, svrset, gset)
+				} else {
+					showUsage(cmd, genset, gset)
+				}
+				os.Exit(0)
 			}
+			pkg = arg
+			idx++
 			goto done
 		default:
 			goto done
 		}
 	}
 done:
-	fs.Parse(os.Args[idx:])
+	gset.Parse(os.Args[idx:])
+	switch cmd {
+	case "gen":
+		genset.Parse(os.Args[idx:])
+	case "serve":
+		svrset.Parse(os.Args[idx:])
+	}
 
-	if cmd == "gen" || cmd == "serve" {
-		// Initialize saved views directory if needed.
-		*out, _ = filepath.Abs(*out)
-		err := os.MkdirAll(*out, 0777)
-		if err != nil {
-			fail(err.Error())
-		}
+	if *h || *help {
+		showUsage(cmd, genset, svrset, gset)
+		os.Exit(0)
 	}
 
 	var err error
 	switch cmd {
 	case "gen":
-		if fpath == "" {
-			fail(`missing PACKAGE argument, use "--help" for usage.`)
+		if pkg == "" {
+			fail(`missing PACKAGE argument, use "--help" for usage`)
 		}
 		var b []byte
-		b, err = gen(fpath, *debug)
+		b, err = gen(pkg, *debug)
 		if err == nil {
-			err = ioutil.WriteFile(path.Join(*out, "model.json"), b, 0644)
+			err = ioutil.WriteFile(*out, b, 0644)
 		}
 	case "serve":
-		err = serve(*out, fpath, *port, devmode, *debug)
+		*dir, _ = filepath.Abs(*dir)
+		if err := os.MkdirAll(*dir, 0777); err != nil {
+			fail(err.Error())
+		}
+		err = serve(*dir, pkg, *port, devmode, *debug)
 	case "version":
 		fmt.Printf("%s %s\n", os.Args[0], model.Version())
-	case "help":
-		showUsage(fs)
+	case "", "help":
+		showUsage(cmd, genset, svrset, gset)
 	default:
-		showUsage(fs)
-		os.Exit(1)
+		fail(`unknown command %q, use "--help" for usage`, cmd)
 	}
 	if err != nil {
 		fail(err.Error())
@@ -124,14 +133,29 @@ func serve(out, pkg string, port int, devmode, debug bool) error {
 	return s.Serve(out, devmode, port)
 }
 
-func showUsage(fs *flag.FlagSet) {
+func showUsage(cmd string, fss ...*flag.FlagSet) {
 	fmt.Fprintln(os.Stderr, "Usage:")
-	fmt.Fprintf(os.Stderr, " - %s serve PACKAGE [FLAGS].\n", os.Args[0])
-	fmt.Fprintf(os.Stderr, "   Start a HTTP server that serves a graphical editor for the design described in PACKAGE.\n")
-	fmt.Fprintf(os.Stderr, " - %s gen PACKAGE [FLAGS].\n", os.Args[0])
-	fmt.Fprintf(os.Stderr, "   Generate a JSON representation of the design described in PACKAGE.\n\n")
-	fmt.Fprintf(os.Stderr, "   PACKAGE must be the import path to a Go package containing Model DSL.\n\n")
-	fs.PrintDefaults()
+	if cmd != "gen" {
+		fmt.Fprintf(os.Stderr, "  %s serve PACKAGE [FLAGS].\n", os.Args[0])
+		fmt.Fprintf(os.Stderr, "    Start a HTTP server that serves a graphical editor for the design described in PACKAGE.\n")
+	}
+	if cmd != "serve" {
+		fmt.Fprintf(os.Stderr, "  %s gen PACKAGE [FLAGS].\n", os.Args[0])
+		fmt.Fprintf(os.Stderr, "    Generate a JSON representation of the design described in PACKAGE.\n")
+	}
+	fmt.Fprintf(os.Stderr, "\nPACKAGE must be the import path to a Go package containing Model DSL.\n\n")
+	fmt.Fprintf(os.Stderr, "FLAGS:\n")
+	for _, fs := range fss {
+		fs.PrintDefaults()
+	}
+}
+
+func fileExists(filename string) bool {
+	info, err := os.Stat(filename)
+	if os.IsNotExist(err) {
+		return false
+	}
+	return !info.IsDir()
 }
 
 func fail(format string, args ...interface{}) {
