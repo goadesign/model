@@ -21,7 +21,7 @@ body {
 .toolbar {
     flex-grow: 0;
     padding: 10px 20px;
-    background: beige;
+    background: ghostwhite;
     display: flex;
     justify-content: space-between;
 }
@@ -119,7 +119,7 @@ rect.elastic.on {
     bottom: 10px;
     overflow: auto;
     right: 10px;
-    background: #fff;
+    background: ghostwhite;
     padding: 30px;
     box-shadow: 3px 3px 5px rgba(0,0,0, .2);
     border: solid 1px #eee;
