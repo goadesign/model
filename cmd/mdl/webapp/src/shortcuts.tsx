@@ -219,7 +219,8 @@ const comboText = (c: Combination) => {
 		c.shift && 'SHIFT',
 		c.alt && 'ALT',
 		c.key && (c.key.length > 1 ? c.key : `"${c.key.toUpperCase()}"`),
-		c.click && 'CLICK'
+		c.click && 'CLICK',
+		c.wheel && 'WHEEL'
 	].filter(Boolean).join(' + ')
 }
 
