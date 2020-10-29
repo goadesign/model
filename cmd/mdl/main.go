@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"goa.design/goa/v3/codegen"
 	"goa.design/model/mdl"
@@ -17,10 +18,8 @@ import (
 
 func main() {
 	var (
-		gset  = flag.NewFlagSet("global", flag.ExitOnError)
-		debug = gset.Bool("debug", false, "print debug output")
-		help  = gset.Bool("help", false, "print this information")
-		h     = gset.Bool("h", false, "print this information")
+		gset           = flag.NewFlagSet("global", flag.ExitOnError)
+		debug, help, h *bool
 
 		genset = flag.NewFlagSet("gen", flag.ExitOnError)
 		out    = genset.String("out", "design.json", "set path to generated JSON representation")
@@ -32,44 +31,53 @@ func main() {
 		devmode = os.Getenv("DEVMODE") == "1"
 	)
 
+	addGlobals := func(set *flag.FlagSet) {
+		debug = set.Bool("debug", false, "print debug output")
+		help = set.Bool("help", false, "print this information")
+		h = set.Bool("h", false, "print this information")
+	}
+
 	var (
 		cmd string
 		pkg string
-		idx int
+		idx = 1
 	)
 	for _, arg := range os.Args[1:] {
-		idx++
-		switch cmd {
-		case "":
+		if strings.HasPrefix(arg, "-") {
+			break
+		} else if cmd == "" {
 			cmd = arg
-		case "serve", "gen":
-			if arg == "-h" || arg == "-help" || arg == "--h" || arg == "--help" {
-				if cmd == "serve" {
-					showUsage(cmd, svrset, gset)
-				} else {
-					showUsage(cmd, genset, gset)
-				}
-				os.Exit(0)
-			}
+		} else if pkg == "" {
 			pkg = arg
-			idx++
-			goto done
-		default:
-			goto done
+		} else {
+			addGlobals(gset)
+			showUsage(cmd, genset, svrset, gset)
 		}
-	}
-done:
-	gset.Parse(os.Args[idx:])
-	switch cmd {
-	case "gen":
-		genset.Parse(os.Args[idx:])
-	case "serve":
-		svrset.Parse(os.Args[idx:])
+		idx++
 	}
 
-	if *h || *help {
-		showUsage(cmd, genset, svrset, gset)
-		os.Exit(0)
+	switch cmd {
+	case "gen":
+		addGlobals(genset)
+		genset.Parse(os.Args[idx:])
+		if *h || *help {
+			showUsage(cmd, genset)
+			os.Exit(0)
+		}
+	case "serve":
+		addGlobals(svrset)
+		svrset.Parse(os.Args[idx:])
+		if *h || *help {
+			showUsage(cmd, svrset)
+			os.Exit(0)
+		}
+	default:
+		addGlobals(gset)
+		gset.Parse(os.Args[idx:])
+		if *h || *help {
+			showUsage(cmd, genset, svrset, gset)
+			os.Exit(0)
+		}
 	}
 
 	var err error
@@ -84,6 +92,9 @@ done:
 			err = ioutil.WriteFile(*out, b, 0644)
 		}
 	case "serve":
+		if pkg == "" {
+			fail(`missing PACKAGE argument, use "--help" for usage`)
+		}
 		*dir, _ = filepath.Abs(*dir)
 		if err := os.MkdirAll(*dir, 0777); err != nil {
 			fail(err.Error())
