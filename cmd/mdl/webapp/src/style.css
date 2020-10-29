@@ -112,3 +112,24 @@ rect.elastic {
 rect.elastic.on {
     display: block;
 }
+
+.popover {
+    position: absolute;
+    top: 50px;
+    bottom: 10px;
+    overflow: auto;
+    right: 10px;
+    background: #fff;
+    padding: 30px;
+    box-shadow: 3px 3px 5px rgba(0,0,0, .2);
+    border: solid 1px #eee;
+}
+
+.popover th {
+    text-align: left;
+    padding: 20px 0px 10px;
+}
+.popover td {
+    padding-right: 20px;
+    font-size: 14px;
+}

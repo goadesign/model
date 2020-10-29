@@ -1,9 +1,10 @@
-import React, {FC, useState} from "react";
-import {getZoomAuto, GraphData} from "./graph-view/graph";
+import React, {FC, useMemo, useState} from "react";
+import {getZoom, getZoomAuto, GraphData, setZoom} from "./graph-view/graph";
 import {Graph} from "./graph-view/graph-react";
 import {BrowserRouter as Router, Route} from 'react-router-dom'
 import {useHistory} from "react-router";
 import {listViews, parseView, ViewsList} from "./parseModel";
+import {Help} from "./shortcuts";
 
 
 export const Root: FC<{model: any, layout: any}> = ({model, layout}) => <Router>
@@ -32,8 +33,8 @@ export const refreshGraph = () => {
 
 const ModelPane: FC<{model: any, layouts: any}> = ({model, layouts}) => {
 	const crtID = getCrtID()
-	const [zoom, setZoom] = useState(1)
 	const [saving, setSaving] = useState(false)
+	const [helpOn, setHelpOn] = useState(false)
 
 	const graph = graphs[crtID] || parseView(model, layouts, crtID)
 	if (!graph) {
@@ -71,22 +72,23 @@ const ModelPane: FC<{model: any, layouts: any}> = ({model, layouts}) => {
 				<button onClick={() => graph.alignSelectionH()} title="Align selected objects horizontally">H Align</button>
 				<button className="grp" onClick={() => graph.alignSelectionV()} title="Align selected objects vertically">V Align</button>
 				<button className="grp" onClick={() => graph.autoLayout()} title="Automatic layout using DagreJS">Auto Layout</button>
-				<button onClick={() => setZoom(zoom - .05)} title="Zoom out">Zoom -</button>
-				<button onClick={() => setZoom(zoom + .05)} title="Zoom in">Zoom +</button>
+				<button onClick={() => setZoom(getZoom() - .05)} title="Zoom out">Zoom -</button>
+				<button onClick={() => setZoom(getZoom() + .05)} title="Zoom in">Zoom +</button>
 				<button onClick={() => {
 					graph.alignTopLeft()
 					setZoom(getZoomAuto())
 				}} title="Zoom/Move to make all graph visible">Fit</button>
 				<button onClick={() => setZoom(1)}>Zoom 100%</button>
 				<button className="action" disabled={saving} onClick={() => saveLayout()}>Save View</button>
+				<button onClick={() => setHelpOn(!helpOn)}>Help</button>
 			</div>
 		</div>
 		<Graph key={crtID}
 			   data={graph}
-			   zoom={zoom}
 			   // print metadata in console
 			   onSelect={id => id && console.log(removeEmptyProps(graph.metadata.elements.find((m: any) => m.id == id)))}
-			   onInit={() => setZoom(getZoomAuto())}/>
+			/>
+		{helpOn && <Help/>}
 	</>
 }
 

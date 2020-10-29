@@ -14,6 +14,28 @@ import {
 } from "./intersect";
 import {autoLayout} from "./dagre";
 import {Undo} from "./undo";
+import {
+	ADD_LABEL_VERTEX,
+	ADD_VERTEX,
+	DEL_VERTEX,
+	DESELECT,
+	findShortcut,
+	MOVE_DOWN,
+	MOVE_DOWN_FAST,
+	MOVE_LEFT,
+	MOVE_LEFT_FAST,
+	MOVE_RIGHT,
+	MOVE_RIGHT_FAST,
+	MOVE_UP,
+	MOVE_UP_FAST,
+	REDO,
+	SELECT_ALL,
+	UNDO,
+	ZOOM_100,
+	ZOOM_FIT,
+	ZOOM_IN,
+	ZOOM_OUT
+} from "../shortcuts";
 
 
 interface Point {
@@ -285,6 +307,11 @@ export class GraphData {
 		v.y = y;
 		this.redrawEdge(v.edge)
 		this._undo.change()
+	}
+
+	moveSelected(dx: number, dy: number) {
+		this.nodes().forEach(n => n.selected && this.moveNode(n, n.x + dx, n.y + dy))
+		this.edgeVertices.forEach(v => v.selected && this.moveEdgeVertex(v, v.x + dx, v.y + dy))
 	}
 
 	insertEdgeVertex(edge: Edge, p: Point, pos: number, isLabel: boolean) {
@@ -834,9 +861,9 @@ function addCursorInteraction(svg: SVGSVGElement) {
 	})
 
 	window.addEventListener('keyup', e => {
-		if (e.code == 'AltLeft' || e.code == 'AltRight') {
-			removePrjDot()
-		}
+		const key = findShortcut(e, true)
+		if (key == ADD_VERTEX || key == ADD_LABEL_VERTEX) return
+		removePrjDot()
 	})
 
 	function removePrjDot() {
@@ -845,21 +872,90 @@ function addCursorInteraction(svg: SVGSVGElement) {
 	}
 
 	svg.addEventListener('click', e => {
-		if (!e.altKey) return
+		const key = findShortcut(e, true)
+		if (key != ADD_LABEL_VERTEX && key != ADD_VERTEX) return
 		const fnd = findClosestSegment(gd(), mouseToDrawing(e))
 		if (fnd) {
 			const {edge, pos, prj} = fnd
-			// when shift down, make it label position
-			gd().insertEdgeVertex(edge, prj, pos, e.shiftKey)
+			// depending on keyboard modifier, make it label position
+			gd().insertEdgeVertex(edge, prj, pos, key == ADD_LABEL_VERTEX)
 			removePrjDot()
 		}
 	})
 
+	svg.addEventListener('wheel', e => {
+		const key = findShortcut(e, false, true)
+		if (key == ZOOM_OUT || key == ZOOM_IN) {
+			const delta = Math.round(e.deltaY / 10) / 100
+			setZoom(getZoom() - delta)
+			e.preventDefault()
+		}
+	})
+
 	window.addEventListener('keydown', e => {
-		if (e.code == 'Delete' || e.code == 'Backspace') {
-			Array.from(gd().edgeVertices.values()).filter(v => v.selected).forEach(v => {
-				gd().deleteEdgeVertex(v)
-			})
+		switch (findShortcut(e)) {
+			case DEL_VERTEX:
+				Array.from(gd().edgeVertices.values()).filter(v => v.selected).forEach(v => {
+					gd().deleteEdgeVertex(v)
+				})
+				break
+			case UNDO:
+				gd().undo()
+				break
+			case REDO:
+				gd().redo()
+				break
+			case ZOOM_IN:
+				setZoom(getZoom() + .05)
+				e.preventDefault()
+				break
+			case ZOOM_OUT:
+				setZoom(getZoom() - .05)
+				e.preventDefault()
+				break
+			case ZOOM_100:
+				setZoom(1)
+				e.preventDefault()
+				break
+			case ZOOM_FIT:
+				gd().alignTopLeft()
+				setZoom(getZoomAuto())
+				e.preventDefault()
+				break
+			case SELECT_ALL:
+				gd().nodes().forEach(n => gd().setNodeSelected(n, true))
+				gd().edgeVertices.forEach(v => setDotSelected(v, true))
+				e.preventDefault()
+				break
+			case DESELECT:
+				gd().nodes().forEach(n => gd().setNodeSelected(n, false))
+				gd().edgeVertices.forEach(v => setDotSelected(v, false))
+				e.preventDefault()
+				break
+			case MOVE_LEFT:
+				gd().moveSelected(-1, 0)
+				break
+			case MOVE_LEFT_FAST:
+				gd().moveSelected(-10, 0)
+				break
+			case MOVE_RIGHT:
+				gd().moveSelected(1, 0)
+				break
+			case MOVE_RIGHT_FAST:
+				gd().moveSelected(10, 0)
+				break
+			case MOVE_UP:
+				gd().moveSelected(0, -1)
+				break
+			case MOVE_UP_FAST:
+				gd().moveSelected(0, -10)
+				break
+			case MOVE_DOWN:
+				gd().moveSelected(0, 1)
+				break
+			case MOVE_DOWN_FAST:
+				gd().moveSelected(0, 10)
+				break
 		}
 	})
 
@@ -917,7 +1013,7 @@ function addCursorInteraction(svg: SVGSVGElement) {
 	})
 }
 
-function getZoom() {
+export function getZoom() {
 	const el = svg.querySelector('g.zoom') as SVGGElement
 	if (el.transform.baseVal.numberOfItems == 0) return 1
 	return el.transform.baseVal.getItem(0).matrix.a
@@ -925,7 +1021,7 @@ function getZoom() {
 
 const svgPadding = 20
 
-function setZoom(zoom: number) {
+export function setZoom(zoom: number) {
 	const el = svg.querySelector('g.zoom') as SVGGElement
 	el.setAttribute('transform', `scale(${zoom})`)
 	// also set panning size
