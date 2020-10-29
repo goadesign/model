@@ -143,7 +143,7 @@ const shortcuts: { name: string; list: Shortcut[] }[] = [
 			},
 			{
 				id: MOVE_UP_FAST,
-				help: 'Move up',
+				help: 'Move up fast',
 				combinations: [{key: 'UP', shift: true}]
 			},
 			{
@@ -163,7 +163,7 @@ const shortcuts: { name: string; list: Shortcut[] }[] = [
 			},
 			{
 				id: MOVE_DOWN_FAST,
-				help: 'Move down',
+				help: 'Move down fast',
 				combinations: [{key: 'DOWN', shift: true}]
 			},
 			{
