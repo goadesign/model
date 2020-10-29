@@ -38,7 +38,22 @@ export const MOVE_RIGHT_FAST = 'move-right-fast'
 export const MOVE_UP_FAST = 'move-up-fast'
 export const MOVE_DOWN_FAST = 'move-down-fast'
 
+export const HELP = 'help'
+
 const shortcuts: { name: string; list: Shortcut[] }[] = [
+	{
+		name: 'Help',
+		list: [
+			{
+				id: HELP,
+				help: 'Show this help',
+				combinations: [
+					{key: '?', shift: true},
+					{key: 'F1', shift: true}
+				]
+			}
+		]
+	},
 	{
 		name: 'History',
 		list: [

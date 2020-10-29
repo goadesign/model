@@ -4,7 +4,7 @@ import {Graph} from "./graph-view/graph-react";
 import {BrowserRouter as Router, Route} from 'react-router-dom'
 import {useHistory} from "react-router";
 import {listViews, parseView, ViewsList} from "./parseModel";
-import {Help} from "./shortcuts";
+import {findShortcut, HELP, Help} from "./shortcuts";
 
 
 export const Root: FC<{model: any, layout: any}> = ({model, layout}) => <Router>
@@ -30,6 +30,13 @@ const graphs: {[key: string]: GraphData} = {}
 export const refreshGraph = () => {
 	delete graphs[getCrtID()]
 }
+
+let toggHelp: () => void
+window.addEventListener('keydown', e => {
+	if (toggHelp && findShortcut(e) == HELP) {
+		toggHelp()
+	}
+})
 
 const ModelPane: FC<{model: any, layouts: any}> = ({model, layouts}) => {
 	const crtID = getCrtID()
@@ -60,6 +67,9 @@ const ModelPane: FC<{model: any, layouts: any}> = ({model, layouts}) => {
 			setSaving(false)
 		})
 	}
+
+	toggHelp = () => setHelpOn(!helpOn)
+
 	return <>
 		<div className="toolbar">
 			<div>
