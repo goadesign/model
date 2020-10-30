@@ -395,3 +395,17 @@ func Solid() {
 	}
 	eval.IncompatibleDSL()
 }
+
+// Dashed makes relationship lines dashed.
+//
+// Dashed must appear in RelationshipStyle.
+//
+// Dashed takes no argument.
+func Dashed() {
+	if rs, ok := eval.Current().(*expr.RelationshipStyle); ok {
+		f := true
+		rs.Dashed = &f
+		return
+	}
+	eval.IncompatibleDSL()
+}

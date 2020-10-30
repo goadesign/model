@@ -7,18 +7,18 @@ import (
 var _ = Design("Getting Started", "This is a model of my software system.", func() {
 	SoftwareSystem("The System", "My Software System")
 	Person("Person1", "A person using the system.", func() {
-		Uses("The System", "Edge\nwith vertices", func() {
-			Tag("pos75")
+		Uses("The System", "Thick, red edge\nwith vertices", func() {
+			Tag("labelPos")
 		})
 		Tag("person")
 	})
-	Person("Person2", "The intellectual.\nTwo relationships\nautomatically spread", func() {
-		Uses("The System", "Left")
+	Person("Person2", "Two relationships\nautomatically spread", func() {
 		Uses("The System", "Right")
+		Uses("The System", "Left")
 		Tag("person")
 	})
 	Person("Person3", "Another person", func() {
-		Uses("The System", "Solid Orthogonal", func() {
+		Uses("The System", "Solid, Dashed\nOrthogonal", func() {
 			Tag("knows")
 		})
 	})
@@ -26,7 +26,7 @@ var _ = Design("Getting Started", "This is a model of my software system.", func
 	Views(func() {
 		SystemContextView("The System", "SystemContext", "System Context diagram.", func() {
 			AddAll()
-			Link("Person1", "The System", "Edge\nwith vertices", func() {
+			Link("Person1", "The System", "Thick, red edge\nwith vertices", func() {
 				Vertices(300, 300, 300, 800)
 			})
 			AutoLayout(RankLeftRight)
@@ -35,13 +35,19 @@ var _ = Design("Getting Started", "This is a model of my software system.", func
 			ElementStyle("person", func() {
 				Shape(ShapePerson)
 			})
-			RelationshipStyle("pos75", func() {
+			// Defaults all relationships to solid line
+			RelationshipStyle("Relationship", func() {
+				Solid()
+			})
+			RelationshipStyle("labelPos", func() {
 				Position(40)
+				Color("#FF0000")
+				Thickness(7)
 			})
 			RelationshipStyle("knows", func() {
 				Routing(RoutingOrthogonal)
-				//Routing(RoutingDirect)
-				Solid()
+				// overwrite line style
+				Dashed()
 			})
 		})
 	})

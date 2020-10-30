@@ -650,6 +650,7 @@ function buildEdge(data: GraphData, edge: Edge) {
 	p.setAttribute('fill', 'none')
 	p.setAttribute('stroke', edge.style.color)
 	p.setAttribute('stroke-width', String(edge.style.thickness))
+	p.setAttribute('stroke-linecap', 'round')
 	edge.style.dashed && p.setAttribute('stroke-dasharray', '8')
 	g.append(p)
 
@@ -713,6 +714,7 @@ function buildNode(n: Node, data: GraphData) {
 	applyStyle(shape, styles.nodeBorder)
 	shape.setAttribute('fill', n.style.background)
 	shape.setAttribute('stroke', n.style.stroke)
+	shape.setAttribute('stroke-width', (n.width / 70).toFixed(1))
 	shape.setAttribute('opacity', String(n.style.opacity))
 	setBorderStyle(shape, n.style.border)
 
@@ -1058,7 +1060,6 @@ const styles = {
 	nodeBorder: {
 		fill: "rgba(255, 255, 255, 0.86)",
 		stroke: "#aaa",
-		"stroke-width": "3px"
 	},
 	nodeText: {
 		'font-family': 'Arial, sans-serif',
