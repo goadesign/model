@@ -209,15 +209,13 @@ export const parseView = (model: Model, layouts: Layouts, viewKey: string) => {
 		let style = {}
 		if (el) {
 			const tags = el.tags.split(',')
-			const tagsMap = reduceToMap(tags)
-			sub = tags[tags.length - 1]
+			sub = tags[tags.length - 1] // subtitle is [<last tag>]
 			if (el.technology)
-				sub += ': ' + el.technology
+				sub += ': ' + el.technology // or [<technology>: <last tag>]
 
-			styles && styles.elements && styles.elements.forEach((s: any) => {
-				if (tagsMap[s.tag]) {
-					style = {...style, ...s}
-				}
+			tags.forEach(tag => {
+				const s = styles && styles.elements && styles.elements.find(s => s.tag == tag)
+				s && (style = {...style, ...s})
 			})
 		}
 
@@ -261,11 +259,11 @@ export const parseView = (model: Model, layouts: Layouts, viewKey: string) => {
 				return;
 			}
 			let style: any = {}
-			const tagsMap = reduceToMap(rel.tags.split(','))
-			styles && styles.relationships && styles.relationships.forEach((s: any) => {
-				if (tagsMap[s.tag]) {
-					style = {...style, ...s}
-				}
+			console.log(rel.tags)
+			rel.tags.split(',').forEach(tag => {
+				const s = styles && styles.relationships && styles.relationships.find(s => s.tag == tag)
+				console.log("match", tag, s)
+				s && (style = {...style, ...s})
 			})
 			if (ref.routing) style.routing = ref.routing
 
@@ -296,14 +294,6 @@ export const parseView = (model: Model, layouts: Layouts, viewKey: string) => {
 	//layout if any and init graph
 	graph.init(layouts[graph.id])
 	return graph
-}
-
-
-function reduceToMap(lst: string[]) {
-	return lst.reduce((o: any, t) => {
-		o[t] = true;
-		return o
-	}, {})
 }
 
 // lookup the view in all Views sections in the model. return the view and the section

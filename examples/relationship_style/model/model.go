@@ -10,12 +10,11 @@ var _ = Design("Getting Started", "This is a model of my software system.", func
 		Uses("The System", "Thick, red edge\nwith vertices", func() {
 			Tag("labelPos")
 		})
-		Tag("person")
 	})
 	Person("Person2", "Two relationships\nautomatically spread", func() {
 		Uses("The System", "Right")
 		Uses("The System", "Left")
-		Tag("person")
+		Tag("Customer")
 	})
 	Person("Person3", "Another person", func() {
 		Uses("The System", "Solid, Dashed\nOrthogonal", func() {
@@ -32,8 +31,12 @@ var _ = Design("Getting Started", "This is a model of my software system.", func
 			AutoLayout(RankLeftRight)
 		})
 		Styles(func() {
-			ElementStyle("person", func() {
+			ElementStyle("Person", func() {
 				Shape(ShapePerson)
+				Background("#fffff0")
+			})
+			ElementStyle("Customer", func() {
+				Background("#ffffa0")
 			})
 			// Defaults all relationships to solid line
 			RelationshipStyle("Relationship", func() {

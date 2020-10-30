@@ -56,7 +56,8 @@ func (r *Relationship) EvalName() string {
 
 // Finalize computes the destination and adds the "Relationship" tag.
 func (r *Relationship) Finalize() {
-	r.MergeTags("Relationship")
+	// prefix tags
+	r.Tags = mergeTags("Relationship", []string{r.Tags})
 }
 
 // Dup creates a new relationship with identical description, tags, URL,
