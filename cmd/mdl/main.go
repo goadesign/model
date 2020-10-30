@@ -131,6 +131,7 @@ func serve(out, pkg string, port int, devmode, debug bool) error {
 			fmt.Println("error parsing DSL:\n" + err.Error())
 			return
 		}
+		var design mdl.Design
 		if err := json.Unmarshal(b, &design); err != nil {
 			fmt.Println("failed to load design: " + err.Error())
 			return
