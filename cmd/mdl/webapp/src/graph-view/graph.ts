@@ -657,7 +657,7 @@ function buildEdge(data: GraphData, edge: Edge) {
 	edge.vertices = vertices.slice(1, -1).map(p => edge.initVertex(p))
 	edge.vertices.forEach((p, i) => {
 		const v = p as EdgeVertex
-		v.ref = create.element('circle', {id: v.id, cx: p.x, cy: p.y, r: 7}, 'v-dot')
+		v.ref = create.element('circle', {id: v.id, cx: p.x, cy: p.y, r: 7, fill: 'none'}, 'v-dot')
 		v.selected && v.ref.classList.add('selected')
 		v.auto && v.ref.classList.add('auto')
 		g.append(v.ref)

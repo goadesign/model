@@ -46,7 +46,7 @@ const shortcuts: { name: string; list: Shortcut[] }[] = [
 		list: [
 			{
 				id: HELP,
-				help: 'Show this help',
+				help: 'Show/hide this help',
 				combinations: [
 					{key: '?', shift: true},
 					{key: 'F1', shift: true}
