@@ -1,11 +1,15 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"path"
+	"strings"
 	"sync"
 
 	"goa.design/model/mdl"
@@ -27,12 +31,11 @@ type (
 		lock   sync.Mutex
 	}
 
-	// SavedView is the data structure created and updated by the single page
-	// app for each design view.
-	SavedView struct {
-		Layout interface{} `json:"layout,omitempty"`
-		SVG    string      `json:"svg,omitempty"`
-	}
+	// Layout is position info saved for one view (diagram)
+	Layout = map[string]interface{}
+
+	// Layouts is a map from view key to the view Layout
+	Layouts = map[string]Layout
 )
 
 // NewServer created a server that serves the given design.
@@ -47,7 +50,6 @@ func NewServer(d *mdl.Design) *Server {
 // the single page app is served directly from the source under the "webapp"
 // directory. Otherwise it is served from the code embedded in the Go executable.
 func (s *Server) Serve(outDir string, devmode bool, port int) error {
-	layoutFile := path.Join(outDir, "layout.json")
 
 	if devmode {
 		// in devmode (go run), serve the webapp from filesystem
@@ -68,20 +70,16 @@ func (s *Server) Serve(outDir string, devmode bool, port int) error {
 	http.HandleFunc("/data/layout.json", func(w http.ResponseWriter, r *http.Request) {
 		s.lock.Lock()
 		defer s.lock.Unlock()
-		if fileExists(layoutFile) {
-			http.ServeFile(w, r, layoutFile)
+
+		b, err := loadLayouts(outDir)
+		if err != nil {
+			fmt.Println(err)
 		} else {
-			fmt.Fprint(w, "{}")
+			_, _ = w.Write(b)
 		}
 	})
 
 	http.HandleFunc("/data/save", func(w http.ResponseWriter, r *http.Request) {
-		var savedData SavedView
-		err := json.NewDecoder(r.Body).Decode(&savedData)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
 		id := r.URL.Query().Get("id")
 		if id == "" {
 			http.Error(w, "Param id is missing", http.StatusBadRequest)
@@ -91,31 +89,16 @@ func (s *Server) Serve(outDir string, devmode bool, port int) error {
 		s.lock.Lock()
 		defer s.lock.Unlock()
 
-		data := make(map[string]interface{})
-		if fileExists(layoutFile) {
-			file, err := ioutil.ReadFile(layoutFile)
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
-			}
-			// if the file contains garbage, ignore it's content
-			_ = json.Unmarshal(file, &data)
-		}
-		data[id] = savedData.Layout
-
-		out, err := json.Marshal(data)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		err = ioutil.WriteFile(layoutFile, out, 0644)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
 		svgFile := path.Join(outDir, id+".svg")
-		_ = ioutil.WriteFile(svgFile, []byte(savedData.SVG), 0644)
+		f, err := os.Create(svgFile)
+		if err != nil {
+			msg := fmt.Sprintf("Saving failed, can't write to %s: %s!\n", svgFile, err)
+			fmt.Println(msg)
+			http.Error(w, msg, http.StatusInternalServerError)
+			return
+		}
+		defer func() { _ = f.Close() }()
+		_, _ = io.Copy(f, r.Body)
 
 		w.WriteHeader(http.StatusAccepted)
 	})
@@ -139,4 +122,60 @@ func (s *Server) SetDesign(d *mdl.Design) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	s.design = b
+}
+
+// loadLayouts lists out directory and reads layout info from SVG files
+// for backwards compatibility, fallback to layout.json
+func loadLayouts(dir string) ([]byte, error) {
+	beginMark := []byte("<script type=\"application/json\"><![CDATA[")
+	endMark := []byte("]]></script>")
+
+	// first, read the fallback layout.json, then merge individual layouts from SVGs
+	var layouts Layouts = make(map[string]Layout)
+	lj := path.Join(dir, "layout.json")
+	if fileExists(lj) {
+		b, err := ioutil.ReadFile(lj)
+		if err != nil {
+			return nil, err
+		}
+		err = json.Unmarshal(b, &layouts)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	var svgFiles []string
+	files, err := ioutil.ReadDir(dir)
+	if err != nil {
+		return nil, err
+	}
+	for _, f := range files {
+		if !f.IsDir() && strings.HasSuffix(f.Name(), ".svg") {
+			svgFiles = append(svgFiles, f.Name())
+		}
+	}
+	for _, file := range svgFiles {
+		b, err := ioutil.ReadFile(path.Join(dir, file))
+		if err != nil {
+			return nil, err
+		}
+
+		// look for the first script block
+		begin := bytes.Index(b, beginMark) + len(beginMark)
+		end := bytes.Index(b, endMark)
+		b = b[begin:end]
+
+		var l Layout = make(map[string]interface{})
+		err = json.Unmarshal(b, &l)
+		if err != nil {
+			return nil, err
+		}
+		id := file[:len(file)-4]
+		layouts[id] = l["layout"].(Layout)
+	}
+	b, err := json.Marshal(layouts)
+	if err != nil {
+		return nil, err
+	}
+	return b, nil
 }

@@ -397,6 +397,7 @@ export class GraphData {
 		// inject metadata
 		const script = document.createElement('script')
 		script.setAttribute('type', 'application/json')
+		this.metadata.layout = this.exportLayout()
 		script.append('<![CDATA[' + escapeCdata(JSON.stringify(this.metadata, null, 2)) + ']]>')
 		svg.insertBefore(script, svg.firstChild)
 		// read the SVG

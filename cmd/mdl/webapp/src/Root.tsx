@@ -61,13 +61,10 @@ const ModelPane: FC<{model: any, layouts: any}> = ({model, layouts}) => {
 
 		fetch('data/save?id=' + encodeURIComponent(crtID), {
 			method: 'post',
-			body: JSON.stringify({
-				layout: graph.exportLayout(),
-				svg: graph.exportSVG()
-			})
+			body: graph.exportSVG()
 		}).then(ret => {
 			if (ret.status != 202) {
-				alert('Error saving')
+				alert('Error saving\nSee terminal output.')
 			}
 			setSaving(false)
 			graph.setSaved()

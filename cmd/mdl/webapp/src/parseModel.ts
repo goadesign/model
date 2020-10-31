@@ -259,10 +259,8 @@ export const parseView = (model: Model, layouts: Layouts, viewKey: string) => {
 				return;
 			}
 			let style: any = {}
-			console.log(rel.tags)
 			rel.tags.split(',').forEach(tag => {
 				const s = styles && styles.relationships && styles.relationships.find(s => s.tag == tag)
-				console.log("match", tag, s)
 				s && (style = {...style, ...s})
 			})
 			if (ref.routing) style.routing = ref.routing
