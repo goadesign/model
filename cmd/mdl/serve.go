@@ -171,7 +171,9 @@ func loadLayouts(dir string) ([]byte, error) {
 			return nil, err
 		}
 		id := file[:len(file)-4]
-		layouts[id] = l["layout"].(Layout)
+		if l["layout"] != nil {
+			layouts[id] = l["layout"].(Layout)
+		}
 	}
 	b, err := json.Marshal(layouts)
 	if err != nil {
