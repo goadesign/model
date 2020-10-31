@@ -6,7 +6,7 @@
  */
 
 // local memory cache
-const cache = new Map<string, { versions: any; pos: number }>();
+const cache = new Map<string, { versions: any; pos: number; lastSavedPos: number }>();
 
 
 export class Undo<Doc> {
@@ -14,6 +14,7 @@ export class Undo<Doc> {
 	private readonly id: string
 	private readonly versions: Doc[]
 	private pos: number
+	private lastSavedPos: number
 	private readonly exportDoc: () => Doc
 	private readonly importDoc: (d: Doc) => void
 	change: () => void
@@ -30,8 +31,10 @@ export class Undo<Doc> {
 			const c = cache.get(this.id)
 			this.versions = c.versions
 			this.pos = c.pos
+			this.lastSavedPos = c.lastSavedPos
 		} else {
 			this.pos = 1
+			this.lastSavedPos = 1
 			this.versions = []
 		}
 	}
@@ -66,7 +69,8 @@ export class Undo<Doc> {
 	private saveCache() {
 		cache.set(this.id, {
 			versions: this.versions,
-			pos: this.pos
+			pos: this.pos,
+			lastSavedPos: this.lastSavedPos
 		})
 	}
 
@@ -88,6 +92,14 @@ export class Undo<Doc> {
 		this.importDoc(this.deepClone(doc))
 		this.pos += 1
 		this.saveCache()
+	}
+
+	changed() {
+		return this.pos != this.lastSavedPos
+	}
+
+	setSaved() {
+		this.lastSavedPos = this.pos
 	}
 }
 

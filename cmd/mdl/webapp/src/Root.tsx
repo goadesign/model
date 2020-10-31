@@ -4,7 +4,7 @@ import {Graph} from "./graph-view/graph-react";
 import {BrowserRouter as Router, Route} from 'react-router-dom'
 import {useHistory} from "react-router";
 import {listViews, parseView, ViewsList} from "./parseModel";
-import {findShortcut, HELP, Help} from "./shortcuts";
+import {findShortcut, HELP, Help, SAVE} from "./shortcuts";
 
 
 export const Root: FC<{model: any, layout: any}> = ({model, layout}) => <Router>
@@ -32,9 +32,14 @@ export const refreshGraph = () => {
 }
 
 let toggHelp: () => void
+let saveLayout: () => void
 window.addEventListener('keydown', e => {
-	if (toggHelp && findShortcut(e) == HELP) {
+	const shortcut = findShortcut(e)
+	if (toggHelp && shortcut == HELP) {
 		toggHelp()
+	} else if (saveLayout && shortcut == SAVE) {
+		saveLayout()
+		e.preventDefault()
 	}
 })
 
@@ -51,7 +56,7 @@ const ModelPane: FC<{model: any, layouts: any}> = ({model, layouts}) => {
 	}
 	graphs[crtID] = graph
 
-	function saveLayout() {
+	saveLayout = () => {
 		setSaving(true)
 
 		fetch('data/save?id=' + encodeURIComponent(crtID), {
@@ -65,6 +70,7 @@ const ModelPane: FC<{model: any, layouts: any}> = ({model, layouts}) => {
 				alert('Error saving')
 			}
 			setSaving(false)
+			graph.setSaved()
 		})
 	}
 

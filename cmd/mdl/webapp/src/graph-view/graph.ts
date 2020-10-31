@@ -339,6 +339,10 @@ export class GraphData {
 		this._undo.change()
 	}
 
+	changed() {
+		return this._undo.changed()
+	}
+
 	undo() {
 		this._undo.undo()
 	}
@@ -405,6 +409,10 @@ export class GraphData {
 	}
 
 
+	/**
+	 * @param full when true, the edges without vertices are saved too, used for undo buffer
+	 *        for saving, full is false
+	 */
 	exportLayout(full = false) {
 		const ret: Layout = {}
 		this.nodes().forEach(n => ret[n.id] = {x: n.x, y: n.y})
@@ -413,6 +421,10 @@ export class GraphData {
 			(lst.length || full) && (ret[`e-${e.id}`] = lst)
 		})
 		return ret
+	}
+
+	setSaved() {
+		this._undo.setSaved()
 	}
 
 	importLayout(layout: { [key: string]: any }, rerender = false) {
@@ -597,7 +609,13 @@ function buildEdge(data: GraphData, edge: Edge) {
 			vertices.push(v)
 			// only if no vertices and no splitting, obey routing style Orthogonal
 		} else if (edge.style.routing == 'Orthogonal') {
-			vertices.push({x: n1.x, y: n2.y, auto: true} as Point)
+			Math.abs(n2.x - n1.x) > Math.abs(n2.y - n1.y) ?
+				vertices.push({x: n1.x, y: n2.y, auto: true} as Point) :
+				vertices.push({x: n2.x, y: n1.y, auto: true} as Point)
+			// vertices.push({x: (n1.x + n2.x)/2, y: n1.y, auto: true} as Point)
+			// vertices.push({x: (n1.x + n2.x)/2, y: n2.y, auto: true} as Point)
+			// vertices.push({x: n1.x, y: (n1.y + n2.y) /2, auto: true} as Point)
+			// vertices.push({x: n2.x, y: (n1.y + n2.y) /2, auto: true} as Point)
 		}
 	}
 
@@ -837,6 +855,12 @@ function addCursorInteraction(svg: SVGSVGElement) {
 		ref?: SVGElement
 	}
 
+	window.addEventListener("beforeunload", e => {
+		if (!gd().changed()) return
+		e.preventDefault()
+		e.returnValue = ''
+	})
+
 	function setDotSelected(d: Handle, selected: boolean) {
 		d.selected = selected
 		const dotEl = svg.querySelector('#' + d.id)
@@ -1060,6 +1084,7 @@ const styles = {
 	nodeBorder: {
 		fill: "rgba(255, 255, 255, 0.86)",
 		stroke: "#aaa",
+		filter: 'url(#shadow)',
 	},
 	nodeText: {
 		'font-family': 'Arial, sans-serif',

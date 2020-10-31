@@ -12,12 +12,12 @@ var _ = Design("Getting Started", "This is a model of my software system.", func
 		})
 	})
 	Person("Person2", "Two relationships\nautomatically spread", func() {
-		Uses("The System", "Right")
-		Uses("The System", "Left")
+		Uses("The System", "Read")
+		Uses("The System", "Write")
 		Tag("Customer")
 	})
 	Person("Person3", "Another person", func() {
-		Uses("The System", "Solid, Dashed\nOrthogonal", func() {
+		Uses("The System", "Dashed\nOrthogonal", func() {
 			Tag("knows")
 		})
 	})

@@ -15,6 +15,8 @@ interface Shortcut {
 	combinations: Combination[]
 }
 
+export const SAVE = 'save'
+
 export const UNDO = 'undo'
 export const REDO = 'redo'
 export const ADD_VERTEX = 'add-vertex'
@@ -51,6 +53,16 @@ const shortcuts: { name: string; list: Shortcut[] }[] = [
 					{key: '?', shift: true},
 					{key: 'F1', shift: true}
 				]
+			}
+		]
+	},
+	{
+		name: 'File',
+		list: [
+			{
+				id: SAVE,
+				help: 'Save',
+				combinations: [{key: 's', ctrl: true}]
 			}
 		]
 	},

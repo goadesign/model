@@ -10,4 +10,7 @@ export const defs = `
 	<g id="icon-cube" transform="translate(0, -14)" class="icon">
 		<path d="M 5 0 h 10 v 10 l -5 5 h -10 v -10 l 5 -5 M 0 5 h 10 v 10 M 15 0 l -5 5"/>
 	</g>
+	<filter id="shadow">
+		<feDropShadow dx="3" dy="3" stdDeviation="5" flood-color="#00000030" flood-opacity="1"></feDropShadow>
+	</filter>
 </defs>`
