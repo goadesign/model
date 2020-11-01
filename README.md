@@ -349,6 +349,24 @@ accepts the import path to the Go package containing the model DSL. The
 editor makes it possible to position the elements and their relationships in
 each view.
 
+The editor makes it possible to select a view described in the DSL and to
+position its elements and relationships graphically. Multiple elements can be
+selected by either dragging over the selection or by using SHIFT + CLICK.
+Selecting multiple elements automatically selects the relationships between
+these elements as well.
+
+New vertices can be created on relationship lines using ALT + CLICK, existing
+vertices can be deleted with BACKSPACE or DELETE. See the table below for a
+complete list of editor shortcuts.
+
+### Saving
+
+The `Save View` button causes the editor to create a SVG rendering of the
+currently edited view in the target directory (specified via the `-dir`
+flag). The SVG encodes the positions of all the elements and relationships as
+well so that restarting the editor using the same target directory
+automatically restores the element positions.
+
 ![Editor](editor.png)
 > Diagram source code: [model.go](examples/shapes/model/model.go)
 
@@ -356,51 +374,33 @@ each view.
 
 The editor supports a number of keyboard shortcuts listed below:
 
-| Help                       |                                      |
-| -------------------------- | ------------------------------------ |
-| ?, SHIFT + F1              | Show keyboard shortcuts              |
-
-| File                       |                                      |
-| -------------------------- | ------------------------------------ |
-| CTRL + S                   | Save SVG                             |
-
-| History                    |                                      |
-| -------------------------- | ------------------------------------ |
-| CTRL + Z                   | Undo                                 |
-| CTRL + SHIFT + Z, CTRL + Y | Redo                                 |
-
-| Relationship editing       |                                      |
-| -------------------------- | ------------------------------------ |
-| ALT + CLICK                | Add relationship vertex              |
-| ALT + SHIFT + CLICK        | Add label anchor relationship vertex |
-| DELETE, BACKSPACE          | Remove relationship vertex           |
-
-| Zoom                       |                                      |
-| -------------------------- | ------------------------------------ |
-| CTRL + =, CTRL + wheel     | Zoom in                              |
-| CTRL + -, CTRL + wheel     | Zoom out                             |
-| CTRL + 9                   | Zoom - fit                           |
-| CTRL + 0                   | Zoom 100%                            |
-
-| Select                     |                                      |
-| -------------------------- | ------------------------------------ |
-| CTRL + A                   | Select all                           |
-| ESC                        | Deselect                             |
-
-| Move                       |                                      |
-| -------------------------- | ------------------------------------ |
-| UP                         | Move up                              |
-| SHIFT + UP                 | Move up fast                         |
-| DOWN                       | Move down                            |
-| SHIFT + DOWN               | Move down fast                       |
-| RIGHT                      | Move right                           |
-| SHIFT + RIGHT              | Move right fast                      |
-| LEFT                       | Move left                            |
-| SHIFT + LEFT               | Move left fast                       |
+| Category             | Shortcut                   | Effect                               |
+| -------------------- | ---------------------------|------------------------------------- |
+| Help                 | ?, SHIFT + F1              | Show keyboard shortcuts              |
+| File                 | CTRL + S                   | Save SVG                             |
+| History              | CTRL + Z                   | Undo                                 |
+| History              | CTRL + SHIFT + Z, CTRL + Y | Redo                                 |
+| Relationship editing | ALT + CLICK                | Add relationship vertex              |
+| Relationship editing | ALT + SHIFT + CLICK        | Add label anchor relationship vertex |
+| Relationship editing | DELETE, BACKSPACE          | Remove relationship vertex           |
+| Zoom                 | CTRL + =, CTRL + wheel     | Zoom in                              |
+| Zoom                 | CTRL + -, CTRL + wheel     | Zoom out                             |
+| Zoom                 | CTRL + 9                   | Zoom - fit                           |
+| Zoom                 | CTRL + 0                   | Zoom 100%                            |
+| Select               | CTRL + A                   | Select all                           |
+| Select               | ESC                        | Deselect                             |
+| Move                 | UP                         | Move up                              |
+| Move                 | SHIFT + UP                 | Move up fast                         |
+| Move                 | DOWN                       | Move down                            |
+| Move                 | SHIFT + DOWN               | Move down fast                       |
+| Move                 | RIGHT                      | Move right                           |
+| Move                 | SHIFT + RIGHT              | Move right fast                      |
+| Move                 | LEFT                       | Move left                            |
+| Move                 | SHIFT + LEFT               | Move left fast                       |
 
 ### TBD
 
-While functional the editor isn't considered feature complete yet. Here is
+While functional, the editor isn't considered feature complete yet. Here is
 the list of features that will be added in the future:
 
 - [ ] Snap to grid
