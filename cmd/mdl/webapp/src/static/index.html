@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>C4 Model</title>
+    <!-- 1. copy the styles -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+        }
+        .c4-diagram .edge .v-dot {
+            fill: transparent;
+            stroke: none;
+        }
+    </style>
+</head>
+<body>
+
+<!-- 2. inject the model JSON, the the "id" to a name of your choosing -->
+<script id="diagram1-model" type="application/json">
+    {
+        "name": "Getting Started",
+        "description": "This is a model of my software system.",
+        "model": {
+            "people": [{
+                "id": "fphk5f",
+                "name": "Person1",
+                "description": "A person using the system.",
+                "tags": "Element,Person,person",
+                "relationships": [{
+                    "id": "1vx4bg9",
+                    "description": "Edge\nwith vertices",
+                    "tags": "pos75,Relationship",
+                    "sourceId": "fphk5f",
+                    "destinationId": "ucih59",
+                    "interactionStyle": "Undefined"
+                }]
+            }, {
+                "id": "fzh5ue",
+                "name": "Person2",
+                "description": "The intellectual.\nTwo relationships\nautomatically spread",
+                "tags": "Element,Person,person",
+                "relationships": [{
+                    "id": "41mfyu",
+                    "description": "Right",
+                    "tags": "Relationship",
+                    "sourceId": "fzh5ue",
+                    "destinationId": "ucih59",
+                    "interactionStyle": "Undefined"
+                }, {
+                    "id": "8kivdp",
+                    "description": "Left",
+                    "tags": "Relationship",
+                    "sourceId": "fzh5ue",
+                    "destinationId": "ucih59",
+                    "interactionStyle": "Undefined"
+                }]
+            }, {
+                "id": "g9grjd",
+                "name": "Person3",
+                "description": "Another person",
+                "tags": "Element,Person",
+                "relationships": [{
+                    "id": "19x799c",
+                    "description": "Solid Orthogonal",
+                    "tags": "knows,Relationship",
+                    "sourceId": "g9grjd",
+                    "destinationId": "ucih59",
+                    "interactionStyle": "Undefined"
+                }]
+            }],
+            "softwareSystems": [{
+                "id": "ucih59",
+                "name": "The System",
+                "description": "My Software System",
+                "tags": "Element,Software System"
+            }]
+        },
+        "views": {
+            "systemContextViews": [{
+                "description": "System Context diagram.",
+                "key": "SystemContext",
+                "automaticLayout": {
+                    "rankDirection": "LeftRight",
+                    "rankSeparation": 300,
+                    "nodeSeparation": 600,
+                    "edgeSeparation": 200
+                },
+                "elements": [{"id": "fphk5f"}, {"id": "fzh5ue"}, {"id": "g9grjd"}, {"id": "ucih59"}],
+                "relationships": [{"id": "19x799c", "description": "Solid Orthogonal"}, {
+                    "id": "1vx4bg9",
+                    "description": "Edge\nwith vertices",
+                    "vertices": [{"x": 300, "y": 300}, {"x": 300, "y": 800}]
+                }, {"id": "41mfyu", "description": "Right"}, {"id": "8kivdp", "description": "Left"}],
+                "softwareSystemId": "ucih59"
+            }],
+            "styles": {
+                "elements": [{"tag": "person", "shape": "Person"}],
+                "relationships": [{"tag": "knows", "dashed": false, "routing": "Orthogonal"}, {
+                    "tag": "pos75",
+                    "position": 40
+                }]
+            }
+        }
+    }
+</script>
+
+<!-- 3. add a placeholder for the diagram
+    - choose a name for the "id" attribute
+    - set attribute "data-model" to the id of the script tag containing the model JSON
+    - set attribute "data-view-key" to the view key you want to display from the model
+-->
+<div data-model="diagram1-model" data-view-key="SystemContext" class="c4-diagram"></div>
+
+<!-- 4. include main.js and runtime.js scripts -->
+</body>
+</html>

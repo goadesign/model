@@ -1,4 +1,4 @@
-package stz
+package mdl
 
 import (
 	"encoding/json"

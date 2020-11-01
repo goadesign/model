@@ -1,2 +1,8 @@
 cmd/mdl/mdl
 cmd/stz/stz
+cmd/mdl/webapp/node_modules
+
+/gen
+/gen-*
+.idea
+

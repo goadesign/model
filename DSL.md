@@ -255,8 +255,8 @@ var _ = Design("[name]", "[description]", func() {
             Unlink(Source, Destination)
 
             // Remove all elements and people that cannot be reached by
-            // traversing the graph of relationships starting with given element
-            // or person.
+            // traversing the relashionships starting with given element or
+            // person.
             RemoveUnreachable(ElementOrPerson)
 
             // Remove all elements that have no relationships to other elements.
@@ -432,19 +432,6 @@ var _ = Design("[name]", "[description]", func() {
             // ElementStyle defines an element style.
             ElementStyle("<tag>", func() {
                 Shape(ShapeBox) // ShapeBox, ShapeRoundedBox, ShapeCircle, ShapeEllipse,
-                                // ShapeHexagon, ShapeCylinder.
-                Icon("<url>")
-                Background("#<rrggbb>")
-                Color("#<rrggbb>")
-                Stroke("#<rrggbb>")
-                ShowMetadata()
-                ShowDescription()
-            })
-
-            // StructurizrElementStyle defines additional element style properties
-            // used for views rendered in the Structurizr service.
-            StructurizrElementStyle("<tag>", func() {
-                Shape(ShapeBox) // ShapeBox, ShapeRoundedBox, ShapeCircle, ShapeEllipse,
                                 // ShapeHexagon, ShapeCylinder, ShapePipe, ShapePerson
                                 // ShapeRobot, ShapeFolder, ShapeWebBrowser,
                                 // ShapeMobileDevicePortrait, ShapeMobileDeviceLandscape,
@@ -453,27 +440,27 @@ var _ = Design("[name]", "[description]", func() {
                 Height(42)
                 FontSize(42)
                 Border(BorderSolid) // BorderSolid, BorderDashed, BorderDotted
-                Opacity(42) // Between 0 and 100
+                Opacity(42)         // Between 0 and 100
+                Icon("<url>")
+                Background("#<rrggbb>")
+                Color("#<rrggbb>")
+                Stroke("#<rrggbb>")
+                ShowMetadata()
+                ShowDescription()
             })
 
             // RelationshipStyle defines a relationship style. All nested
             // properties (thickness, color, etc) are optional.
             RelationshipStyle("<tag>", func() {
-                Thick()
-                Color("#<rrggbb>")
-                Solid()
-                Routing(RoutingDirect) // RoutingDirect, RoutingOrthogonal, RoutingCurved
-            })
-
-            // StructurizrRelationshipStyle defines additional relationship
-            // style properties used for views rendered in the Structurizr
-            // service.
-            StructurizrRelationshipStyle("<tag>", func() {
                 Thickness(42)
                 FontSize(42)
                 Width(42)
                 Position(42) // Between 0 and 100
                 Opacity(42)  // Between 0 and 100
+                Color("#<rrggbb>")
+                Solid()
+                Dashed()
+                Routing(RoutingDirect) // RoutingDirect, RoutingOrthogonal, RoutingCurved
             })
         })
     })

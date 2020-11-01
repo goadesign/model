@@ -23,8 +23,6 @@ const (
 	ShapeEllipse
 	ShapeHexagon
 	ShapeRoundedBox
-
-	// Shapes allowed in StructurizrElementStyle
 	ShapeComponent
 	ShapeFolder
 	ShapeMobileDeviceLandscape
@@ -132,46 +130,6 @@ func ElementStyle(tag string, dsl func()) {
 	cfg.Elements = append(cfg.Elements, es)
 }
 
-// StructurizrElementStyle defines additional element styles used for views
-// rendered in the Structurizr service. Shape accepts additional values when
-// used in StructurizrElementStyle.
-//
-// StructurizrElementStyle must appear in Styles.
-//
-// StructurizrElementStyle accepts two arguments: the tag that identifies the
-// elements that the style should be applied to and a function describing the
-// style properties.
-//
-// Example:
-//
-//     var _ = Design(func() {
-//         // ...
-//         Views(func() {
-//             // ...
-//             Styles(func() {
-//                 StructurizrElementStyle("default", func() {
-//                     Shape(ShapeRobot)
-//                     Icon("https://goa.design/goa-logo.png")
-//                     Width(300)
-//                     Height(450)
-//                     FontSize(24)
-//                     Border(BorderSolid)
-//                     Opacity(100)
-//                 })
-//             })
-//         })
-//     })
-//
-func StructurizrElementStyle(tag string, dsl func()) {
-	cfg, ok := eval.Current().(*expr.Styles)
-	if !ok {
-		eval.IncompatibleDSL()
-	}
-	es := &expr.StructurizrElementStyle{Tag: tag}
-	eval.Execute(dsl, es)
-	cfg.StructurizrElements = append(cfg.StructurizrElements, es)
-}
-
 // RelationshipStyle defines relationship styles.
 //
 // RelationshipStyle must appear in Styles.
@@ -208,61 +166,18 @@ func RelationshipStyle(tag string, dsl func()) {
 	cfg.Relationships = append(cfg.Relationships, rs)
 }
 
-// StructurizrRelationshipStyle defines additional relationship styles that
-// apply to views rendered in the Structurizr service.
-//
-// StructurizrRelationshipStyle must appear in Styles.
-//
-// StructurizrRelationshipStyle accepts two arguments: the tag that identifies
-// the relationships that the style should be applied to and a function
-// describing the style properties.
-//
-// Example:
-//
-//     var _ = Design(func() {
-//         // ...
-//         Views(func() {
-//             // ...
-//             Styles(func() {
-//                 StructurizrRelationshipStyle("default", func() {
-//                     Thickness(2)
-//                     FontSize(24)
-//                     Width(300)
-//                     Position(50)
-//                     Opacity(100)
-//                 })
-//             })
-//         })
-//     })
-//
-func StructurizrRelationshipStyle(tag string, dsl func()) {
-	cfg, ok := eval.Current().(*expr.Styles)
-	if !ok {
-		eval.IncompatibleDSL()
-	}
-	rs := &expr.StructurizrRelationshipStyle{Tag: tag}
-	eval.Execute(dsl, rs)
-	cfg.StructurizrRelationships = append(cfg.StructurizrRelationships, rs)
-}
-
 // Shape defines element shapes, default is ShapeBox.
 //
-// Shape must apear in ElementStyle or StructurizrElementStyle.
+// Shape must apear in ElementStyle.
 //
 // Shape accepts one argument, one of: ShapeBox, ShapeRoundedBox, ShapeCircle,
-// ShapeEllipse, ShapeHexagon or ShapeCylinder. Additionally when used
-// in StructurizrElementStyle Shape also accepts one of ShapePipe, ShapePerson
+// ShapeEllipse, ShapeHexagon or ShapeCylinder, ShapePipe, ShapePerson
 // ShapeRobot, ShapeFolder, ShapeWebBrowser, ShapeMobileDevicePortrait,
 // ShapeMobileDeviceLandscape or ShapeComponent.
 func Shape(kind ShapeKind) {
 	switch es := eval.Current().(type) {
 	case *expr.ElementStyle:
-		if int(kind) >= int(expr.ShapeComponent) {
-			eval.ReportError("Shape: value can only be used in StructurizrElementStyle")
-		}
 		es.Shape = expr.ShapeKind(kind)
-	case *expr.StructurizrElementStyle:
-		es.Shape = expr.ExtendedShapeKind(kind)
 	default:
 		eval.IncompatibleDSL()
 	}
@@ -277,7 +192,7 @@ func Shape(kind ShapeKind) {
 //
 // Icon must appear in ElementStyle.
 //
-// Icon accepts URL to the icon image or a data URI (StructurizrElementStyle).
+// Icon accepts URL to the icon image or a data URI.
 func Icon(icon string) {
 	switch es := eval.Current().(type) {
 	case *expr.ElementStyle:
@@ -289,14 +204,14 @@ func Icon(icon string) {
 
 // Width sets elements or a relationships width, default is 450.
 //
-// Width must appear in StructurizrElementStyle or StructurizrRelationshipStyle.
+// Width must appear in ElementStyle or RelationshipStyle.
 //
 // Width accepts a single argument: the width in pixel.
 func Width(width int) {
 	switch a := eval.Current().(type) {
-	case *expr.StructurizrElementStyle:
+	case *expr.ElementStyle:
 		a.Width = &width
-	case *expr.StructurizrRelationshipStyle:
+	case *expr.RelationshipStyle:
 		a.Width = &width
 	default:
 		eval.IncompatibleDSL()
@@ -305,11 +220,11 @@ func Width(width int) {
 
 // Height sets elements height, default is 300.
 //
-// Height must appear in StructurizrElementStyle.
+// Height must appear in ElementStyle.
 //
 // Height accepts a single argument: the height in pixel.
 func Height(height int) {
-	if es, ok := eval.Current().(*expr.StructurizrElementStyle); ok {
+	if es, ok := eval.Current().(*expr.ElementStyle); ok {
 		es.Height = &height
 		return
 	}
@@ -378,15 +293,14 @@ func Stroke(color string) {
 
 // FontSize sets elements or relationships text font size, default is 24.
 //
-// FontSize must appear in StructurizrElementStyle or
-// StructurizrRelationshipStyle.
+// FontSize must appear in ElementStyle or RelationshipStyle.
 //
 // FontSize accepts a single argument: the size of the font in pixels.
 func FontSize(pixels int) {
 	switch a := eval.Current().(type) {
-	case *expr.StructurizrElementStyle:
+	case *expr.ElementStyle:
 		a.FontSize = &pixels
-	case *expr.StructurizrRelationshipStyle:
+	case *expr.RelationshipStyle:
 		a.FontSize = &pixels
 	default:
 		eval.IncompatibleDSL()
@@ -455,27 +369,13 @@ func ShowDescription() {
 	eval.IncompatibleDSL()
 }
 
-// Thick renders a thick line to represent the relationship.
-//
-// Thick must appear in RelationshipStyle.
-//
-// Thick takes no argument.
-func Thick() {
-	if rs, ok := eval.Current().(*expr.RelationshipStyle); ok {
-		t := true
-		rs.Thick = &t
-		return
-	}
-	eval.IncompatibleDSL()
-}
-
 // Thickness sets relationships thickness.
 //
-// Thickness must appear in StructurizrRelationshipStyle.
+// Thickness must appear in RelationshipStyle.
 //
 // Thickness takes one argument: the thickness in pixels.
 func Thickness(pixels int) {
-	if rs, ok := eval.Current().(*expr.StructurizrRelationshipStyle); ok {
+	if rs, ok := eval.Current().(*expr.RelationshipStyle); ok {
 		rs.Thickness = &pixels
 		return
 	}
@@ -490,6 +390,20 @@ func Thickness(pixels int) {
 func Solid() {
 	if rs, ok := eval.Current().(*expr.RelationshipStyle); ok {
 		f := false
+		rs.Dashed = &f
+		return
+	}
+	eval.IncompatibleDSL()
+}
+
+// Dashed makes relationship lines dashed.
+//
+// Dashed must appear in RelationshipStyle.
+//
+// Dashed takes no argument.
+func Dashed() {
+	if rs, ok := eval.Current().(*expr.RelationshipStyle); ok {
+		f := true
 		rs.Dashed = &f
 		return
 	}

@@ -640,7 +640,7 @@ func DynamicView(scope interface{}, key string, args ...interface{}) {
 // Example:
 //
 //     var _ = Design(func() {
-//         System("System", func() {
+//         SoftwareSystem("System", func() {
 //              Container("Container")
 //              Container("OtherContainer")
 //         })
@@ -1658,7 +1658,6 @@ func ContainerBoundariesVisible() {
 }
 
 // Coord defines explicit coordinates for where to render a person or element.
-// Coord only applies for views rendered in the Structurizr service.
 //
 // Coord must appear in Add.
 //
@@ -1723,8 +1722,7 @@ func NoRelationship() {
 }
 
 // Vertices lists the x and y coordinate of the vertices used to render the
-// relationship. Vertices only applies to views rendered in the Structurizr
-// service.
+// relationship.
 //
 // Vertices must appear in Add when adding relationships.
 //
@@ -1741,7 +1739,7 @@ func NoRelationship() {
 //         })
 //         Views(func() {
 //             SystemContextView(SoftwareSystem, "context", "An overview diagram.", func() {
-//                 Add(Customer, System, func() {
+//                 Link(Customer, System, func() {
 //                     Vertices(300, 100, 400, 200)
 //                 })
 //             })
@@ -1799,7 +1797,6 @@ func Routing(kind RoutingKind) {
 }
 
 // Position sets the position of a relationship annotation along the line.
-// Position only applies to views rendered in the Structurizr service.
 //
 // Position must appear in a Add expression that adds a relationship or in
 // RelationshipStyle.
@@ -1832,7 +1829,7 @@ func Position(pos int) {
 	switch a := eval.Current().(type) {
 	case *expr.RelationshipView:
 		a.Position = &pos
-	case *expr.StructurizrRelationshipStyle:
+	case *expr.RelationshipStyle:
 		a.Position = &pos
 	default:
 		eval.IncompatibleDSL()
@@ -1840,7 +1837,6 @@ func Position(pos int) {
 }
 
 // RankSeparation sets the separation between ranks in pixels, defaults to 300.
-// RankSeparation only applies to views rendered in the Structurizr service.
 //
 // RankSeparation must appear in AutoLayout.
 //
@@ -1872,7 +1868,6 @@ func RankSeparation(sep int) {
 }
 
 // NodeSeparation sets the separation between nodes in pixels, defaults to 600.
-// NodeSeparation only applies to views rendered in the Structurizr service.
 //
 // NodeSeparation must appear in AutoLayout.
 //
@@ -1904,7 +1899,6 @@ func NodeSeparation(sep int) {
 }
 
 // EdgeSeparation sets the separation between edges in pixels, defaults to 200.
-// EdgeSeparation only applies to views rendered in the Structurizr service.
 //
 // EdgeSeparation must appear in AutoLayout.
 //
@@ -1937,7 +1931,6 @@ func EdgeSeparation(sep int) {
 
 // RenderVertices indicates that vertices should be created during automatic
 // layout, false by default.
-// RenderVertices only applies to views rendered in the Structurizr service.
 //
 // RenderVertices must appear in AutoLayout.
 //

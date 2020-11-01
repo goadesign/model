@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" id="graph" width="2107" height="1328.7630462646484"><script type="application/json"><![CDATA[{
+  "name": "SystemContext",
+  "description": "System Context diagram.",
+  "elements": [
+    {
+      "id": "fphk5f",
+      "tags": "Element,Person"
+    },
+    {
+      "id": "fzh5ue",
+      "tags": "Element,Person,Customer"
+    },
+    {
+      "id": "g9grjd",
+      "tags": "Element,Person"
+    },
+    {
+      "id": "ucih59",
+      "tags": "Element,Software System",
+      "elementViewKey": "SystemContext"
+    }
+  ],
+  "layout": {
+    "fphk5f": {
+      "x": 646.9350949098238,
+      "y": 247.16987234597093
+    },
+    "fzh5ue": {
+      "x": 646.9350949098238,
+      "y": 621.7069281482851
+    },
+    "g9grjd": {
+      "x": 1254.1002196445277,
+      "y": 624.663019385086
+    },
+    "ucih59": {
+      "x": 646.9350949098238,
+      "y": 1158.7630678895812
+    },
+    "e-ugygaj": [
+      {
+        "x": 300,
+        "y": 300
+      },
+      {
+        "x": 300,
+        "y": 800
+      }
+    ]
+  }
+}]]></script>
+<defs>
+	<marker id="arrow" viewBox="0 0 5 5" refX="4" refY="2.5" markerWidth="5" markerHeight="5" orient="auto" markerUnits="strokeWidth">
+		<path fill="#aaa" stroke-width="1" stroke="none" d="M0,0 L5,2.5 L0,5 Z" class="arrowHead"></path>
+	</marker>
+	<g id="icon-circle" transform="translate(0,-12)" class="icon">
+		<circle cx="7" cy="7" r="7"></circle>
+	</g>
+	<g id="icon-cube" transform="translate(0, -14)" class="icon">
+		<path d="M 5 0 h 10 v 10 l -5 5 h -10 v -10 l 5 -5 M 0 5 h 10 v 10 M 15 0 l -5 5"></path>
+	</g>
+	<filter id="shadow">
+		<feDropShadow dx="3" dy="3" stdDeviation="5" flood-color="#00000030" flood-opacity="1"></feDropShadow>
+	</filter>
+</defs><g class="zoom" transform="scale(1)"><g class="groups"></g><g class="edges"><g class="edge" id="1b65rsr" data-from="fzh5ue" data-to="ucih59"><rect x="510.12259490982376" y="871.7349980189331" rx="0" ry="0" width="73.625" height="37" fill="none" stroke="none"></rect><text x="0" y="871.7349980189331" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" font-size="22" fill="#999" data-field="label"><tspan x="546.9350949098238" dy="24px" font-size="22px" font-weight="normal">Write</tspan></text><path marker-end="url(#arrow)" class="edge" d="M591.0750129183001,771.7069281482851 L553.8245050221117,871.7349980189331 M553.8245050221117,908.7349980189331 L591.0750129183001,1008.7630678895812" fill="none" stroke="#999" stroke-width="3" stroke-linecap="round"></path><circle id="v-1k9ydz1" cx="546.9350949098238" cy="890.2349980189331" r="7" fill="none" class="v-dot auto"></circle></g><g class="edge" id="d59lek" data-from="g9grjd" data-to="ucih59"><rect x="1152.1692440294232" y="1128.2630678895812" rx="0" ry="0" width="130.796875" height="61" fill="none" stroke="none"></rect><text x="0" y="1128.2630678895812" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" font-size="22" fill="#999" data-field="label"><tspan x="1217.5676815294232" dy="24px" font-size="22px" font-weight="normal">Dashed</tspan><tspan x="1217.5676815294232" dy="24px" font-size="22px" font-weight="normal">Orthogonal</tspan></text><path marker-end="url(#arrow)" class="edge" d="M1254.1002196445277,774.663019385086 L1254.1002196445277,1128.2630678895812 M1152.1692440294232,1158.7630678895812 L796.9350949098238,1158.7630678895812" fill="none" stroke="#999" stroke-width="3" stroke-linecap="round" stroke-dasharray="8"></path><circle id="v-138l36v" cx="1254.1002196445277" cy="1158.7630678895812" r="7" fill="none" class="v-dot auto"></circle></g><g class="edge" id="ugygaj" data-from="fphk5f" data-to="ucih59"><rect x="212.8671875" y="466.14065126148944" rx="0" ry="0" width="174.265625" height="61" fill="none" stroke="none"></rect><text x="0" y="466.14065126148944" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" font-size="22" fill="#FF0000" data-field="label"><tspan x="300" dy="24px" font-size="22px" font-weight="normal">Thick, red edge</tspan><tspan x="300" dy="24px" font-size="22px" font-weight="normal">with vertices</tspan></text><path marker-end="url(#arrow)" class="edge" d="M496.93509490982376,270.0113757406163 L300,300 M300,300 L300,466.14065126148944 M300,527.1406512614894 L300,800 M300,800 L501.8804086997863,1008.7630678895812" fill="none" stroke="#FF0000" stroke-width="7" stroke-linecap="round"></path><circle id="v-31gx3ig" cx="300" cy="300" r="7" fill="none" class="v-dot"></circle><circle id="v-4ikifv9" cx="300" cy="800" r="7" fill="none" class="v-dot"></circle></g><g class="edge" id="wvwdq8" data-from="fzh5ue" data-to="ucih59"><rect x="709.6538449098238" y="871.7349980189331" rx="0" ry="0" width="74.5625" height="37" fill="none" stroke="none"></rect><text x="0" y="871.7349980189331" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" font-size="22" fill="#999" data-field="label"><tspan x="746.9350949098238" dy="24px" font-size="22px" font-weight="normal">Read</tspan></text><path marker-end="url(#arrow)" class="edge" d="M702.7951769013474,771.7069281482851 L740.0456847975358,871.7349980189331 M740.0456847975358,908.7349980189331 L702.7951769013474,1008.7630678895812" fill="none" stroke="#999" stroke-width="3" stroke-linecap="round"></path><circle id="v-1b2ou5d" cx="746.9350949098238" cy="890.2349980189331" r="7" fill="none" class="v-dot auto"></circle></g></g><g class="nodes"><g class="node" id="fphk5f" transform="translate(646.9350949098238,247.16987234597093)" label-offset-y="120"><path d="M 114,100 A150,150 0,0,0 0 150
+		L27.272727272727273,300 L272.72727272727275,300 L300,150
+		A150,150 0,0,0 186 100 
+		A50,50 0,1,0 114 100" transform="translate(-150,-150)" class="nodeBorder" fill="#fffff0" stroke="#999" filter="url(#shadow)" stroke-width="4.3" opacity="0.9"></path><g transform="translate(0,-130)"><text x="0" y="120" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" fill="#666" data-field="name"><tspan x="0" dy="24px" font-size="22px" font-weight="bold">Person1</tspan></text><text x="0" y="168" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" fill="#666" font-size="16.5">[Person]</text><text x="0" y="188" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" fill="#666" data-field="description"><tspan x="0" dy="24px" font-size="22px" font-weight="normal">A person using the</tspan><tspan x="0" dy="24px" font-size="22px" font-weight="normal">system.</tspan></text></g></g><g class="node" id="fzh5ue" transform="translate(646.9350949098238,621.7069281482851)" label-offset-y="120"><path d="M 114,100 A150,150 0,0,0 0 150
+		L27.272727272727273,300 L272.72727272727275,300 L300,150
+		A150,150 0,0,0 186 100 
+		A50,50 0,1,0 114 100" transform="translate(-150,-150)" class="nodeBorder" fill="#ffffa0" stroke="#999" filter="url(#shadow)" stroke-width="4.3" opacity="0.9"></path><g transform="translate(0,-130)"><text x="0" y="120" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" fill="#666" data-field="name"><tspan x="0" dy="24px" font-size="22px" font-weight="bold">Person2</tspan></text><text x="0" y="168" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" fill="#666" font-size="16.5">[Customer]</text><text x="0" y="188" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" fill="#666" data-field="description"><tspan x="0" dy="24px" font-size="22px" font-weight="normal">Two relationships</tspan><tspan x="0" dy="24px" font-size="22px" font-weight="normal">automatically spread</tspan></text></g></g><g class="node" id="g9grjd" transform="translate(1254.1002196445277,624.663019385086)" label-offset-y="120"><path d="M 114,100 A150,150 0,0,0 0 150
+		L27.272727272727273,300 L272.72727272727275,300 L300,150
+		A150,150 0,0,0 186 100 
+		A50,50 0,1,0 114 100" transform="translate(-150,-150)" class="nodeBorder" fill="#fffff0" stroke="#999" filter="url(#shadow)" stroke-width="4.3" opacity="0.9"></path><g transform="translate(0,-118)"><text x="0" y="120" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" fill="#666" data-field="name"><tspan x="0" dy="24px" font-size="22px" font-weight="bold">Person3</tspan></text><text x="0" y="168" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" fill="#666" font-size="16.5">[Person]</text><text x="0" y="188" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" fill="#666" data-field="description"><tspan x="0" dy="24px" font-size="22px" font-weight="normal">Another person</tspan></text></g></g><g class="node" id="ucih59" transform="translate(646.9350949098238,1158.7630678895812)"><rect rx="3" ry="3" x="-150" y="-150" width="300" height="300" class="nodeBorder" fill="rgba(255, 255, 255, .9)" stroke="#999" filter="url(#shadow)" stroke-width="4.3" opacity="0.9"></rect><g transform="translate(0,-58)"><text x="0" y="0" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" fill="#666" data-field="name"><tspan x="0" dy="24px" font-size="22px" font-weight="bold">The System</tspan></text><text x="0" y="48" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" fill="#666" font-size="16.5">[Software System]</text><text x="0" y="68" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" fill="#666" data-field="description"><tspan x="0" dy="24px" font-size="22px" font-weight="normal">My Software System</tspan></text></g></g></g></g></svg>

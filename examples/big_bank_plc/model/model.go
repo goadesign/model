@@ -525,8 +525,6 @@ var _ = Design("Big Bank plc", "This is an example workspace to illustrate the k
 			ElementStyle("Person", func() {
 				Background("#08427b")
 				Color("#ffffff")
-			})
-			StructurizrElementStyle("Person", func() {
 				FontSize(22)
 				Shape(ShapePerson)
 			})
@@ -538,10 +536,10 @@ var _ = Design("Big Bank plc", "This is an example workspace to illustrate the k
 				Background("#999999")
 				Color("#ffffff")
 			})
-			StructurizrElementStyle("Web Browser", func() {
+			ElementStyle("Web Browser", func() {
 				Shape(ShapeWebBrowser)
 			})
-			StructurizrElementStyle("Mobile App", func() {
+			ElementStyle("Mobile App", func() {
 				Shape(ShapeMobileDeviceLandscape)
 			})
 			ElementStyle("Database", func() {

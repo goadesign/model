@@ -59,9 +59,8 @@ general shape of the DSL is:
         │   ├── URL                         │   └── ... (same as SystemLandscapeView*)
         │   └── Prop                        └── Style
         └── ContainerInstance                   ├── ElementStyle
-            ├── Tag                             ├── StructurizrElementStyle
-            ├── HealthCheck                     ├── RelationshipStyle
-            └── Prop                            └── StructurizrRelationshipStyle
-                                            (* minus EnterpriseBoundaryVisible)
+            ├── Tag                             └── RelationshipStyle
+            ├── HealthCheck
+            └── Prop                        (* minus EnterpriseBoundaryVisible)
 */
 package dsl

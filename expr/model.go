@@ -188,9 +188,6 @@ func (m *Model) FindElement(scope ElementHolder, path string) (eh ElementHolder,
 			} else if sys := m.SoftwareSystem(path); sys != nil {
 				eh = sys
 			} else {
-				if scope == nil {
-					return nil, fmt.Errorf("%q does not match the name of a person, a software system or the path to container or component in scope", path)
-				}
 				return nil, fmt.Errorf("%q does not match the name of a person, a software system or an element in the scope of %q", path, scope.GetElement().Name)
 			}
 		}
@@ -209,6 +206,9 @@ func (m *Model) FindElement(scope ElementHolder, path string) (eh ElementHolder,
 				}
 			}
 			if eh == nil {
+				if scope == nil {
+					return nil, fmt.Errorf("%q does not match the name of a software system and container or the name of a container and component in scope", path)
+				}
 				return nil, fmt.Errorf("%q does not match the name of a software system and container or the name of a container and component in the scope of %q", path, scope.GetElement().Name)
 			}
 		}

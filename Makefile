@@ -22,7 +22,8 @@ GO_FILES=$(shell find . -type f -name '*.go')
 # Standard dependencies are installed via go get
 DEPEND=\
 	golang.org/x/tools/cmd/goimports \
-	honnef.co/go/tools/cmd/staticcheck
+	honnef.co/go/tools/cmd/staticcheck \
+	github.com/mjibson/esc
 
 all: lint test
 
@@ -31,6 +32,9 @@ ci: depend all
 depend:
 	@go mod download
 	@go get -v $(DEPEND)
+
+generate:
+	go generate ./cmd/mdl/
 
 lint:
 ifneq ($(GOOS),windows)
@@ -65,6 +69,6 @@ release:
 # Commit and push
 	@git add .
 	@git commit -m "Release v$(MAJOR).$(MINOR).$(BUILD)"
-	 @git tag v$(MAJOR).$(MINOR).$(BUILD)
+	@git tag v$(MAJOR).$(MINOR).$(BUILD)
 	@git push origin master
 	@git push origin v$(MAJOR).$(MINOR).$(BUILD)

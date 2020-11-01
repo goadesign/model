@@ -9,7 +9,6 @@ import (
 	"goa.design/goa/v3/codegen"
 	"goa.design/goa/v3/eval"
 	"goa.design/model/expr"
-	"goa.design/model/mdl"
 	"goa.design/model/stz"
 )
 
@@ -43,9 +42,6 @@ func Generate(_ string, roots []eval.Root, files []*codegen.File) ([]*codegen.Fi
 		Path:             path,
 		SectionTemplates: []*codegen.SectionTemplate{section},
 	})
-
-	// Generate Mermaid diagrams
-	files = append(files, mdl.MermaidFiles(expr.Root)...)
 
 	return files, nil
 }

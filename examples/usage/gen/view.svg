@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" id="graph" width="2151.51171875" height="1359.919189453125"><script type="application/json"><![CDATA[{
+  "name": "view",
+  "elements": [
+    {
+      "id": "1c2c8h6",
+      "tags": "Element,Component,Design"
+    },
+    {
+      "id": "1giztde",
+      "tags": "Element,Component,Editor,Structurizr"
+    },
+    {
+      "id": "1qbyk9e",
+      "tags": "Element,Person"
+    },
+    {
+      "id": "1qcl335",
+      "tags": "Element,Component,Editor"
+    },
+    {
+      "id": "5sqgji",
+      "tags": "Element,Component,Structurizr"
+    },
+    {
+      "id": "s8x7go",
+      "tags": "Element,Component"
+    },
+    {
+      "id": "x7ejje",
+      "tags": "Element,Component,SVG"
+    }
+  ],
+  "layout": {
+    "1c2c8h6": {
+      "x": 798.3190642027589,
+      "y": 717.3734791647631
+    },
+    "1giztde": {
+      "x": 1981.5104756329117,
+      "y": 717.3734791647631
+    },
+    "1qbyk9e": {
+      "x": 250,
+      "y": 717.3734791647631
+    },
+    "1qcl335": {
+      "x": 1388.6173506149903,
+      "y": 1189.9191885534442
+    },
+    "5sqgji": {
+      "x": 1388.6173506149903,
+      "y": 717.3734791647631
+    },
+    "s8x7go": {
+      "x": 1388.6173506149903,
+      "y": 250
+    },
+    "x7ejje": {
+      "x": 1981.5104756329117,
+      "y": 1189.9191885534442
+    },
+    "e-1352uq8": [
+      {
+        "x": 1017.9536930696811,
+        "y": 1191.99818006255
+      }
+    ]
+  }
+}]]></script>
+<defs>
+	<marker id="arrow" viewBox="0 0 5 5" refX="4" refY="2.5" markerWidth="5" markerHeight="5" orient="auto" markerUnits="strokeWidth">
+		<path fill="#aaa" stroke-width="1" stroke="none" d="M0,0 L5,2.5 L0,5 Z" class="arrowHead"></path>
+	</marker>
+	<g id="icon-circle" transform="translate(0,-12)" class="icon">
+		<circle cx="7" cy="7" r="7"></circle>
+	</g>
+	<g id="icon-cube" transform="translate(0, -14)" class="icon">
+		<path d="M 5 0 h 10 v 10 l -5 5 h -10 v -10 l 5 -5 M 0 5 h 10 v 10 M 15 0 l -5 5"></path>
+	</g>
+	<filter id="shadow">
+		<feDropShadow dx="3" dy="3" stdDeviation="5" flood-color="#00000030" flood-opacity="1"></feDropShadow>
+	</filter>
+</defs><g class="zoom" transform="scale(1)"><g class="groups"></g><g class="edges"><g class="edge" id="12a471r" data-from="1qbyk9e" data-to="1c2c8h6"><rect x="482.1928649260865" y="701.2112946861571" rx="0" ry="0" width="83.93333435058594" height="37" fill="none" stroke="none"></rect><text x="0" y="701.2112946861571" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" font-size="22" fill="#999" data-field="label"><tspan x="524.1595321013795" dy="24px" font-size="22px" font-weight="normal">Writes</tspan></text><path marker-end="url(#arrow)" class="edge" d="M400,717.3734791647631 L482.1928649260865,718.9210990061068 M566.1261992766724,720.5014903662075 L648.3190642027589,722.0491102075512" fill="none" stroke="#999" stroke-width="3" stroke-linecap="round" stroke-dasharray="8"></path></g><g class="edge" id="1352uq8" data-from="1qbyk9e" data-to="1qcl335"><rect x="766.7736738707304" y="1040.5447648313097" rx="0" ry="0" width="72.11666488647461" height="37" fill="none" stroke="none"></rect><text x="0" y="1040.5447648313097" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" font-size="22" fill="#999" data-field="label"><tspan x="802.8320063139677" dy="24px" font-size="22px" font-weight="normal">Uses</tspan></text><path marker-end="url(#arrow)" class="edge" d="M400,810.0792057953507 L772.8985803988917,1040.5447648313097 M832.765432229044,1077.5447648313097 L1017.9536930696811,1191.99818006255 M1017.9536930696811,1191.99818006255 L1238.6173506149903,1190.7605138898182" fill="none" stroke="#999" stroke-width="3" stroke-linecap="round" stroke-dasharray="8"></path><circle id="v-2falfxy" cx="1017.9536930696811" cy="1191.99818006255" r="7" fill="none" class="v-dot"></circle></g><g class="edge" id="1bbk75o" data-from="5sqgji" data-to="1giztde"><rect x="1641.6555802992439" y="698.8734791647631" rx="0" ry="0" width="86.81666564941406" height="37" fill="none" stroke="none"></rect><text x="0" y="698.8734791647631" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" font-size="22" fill="#999" data-field="label"><tspan x="1685.063913123951" dy="24px" font-size="22px" font-weight="normal">stz put</tspan></text><path marker-end="url(#arrow)" class="edge" d="M1538.6173506149903,717.3734791647631 L1641.6555802992439,717.3734791647631 M1728.472245948658,717.3734791647631 L1831.5104756329117,717.3734791647631" fill="none" stroke="#999" stroke-width="3" stroke-linecap="round" stroke-dasharray="8"></path></g><g class="edge" id="1ccta8p" data-from="1c2c8h6" data-to="s8x7go"><rect x="1043.3348722953492" y="468.9367395823816" rx="0" ry="0" width="100.26667022705078" height="37" fill="none" stroke="none"></rect><text x="0" y="468.9367395823816" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" font-size="22" fill="#999" data-field="label"><tspan x="1093.4682074088746" dy="24px" font-size="22px" font-weight="normal">mdl gen</tspan></text><path marker-end="url(#arrow)" class="edge" d="M948.3190642027589,604.2039405359983 L1070.4715171792286,505.9367395823816 M1116.4648976385206,468.9367395823816 L1238.6173506149903,370.6695386287649" fill="none" stroke="#999" stroke-width="3" stroke-linecap="round" stroke-dasharray="8"></path></g><g class="edge" id="1fial5t" data-from="1c2c8h6" data-to="1qcl335"><rect x="1034.7848730582887" y="938.8963338591036" rx="0" ry="0" width="117.36666870117188" height="37" fill="none" stroke="none"></rect><text x="0" y="938.8963338591036" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" font-size="22" fill="#999" data-field="label"><tspan x="1093.4682074088746" dy="24px" font-size="22px" font-weight="normal">mdl serve</tspan></text><path marker-end="url(#arrow)" class="edge" d="M948.3190642027589,843.0456948292821 L1069.9855301619825,938.8963338591036 M1116.9508846557665,975.8963338591036 L1238.6173506149903,1071.7469728889253" fill="none" stroke="#999" stroke-width="3" stroke-linecap="round" stroke-dasharray="8"></path></g><g class="edge" id="1l4tahn" data-from="1c2c8h6" data-to="5sqgji"><rect x="1047.0015402335816" y="702.6234791647631" rx="0" ry="0" width="92.93333435058594" height="37" fill="none" stroke="none"></rect><text x="0" y="702.6234791647631" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" font-size="22" fill="#999" data-field="label"><tspan x="1093.4682074088746" dy="24px" font-size="22px" font-weight="normal">stz gen</tspan></text><path marker-end="url(#arrow)" class="edge" d="M948.3190642027589,722.9676630275732 L1047.0015402335816,721.7138586590572 M1139.9348745841676,720.533099670469 L1238.6173506149903,719.2792953019531" fill="none" stroke="#999" stroke-width="3" stroke-linecap="round" stroke-dasharray="8"></path></g><g class="edge" id="6021ao" data-from="1qcl335" data-to="x7ejje"><rect x="1648.9972455671882" y="1171.4191885534442" rx="0" ry="0" width="72.13333511352539" height="37" fill="none" stroke="none"></rect><text x="0" y="1171.4191885534442" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" font-size="22" fill="#999" data-field="label"><tspan x="1685.063913123951" dy="24px" font-size="22px" font-weight="normal">Save</tspan></text><path marker-end="url(#arrow)" class="edge" d="M1538.6173506149903,1189.9191885534442 L1648.9972455671882,1189.9191885534442 M1721.1305806807136,1189.9191885534442 L1831.5104756329117,1189.9191885534442" fill="none" stroke="#999" stroke-width="3" stroke-linecap="round" stroke-dasharray="8"></path></g></g><g class="nodes"><g class="node" id="1c2c8h6" transform="translate(798.3190642027589,717.3734791647631)" label-offset-y="30"><g class="nodeBorder" fill="rgba(255, 255, 255, .9)" stroke="#999" filter="url(#shadow)" stroke-width="4.3" opacity="0.9"><path d="M0,-120 l15,-30 h120 v30"></path><rect rx="3" ry="3" x="-150" y="-120" width="300" height="270"></rect></g><g transform="translate(0,-97)"><text x="0" y="30" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" fill="#666" data-field="name"><tspan x="0" dy="24px" font-size="22px" font-weight="bold">Design</tspan></text><text x="0" y="78" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" fill="#666" font-size="16.5">[Design]</text><text x="0" y="98" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" fill="#666" data-field="description"><tspan x="0" dy="24px" font-size="22px" font-weight="normal">Go package containing</tspan><tspan x="0" dy="24px" font-size="22px" font-weight="normal">Model DSL that describes</tspan><tspan x="0" dy="24px" font-size="22px" font-weight="normal">the system architecture</tspan></text></g></g><g class="node" id="1giztde" transform="translate(1981.5104756329117,717.3734791647631)" label-offset-y="37.5"><g class="nodeBorder" fill="rgba(255, 255, 255, .9)" stroke="#55AAEE" filter="url(#shadow)" stroke-width="4.3" opacity="0.9"><rect rx="3" ry="3" x="-150" y="-150" width="300" height="300"></rect><path d="
+			M-150,-112.5 h300
+			M-140.625,-140.625 h18.75 v18.75 h-18.75 z
+			M-112.5,-140.625 h253.125 v18.75 h-253.125 z
+		"></path></g><g transform="translate(0,-88.75)"><text x="0" y="37.5" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" fill="#666" data-field="name"><tspan x="0" dy="24px" font-size="22px" font-weight="bold">Structurizr Service</tspan></text><text x="0" y="85.5" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" fill="#666" font-size="16.5">[Structurizr]</text><text x="0" y="105.5" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" fill="#666" data-field="description"><tspan x="0" dy="24px" font-size="22px" font-weight="normal">Structurizr service hosted</tspan><tspan x="0" dy="24px" font-size="22px" font-weight="normal">at https://structurizr.com</tspan></text></g></g><g class="node" id="1qbyk9e" transform="translate(250,717.3734791647631)" label-offset-y="120"><path d="M 114,100 A150,150 0,0,0 0 150
+		L27.272727272727273,300 L272.72727272727275,300 L300,150
+		A150,150 0,0,0 186 100 
+		A50,50 0,1,0 114 100" transform="translate(-150,-150)" class="nodeBorder" fill="rgba(255, 255, 255, .9)" stroke="#55AAEE" filter="url(#shadow)" stroke-width="4.3" opacity="0.9"></path><g transform="translate(0,-118)"><text x="0" y="120" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" fill="#666" data-field="name"><tspan x="0" dy="24px" font-size="22px" font-weight="bold">User</tspan></text><text x="0" y="168" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" fill="#666" font-size="16.5">[Person]</text><text x="0" y="188" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" fill="#666" data-field="description"><tspan x="0" dy="24px" font-size="22px" font-weight="normal">Model user.</tspan></text></g></g><g class="node" id="1qcl335" transform="translate(1388.6173506149903,1189.9191885534442)" label-offset-y="37.5"><g class="nodeBorder" fill="rgba(255, 255, 255, .9)" stroke="#EEAA55" filter="url(#shadow)" stroke-width="4.3" opacity="0.9"><rect rx="3" ry="3" x="-150" y="-150" width="300" height="300"></rect><path d="
+			M-150,-112.5 h300
+			M-140.625,-140.625 h18.75 v18.75 h-18.75 z
+			M-112.5,-140.625 h253.125 v18.75 h-253.125 z
+		"></path></g><g transform="translate(0,-88.75)"><text x="0" y="37.5" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" fill="#666" data-field="name"><tspan x="0" dy="24px" font-size="22px" font-weight="bold">Visual Editor</tspan></text><text x="0" y="85.5" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" fill="#666" font-size="16.5">[Editor]</text><text x="0" y="105.5" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" fill="#666" data-field="description"><tspan x="0" dy="24px" font-size="22px" font-weight="normal">Edit diagram element</tspan><tspan x="0" dy="24px" font-size="22px" font-weight="normal">positions and save to SVG</tspan></text></g></g><g class="node" id="5sqgji" transform="translate(1388.6173506149903,717.3734791647631)"><rect rx="3" ry="3" x="-150" y="-150" width="300" height="300" class="nodeBorder" fill="rgba(255, 255, 255, .9)" stroke="#55AAEE" filter="url(#shadow)" stroke-width="4.3" opacity="0.9"></rect><g transform="translate(0,-130)"><text x="0" y="0" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" fill="#666" data-field="name"><tspan x="0" dy="24px" font-size="22px" font-weight="bold">Structurizr workspace</tspan><tspan x="0" dy="24px" font-size="22px" font-weight="bold">JSON</tspan></text><text x="0" y="72" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" fill="#666" font-size="16.5">[Structurizr]</text><text x="0" y="92" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" fill="#666" data-field="description"><tspan x="0" dy="24px" font-size="22px" font-weight="normal">JSON representation of a</tspan><tspan x="0" dy="24px" font-size="22px" font-weight="normal">Structurizr workspace</tspan><tspan x="0" dy="24px" font-size="22px" font-weight="normal">corresponding to the</tspan><tspan x="0" dy="24px" font-size="22px" font-weight="normal">software architecture</tspan><tspan x="0" dy="24px" font-size="22px" font-weight="normal">model described in the</tspan><tspan x="0" dy="24px" font-size="22px" font-weight="normal">design</tspan></text></g></g><g class="node" id="s8x7go" transform="translate(1388.6173506149903,250)"><rect rx="3" ry="3" x="-150" y="-150" width="300" height="300" class="nodeBorder" fill="rgba(255, 255, 255, .9)" stroke="#999" filter="url(#shadow)" stroke-width="4.3" opacity="0.9"></rect><g transform="translate(0,-70)"><text x="0" y="0" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" fill="#666" data-field="name"><tspan x="0" dy="24px" font-size="22px" font-weight="bold">Design JSON</tspan></text><text x="0" y="48" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" fill="#666" font-size="16.5">[Component]</text><text x="0" y="68" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" fill="#666" data-field="description"><tspan x="0" dy="24px" font-size="22px" font-weight="normal">JSON representation of</tspan><tspan x="0" dy="24px" font-size="22px" font-weight="normal">the design</tspan></text></g></g><g class="node" id="x7ejje" transform="translate(1981.5104756329117,1189.9191885534442)"><rect rx="37.5" ry="37.5" x="-150" y="-150" width="300" height="300" class="nodeBorder" fill="rgba(255, 255, 255, .9)" stroke="#EEAA55" filter="url(#shadow)" stroke-width="4.3" opacity="0.9"></rect><g transform="translate(0,-70)"><text x="0" y="0" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" fill="#666" data-field="name"><tspan x="0" dy="24px" font-size="22px" font-weight="bold">View Renderings</tspan></text><text x="0" y="48" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" fill="#666" font-size="16.5">[SVG]</text><text x="0" y="68" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" fill="#666" data-field="description"><tspan x="0" dy="24px" font-size="22px" font-weight="normal">SVG files corresponding</tspan><tspan x="0" dy="24px" font-size="22px" font-weight="normal">to design views.</tspan></text></g></g></g></g></svg>

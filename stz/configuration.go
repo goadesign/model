@@ -3,13 +3,15 @@ package stz
 import (
 	"bytes"
 	"encoding/json"
+
+	"goa.design/model/mdl"
 )
 
 type (
 	// Configuration encapsulate Structurizr service specific view configuration information.
 	Configuration struct {
 		// Styles associated with views.
-		Styles *Styles `json:"styles,omitempty"`
+		Styles *mdl.Styles `json:"styles,omitempty"`
 		// Key of view that was saved most recently.
 		LastSavedView string `json:"lastSavedView,omitempty"`
 		// Key of view shown by default.

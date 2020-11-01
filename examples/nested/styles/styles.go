@@ -18,8 +18,6 @@ func SystemStyle() {
 		ElementStyle("person", func() {
 			Background("#08427b")
 			Color("#ffffff")
-		})
-		StructurizrElementStyle("person", func() {
 			Shape(ShapePerson)
 		})
 	})
@@ -32,8 +30,6 @@ func PersonStyle() {
 		ElementStyle("person", func() {
 			Background("#08427b")
 			Color("#ffffff")
-		})
-		StructurizrElementStyle("person", func() {
 			Shape(ShapePerson)
 		})
 	})
