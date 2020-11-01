@@ -289,56 +289,6 @@ func main() {
 }
 ```
 
-## Graphical Editor
-
-The graphical editor is started using the `mdl serve` command. This command
-accepts the import path to the Go package containing the model DSL. The
-editor makes it possible to position the elements and their relationships in
-each view.
-
-![Editor](editor.png)
-> Diagram source code: [model.go](examples/shapes/model/model.go)
-
-### Keyboard Shortcuts
-
-The editor supports a number of keyboard shortcuts listed below:
-
-| Command                    | Effect                               |
-| -------------------------- | ------------------------------------ |
-| CTRL + Z                   | Undo                                 |
-| CTRL + SHIFT + Z, CTRL + Y | Redo                                 |
-| ALT + Click                | Add relationship vertex              |
-| ALT + SHIFT + Click        | Add label anchor relationship vertex |
-| DELETE, BACKSPACE          | Remove relationship vertex           |
-| CTRL + =, CTRL + wheel     | Zoom in                              |
-| CTRL + -, CTRL + wheel     | Zoom out                             |
-| CTRL + 9                   | Zoom - fit                           |
-| CTRL + 0                   | Zoom 100%                            |
-| CTRL + A                   | Select all                           |
-| ESC                        | Deselect                             |
-| UP                         | Move up                              |
-| SHIFT + UP                 | Move up fast                         |
-| DOWN                       | Move down                            |
-| SHIFT + DOWN               | Move down fast                       |
-| RIGHT                      | Move right                           |
-| SHIFT + RIGHT              | Move right fast                      |
-| LEFT                       | Move left                            |
-| SHIFT + LEFT               | Move left fast                       |
-
-### TBD
-
-While functional the editor isn't considered feature complete yet. Here is
-the list of features that will be added in the future:
-
-- [ ] Snap to grid
-- [ ] Better SVG clipping on save
-- [ ] Autolayout on start if no pre-existing layout information
-- [ ] Support for both vertical and horizontal ranking with autolayout
-- [ ] Keyboard shortcuts for vertical and horizontal align
-- [ ] Autosave toggle
-- [ ] Distribute horizontally and vertically
-- [ ] Toolbar icons
-
 ## DSL Syntax
 
 ### Rules
@@ -383,7 +333,7 @@ software system 'S' is 'S/CO/C'. The path can be relative when the reference
 is made within a scoped function, for example when adding an element to a
 view that is scoped to a parent element.
 
-### Syntax
+### Resources
 
 The DSL package
 [documentation](https://pkg.go.dev/goa.design/model@v1.6.3/dsl?tab=doc) lists
@@ -391,6 +341,76 @@ all the DSL keywords and their usage.
 
 The file [DSL.md](https://github.com/goadesign/model/blob/master/DSL.md)
 illustrates the complete syntax in one design.
+
+## Graphical Editor
+
+The graphical editor is started using the `mdl serve` command. This command
+accepts the import path to the Go package containing the model DSL. The
+editor makes it possible to position the elements and their relationships in
+each view.
+
+![Editor](editor.png)
+> Diagram source code: [model.go](examples/shapes/model/model.go)
+
+### Keyboard Shortcuts
+
+The editor supports a number of keyboard shortcuts listed below:
+
+| Help                       |                                      |
+| -------------------------- | ------------------------------------ |
+| ?, SHIFT + F1              | Show keyboard shortcuts              |
+
+| File                       |                                      |
+| -------------------------- | ------------------------------------ |
+| CTRL + S                   | Save SVG                             |
+
+| History                    |                                      |
+| -------------------------- | ------------------------------------ |
+| CTRL + Z                   | Undo                                 |
+| CTRL + SHIFT + Z, CTRL + Y | Redo                                 |
+
+| Relationship editing       |                                      |
+| -------------------------- | ------------------------------------ |
+| ALT + CLICK                | Add relationship vertex              |
+| ALT + SHIFT + CLICK        | Add label anchor relationship vertex |
+| DELETE, BACKSPACE          | Remove relationship vertex           |
+
+| Zoom                       |                                      |
+| -------------------------- | ------------------------------------ |
+| CTRL + =, CTRL + wheel     | Zoom in                              |
+| CTRL + -, CTRL + wheel     | Zoom out                             |
+| CTRL + 9                   | Zoom - fit                           |
+| CTRL + 0                   | Zoom 100%                            |
+
+| Select                     |                                      |
+| -------------------------- | ------------------------------------ |
+| CTRL + A                   | Select all                           |
+| ESC                        | Deselect                             |
+
+| Move                       |                                      |
+| -------------------------- | ------------------------------------ |
+| UP                         | Move up                              |
+| SHIFT + UP                 | Move up fast                         |
+| DOWN                       | Move down                            |
+| SHIFT + DOWN               | Move down fast                       |
+| RIGHT                      | Move right                           |
+| SHIFT + RIGHT              | Move right fast                      |
+| LEFT                       | Move left                            |
+| SHIFT + LEFT               | Move left fast                       |
+
+### TBD
+
+While functional the editor isn't considered feature complete yet. Here is
+the list of features that will be added in the future:
+
+- [ ] Snap to grid
+- [ ] Better SVG clipping on save
+- [ ] Autolayout on start if no pre-existing layout information
+- [ ] Support for both vertical and horizontal ranking with autolayout
+- [ ] Keyboard shortcuts for vertical and horizontal align
+- [ ] Autosave toggle
+- [ ] Distribute horizontally and vertically
+- [ ] Toolbar icons
 
 ### Examples
 
