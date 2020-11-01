@@ -2,6 +2,7 @@ package expr
 
 import (
 	"fmt"
+	"strings"
 )
 
 type (
@@ -56,7 +57,6 @@ func (s *SoftwareSystem) Container(name string) *Container {
 //
 //    * overrides the description, technology and URL if provided,
 //    * merges any new tag or propery into the existing tags and properties,
-//    * merges any new relationship into the existing relationships,
 //    * merges any new component into the existing components.
 //
 // AddContainer returns the new or merged person.
@@ -72,6 +72,13 @@ func (s *SoftwareSystem) AddContainer(c *Container) *Container {
 	}
 	if c.Technology != "" {
 		existing.Technology = c.Technology
+	}
+	if c.URL != "" {
+		existing.URL = c.URL
+	}
+	existing.MergeTags(strings.Split(c.Tags, ",")...)
+	for _, cmp := range c.Components {
+		existing.AddComponent(cmp) // will merge if needed
 	}
 	if olddsl := existing.DSLFunc; olddsl != nil {
 		existing.DSLFunc = func() { olddsl(); c.DSLFunc() }

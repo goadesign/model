@@ -2,6 +2,7 @@ package expr
 
 import (
 	"fmt"
+	"strings"
 )
 
 type (
@@ -56,7 +57,6 @@ func (c *Container) Component(name string) *Component {
 //
 //    * overrides the description, technology and URL if provided,
 //    * merges any new tag or propery into the existing tags and properties,
-//    * merges any new relationship into the existing relationships.
 //
 // AddComponent returns the new or merged component.
 func (c *Container) AddComponent(cmp *Component) *Component {
@@ -66,12 +66,16 @@ func (c *Container) AddComponent(cmp *Component) *Component {
 		c.Components = append(c.Components, cmp)
 		return cmp
 	}
-	if c.Description != "" {
-		existing.Description = c.Description
+	if cmp.Description != "" {
+		existing.Description = cmp.Description
 	}
-	if c.Technology != "" {
-		existing.Technology = c.Technology
+	if cmp.Technology != "" {
+		existing.Technology = cmp.Technology
 	}
+	if cmp.URL != "" {
+		existing.URL = cmp.URL
+	}
+	existing.MergeTags(strings.Split(cmp.Tags, ",")...)
 	if olddsl := existing.DSLFunc; olddsl != nil {
 		existing.DSLFunc = func() { olddsl(); cmp.DSLFunc() }
 	}
