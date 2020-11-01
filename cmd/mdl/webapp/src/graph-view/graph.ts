@@ -696,6 +696,7 @@ function buildEdgeLabel(pLabel: Point, edge: Edge) {
 	txt.setAttribute('y', String(pLabel.y - dy / 2))
 
 	maxW += fontSize
+	applyStyle(txt, styles.edgeText)
 	txt.setAttribute('stroke', 'none')
 	txt.setAttribute('font-size', String(edge.style.fontSize))
 	txt.setAttribute('fill', edge.style.color)
@@ -1093,6 +1094,10 @@ const styles = {
 	},
 
 	//edge styles
+	edgeText: {
+		'font-family': 'Arial, sans-serif',
+		stroke: "none"
+	},
 
 	edgeRect: {
 		fill: "none",
