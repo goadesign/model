@@ -255,8 +255,8 @@ var _ = Design("[name]", "[description]", func() {
             Unlink(Source, Destination)
 
             // Remove all elements and people that cannot be reached by
-            // traversing the graph of relationships starting with given element
-            // or person.
+            // traversing the relashionships starting with given element or
+            // person.
             RemoveUnreachable(ElementOrPerson)
 
             // Remove all elements that have no relationships to other elements.
@@ -459,6 +459,7 @@ var _ = Design("[name]", "[description]", func() {
                 Opacity(42)  // Between 0 and 100
                 Color("#<rrggbb>")
                 Solid()
+                Dashed()
                 Routing(RoutingDirect) // RoutingDirect, RoutingOrthogonal, RoutingCurved
             })
         })

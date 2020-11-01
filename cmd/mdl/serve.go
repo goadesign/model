@@ -181,3 +181,11 @@ func loadLayouts(dir string) ([]byte, error) {
 	}
 	return b, nil
 }
+
+func fileExists(filename string) bool {
+	info, err := os.Stat(filename)
+	if os.IsNotExist(err) {
+		return false
+	}
+	return !info.IsDir()
+}

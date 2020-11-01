@@ -115,6 +115,9 @@ Model includes two command line tools supporting two different workflows:
   the model and includes a visual editor to rearrange the results (the tool
   takes care of keeping any change made graphically on the next upload).
 
+![Model flows](examples/usage/gen/view.svg)
+> Diagram source code: [model.go](examples/usage/model/model.go)
+
 Model also provides a [Goa](https://github.com/goadesign/goa) plugin so that
 the design of APIs and microservices written in Goa can be augmented with a
 description of the corresponding software architecture.
@@ -291,21 +294,51 @@ accepts the import path to the Go package containing the model DSL. The
 editor makes it possible to position the elements and their relationships in
 each view.
 
-The editor automatically saves the layout when editing, edits can done using
-undo (CTRL+Z).
+![Editor](editor.png)
+> Diagram source code: [model.go](examples/shapes/model/model.go)
 
 ### Keyboard Shortcuts
 
-| Command             | Effect                    |
-| ------------------- | ------------------------- |
-| ALT + Click         | Add relationship vertex   |
-| ALT + SHIFT + Click | Add label position vertex |
-| DELETE              | Delete vertex             |
-| CTRL + Z            | Undo                      |
-| CTRL + Y            | Redo                      |
-| CTRL + Mouse wheel  | Zoom / Unzoom             |
-| CTRL + Up arrow     | Align horizontal          |
-| CTRL + Left arrow   | Align vertical            |
+The editor supports a number of keyboard shortcuts listed below:
+
+| Command                    | Effect                               |
+| -------------------------- | ------------------------------------ |
+| CTRL + Z                   | Undo                                 |
+| CTRL + SHIFT + Z, CTRL + Y | Redo                                 |
+|                            |                                      |
+| ALT + Click                | Add relationship vertex              |
+| ALT + SHIFT + Click        | Add label anchor relationship vertex |
+| DELETE, BACKSPACE          | Remove relationship vertex           |
+|                            |                                      |
+| CTRL + =, CTRL + wheel     | Zoom in                              |
+| CTRL + -, CTRL + wheel     | Zoom out                             |
+| CTRL + 9                   | Zoom - fit                           |
+| CTRL + 0                   | Zoom 100%                            |
+|                            |                                      |
+| CTRL + A                   | Select all                           |
+| ESC                        | Deselect                             |
+|                            |                                      |
+| UP                         | Move up                              |
+| SHIFT + UP                 | Move up fast                         |
+| DOWN                       | Move down                            |
+| SHIFT + DOWN               | Move down fast                       |
+| RIGHT                      | Move right                           |
+| SHIFT + RIGHT              | Move right fast                      |
+| LEFT                       | Move left                            |
+| SHIFT + LEFT               | Move left fast                       |
+
+### TBD
+
+While functional the editor isn't considered feature complete yet. Here is
+the list of features that will be added in the future:
+
+- [ ] Snap to grid
+- [ ] Autolayout on start if no pre-existing layout information
+- [ ] Support for both vertical and horizontal ranking with autolayout
+- [ ] Keyboard shortcuts for vertical and horizontal align
+- [ ] Autosave toggle
+- [ ] Distribute horizontally and vertically
+- [ ] Toolbar icons
 
 ## DSL Syntax
 
@@ -339,7 +372,7 @@ the description `"The same user again"` and both relationships. This makes it
 possible to import shared models and "edit" existing elements, for example to
 add new relationships.
 
-### References
+### References to Elements
 
 Some DSL functions such as `Uses`, `Delivers`, `InteractsWith`, `Add` and
 `Link` accept references to elements as argument. The references can be done

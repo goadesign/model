@@ -26,6 +26,10 @@ func watch(pkg string, reload func()) error {
 	if err != nil {
 		return err
 	}
+	if len(pkgs) == 0 {
+		fmt.Println("Nothing to watch")
+		return nil
+	}
 	fmt.Println("Watching:", filepath.Dir(pkgs[0].GoFiles[0]))
 	for _, p := range pkgs { // we need to watch the subpackages too
 		if err = watcher.Add(filepath.Dir(p.GoFiles[0])); err != nil {
