@@ -85,6 +85,8 @@ This code creates a model containing two elements, a relationship, a single
 view and some styling information. Running the `mdl` tool (see [installation
 instructions](#installation) below) renders the following diagram:
 
+![Basic example](examples/basic/gen/SystemContext.svg)
+
 Additional examples can be found in the
 [examples](https://github.com/goadesign/model/tree/master/examples)
 directory.
@@ -163,7 +165,7 @@ This example uploads a workspace corresponding to the DSL defined in the Go
 package `goa.design/model/examples/basic`:
 
 ```bash
-stz gen goa.design/model/examples/basic
+stz gen goa.design/model/examples/basic/model
 stz put workspace.json -id ID -key KEY -secret SECRET
 ```
 
@@ -305,19 +307,15 @@ The editor supports a number of keyboard shortcuts listed below:
 | -------------------------- | ------------------------------------ |
 | CTRL + Z                   | Undo                                 |
 | CTRL + SHIFT + Z, CTRL + Y | Redo                                 |
-|                            |                                      |
 | ALT + Click                | Add relationship vertex              |
 | ALT + SHIFT + Click        | Add label anchor relationship vertex |
 | DELETE, BACKSPACE          | Remove relationship vertex           |
-|                            |                                      |
 | CTRL + =, CTRL + wheel     | Zoom in                              |
 | CTRL + -, CTRL + wheel     | Zoom out                             |
 | CTRL + 9                   | Zoom - fit                           |
 | CTRL + 0                   | Zoom 100%                            |
-|                            |                                      |
 | CTRL + A                   | Select all                           |
 | ESC                        | Deselect                             |
-|                            |                                      |
 | UP                         | Move up                              |
 | SHIFT + UP                 | Move up fast                         |
 | DOWN                       | Move down                            |
@@ -333,6 +331,7 @@ While functional the editor isn't considered feature complete yet. Here is
 the list of features that will be added in the future:
 
 - [ ] Snap to grid
+- [ ] Better SVG clipping on save
 - [ ] Autolayout on start if no pre-existing layout information
 - [ ] Support for both vertical and horizontal ranking with autolayout
 - [ ] Keyboard shortcuts for vertical and horizontal align
