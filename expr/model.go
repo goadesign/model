@@ -116,12 +116,14 @@ func (m *Model) Finalize() {
 	// Add relationship between element parents.
 	Iterate(func(e interface{}) {
 		if r, ok := e.(*Relationship); ok {
-			switch s := Registry[r.Source.ID].(type) {
+			src := Registry[r.Source.ID].(ElementHolder)
+			addImpliedRelationships(src, r.Destination, r)
+			switch s := src.(type) {
 			case *Container:
-				addMissingRelationships(s.System.Element, r.Destination, r)
+				addImpliedRelationships(s.System, r.Destination, r)
 			case *Component:
-				addMissingRelationships(s.Container.Element, r.Destination, r)
-				addMissingRelationships(s.Container.System.Element, r.Destination, r)
+				addImpliedRelationships(s.Container, r.Destination, r)
+				addImpliedRelationships(s.Container.System, r.Destination, r)
 			}
 		}
 	})
@@ -209,7 +211,11 @@ func (m *Model) FindElement(scope ElementHolder, path string) (eh ElementHolder,
 				if scope == nil {
 					return nil, fmt.Errorf("%q does not match the name of a software system and container or the name of a container and component in scope", path)
 				}
-				return nil, fmt.Errorf("%q does not match the name of a software system and container or the name of a container and component in the scope of %q", path, scope.GetElement().Name)
+				name := "<unknown element>"
+				if e := scope.GetElement(); e != nil {
+					name = e.Name
+				}
+				return nil, fmt.Errorf("%q does not match the name of a software system and container or the name of a container and component in the scope of %q", path, name)
 			}
 		}
 	case 3:
@@ -311,25 +317,46 @@ func (m *Model) AddDeploymentNode(d *DeploymentNode) *DeploymentNode {
 	return existing
 }
 
-// addMissingRelationships adds relationships from src to element with ID destID
+// addImpliedRelationships adds relationships from src to element with ID destID
 // and its parents (container system software and component container) based on
 // the properties of existing. It only adds a relationship if one doesn't
-// already exist with the same description.
-func addMissingRelationships(src, dest *Element, existing *Relationship) {
-	for _, r := range src.Relationships {
-		if r.Destination.ID == dest.ID && r.Description == existing.Description {
-			return
+// already exist with the same description. It also does not add relationships
+// between elements that belong to the same lineage.
+func addImpliedRelationships(src ElementHolder, destElem *Element, existing *Relationship) {
+	var (
+		srcElem = src.GetElement()
+		dest    = Registry[destElem.ID].(ElementHolder)
+	)
+
+	// Make sure the two elements are not in the same lineage.
+	for s := src; s != nil; s = Parent(s) {
+		for d := dest; d != nil; d = Parent(d) {
+			if s.GetElement().ID == d.GetElement().ID {
+				return
+			}
 		}
 	}
-	r := existing.Dup(src, dest)
-	src.Relationships = append(src.Relationships, r)
+
+	// Make sure there isn't an existing relationship.
+	exists := false
+	for _, r := range srcElem.Relationships {
+		if r.Destination.ID == destElem.ID && r.Description == existing.Description {
+			exists = true
+			break
+		}
+	}
+
+	if !exists {
+		r := existing.Dup(srcElem, destElem)
+		srcElem.Relationships = append(srcElem.Relationships, r)
+	}
 
 	// Add relationships to destination parents as well.
-	switch e := Registry[dest.ID].(type) {
+	switch e := dest.(type) {
 	case *Container:
-		addMissingRelationships(src, e.System.Element, existing)
+		addImpliedRelationships(src, e.System.Element, existing)
 	case *Component:
-		addMissingRelationships(src, e.Container.Element, existing)
-		addMissingRelationships(src, e.Container.System.Element, existing)
+		addImpliedRelationships(src, e.Container.Element, existing)
+		addImpliedRelationships(src, e.Container.System.Element, existing)
 	}
 }

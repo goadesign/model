@@ -46,7 +46,9 @@ func addDefaultElements(view View) {
 	case *LandscapeView:
 		addAllElements(v)
 	case *ContextView:
-		addNeighbors(Registry[v.SoftwareSystemID].(*SoftwareSystem).Element, v)
+		s := Registry[v.SoftwareSystemID].(*SoftwareSystem)
+		v.AddElements(s)
+		addNeighbors(s.Element, v)
 	case *ContainerView:
 		s := Registry[v.SoftwareSystemID].(*SoftwareSystem)
 		v.AddElements(s.Containers.Elements()...)
