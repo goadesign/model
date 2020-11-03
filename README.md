@@ -1,9 +1,9 @@
 # Model
 
 [![Build](https://github.com/goadesign/model/workflows/CI/badge.svg)](https://github.com/goadesign/model/actions?query=workflow%3ACI)
-![Version](https://img.shields.io/badge/Version-v1.7.1-blue.svg)
+![Version](https://img.shields.io/badge/Version-v1.7.2-blue.svg)
 ![Go version](https://img.shields.io/github/go-mod/go-version/gomods/athens.svg)
-[![DSL Reference](https://img.shields.io/badge/Doc-DSL-orange)](https://pkg.go.dev/goa.design/model@v1.7.1/dsl?tab=doc)
+[![DSL Reference](https://img.shields.io/badge/Doc-DSL-orange)](https://pkg.go.dev/goa.design/model@v1.7.2/dsl?tab=doc)
 [![Go Packages](https://img.shields.io/badge/Doc-packages-orange)](https://pkg.go.dev/goa.design/model)
 
 ## Overview
@@ -201,13 +201,13 @@ in this repo.
 
 ### Using Model as a library
 
-The [mdl](https://pkg.go.dev/goa.design/model@v1.7.1/mdl?tab=doc) package
-[RunDSL](https://pkg.go.dev/goa.design/model@v1.7.1/mdl?tab=doc#RunDSL)
+The [mdl](https://pkg.go.dev/goa.design/model@v1.7.2/mdl?tab=doc) package
+[RunDSL](https://pkg.go.dev/goa.design/model@v1.7.2/mdl?tab=doc#RunDSL)
 method runs the DSL and produces data structures that contain all the
 information needed to render the views it defines.
 
-The [stz](https://pkg.go.dev/goa.design/model@v1.7.1/stz?tab=doc) package
-[RunDSL](https://pkg.go.dev/goa.design/model@v1.7.1/stz?tab=doc#RunDSL)
+The [stz](https://pkg.go.dev/goa.design/model@v1.7.2/stz?tab=doc) package
+[RunDSL](https://pkg.go.dev/goa.design/model@v1.7.2/stz?tab=doc#RunDSL)
 method runs the DSL and produces a data structure that can be serialized into
 JSON and uploaded to the [Structurizr service](https://structurizr.com).
 
@@ -336,7 +336,7 @@ view that is scoped to a parent element.
 ### Resources
 
 The DSL package
-[documentation](https://pkg.go.dev/goa.design/model@v1.7.1/dsl?tab=doc) lists
+[documentation](https://pkg.go.dev/goa.design/model@v1.7.2/dsl?tab=doc) lists
 all the DSL keywords and their usage.
 
 The file [DSL.md](https://github.com/goadesign/model/blob/master/DSL.md)
