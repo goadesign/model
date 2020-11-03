@@ -117,11 +117,14 @@ func (m *Model) Finalize() {
 	Iterate(func(e interface{}) {
 		if r, ok := e.(*Relationship); ok {
 			src := Registry[r.Source.ID].(ElementHolder)
-			addImpliedRelationships(src, r.Destination, r)
 			switch s := src.(type) {
+			case *Person, *SoftwareSystem:
+				addImpliedRelationships(src, r.Destination, r)
 			case *Container:
+				addImpliedRelationships(src, r.Destination, r)
 				addImpliedRelationships(s.System, r.Destination, r)
 			case *Component:
+				addImpliedRelationships(src, r.Destination, r)
 				addImpliedRelationships(s.Container, r.Destination, r)
 				addImpliedRelationships(s.Container.System, r.Destination, r)
 			}
