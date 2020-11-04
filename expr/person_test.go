@@ -56,3 +56,15 @@ func TestPersonFinalize(t *testing.T) {
 		})
 	}
 }
+
+func TestPeopleElements(t *testing.T) {
+	t.Parallel()
+	people := People{
+		{Element: &Element{Name: "foo"}},
+		{Element: &Element{Name: "bar"}},
+		{Element: &Element{Name: "baz"}},
+	}
+	if got := people.Elements(); len(got) != len(people) {
+		t.Errorf("got %d, want %d", len(got), len(people))
+	}
+}
