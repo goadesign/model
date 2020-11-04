@@ -1,6 +1,9 @@
 package expr
 
-import "testing"
+import (
+	"fmt"
+	"testing"
+)
 
 func TestPersonEvalName(t *testing.T) {
 	t.Parallel()
@@ -20,6 +23,34 @@ func TestPersonEvalName(t *testing.T) {
 				},
 			}
 			if got := person.EvalName(); got != tt.want {
+				t.Errorf("got %s, want %s", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestPersonFinalize(t *testing.T) {
+	t.Parallel()
+	person := Person{
+		Element: &Element{
+			Name: "foo",
+		},
+	}
+	tests := []struct {
+		pre  func()
+		want string
+	}{
+		{want: ""},
+		{pre: func() { person.Tags = "foo" }, want: "foo"},
+		{pre: func() { person.Finalize() }, want: "Element,Person,foo"},
+	}
+	for i, tt := range tests {
+		tt := tt
+		t.Run(fmt.Sprint(i), func(t *testing.T) {
+			if tt.pre != nil {
+				tt.pre()
+			}
+			if got := person.Tags; got != tt.want {
 				t.Errorf("got %s, want %s", got, tt.want)
 			}
 		})
