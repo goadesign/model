@@ -155,9 +155,9 @@ func (m *Model) SoftwareSystem(name string) *SoftwareSystem {
 
 // DeploymentNode returns the deployment node with the given name if any, nil
 // otherwise.
-func (m *Model) DeploymentNode(name string) *DeploymentNode {
+func (m *Model) DeploymentNode(env, name string) *DeploymentNode {
 	for _, d := range m.DeploymentNodes {
-		if d.Name == name {
+		if d.Environment == env && d.Name == name {
 			return d
 		}
 	}
@@ -302,7 +302,7 @@ func (m *Model) AddSystem(s *SoftwareSystem) *SoftwareSystem {
 //
 // AddDeploymentNode returns the new or merged deployment node.
 func (m *Model) AddDeploymentNode(d *DeploymentNode) *DeploymentNode {
-	existing := m.DeploymentNode(d.Name)
+	existing := m.DeploymentNode(d.Environment, d.Name)
 	if existing == nil {
 		Identify(d)
 		m.DeploymentNodes = append(m.DeploymentNodes, d)

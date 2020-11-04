@@ -91,11 +91,47 @@ func addMissingElementsAndRelationships(vp *ViewProps) {
 		})
 	loop:
 		for _, r := range rels {
+			// Do not add previously added relationship views
 			for _, existing := range vp.RelationshipViews {
 				if r.ID == existing.RelationshipID {
 					continue loop
 				}
 			}
+
+			// Do not automatically add relationship views across different
+			// top-level deployment nodes.
+			//
+			// Note: this rule is a little bit arbitrary however it is possible
+			// to override the behavior using `Link` and `Unlink` explicitly in
+			// the design. We'll see how that works out over time.
+			top := func(d *DeploymentNode) string {
+				id := d.ID
+				for p := d.Parent; p != nil; p = p.Parent {
+					id = p.ID
+				}
+				return id
+			}
+			var srcTop, destTop string
+			switch s := Registry[r.Source.ID].(type) {
+			case *DeploymentNode:
+				srcTop = top(s)
+			case *InfrastructureNode:
+				srcTop = top(s.Parent)
+			case *ContainerInstance:
+				srcTop = top(s.Parent)
+			}
+			switch d := Registry[r.Destination.ID].(type) {
+			case *DeploymentNode:
+				destTop = top(d)
+			case *InfrastructureNode:
+				destTop = top(d.Parent)
+			case *ContainerInstance:
+				destTop = top(d.Parent)
+			}
+			if srcTop != destTop {
+				continue loop
+			}
+
 			vp.RelationshipViews = append(vp.RelationshipViews,
 				&RelationshipView{
 					Source:         r.Source,

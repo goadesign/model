@@ -95,8 +95,8 @@ func (d *Design) SoftwareSystem(name string) *SoftwareSystem {
 	return d.Model.SoftwareSystem(name)
 }
 
-// DeploymentNode returns the deployment node with the given name if any, nil
-// otherwise.
-func (d *Design) DeploymentNode(name string) *DeploymentNode {
-	return d.Model.DeploymentNode(name)
+// DeploymentNode returns the deployment node with the given name in the given
+// environment if any, nil otherwise.
+func (d *Design) DeploymentNode(env, name string) *DeploymentNode {
+	return d.Model.DeploymentNode(env, name)
 }

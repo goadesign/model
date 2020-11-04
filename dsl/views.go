@@ -2018,7 +2018,7 @@ func findViewElement(view expr.View, element interface{}) (expr.ElementHolder, e
 		res, err := expr.Root.Model.FindElement(scope, name)
 		return res, err
 	case *expr.DeploymentView:
-		return findDeploymentViewElement(name)
+		return findDeploymentViewElement(v.Environment, name)
 	case *expr.DynamicView:
 		var scope expr.ElementHolder
 		if v.ElementID != "" {
@@ -2044,13 +2044,13 @@ func findViewElement(view expr.View, element interface{}) (expr.ElementHolder, e
 //      in the given deployment node path and with the given container name and
 //      instance ID.
 //
-func findDeploymentViewElement(e interface{}, cid ...int) (expr.ElementHolder, error) {
+func findDeploymentViewElement(e interface{}, env string, cid ...int) (expr.ElementHolder, error) {
 	switch s := e.(type) {
 	case *expr.DeploymentNode, *expr.InfrastructureNode, *expr.ContainerInstance:
 		return s.(expr.ElementHolder), nil
 	case string:
 		elems := strings.Split(s, "/")
-		parent := expr.Root.Model.DeploymentNode(elems[0])
+		parent := expr.Root.Model.DeploymentNode(env, elems[0])
 		if parent == nil {
 			return nil, fmt.Errorf("no top level deployment node named %q", s)
 		}
