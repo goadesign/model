@@ -211,7 +211,17 @@ func (vs *Views) Validate() error {
 		// Map relationship views created explicitly to model relationships.
 		for _, rv := range v.RelationshipViews {
 			srcID := rv.Source.ID
+
+			// The relationships between container instances get created in
+			// model.Finalize. Make sure there is one between the containers.
+			if ci, ok := Registry[rv.Source.ID].(*ContainerInstance); ok {
+				srcID = ci.ContainerID
+			}
 			destID := rv.Destination.ID
+			if ci, ok := Registry[rv.Destination.ID].(*ContainerInstance); ok {
+				destID = ci.ContainerID
+			}
+
 			desc := rv.Description
 			IterateRelationships(func(r *Relationship) {
 				if r.Destination == nil {
