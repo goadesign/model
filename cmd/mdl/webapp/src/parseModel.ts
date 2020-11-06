@@ -281,11 +281,23 @@ export const parseView = (model: Model, layouts: Layouts, viewKey: string) => {
 		.sort((a, b) => level(a) > level(b) ? -1 : 1)
 
 	gElements.forEach(parent => {
-		graph.addGroup(parent.id, parent.name,
+		let style = {}
+		if (section == 'deploymentViews') {
+			const el = elements.get(parent.id)
+			const tags = el.tags.split(',')
+			tags.forEach(tag => {
+				const s = styles && styles.elements && styles.elements.find(s => s.tag == tag)
+				s && (style = {...style, ...s})
+			})
+		}
+		graph.addGroup(
+			parent.id,
+			parent.name,
 			view.elements
 				.map(ref => elements.get(ref.id))
 				.filter(el => el && el.parent == parent)
-				.map(el => el.id)
+				.map(el => el.id),
+			style
 		)
 	})
 

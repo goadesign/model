@@ -53,6 +53,7 @@ interface Group extends BBox {
 	name: string;
 	nodes: (Node | Group)[];
 	ref?: SVGGElement;
+	style: NodeStyle;
 }
 
 interface Node extends BBox {
@@ -246,7 +247,7 @@ export class GraphData {
 		}
 	}
 
-	addGroup(id: string, name: string, nodesOrGroups: string[]) {
+	addGroup(id: string, name: string, nodesOrGroups: string[], style: NodeStyle) {
 		if (this.groupsMap.has(id)) {
 			console.error(`Group exists: ${id} ${name}`)
 			return
@@ -257,7 +258,8 @@ export class GraphData {
 				const n = this.nodesMap.get(k) || this.groupsMap.get(k)
 				if (!n) console.error(`Node or group ${k} not found for group ${id} "${name}"`)
 				return n
-			}).filter(Boolean)
+			}).filter(Boolean),
+			style
 		}
 		this.groupsMap.set(id, group)
 	}
@@ -809,9 +811,12 @@ function buildGroup(group: Group) {
 	group.width = bb.width
 	group.height = bb.height
 	applyStyle(r, styles.groupRect)
+	group.style.stroke && r.setAttribute('stroke', group.style.stroke)
+	group.style.background && r.setAttribute('fill', group.style.background)
 
 	const txt = create.text(group.name, p0.x, bb.y + bb.height - styles.groupText["font-size"])
 	applyStyle(txt, styles.groupText)
+	group.style.color && txt.setAttribute('fill', group.style.color)
 
 	g.append(r, txt)
 	group.ref = g
@@ -1109,6 +1114,7 @@ const styles = {
 		//fill: "none",
 		fill: "rgba(0, 0, 0, 0.02)",
 		stroke: "#666",
+		'stroke-width': 3,
 		"stroke-dasharray": 4,
 	},
 	groupText: {
