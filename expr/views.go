@@ -211,28 +211,37 @@ func (vs *Views) Validate() error {
 		// Map relationship views created explicitly to model relationships.
 		for _, rv := range v.RelationshipViews {
 			srcID := rv.Source.ID
-
-			// The relationships between container instances get created in
-			// model.Finalize. Make sure there is one between the containers.
-			if ci, ok := Registry[rv.Source.ID].(*ContainerInstance); ok {
-				srcID = ci.ContainerID
-			}
 			destID := rv.Destination.ID
-			if ci, ok := Registry[rv.Destination.ID].(*ContainerInstance); ok {
-				destID = ci.ContainerID
+			desc := rv.Description
+
+			// The relationships between container instances is implicitly
+			// derived from the relationships between the corresponding
+			// containers so make sure there is one for all relationships added
+			// explicitly to the deployment view and if so create the
+			// relationship between the container instances.
+			sci, srcIsCI := Registry[rv.Source.ID].(*ContainerInstance)
+			dci, destIsCI := Registry[rv.Destination.ID].(*ContainerInstance)
+			if srcIsCI && destIsCI {
+				srcID = sci.ContainerID
+				destID = dci.ContainerID
 			}
 
-			desc := rv.Description
 			IterateRelationships(func(r *Relationship) {
 				if r.Destination == nil {
 					return // a validation error was already created in model.Validate
 				}
 				if r.Source.ID == srcID && r.Destination.ID == destID && r.Description == desc {
+					if srcIsCI && destIsCI {
+						rci := r.Dup(sci.Element, dci.Element)
+						rci.LinkedRelationshipID = r.ID
+						sci.Relationships = append(sci.Relationships, rci)
+						r = rci
+					}
 					rv.RelationshipID = r.ID
 				}
 			})
 			if rv.RelationshipID == "" {
-				verr.Add(rv, "could not find relationship %q [%s -> %s] to add to view %q", rv.Description, rv.Source.Name, rv.Destination.Name, v.Key)
+				verr.Add(rv, "could not find relationship %q [%s -> %s] to add to view %q", desc, rv.Source.Name, rv.Destination.Name, v.Key)
 			}
 		}
 
