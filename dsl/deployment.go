@@ -215,9 +215,9 @@ func InfrastructureNode(name string, args ...interface{}) *expr.InfrastructureNo
 //
 //    ContainerInstance(Container, func())
 //
-//    ContainerInstance("<Software System>:<Container>")
+//    ContainerInstance("<Software System>/<Container>")
 //
-//    ContainerInstance("<Software System>:<Container>", func())
+//    ContainerInstance("<Software System>/<Container>", func())
 //
 // Example:
 //
@@ -238,8 +238,8 @@ func InfrastructureNode(name string, args ...interface{}) *expr.InfrastructureNo
 //                    })
 //                })
 //                // Using the name instead:
-//                ContainerInstance("SoftwareSystem:Container", func() {
-//                    InstanceID(2)
+//                ContainerInstance("SoftwareSystem/Container", func() {
+//                    InstanceID(2
 //                })
 //            })
 //        })

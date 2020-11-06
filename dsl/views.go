@@ -2044,44 +2044,37 @@ func findViewElement(view expr.View, element interface{}) (expr.ElementHolder, e
 //      in the given deployment node path and with the given container name and
 //      instance ID.
 //
-func findDeploymentViewElement(e interface{}, env string, cid ...int) (expr.ElementHolder, error) {
-	switch s := e.(type) {
-	case *expr.DeploymentNode, *expr.InfrastructureNode, *expr.ContainerInstance:
-		return s.(expr.ElementHolder), nil
-	case string:
-		elems := strings.Split(s, "/")
-		parent := expr.Root.Model.DeploymentNode(env, elems[0])
-		if parent == nil {
-			return nil, fmt.Errorf("no top level deployment node named %q", s)
-		}
-		cid := 1
-		if len(elems) > 2 {
-			last := elems[len(elems)-1]
-			if id, err := strconv.Atoi(last); err == nil {
-				cid = id
-				elems = elems[:len(elems)-1]
-			}
-		}
-		for i := 1; i < len(elems)-1; i++ {
-			parent = parent.Child(elems[i])
-			if parent == nil {
-				return nil, fmt.Errorf("no deployment node named %q in path %q", elems[i], s)
-			}
-		}
-		name := elems[len(elems)-1]
-		if dn := parent.Child(name); dn != nil {
-			return dn, nil
-		}
-		if in := parent.InfrastructureNode(name); in != nil {
-			return in, nil
-		}
-		if ci := parent.ContainerInstance(name, cid); ci != nil {
-			return ci, nil
-		}
-		return nil, fmt.Errorf("could not find %q in path %q", name, s)
-	default:
-		return nil, fmt.Errorf("expected deployment node, infrastructure node, container instance or the path to one of these but bot %T", e)
+func findDeploymentViewElement(env, path string) (expr.ElementHolder, error) {
+	elems := strings.Split(path, "/")
+	parent := expr.Root.Model.DeploymentNode(env, elems[0])
+	if parent == nil {
+		return nil, fmt.Errorf("no top level deployment node named %q", path)
 	}
+	cid := 1
+	if len(elems) > 2 {
+		last := elems[len(elems)-1]
+		if id, err := strconv.Atoi(last); err == nil {
+			cid = id
+			elems = elems[:len(elems)-1]
+		}
+	}
+	for i := 1; i < len(elems)-1; i++ {
+		parent = parent.Child(elems[i])
+		if parent == nil {
+			return nil, fmt.Errorf("no deployment node named %q in path %q", elems[i], path)
+		}
+	}
+	name := elems[len(elems)-1]
+	if dn := parent.Child(name); dn != nil {
+		return dn, nil
+	}
+	if in := parent.InfrastructureNode(name); in != nil {
+		return in, nil
+	}
+	if ci := parent.ContainerInstanceByName(name, cid); ci != nil {
+		return ci, nil
+	}
+	return nil, fmt.Errorf("could not find %q in path %q", name, path)
 }
 
 func parseLinkArgs(v expr.View, source interface{}, destination interface{}, args []interface{}) (src, dest expr.ElementHolder, desc string, dsl func(), err error) {

@@ -96,12 +96,27 @@ func (d *DeploymentNode) InfrastructureNode(name string) *InfrastructureNode {
 	return nil
 }
 
-// ContainerInstance returns the container instance for the given container with
-// the given instance ID if any, nil otherwise. container must be an instance of
-// Container or the name of a container.
-func (d *DeploymentNode) ContainerInstance(containerID string, instanceID int) *ContainerInstance {
+// ContainerInstanceByID returns the container instance for the given container
+// with the given instance ID if any, nil otherwise.
+func (d *DeploymentNode) ContainerInstanceByID(containerID string, instanceID int) *ContainerInstance {
 	for _, ci := range d.ContainerInstances {
 		if ci.ContainerID == containerID && ci.InstanceID == instanceID {
+			return ci
+		}
+	}
+	return nil
+}
+
+// ContainerInstanceByName returns the container instance for the given
+// container with the given name if any, nil otherwise.
+//
+// Note that in theory there could be be multiple containers with the given name
+// coming from different software systems in a single deployment node. In
+// practice the likelyhood of this happening seems pretty slim so we'll keep it
+// simple for now...
+func (d *DeploymentNode) ContainerInstanceByName(name string, instanceID int) *ContainerInstance {
+	for _, ci := range d.ContainerInstances {
+		if ci.Name == name && ci.InstanceID == instanceID {
 			return ci
 		}
 	}
@@ -177,7 +192,7 @@ func (d *DeploymentNode) AddInfrastructureNode(n *InfrastructureNode) *Infrastru
 // AddContainerInstance returns the new or merged container instance.
 func (d *DeploymentNode) AddContainerInstance(ci *ContainerInstance) *ContainerInstance {
 	c := Registry[ci.ContainerID].(*Container)
-	existing := d.ContainerInstance(c.ID, ci.InstanceID)
+	existing := d.ContainerInstanceByID(c.ID, ci.InstanceID)
 	if existing == nil {
 		Identify(ci)
 		d.ContainerInstances = append(d.ContainerInstances, ci)
