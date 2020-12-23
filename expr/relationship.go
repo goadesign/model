@@ -57,6 +57,9 @@ func (r *Relationship) EvalName() string {
 // Finalize computes the destination and adds the "Relationship" tag.
 func (r *Relationship) Finalize() {
 	// prefix tags
+	if r.InteractionStyle == InteractionAsynchronous {
+		r.Tags = mergeTags("Asynchronous", []string{r.Tags})
+	}
 	r.Tags = mergeTags("Relationship", []string{r.Tags})
 }
 
