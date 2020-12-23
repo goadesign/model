@@ -2079,10 +2079,10 @@ func findDeploymentViewElement(env, path string) (expr.ElementHolder, error) {
 
 func parseLinkArgs(v expr.View, source interface{}, destination interface{}, args []interface{}) (src, dest expr.ElementHolder, desc string, dsl func(), err error) {
 	var ok bool
-	if dsl, ok = args[len(args)-1].(func()); ok {
-		args = args[:len(args)-1]
-	}
 	if len(args) > 0 {
+		if dsl, ok = args[len(args)-1].(func()); ok {
+			args = args[:len(args)-1]
+		}
 		desc, ok = args[0].(string)
 		if !ok {
 			err = fmt.Errorf("expected string (description), got %T", args[0])

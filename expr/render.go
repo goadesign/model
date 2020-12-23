@@ -286,7 +286,7 @@ func removeElements(vp *ViewProps, elems ...*Element) {
 func removeRelationship(vp *ViewProps, r *Relationship) {
 	i := 0
 	for _, rv := range vp.RelationshipViews {
-		if rv.RelationshipID == r.ID {
+		if rv.Source.ID != r.Source.ID || rv.Destination.ID != r.Destination.ID || rv.Description != r.Description {
 			vp.RelationshipViews[i] = rv
 			i++
 		}
