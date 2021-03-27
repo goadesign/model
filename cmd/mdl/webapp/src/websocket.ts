@@ -43,6 +43,10 @@ const options = {
 	handshakeTimeout: 5000
 };
 
+/**
+ * RefreshConnector implements livereload protocol to listen for changed files via websocket.
+ * 
+ */
 export class RefreshConnector {
 	private readonly _uri: string
 	private socket: WebSocket;
