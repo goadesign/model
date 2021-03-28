@@ -87,6 +87,7 @@ interface Metadata {
 		location?: string;
 		properties?: { [key: string]: string };
 		elementViewKey?: string;
+		technology?: string;
 	}[]
 }
 
@@ -231,7 +232,8 @@ export const parseView = (model: Model, layouts: Layouts, viewKey: string) => {
 			tags: el.tags,
 			location: el.location,
 			properties: el.properties,
-			elementViewKey: lookupElementKeyView(model, el.id)
+			elementViewKey: lookupElementKeyView(model, el.id),
+			technology: el.technology
 		})
 	})
 	//edges
