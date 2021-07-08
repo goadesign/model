@@ -292,6 +292,7 @@ export class GraphData {
 	}
 
 	moveNode(n: Node, x: number, y: number) {
+		[x, y] = roundPoint(x, y)
 		if (n.x == x && n.y == y) return
 		this._undo.beforeChange()
 		n.x = x;
@@ -303,6 +304,7 @@ export class GraphData {
 	}
 
 	moveEdgeVertex(v: EdgeVertex, x: number, y: number) {
+		[x, y] = roundPoint(x, y)
 		if (v.x == x && v.y == y) return
 		this._undo.beforeChange()
 		v.x = x;
@@ -493,6 +495,9 @@ function escapeCdata(code: string) {
 	return code.replace(/]]>/g, ']]]>]><![CDATA[')
 }
 
+function roundPoint(x: number, y: number) {
+	return [Math.round(x / 10) * 10, Math.round(y / 10) * 10]
+}
 
 let svg: SVGSVGElement = document.querySelector('svg#graph')
 if (!svg) {
