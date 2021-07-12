@@ -58,7 +58,7 @@ function segmentIntersection(p1: Point, q1: Point, p2: Point, q2: Point) {
 		result.onLine1 = true;
 	}
 	// if line2 is a segment and line1 is infinite, they intersect if:
-	if (b > 0 && b < 1) {
+	if (b >= 0 && b <= 1) {
 		result.onLine2 = true;
 	}
 	// if line1 and line2 are segments, they intersect if both of the above are true
