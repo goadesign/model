@@ -403,7 +403,7 @@ The editor supports a number of keyboard shortcuts listed below:
 While functional, the editor isn't considered feature complete yet. Here is
 the list of features that will be added in the future:
 
-- [ ] Snap to grid
+- [x] Snap to grid
 - [ ] Better SVG clipping on save
 - [ ] Autolayout on start if no pre-existing layout information
 - [ ] Support for both vertical and horizontal ranking with autolayout
