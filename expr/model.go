@@ -74,7 +74,11 @@ func (m *Model) Validate() error {
 		}
 		// Relationship was created with Uses and used one or more strings to
 		// identify the destination.
-		eh, err := m.FindElement(Parent(Registry[r.Source.ID].(ElementHolder)), r.DestinationPath)
+		src, ok := Registry[r.Source.ID]
+		if !ok {
+			ver.AddError(r, fmt.Errorf("source not found"))
+		}
+		eh, err := m.FindElement(Parent(src.(ElementHolder)), r.DestinationPath)
 		if err != nil {
 			verr.AddError(r, err)
 			return
