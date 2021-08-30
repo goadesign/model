@@ -76,7 +76,7 @@ func (m *Model) Validate() error {
 		// identify the destination.
 		src, ok := Registry[r.Source.ID]
 		if !ok {
-			ver.AddError(r, fmt.Errorf("source not found"))
+			verr.AddError(r, fmt.Errorf("source not found"))
 		}
 		eh, err := m.FindElement(Parent(src.(ElementHolder)), r.DestinationPath)
 		if err != nil {
