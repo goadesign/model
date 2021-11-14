@@ -98,8 +98,8 @@ a working installation of Go, the `mdl` and `stz` tools can be installed
 using:
 
 ```bash
-go get goa.design/model/cmd/mdl
-go get goa.design/model/cmd/stz
+go install goa.design/model/cmd/mdl
+go install goa.design/model/cmd/stz
 ```
 
 ## Usage
