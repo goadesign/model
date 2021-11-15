@@ -1,25 +1,4 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>C4 Model</title>
-    <!-- 1. copy the styles -->
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            font-size: 14px;
-        }
-        .c4-diagram .edge .v-dot {
-            fill: transparent;
-            stroke: none;
-        }
-    </style>
-</head>
-<body>
-
-<!-- 2. inject the model JSON, the the "id" to a name of your choosing -->
-<script id="diagram1-model" type="application/json">
-    {
+<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no"><title>C4 Model</title><style>body{font-family:Arial,sans-serif;font-size:14px}.c4-diagram .edge .v-dot{fill:transparent;stroke:none}</style><script defer="defer" src="./runtime.js"></script><script defer="defer" src="./main.js"></script></head><body><script id="diagram1-model" type="application/json">{
         "name": "Getting Started",
         "description": "This is a model of my software system.",
         "model": {
@@ -103,16 +82,4 @@
                 }]
             }
         }
-    }
-</script>
-
-<!-- 3. add a placeholder for the diagram
-    - choose a name for the "id" attribute
-    - set attribute "data-model" to the id of the script tag containing the model JSON
-    - set attribute "data-view-key" to the view key you want to display from the model
--->
-<div data-model="diagram1-model" data-view-key="SystemContext" class="c4-diagram"></div>
-
-<!-- 4. include main.js and runtime.js scripts -->
-<script type="text/javascript" src="./runtime.js"></script><script type="text/javascript" src="./main.js"></script></body>
-</html>
+    }</script><div data-model="diagram1-model" data-view-key="SystemContext" class="c4-diagram"></div></body></html>

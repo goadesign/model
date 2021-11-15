@@ -1,15 +1,14 @@
-import React, {FC, useMemo, useState} from "react";
+import React, {FC, useState} from "react";
 import {getZoom, getZoomAuto, GraphData, setZoom} from "./graph-view/graph";
 import {Graph} from "./graph-view/graph-react";
-import {BrowserRouter as Router, Route} from 'react-router-dom'
-import {useHistory} from "react-router";
+import {BrowserRouter as Router, Routes, Route, useNavigate} from 'react-router-dom'
 import {listViews, parseView, ViewsList} from "./parseModel";
 import {findShortcut, HELP, Help, SAVE} from "./shortcuts";
 
 
-export const Root: FC<{model: any, layout: any}> = ({model, layout}) => <Router>
-	<Route path="/" component={() => <ModelPane key={getCrtID()} model={model} layouts={layout}/>}/>
-</Router>
+export const Root: FC<{model: any, layout: any}> = ({model, layout}) => <Router><Routes>
+	<Route path="/" element={<ModelPane key={getCrtID()} model={model} layouts={layout}/>}/>
+</Routes></Router>
 
 const getCrtID = () => {
 	const p = new URLSearchParams(document.location.search)
@@ -17,9 +16,9 @@ const getCrtID = () => {
 }
 
 const DomainSelect: FC<{ views: ViewsList; crtID: string}> = ({views, crtID}) => {
-	const history = useHistory();
+	const navigate = useNavigate();
 	return <select
-		onChange={e => history.push('?id=' + encodeURIComponent(e.target.value))} value={crtID}>
+		onChange={e => navigate('?id=' + encodeURIComponent(e.target.value))} value={crtID}>
 		<option disabled value="" hidden>...</option>
 		{views.map(m => <option key={m.key} value={m.key}>{camelToWords(m.section) + ': ' + m.title}</option>)}
 	</select>

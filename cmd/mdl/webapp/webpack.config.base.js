@@ -55,8 +55,5 @@ module.exports = {
 	devServer: {
 		historyApiFallback: true,
 		hot: true,
-		setup(app) {
-
-		}
 	}
 };

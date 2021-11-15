@@ -111,7 +111,7 @@ export const parseView = (model: Model, layouts: Layouts, viewKey: string) => {
 	}
 
 	// People
-	model.model.people.forEach((el: Element) => {
+	model.model.people && model.model.people.forEach((el: Element) => {
 		elements.set(el.id, el)
 		if (Array.isArray(el.relationships)) {
 			el.relationships.forEach(rel => {
@@ -120,7 +120,7 @@ export const parseView = (model: Model, layouts: Layouts, viewKey: string) => {
 		}
 	})
 	// Software Systems
-	model.model.softwareSystems.forEach((el: Element) => {
+	model.model.softwareSystems && model.model.softwareSystems.forEach((el: Element) => {
 		elements.set(el.id, el)
 		collectRels(el)
 
