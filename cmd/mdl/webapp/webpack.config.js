@@ -2,6 +2,7 @@
 /* eslint-env node */
 const HtmlWebPackPlugin = require('html-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
+const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const path = require('path');
 
 const base = require('./webpack.config.base')
@@ -12,14 +13,15 @@ base.plugins.push(
 		template: './src/index.html',
 		filename: './index.html',
 	}),
-	new CopyWebpackPlugin([{
-		from: '*',
-		context: 'static/'
-	}])
+	new CleanWebpackPlugin({
+		protectWebpackAssets: false,
+		cleanAfterEveryBuildPatterns: ['*.LICENSE.txt'],
+	})
 )
 base.output = {
 	path: path.resolve(__dirname, 'dist/'),
-		publicPath: '/',
+	publicPath: '/',
 }
+base.devtool = 'source-map'
 
 module.exports = base
