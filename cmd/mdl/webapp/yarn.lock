@@ -1018,9 +1018,9 @@
   dependencies:
     "@types/react" "*"
 
-"@types/react@*", "@types/react@17.0.34":
-  version "17.0.34"
-  resolved "https://registry.npmjs.org/@types/react/-/react-17.0.34.tgz"
+"@types/react@*", "@types/react@17.0.38":
+  version "17.0.38"
+  resolved "https://registry.yarnpkg.com/@types/react/-/react-17.0.38.tgz#f24249fefd89357d5fa71f739a686b8d7c7202bd"
   dependencies:
     "@types/prop-types" "*"
     "@types/scheduler" "*"
