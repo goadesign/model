@@ -1240,9 +1240,9 @@
   dependencies:
     "@types/node" "*"
 
-"@types/styled-components@^5.1.15":
-  version "5.1.15"
-  resolved "https://registry.npmjs.org/@types/styled-components/-/styled-components-5.1.15.tgz"
+"@types/styled-components@^5.1.21":
+  version "5.1.21"
+  resolved "https://registry.yarnpkg.com/@types/styled-components/-/styled-components-5.1.21.tgz#39f6bdc4103254d899531ef099dae5619b039cdb"
   dependencies:
     "@types/hoist-non-react-statics" "*"
     "@types/react" "*"
