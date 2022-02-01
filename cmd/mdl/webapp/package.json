@@ -7,7 +7,7 @@
 	"dependencies": {
 		"@types/styled-components": "^5.1.21",
 		"clean-webpack-plugin": "^4.0.0",
-		"copy-webpack-plugin": "^10.2.3",
+		"copy-webpack-plugin": "^10.2.4",
 		"dagre": "^0.8.5",
 		"file-loader": "6.2.0",
 		"react": "17.0.2",
