@@ -2597,9 +2597,9 @@ he@^1.2.0:
   version "1.2.0"
   resolved "https://registry.npmjs.org/he/-/he-1.2.0.tgz"
 
-history@^5.1.0:
-  version "5.1.0"
-  resolved "https://registry.npmjs.org/history/-/history-5.1.0.tgz"
+history@^5.1.0, history@^5.2.0:
+  version "5.2.0"
+  resolved "https://registry.yarnpkg.com/history/-/history-5.2.0.tgz#7cdd31cf9bac3c5d31f09c231c9928fad0007b7c"
   dependencies:
     "@babel/runtime" "^7.7.6"
 
@@ -3601,6 +3601,12 @@ react-router@6.0.2:
   resolved "https://registry.npmjs.org/react-router/-/react-router-6.0.2.tgz"
   dependencies:
     history "^5.1.0"
+
+react-router@6.2.1:
+  version "6.2.1"
+  resolved "https://registry.yarnpkg.com/react-router/-/react-router-6.2.1.tgz#be2a97a6006ce1d9123c28934e604faef51448a3"
+  dependencies:
+    history "^5.2.0"
 
 react@17.0.2:
   version "17.0.2"
