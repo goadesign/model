@@ -2622,9 +2622,9 @@ html-entities@^2.1.0, html-entities@^2.3.2:
   version "2.3.2"
   resolved "https://registry.npmjs.org/html-entities/-/html-entities-2.3.2.tgz"
 
-html-loader@3.0.1:
-  version "3.0.1"
-  resolved "https://registry.npmjs.org/html-loader/-/html-loader-3.0.1.tgz"
+html-loader@3.1.0:
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/html-loader/-/html-loader-3.1.0.tgz#e5b9c1cf81b043786b15145eb30181575a22d9c8"
   dependencies:
     html-minifier-terser "^6.0.2"
     parse5 "^6.0.1"
