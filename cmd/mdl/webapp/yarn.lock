@@ -1013,9 +1013,9 @@
   dependencies:
     "@types/node" "*"
 
-"@types/dagre@^0.7.46":
-  version "0.7.46"
-  resolved "https://registry.npmjs.org/@types/dagre/-/dagre-0.7.46.tgz"
+"@types/dagre@^0.7.47":
+  version "0.7.47"
+  resolved "https://registry.yarnpkg.com/@types/dagre/-/dagre-0.7.47.tgz#1d1b89e1fac36aaf5ef5ed6274bb123073095ac5"
 
 "@types/eslint-scope@^3.7.0":
   version "3.7.1"
