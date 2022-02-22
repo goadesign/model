@@ -2,9 +2,9 @@
 # yarn lockfile v1
 
 
-"@ampproject/remapping@^2.0.0":
-  version "2.1.1"
-  resolved "https://registry.yarnpkg.com/@ampproject/remapping/-/remapping-2.1.1.tgz#7922fb0817bf3166d8d9e258c57477e3fd1c3610"
+"@ampproject/remapping@^2.1.0":
+  version "2.1.2"
+  resolved "https://registry.yarnpkg.com/@ampproject/remapping/-/remapping-2.1.2.tgz#4edca94973ded9630d20101cd8559cedb8d8bd34"
   dependencies:
     "@jridgewell/trace-mapping" "^0.3.0"
 
@@ -18,19 +18,19 @@
   version "7.17.0"
   resolved "https://registry.yarnpkg.com/@babel/compat-data/-/compat-data-7.17.0.tgz#86850b8597ea6962089770952075dcaabb8dba34"
 
-"@babel/core@7.17.2":
-  version "7.17.2"
-  resolved "https://registry.yarnpkg.com/@babel/core/-/core-7.17.2.tgz#2c77fc430e95139d816d39b113b31bf40fb22337"
+"@babel/core@7.17.5":
+  version "7.17.5"
+  resolved "https://registry.yarnpkg.com/@babel/core/-/core-7.17.5.tgz#6cd2e836058c28f06a4ca8ee7ed955bbf37c8225"
   dependencies:
-    "@ampproject/remapping" "^2.0.0"
+    "@ampproject/remapping" "^2.1.0"
     "@babel/code-frame" "^7.16.7"
-    "@babel/generator" "^7.17.0"
+    "@babel/generator" "^7.17.3"
     "@babel/helper-compilation-targets" "^7.16.7"
     "@babel/helper-module-transforms" "^7.16.7"
     "@babel/helpers" "^7.17.2"
-    "@babel/parser" "^7.17.0"
+    "@babel/parser" "^7.17.3"
     "@babel/template" "^7.16.7"
-    "@babel/traverse" "^7.17.0"
+    "@babel/traverse" "^7.17.3"
     "@babel/types" "^7.17.0"
     convert-source-map "^1.7.0"
     debug "^4.1.0"
@@ -38,9 +38,9 @@
     json5 "^2.1.2"
     semver "^6.3.0"
 
-"@babel/generator@^7.17.0":
-  version "7.17.0"
-  resolved "https://registry.yarnpkg.com/@babel/generator/-/generator-7.17.0.tgz#7bd890ba706cd86d3e2f727322346ffdbf98f65e"
+"@babel/generator@^7.17.3":
+  version "7.17.3"
+  resolved "https://registry.yarnpkg.com/@babel/generator/-/generator-7.17.3.tgz#a2c30b0c4f89858cb87050c3ffdfd36bdf443200"
   dependencies:
     "@babel/types" "^7.17.0"
     jsesc "^2.5.1"
@@ -260,9 +260,9 @@
     chalk "^2.0.0"
     js-tokens "^4.0.0"
 
-"@babel/parser@^7.16.7", "@babel/parser@^7.17.0":
-  version "7.17.0"
-  resolved "https://registry.yarnpkg.com/@babel/parser/-/parser-7.17.0.tgz#f0ac33eddbe214e4105363bb17c3341c5ffcc43c"
+"@babel/parser@^7.16.7", "@babel/parser@^7.17.3":
+  version "7.17.3"
+  resolved "https://registry.yarnpkg.com/@babel/parser/-/parser-7.17.3.tgz#b07702b982990bf6fdc1da5049a23fece4c5c3d0"
 
 "@babel/plugin-bugfix-safari-id-destructuring-collision-in-function-expression@^7.16.7":
   version "7.16.7"
@@ -864,17 +864,17 @@
     "@babel/parser" "^7.16.7"
     "@babel/types" "^7.16.7"
 
-"@babel/traverse@^7.13.0", "@babel/traverse@^7.16.7", "@babel/traverse@^7.16.8", "@babel/traverse@^7.17.0", "@babel/traverse@^7.4.5":
-  version "7.17.0"
-  resolved "https://registry.yarnpkg.com/@babel/traverse/-/traverse-7.17.0.tgz#3143e5066796408ccc880a33ecd3184f3e75cd30"
+"@babel/traverse@^7.13.0", "@babel/traverse@^7.16.7", "@babel/traverse@^7.16.8", "@babel/traverse@^7.17.0", "@babel/traverse@^7.17.3", "@babel/traverse@^7.4.5":
+  version "7.17.3"
+  resolved "https://registry.yarnpkg.com/@babel/traverse/-/traverse-7.17.3.tgz#0ae0f15b27d9a92ba1f2263358ea7c4e7db47b57"
   dependencies:
     "@babel/code-frame" "^7.16.7"
-    "@babel/generator" "^7.17.0"
+    "@babel/generator" "^7.17.3"
     "@babel/helper-environment-visitor" "^7.16.7"
     "@babel/helper-function-name" "^7.16.7"
     "@babel/helper-hoist-variables" "^7.16.7"
     "@babel/helper-split-export-declaration" "^7.16.7"
-    "@babel/parser" "^7.17.0"
+    "@babel/parser" "^7.17.3"
     "@babel/types" "^7.17.0"
     debug "^4.1.0"
     globals "^11.1.0"
