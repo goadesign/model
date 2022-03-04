@@ -25,7 +25,7 @@ DEPEND=\
 	honnef.co/go/tools/cmd/staticcheck \
 	github.com/mjibson/esc
 
-all: lint test
+all: lint check-generated test
 
 ci: depend all
 
@@ -45,6 +45,11 @@ ifneq ($(GOOS),windows)
 		echo "^ - staticcheck errors!" && echo && exit 1; \
 	fi
 endif
+
+check-generated: generate
+	@if ! git diff -s --exit-code cmd/mdl/webapp.go; then \
+  		echo 'cmd/mdl/webapp.go is different, run `make generate` before commit!'; \
+  	fi
 
 test:
 	env GO111MODULE=on go test ./...
