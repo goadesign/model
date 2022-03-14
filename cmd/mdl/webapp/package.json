@@ -20,7 +20,7 @@
 		"yarn": "^1.22.17"
 	},
 	"devDependencies": {
-		"@babel/core": "7.17.5",
+		"@babel/core": "7.17.7",
 		"@babel/preset-env": "7.16.11",
 		"@babel/preset-react": "7.16.7",
 		"@babel/preset-typescript": "7.16.7",
