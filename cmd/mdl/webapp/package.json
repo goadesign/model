@@ -32,7 +32,7 @@
 		"@types/react-router-dom": "5.3.3",
 		"@types/react-syntax-highlighter": "13.5.2",
 		"babel-loader": "8.2.3",
-		"css-loader": "6.7.0",
+		"css-loader": "6.7.1",
 		"eslint": "^8.10.0",
 		"eslint-plugin-react": "7.29.3",
 		"eslint-plugin-react-hooks": "4.3.0",
