@@ -22,17 +22,17 @@
   version "7.17.7"
   resolved "https://registry.yarnpkg.com/@babel/compat-data/-/compat-data-7.17.7.tgz#078d8b833fbbcc95286613be8c716cef2b519fa2"
 
-"@babel/core@7.17.7":
-  version "7.17.7"
-  resolved "https://registry.yarnpkg.com/@babel/core/-/core-7.17.7.tgz#f7c28228c83cdf2dbd1b9baa06eaf9df07f0c2f9"
+"@babel/core@7.17.8":
+  version "7.17.8"
+  resolved "https://registry.yarnpkg.com/@babel/core/-/core-7.17.8.tgz#3dac27c190ebc3a4381110d46c80e77efe172e1a"
   dependencies:
     "@ampproject/remapping" "^2.1.0"
     "@babel/code-frame" "^7.16.7"
     "@babel/generator" "^7.17.7"
     "@babel/helper-compilation-targets" "^7.17.7"
     "@babel/helper-module-transforms" "^7.17.7"
-    "@babel/helpers" "^7.17.7"
-    "@babel/parser" "^7.17.7"
+    "@babel/helpers" "^7.17.8"
+    "@babel/parser" "^7.17.8"
     "@babel/template" "^7.16.7"
     "@babel/traverse" "^7.17.3"
     "@babel/types" "^7.17.0"
@@ -254,9 +254,9 @@
     "@babel/traverse" "^7.16.8"
     "@babel/types" "^7.16.8"
 
-"@babel/helpers@^7.17.7":
-  version "7.17.7"
-  resolved "https://registry.yarnpkg.com/@babel/helpers/-/helpers-7.17.7.tgz#6fc0a24280fd00026e85424bbfed4650e76d7127"
+"@babel/helpers@^7.17.8":
+  version "7.17.8"
+  resolved "https://registry.yarnpkg.com/@babel/helpers/-/helpers-7.17.8.tgz#288450be8c6ac7e4e44df37bcc53d345e07bc106"
   dependencies:
     "@babel/template" "^7.16.7"
     "@babel/traverse" "^7.17.3"
@@ -270,9 +270,9 @@
     chalk "^2.0.0"
     js-tokens "^4.0.0"
 
-"@babel/parser@^7.16.7", "@babel/parser@^7.17.3", "@babel/parser@^7.17.7":
-  version "7.17.7"
-  resolved "https://registry.yarnpkg.com/@babel/parser/-/parser-7.17.7.tgz#fc19b645a5456c8d6fdb6cecd3c66c0173902800"
+"@babel/parser@^7.16.7", "@babel/parser@^7.17.3", "@babel/parser@^7.17.8":
+  version "7.17.8"
+  resolved "https://registry.yarnpkg.com/@babel/parser/-/parser-7.17.8.tgz#2817fb9d885dd8132ea0f8eb615a6388cca1c240"
 
 "@babel/plugin-bugfix-safari-id-destructuring-collision-in-function-expression@^7.16.7":
   version "7.16.7"
