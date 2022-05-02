@@ -6,7 +6,7 @@ require (
 	github.com/fsnotify/fsnotify v1.5.3
 	github.com/jaschaephraim/lrserver v0.0.0-20171129202958-50d19f603f71
 	github.com/kylelemons/godebug v1.1.0
-	goa.design/goa/v3 v3.7.2
+	goa.design/goa/v3 v3.7.3
 	golang.org/x/tools v0.1.10
 )
 
