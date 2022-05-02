@@ -3,7 +3,7 @@ module goa.design/model
 go 1.17
 
 require (
-	github.com/fsnotify/fsnotify v1.5.3
+	github.com/fsnotify/fsnotify v1.5.4
 	github.com/jaschaephraim/lrserver v0.0.0-20171129202958-50d19f603f71
 	github.com/kylelemons/godebug v1.1.0
 	goa.design/goa/v3 v3.7.2
@@ -22,7 +22,7 @@ require (
 	github.com/smartystreets/assertions v1.2.1 // indirect
 	github.com/zach-klippenstein/goregen v0.0.0-20160303162051-795b5e3961ea // indirect
 	golang.org/x/mod v0.6.0-dev.0.20220106191415-9b9b3d81d5e3 // indirect
-	golang.org/x/sys v0.0.0-20220317061510-51cd9980dadf // indirect
+	golang.org/x/sys v0.0.0-20220412211240-33da011f77ad // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	gopkg.in/fsnotify.v1 v1.4.7 // indirect
 )
