@@ -1146,9 +1146,9 @@
     "@types/history" "^4.7.11"
     "@types/react" "*"
 
-"@types/react-syntax-highlighter@13.5.2":
-  version "13.5.2"
-  resolved "https://registry.npmjs.org/@types/react-syntax-highlighter/-/react-syntax-highlighter-13.5.2.tgz"
+"@types/react-syntax-highlighter@15.5.1":
+  version "15.5.1"
+  resolved "https://registry.yarnpkg.com/@types/react-syntax-highlighter/-/react-syntax-highlighter-15.5.1.tgz#0c459cdd94a882df05778e93a1514430cc641043"
   dependencies:
     "@types/react" "*"
 
