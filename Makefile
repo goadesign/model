@@ -14,7 +14,7 @@
 #
 MAJOR=1
 MINOR=7
-BUILD=6
+BUILD=8
 
 GO_FILES=$(shell find . -type f -name '*.go')
 
@@ -57,7 +57,7 @@ test:
 release:
 # First make sure all is clean
 	@git diff-index --quiet HEAD
-	@go mod tidy
+	@go mod tidy --compat=1.17
 
 # Bump version number
 	@sed 's/Major = .*/Major = $(MAJOR)/' pkg/version.go > _tmp && mv _tmp pkg/version.go
