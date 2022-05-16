@@ -14,7 +14,7 @@
 #
 MAJOR=1
 MINOR=7
-BUILD=8
+BUILD=9
 
 GO_FILES=$(shell find . -type f -name '*.go')
 
@@ -75,5 +75,5 @@ release:
 	@git add .
 	@git commit -m "Release v$(MAJOR).$(MINOR).$(BUILD)"
 	@git tag v$(MAJOR).$(MINOR).$(BUILD)
-	@git push origin master
+	@git push origin main
 	@git push origin v$(MAJOR).$(MINOR).$(BUILD)
