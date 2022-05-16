@@ -5,4 +5,5 @@ cmd/mdl/webapp/node_modules
 /gen
 /gen-*
 .idea
+.vscode
 

@@ -197,7 +197,11 @@ func (m *Model) FindElement(scope ElementHolder, path string) (eh ElementHolder,
 			} else if sys := m.SoftwareSystem(path); sys != nil {
 				eh = sys
 			} else {
-				return nil, fmt.Errorf("%q does not match the name of a person, a software system or an element in the scope of %q", path, scope.GetElement().Name)
+				n := "unknown element"
+				if scope != nil {
+					n = scope.GetElement().Name
+				}
+				return nil, fmt.Errorf("%q does not match the name of a person, a software system or an element in the scope of %q", path, n)
 			}
 		}
 	case 2:
