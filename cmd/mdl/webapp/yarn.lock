@@ -1185,9 +1185,9 @@
   dependencies:
     "@types/react" "*"
 
-"@types/react@*", "@types/react@18.0.12":
-  version "18.0.12"
-  resolved "https://registry.yarnpkg.com/@types/react/-/react-18.0.12.tgz#cdaa209d0a542b3fcf69cf31a03976ec4cdd8840"
+"@types/react@*", "@types/react@18.0.14":
+  version "18.0.14"
+  resolved "https://registry.yarnpkg.com/@types/react/-/react-18.0.14.tgz#e016616ffff51dba01b04945610fe3671fdbe06d"
   dependencies:
     "@types/prop-types" "*"
     "@types/scheduler" "*"
@@ -3562,9 +3562,9 @@ react-router@6.3.0:
   dependencies:
     history "^5.2.0"
 
-react@18.1.0:
-  version "18.1.0"
-  resolved "https://registry.yarnpkg.com/react/-/react-18.1.0.tgz#6f8620382decb17fdc5cc223a115e2adbf104890"
+react@18.2.0:
+  version "18.2.0"
+  resolved "https://registry.yarnpkg.com/react/-/react-18.2.0.tgz#555bd98592883255fa00de14f1151a917b5d77d5"
   dependencies:
     loose-envify "^1.1.0"
 
