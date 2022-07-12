@@ -27,7 +27,7 @@
 		"@pmmmwh/react-refresh-webpack-plugin": "^0.5.7",
 		"@types/dagre": "^0.7.47",
 		"@types/react": "18.0.15",
-		"@types/react-dom": "18.0.5",
+		"@types/react-dom": "18.0.6",
 		"@types/react-router": "5.1.18",
 		"@types/react-router-dom": "5.3.3",
 		"@types/react-syntax-highlighter": "15.5.2",
