@@ -33,7 +33,7 @@
 		"@types/react-syntax-highlighter": "15.5.4",
 		"babel-loader": "8.2.5",
 		"css-loader": "6.7.1",
-		"eslint": "^8.21.0",
+		"eslint": "^8.22.0",
 		"eslint-plugin-react": "7.30.1",
 		"eslint-plugin-react-hooks": "4.6.0",
 		"html-loader": "4.1.0",
