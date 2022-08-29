@@ -1079,9 +1079,9 @@
   dependencies:
     "@types/node" "*"
 
-"@types/dagre@^0.7.47":
-  version "0.7.47"
-  resolved "https://registry.yarnpkg.com/@types/dagre/-/dagre-0.7.47.tgz#1d1b89e1fac36aaf5ef5ed6274bb123073095ac5"
+"@types/dagre@^0.7.48":
+  version "0.7.48"
+  resolved "https://registry.yarnpkg.com/@types/dagre/-/dagre-0.7.48.tgz#e3ff1962df959c22af44d58d4275d35bd9309043"
 
 "@types/eslint-scope@^3.7.3":
   version "3.7.3"
