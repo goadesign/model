@@ -56,5 +56,5 @@ mdl serve goa.design/model/examples/basic/model
 Open the diagram in a browser:
 
 ```bash
-open http://localhost:6070/SystemContext
+open http://localhost:8080
 ```
