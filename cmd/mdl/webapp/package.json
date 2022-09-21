@@ -28,7 +28,7 @@
 		"@types/dagre": "^0.7.48",
 		"@types/react": "18.0.19",
 		"@types/react-dom": "18.0.6",
-		"@types/react-router": "5.1.18",
+		"@types/react-router": "5.1.19",
 		"@types/react-router-dom": "5.3.3",
 		"@types/react-syntax-highlighter": "15.5.5",
 		"babel-loader": "8.2.5",
