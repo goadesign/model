@@ -34,7 +34,7 @@
 		"babel-loader": "8.2.5",
 		"css-loader": "6.7.1",
 		"eslint": "^8.24.0",
-		"eslint-plugin-react": "7.31.8",
+		"eslint-plugin-react": "7.31.10",
 		"eslint-plugin-react-hooks": "4.6.0",
 		"html-loader": "4.2.0",
 		"html-webpack-plugin": "5.5.0",
