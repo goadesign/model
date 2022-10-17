@@ -3,7 +3,7 @@ module goa.design/model
 go 1.17
 
 require (
-	github.com/fsnotify/fsnotify v1.5.4
+	github.com/fsnotify/fsnotify v1.6.0
 	github.com/jaschaephraim/lrserver v0.0.0-20171129202958-50d19f603f71
 	github.com/kylelemons/godebug v1.1.0
 	goa.design/goa/v3 v3.10.1
