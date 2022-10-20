@@ -31,7 +31,7 @@ ci: depend all
 
 depend:
 	@go mod download
-	@go get -v $(DEPEND)
+	@for package in $(DEPEND); do go install $$package; done
 
 generate:
 	go generate ./cmd/mdl/
