@@ -55,9 +55,9 @@ func (s *SoftwareSystem) Container(name string) *Container {
 // already a container with the given name then AddContainer merges both
 // definitions. The merge algorithm:
 //
-//    * overrides the description, technology and URL if provided,
-//    * merges any new tag or propery into the existing tags and properties,
-//    * merges any new component into the existing components.
+//   - overrides the description, technology and URL if provided,
+//   - merges any new tag or propery into the existing tags and properties,
+//   - merges any new component into the existing components.
 //
 // AddContainer returns the new or merged person.
 func (s *SoftwareSystem) AddContainer(c *Container) *Container {

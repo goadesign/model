@@ -48,39 +48,38 @@ const (
 //
 // Example:
 //
-//     var _ = Design(func() {
-//         var System = SoftwareSystem("Software System", "Great system.", func() {
-//             Tag("blue")
-//         })
+//	var _ = Design(func() {
+//	    var System = SoftwareSystem("Software System", "Great system.", func() {
+//	        Tag("blue")
+//	    })
 //
-//         var User = Person("User", "A user of my software system.", func() {
-//             Tag("blue", "person")
-//             Uses(System, "Uses", func() {
-//                 Tag("client")
-//             })
-//         })
+//	    var User = Person("User", "A user of my software system.", func() {
+//	        Tag("blue", "person")
+//	        Uses(System, "Uses", func() {
+//	            Tag("client")
+//	        })
+//	    })
 //
-//         Views(func() {
-//             SystemContext(MySystem, "SystemContext", "Context diagram.", func() {
-//                 AddAll()
-//                 AutoLayout(RankTopBottom)
-//             })
-//             Styles(func() {
-//                 ElementStyle("blue", func() {
-//                     Background("#1168bd")
-//                     Color("#3333ee")
-//                  })
-//                 ElementStyle("person", func() {
-//                     Shape("ShapePerson")
-//                 })
-//                 RelationshipStyle("client", func() {
-//                     Routing(RoutingCurved)
-//                     Thickness(42)
-//                 })
-//             })
-//         })
-//     })
-//
+//	    Views(func() {
+//	        SystemContext(MySystem, "SystemContext", "Context diagram.", func() {
+//	            AddAll()
+//	            AutoLayout(RankTopBottom)
+//	        })
+//	        Styles(func() {
+//	            ElementStyle("blue", func() {
+//	                Background("#1168bd")
+//	                Color("#3333ee")
+//	             })
+//	            ElementStyle("person", func() {
+//	                Shape("ShapePerson")
+//	            })
+//	            RelationshipStyle("client", func() {
+//	                Routing(RoutingCurved)
+//	                Thickness(42)
+//	            })
+//	        })
+//	    })
+//	})
 func Styles(dsl func()) {
 	vs, ok := eval.Current().(*expr.Views)
 	if !ok {
@@ -102,24 +101,23 @@ func Styles(dsl func()) {
 //
 // Example:
 //
-//     var _ = Design(func() {
-//         // ...
-//         Views(func() {
-//             // ...
-//             Styles(func() {
-//                 ElementStyle("default", func() {
-//                     Shape(ShapeBox)
-//                     Icon("https://goa.design/goa-logo.png")
-//                     Background("#dddddd")
-//                     Color("#000000")
-//                     Stroke("#000000")
-//                     ShowMetadata()
-//                     ShowDescription()
-//                 })
-//             })
-//         })
-//     })
-//
+//	var _ = Design(func() {
+//	    // ...
+//	    Views(func() {
+//	        // ...
+//	        Styles(func() {
+//	            ElementStyle("default", func() {
+//	                Shape(ShapeBox)
+//	                Icon("https://goa.design/goa-logo.png")
+//	                Background("#dddddd")
+//	                Color("#000000")
+//	                Stroke("#000000")
+//	                ShowMetadata()
+//	                ShowDescription()
+//	            })
+//	        })
+//	    })
+//	})
 func ElementStyle(tag string, dsl func()) {
 	cfg, ok := eval.Current().(*expr.Styles)
 	if !ok {
@@ -140,22 +138,21 @@ func ElementStyle(tag string, dsl func()) {
 //
 // Example:
 //
-//     var _ = Design(func() {
-//         // ...
-//         Views(func() {
-//             // ...
-//             Styles(func() {
-//                 RelationshipStyle("default", func() {
-//                     Thick()
-//                     Color("#000000")
-//                     Stroke("#000000")
-//                     Solid()
-//                     Routing(RoutingOrthogonal)
-//                 })
-//             })
-//         })
-//     })
-//
+//	var _ = Design(func() {
+//	    // ...
+//	    Views(func() {
+//	        // ...
+//	        Styles(func() {
+//	            RelationshipStyle("default", func() {
+//	                Thick()
+//	                Color("#000000")
+//	                Stroke("#000000")
+//	                Solid()
+//	                Routing(RoutingOrthogonal)
+//	            })
+//	        })
+//	    })
+//	})
 func RelationshipStyle(tag string, dsl func()) {
 	cfg, ok := eval.Current().(*expr.Styles)
 	if !ok {

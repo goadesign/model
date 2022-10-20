@@ -22,29 +22,28 @@ import (
 //
 // The valid syntax for Design is thus:
 //
-//    Design(func())
+//	Design(func())
 //
-//    Design("name", func())
+//	Design("name", func())
 //
-//    Design("name", "description", func())
+//	Design("name", "description", func())
 //
 // Examples:
 //
-//    // Default workspace, no description
-//    var _ = Design(func() {
-//        SoftwareSystem("My Software System")
-//    })
+//	// Default workspace, no description
+//	var _ = Design(func() {
+//	    SoftwareSystem("My Software System")
+//	})
 //
-//    // Design with given name, no description
-//    var _ = Design("name", func() {
-//        SoftwareSystem("My Software System")
-//    })
+//	// Design with given name, no description
+//	var _ = Design("name", func() {
+//	    SoftwareSystem("My Software System")
+//	})
 //
-//    // Design with given name and description
-//    var _ = Design("My Design", "A great architecture.", func() {
-//        SoftwareSystem("My Software System")
-//    })
-//
+//	// Design with given name and description
+//	var _ = Design("My Design", "A great architecture.", func() {
+//	    SoftwareSystem("My Software System")
+//	})
 func Design(args ...interface{}) *expr.Design {
 	_, ok := eval.Current().(eval.TopExpr)
 	if !ok {
@@ -93,10 +92,9 @@ func Design(args ...interface{}) *expr.Design {
 //
 // Example:
 //
-//    var _ = Design(func() {
-//        Version("1.0")
-//    })
-//
+//	var _ = Design(func() {
+//	    Version("1.0")
+//	})
 func Version(v string) {
 	w, ok := eval.Current().(*expr.Design)
 	if !ok {
@@ -116,10 +114,9 @@ func Version(v string) {
 //
 // Example:
 //
-//    var _ = Design(func() {
-//        Enterprise("Goa Design")
-//    })
-//
+//	var _ = Design(func() {
+//	    Enterprise("Goa Design")
+//	})
 func Enterprise(e string) {
 	w, ok := eval.Current().(*expr.Design)
 	if !ok {
@@ -136,9 +133,9 @@ func Enterprise(e string) {
 // (Component 1 to Component 2) then AddImpliedRelationships would add the
 // following relationships:
 //
-//    * Component 1 to Container 2
-//    * Container 1 to Component 2
-//    * Container 1 to Container 2
+//   - Component 1 to Container 2
+//   - Container 1 to Component 2
+//   - Container 1 to Container 2
 //
 // AddImpliedRelationships must appear in Design.
 func AddImpliedRelationships() {
@@ -161,13 +158,12 @@ func AddImpliedRelationships() {
 //
 // Example:
 //
-//    var _ = Design(func() {
-//        System("My system", func() {
-//            Tag("sharded", "critical")
-//            Tag("blue team")
-//         })
-//    })
-//
+//	var _ = Design(func() {
+//	    System("My system", func() {
+//	        Tag("sharded", "critical")
+//	        Tag("blue team")
+//	     })
+//	})
 func Tag(first string, t ...string) {
 	t = append([]string{first}, t...)
 	switch e := eval.Current().(type) {
@@ -190,12 +186,11 @@ func Tag(first string, t ...string) {
 //
 // Example:
 //
-//    var _ = Design(func() {
-//        System("My system", func() {
-//            URL("https://goa.design/docs/mysystem")
-//        })
-//    })
-//
+//	var _ = Design(func() {
+//	    System("My system", func() {
+//	        URL("https://goa.design/docs/mysystem")
+//	    })
+//	})
 func URL(u string) {
 	if _, err := url.Parse(u); err != nil {
 		eval.ReportError("URL: invalid value %q: %s", u, err.Error())
@@ -226,12 +221,11 @@ func URL(u string) {
 //
 // Example:
 //
-//    var _ = Design(func() {
-//        System("My system", func() {
-//            External()
-//        })
-//    })
-//
+//	var _ = Design(func() {
+//	    System("My system", func() {
+//	        External()
+//	    })
+//	})
 func External() {
 	ext := expr.LocationExternal
 	switch e := eval.Current().(type) {
@@ -254,12 +248,11 @@ func External() {
 //
 // Example:
 //
-//    var _ = Design(func() {
-//        SoftwareSystem("MySystem", func() {
-//           Prop("name", "value")
-//        })
-//    })
-//
+//	var _ = Design(func() {
+//	    SoftwareSystem("MySystem", func() {
+//	       Prop("name", "value")
+//	    })
+//	})
 func Prop(name, value string) {
 	var props map[string]string
 	switch e := eval.Current().(type) {

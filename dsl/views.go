@@ -98,16 +98,15 @@ const (
 //
 // Example:
 //
-//     var _ = Design(func() {
-//         var System = SoftwareSystem("Software System", "My software system.")
-//         Views(func() {
-//             SystemContext(System, "SystemContext", "An example of a System Context diagram.", func() {
-//                 AddAll()
-//                 AutoLayout()
-//             })
-//         })
-//     })
-//
+//	var _ = Design(func() {
+//	    var System = SoftwareSystem("Software System", "My software system.")
+//	    Views(func() {
+//	        SystemContext(System, "SystemContext", "An example of a System Context diagram.", func() {
+//	            AddAll()
+//	            AutoLayout()
+//	        })
+//	    })
+//	})
 func Views(dsl func()) {
 	w, ok := eval.Current().(*expr.Design)
 	if !ok {
@@ -132,28 +131,27 @@ func Views(dsl func()) {
 //
 // Usage:
 //
-//    SystemLandscapeView("<key>", func())
+//	SystemLandscapeView("<key>", func())
 //
-//    SystemLandscapeView("<key>", "[description]", func())
+//	SystemLandscapeView("<key>", "[description]", func())
 //
 // Example:
 //
-//     var _ = Design(func() {
-//         var System = SoftwareSystem("Software System", "My software system.")
-//         var OtherSystem = SoftwareSystem("Other System")
-//         Views(func() {
-//             SystemLandscapeView("landscape", "An overview diagram.", func() {
-//                 Title("Overview of system")
-//                 AddAll()
-//                 Remove(OtherSystem)
-//                 AutoLayout()
-//                 AnimationStep(System)
-//                 PaperSize(SizeSlide4X3)
-//                 EnterpriseBoundaryVisible()
-//             })
-//         })
-//     })
-//
+//	var _ = Design(func() {
+//	    var System = SoftwareSystem("Software System", "My software system.")
+//	    var OtherSystem = SoftwareSystem("Other System")
+//	    Views(func() {
+//	        SystemLandscapeView("landscape", "An overview diagram.", func() {
+//	            Title("Overview of system")
+//	            AddAll()
+//	            Remove(OtherSystem)
+//	            AutoLayout()
+//	            AnimationStep(System)
+//	            PaperSize(SizeSlide4X3)
+//	            EnterpriseBoundaryVisible()
+//	        })
+//	    })
+//	})
 func SystemLandscapeView(key string, args ...interface{}) {
 	vs, ok := eval.Current().(*expr.Views)
 	if !ok {
@@ -189,32 +187,31 @@ func SystemLandscapeView(key string, args ...interface{}) {
 //
 // Usage:
 //
-//    SystemContextView(SoftwareSystem, "<key>", func())
+//	SystemContextView(SoftwareSystem, "<key>", func())
 //
-//    SystemContextView("<Software System>", "<key>", func())
+//	SystemContextView("<Software System>", "<key>", func())
 //
-//    SystemContextView(SoftwareSystem, "<key>", "[description]", func())
+//	SystemContextView(SoftwareSystem, "<key>", "[description]", func())
 //
-//    SystemContextView("<Software System>", "<key>", "[description]", func())
+//	SystemContextView("<Software System>", "<key>", "[description]", func())
 //
 // Example:
 //
-//     var _ = Design(func() {
-//         var System = SoftwareSystem("Software System", "My software system.")
-//         var OtherSystem = SoftwareSystem("Other System")
-//         Views(func() {
-//             SystemContextView(System, "context", "An overview diagram.", func() {
-//                 Title("Overview of system")
-//                 AddAll()
-//                 Remove(OtherSystem)
-//                 AutoLayout()
-//                 AnimationStep(System)
-//                 PaperSize(SizeSlide4X3)
-//                 EnterpriseBoundaryVisible()
-//             })
-//         })
-//     })
-//
+//	var _ = Design(func() {
+//	    var System = SoftwareSystem("Software System", "My software system.")
+//	    var OtherSystem = SoftwareSystem("Other System")
+//	    Views(func() {
+//	        SystemContextView(System, "context", "An overview diagram.", func() {
+//	            Title("Overview of system")
+//	            AddAll()
+//	            Remove(OtherSystem)
+//	            AutoLayout()
+//	            AnimationStep(System)
+//	            PaperSize(SizeSlide4X3)
+//	            EnterpriseBoundaryVisible()
+//	        })
+//	    })
+//	})
 func SystemContextView(system interface{}, key string, args ...interface{}) {
 	vs, ok := eval.Current().(*expr.Views)
 	if !ok {
@@ -266,33 +263,32 @@ func SystemContextView(system interface{}, key string, args ...interface{}) {
 //
 // Usage:
 //
-//    ContainerView(SoftwareSystem, "<key>", func())
+//	ContainerView(SoftwareSystem, "<key>", func())
 //
-//    ContainerView("<Software System>", "<key>", func())
+//	ContainerView("<Software System>", "<key>", func())
 //
-//    ContainerView(SoftwareSystem, "<key>", "[description]", func())
+//	ContainerView(SoftwareSystem, "<key>", "[description]", func())
 //
-//    ContainerView("<Software System>", "<key>", "[description]", func())
+//	ContainerView("<Software System>", "<key>", "[description]", func())
 //
 // Example:
 //
-//     var _ = Design(func() {
-//         var System = SoftwareSystem("Software System", "My software system.")
-//         var OtherSystem = SoftwareSystem("Other System")
-//         Views(func() {
-//             ContainerView(SoftwareSystem, "container", "An overview diagram.", func() {
-//                 Title("System containers")
-//                 AddAll()
-//                 Remove(OtherSystem)
-//                 // Alternatively to AddAll + Remove: Add
-//                 AutoLayout()
-//                 AnimationStep(System)
-//                 PaperSize(SizeSlide4X3)
-//                 SystemBoundariesVisible()
-//             })
-//         })
-//     })
-//
+//	var _ = Design(func() {
+//	    var System = SoftwareSystem("Software System", "My software system.")
+//	    var OtherSystem = SoftwareSystem("Other System")
+//	    Views(func() {
+//	        ContainerView(SoftwareSystem, "container", "An overview diagram.", func() {
+//	            Title("System containers")
+//	            AddAll()
+//	            Remove(OtherSystem)
+//	            // Alternatively to AddAll + Remove: Add
+//	            AutoLayout()
+//	            AnimationStep(System)
+//	            PaperSize(SizeSlide4X3)
+//	            SystemBoundariesVisible()
+//	        })
+//	    })
+//	})
 func ContainerView(system interface{}, key string, args ...interface{}) {
 	vs, ok := eval.Current().(*expr.Views)
 	if !ok {
@@ -346,36 +342,35 @@ func ContainerView(system interface{}, key string, args ...interface{}) {
 //
 // Usage:
 //
-//    ComponentView(Container, "<key>", func())
+//	ComponentView(Container, "<key>", func())
 //
-//    ComponentView("<Software System>/<Container>", "<key>", func())
+//	ComponentView("<Software System>/<Container>", "<key>", func())
 //
-//    ComponentView(Container, "<key>", "[description]", func())
+//	ComponentView(Container, "<key>", "[description]", func())
 //
-//    ComponentView("<Software System>/<Container>", "<key>", "[description]", func())
+//	ComponentView("<Software System>/<Container>", "<key>", "[description]", func())
 //
 // Example:
 //
-//     var _ = Design(func() {
-//         SoftwareSystem("Software System", "My software system.", func() {
-//             Container("Container", func() {
-//                 Uses("Other System")
-//             })
-//         })
-//         SoftwareSystem("Other System")
-//         Views(func() {
-//             ComponentView("Software System/Container", "component", "An overview diagram.", func() {
-//                 Title("Overview of container")
-//                 AddAll()
-//                 Remove("Other System")
-//                 AutoLayout()
-//                 AnimationStep("Software System")
-//                 PaperSize(SizeSlide4X3)
-//                 ContainerBoundariesVisible()
-//             })
-//         })
-//     })
-//
+//	var _ = Design(func() {
+//	    SoftwareSystem("Software System", "My software system.", func() {
+//	        Container("Container", func() {
+//	            Uses("Other System")
+//	        })
+//	    })
+//	    SoftwareSystem("Other System")
+//	    Views(func() {
+//	        ComponentView("Software System/Container", "component", "An overview diagram.", func() {
+//	            Title("Overview of container")
+//	            AddAll()
+//	            Remove("Other System")
+//	            AutoLayout()
+//	            AnimationStep("Software System")
+//	            PaperSize(SizeSlide4X3)
+//	            ContainerBoundariesVisible()
+//	        })
+//	    })
+//	})
 func ComponentView(container interface{}, key string, args ...interface{}) {
 	vs, ok := eval.Current().(*expr.Views)
 	if !ok {
@@ -428,20 +423,19 @@ func ComponentView(container interface{}, key string, args ...interface{}) {
 //
 // Example:
 //
-//     var _ = Design(func() {
-//         var System = SoftwareSystem("Software System", "My software system.")
-//         Views(func() {
-//             SystemContextView(SoftwareSystem, "context", "An overview diagram.", func() {
-//                 AddAll()
-//                 AutoLayout()
-//             })
-//             FilteredView(SystemContextView, func() {
-//                 FilterTag("infra")
-//                 Exclude()
-//             })
-//         })
-//     })
-//
+//	var _ = Design(func() {
+//	    var System = SoftwareSystem("Software System", "My software system.")
+//	    Views(func() {
+//	        SystemContextView(SoftwareSystem, "context", "An overview diagram.", func() {
+//	            AddAll()
+//	            AutoLayout()
+//	        })
+//	        FilteredView(SystemContextView, func() {
+//	            FilterTag("infra")
+//	            Exclude()
+//	        })
+//	    })
+//	})
 func FilteredView(view interface{}, dsl func()) {
 	vs, ok := eval.Current().(*expr.Views)
 	if !ok {
@@ -467,7 +461,7 @@ func FilteredView(view interface{}, dsl func()) {
 // Exclude indicates that the filtered view should include all elements except
 // the ones identified through the filter tag.
 //
-// Exclude must appear in FilteredView
+// # Exclude must appear in FilteredView
 //
 // Exclude takes no argument.
 func Exclude() {
@@ -481,7 +475,7 @@ func Exclude() {
 // FilterTag defines the set of tags to include or exclude (when Exclude() is
 // used) elements and relationships when rendering the filtered view.
 //
-// FilterTag must appear in FilteredView
+// # FilterTag must appear in FilteredView
 //
 // FilterTag takes the list of tags as arguments. Multiple calls to FilterTag
 // accumulate the tags.
@@ -498,10 +492,10 @@ func FilterTag(tag string, tags ...string) {
 // first argument defines the scope of the view, and therefore what can
 // be added to the view, as follows:
 //
-//   * Global scope: People and software systems.
-//   * Software system scope: People, other software systems, and
+//   - Global scope: People and software systems.
+//   - Software system scope: People, other software systems, and
 //     containers belonging to the software system.
-//   * Container scope: People, other software systems, other
+//   - Container scope: People, other software systems, other
 //     containers, and components belonging to the container.
 //
 // DynamicView must appear in Views.
@@ -519,34 +513,33 @@ func FilterTag(tag string, tags ...string) {
 //
 // Usage:
 //
-//    DynamicView(Scope, "<key>", func())
+//	DynamicView(Scope, "<key>", func())
 //
-//    DynamicView(Scope, "<key>", "[description]", func())
+//	DynamicView(Scope, "<key>", "[description]", func())
 //
-//    DynamicView("SoftwareSystem/Container", "<key>", func())
+//	DynamicView("SoftwareSystem/Container", "<key>", func())
 //
-//    DynamicView("SoftwareSystem/Container", "<key>", "[description]", func())
+//	DynamicView("SoftwareSystem/Container", "<key>", "[description]", func())
 //
 // Where Scope is 'Global', a software system, a software system name or a
 // container.
 //
 // Example:
 //
-//     var _ = Design(func() {
-//         var FirstSystem = SoftwareSystem("First system")
-//         var SecondSystem = SoftwareSystem("Second system", func() {
-//             Uses(FirstSystem, "Uses")
-//         })
-//         Views(func() {
-//             DynamicView(Global, "dynamic", "A dynamic diagram.", func() {
-//                 Title("Overview of system")
-//                 Link(FirstSystem, SecondSystem)
-//                 AutoLayout()
-//                 PaperSize(SizeSlide4X3)
-//             })
-//         })
-//     })
-//
+//	var _ = Design(func() {
+//	    var FirstSystem = SoftwareSystem("First system")
+//	    var SecondSystem = SoftwareSystem("Second system", func() {
+//	        Uses(FirstSystem, "Uses")
+//	    })
+//	    Views(func() {
+//	        DynamicView(Global, "dynamic", "A dynamic diagram.", func() {
+//	            Title("Overview of system")
+//	            Link(FirstSystem, SecondSystem)
+//	            AutoLayout()
+//	            PaperSize(SizeSlide4X3)
+//	        })
+//	    })
+//	})
 func DynamicView(scope interface{}, key string, args ...interface{}) {
 	vs, ok := eval.Current().(*expr.Views)
 	if !ok {
@@ -614,9 +607,9 @@ func DynamicView(scope interface{}, key string, args ...interface{}) {
 // combination of these two arguments determines what can be added to
 // the view, as follows:
 //
-//   * Global scope: All deployment nodes, infrastructure nodes, and
+//   - Global scope: All deployment nodes, infrastructure nodes, and
 //     container instances within the deployment environment.
-//   * Software system scope: All deployment nodes and infrastructure
+//   - Software system scope: All deployment nodes and infrastructure
 //     nodes within the deployment environment. Container instances within
 //     the deployment environment that belong to the software system.
 //
@@ -631,37 +624,36 @@ func DynamicView(scope interface{}, key string, args ...interface{}) {
 //
 // Usage:
 //
-//    DeploymentView(Scope, "<environment>", "<key>", func())
+//	DeploymentView(Scope, "<environment>", "<key>", func())
 //
-//    DeploymentView(Scope, "<environment>", "<key>", "[description]", func())
+//	DeploymentView(Scope, "<environment>", "<key>", "[description]", func())
 //
 // Where Scope is 'Global', a software system or its name.
 //
 // Example:
 //
-//     var _ = Design(func() {
-//         SoftwareSystem("System", func() {
-//              Container("Container")
-//              Container("OtherContainer")
-//         })
-//         DeploymentEnvironment("Production", func() {
-//             DeploymentNode("Cloud", func() {
-//                 ContainerInstance("System/Container")
-//                 ContainerInstance("System/OtherContainer")
-//             })
-//         })
-//         Views(func() {
-//             DeploymentView(Global, "Production", "deployment", "A deployment overview diagram.", func() {
-//                 Title("Overview of deployment")
-//                 AddAll()
-//                 Remove("System/OtherContainer")
-//                 AutoLayout()
-//                 AnimationStep("System/Container")
-//                 PaperSize(SizeSlide4X3)
-//             })
-//         })
-//     })
-//
+//	var _ = Design(func() {
+//	    SoftwareSystem("System", func() {
+//	         Container("Container")
+//	         Container("OtherContainer")
+//	    })
+//	    DeploymentEnvironment("Production", func() {
+//	        DeploymentNode("Cloud", func() {
+//	            ContainerInstance("System/Container")
+//	            ContainerInstance("System/OtherContainer")
+//	        })
+//	    })
+//	    Views(func() {
+//	        DeploymentView(Global, "Production", "deployment", "A deployment overview diagram.", func() {
+//	            Title("Overview of deployment")
+//	            AddAll()
+//	            Remove("System/OtherContainer")
+//	            AutoLayout()
+//	            AnimationStep("System/Container")
+//	            PaperSize(SizeSlide4X3)
+//	        })
+//	    })
+//	})
 func DeploymentView(scope interface{}, env, key string, args ...interface{}) {
 	vs, ok := eval.Current().(*expr.Views)
 	if !ok {
@@ -738,67 +730,67 @@ func Title(t string) {
 // optional DSL function as last argument that can be used to specify rendering
 // details.
 //
-//    - In SystemLandscapeView, SystemContextView, ContainerView and ComponentView
-//      Add accepts a person, a software system or their names.
+//   - In SystemLandscapeView, SystemContextView, ContainerView and ComponentView
+//     Add accepts a person, a software system or their names.
 //
-//    - In ContainerView Add also accepts a container or the path to a container.
-//      The path to a container is either its name if it is a child of the the
-//      software system the container view is for or the name of the parent software
-//      system followed by a slash and the name of the container otherwise.
+//   - In ContainerView Add also accepts a container or the path to a container.
+//     The path to a container is either its name if it is a child of the the
+//     software system the container view is for or the name of the parent software
+//     system followed by a slash and the name of the container otherwise.
 //
-//    - In ComponentView Add also accepts a component or the path to a component.
-//      The path of a component is either its name if it is a child of the container
-//      the component view is for or the name of the parent software system followed
-//      by a slash, the name of the parent container, another slash and the name of
-//      the component.
+//   - In ComponentView Add also accepts a component or the path to a component.
+//     The path of a component is either its name if it is a child of the container
+//     the component view is for or the name of the parent software system followed
+//     by a slash, the name of the parent container, another slash and the name of
+//     the component.
 //
-//    - In DeploymentView, Add accepts a deployment node, a container instance, an
-//      infrastructure node or their paths. The path is constructed by appending the
-//      top level deployment node name with the child deployment name recursively
-//      followed by the name of the inner deployment node, infrastructure node or
-//      container instance. The names must be separated by slashes in the path. For
-//      container instances the path may end with the container instance ID.
+//   - In DeploymentView, Add accepts a deployment node, a container instance, an
+//     infrastructure node or their paths. The path is constructed by appending the
+//     top level deployment node name with the child deployment name recursively
+//     followed by the name of the inner deployment node, infrastructure node or
+//     container instance. The names must be separated by slashes in the path. For
+//     container instances the path may end with the container instance ID.
 //
 // Usage (SystemLandscapeView, SystemContextView, ContainerView and ComponentView):
 //
-//     Add(Person|"<Person>"[, func()])
+//	Add(Person|"<Person>"[, func()])
 //
-//     Add(SoftwareSystem|"<Software System>"[, func()])
+//	Add(SoftwareSystem|"<Software System>"[, func()])
 //
 // Additionally for ContainerView:
 //
-//     Add(Container[, func()])
+//	Add(Container[, func()])
 //
-//     Add("<Container>"[, func()]) // If container is a child of the system software
-//                                  // the container view is for.
-//     Add("<Software System/Container>"[, func()])
+//	Add("<Container>"[, func()]) // If container is a child of the system software
+//	                             // the container view is for.
+//	Add("<Software System/Container>"[, func()])
 //
 // Additionally for ComponentView:
 //
-//     Add(Component[, func()])
+//	Add(Component[, func()])
 //
-//     Add("<Component>"[, func()]) // If component is a child of the container the
-//                                  // component view is for.
-//     Add("<Container/Component>"[, func()]) // if container is a child of the
-//                                            // software system that contains the
-//                                            // container the component view is for.
-//     Add("<Software System/Container/Component>"[, func()])
+//	Add("<Component>"[, func()]) // If component is a child of the container the
+//	                             // component view is for.
+//	Add("<Container/Component>"[, func()]) // if container is a child of the
+//	                                       // software system that contains the
+//	                                       // container the component view is for.
+//	Add("<Software System/Container/Component>"[, func()])
 //
 // Usage (DeploymentView):
 //
-//     Add(DeploymentNode[, func()])
+//	Add(DeploymentNode[, func()])
 //
-//     Add(InfrastructureNode[, func()])
+//	Add(InfrastructureNode[, func()])
 //
-//     Add(ContainerInstance[, func()])
+//	Add(ContainerInstance[, func()])
 //
-//     Add("<Deployment Node>"[, func()]) // top level deployment node
+//	Add("<Deployment Node>"[, func()]) // top level deployment node
 //
-//     Add("<Parent Deployment Node>/.../<Child Deployment Node>"[, func()]) // child deployment node
+//	Add("<Parent Deployment Node>/.../<Child Deployment Node>"[, func()]) // child deployment node
 //
-//     Add("<Parent Deployment Node>/.../<Infrastructure Node>"[, func()])
+//	Add("<Parent Deployment Node>/.../<Infrastructure Node>"[, func()])
 //
-//     Add("<Parent Deployment Node>/.../<Container Instance>:<Container Instance ID>"[, func()])
+//	Add("<Parent Deployment Node>/.../<Container Instance>:<Container Instance ID>"[, func()])
 //
 // Where "<Parent Deployment Node>/..." describes a deployment node hierarchy
 // starting with the top level deployment node name followed by its child
@@ -806,49 +798,48 @@ func Title(t string) {
 //
 // Example:
 //
-//     var _ = Design(func() {
-//         var Customer = Person("Customer", "A customer", func() {
-//             Uses("Software System", "Sends emails", "SMTP")
-//         })
-//         var MyContainer *expr.Container
-//         var System = SoftwareSystem("Software System", "My software system.", func() {
-//             MyContainer = Container("Container", "A container")
-//         })
-//         var OtherSystem = SoftwareSystem("Other System", "My other software system.", func() {
-//             Container("Other Container", "Another container")
-//         })
-//         var Kubernetes *expr.DeploymentNode
-//         DeploymentEnvironment("Production", func() {
-//             DeploymentNode("Cloud", func() {
-//                 Kubernetes = DeploymentNode("Kubernetes", func() {
-//                     ContainerInstance(MyContainer) // Same as ContainerInstance("Software System/Container")
-//                     ContainerInstance(MyContainer, func() {
-//                         InstanceID(2)
-//                     })
-//                 })
-//                 InfrastructureNode("API Gateway")
-//             })
-//         })
-//         Views(func() {
-//             SystemContextView(SoftwareSystem, "context", "An overview diagram.", func() {
-//                 Add(Customer, func() { // Same as Add("Customer", func() {
-//                     Coord(10, 10)
-//                     NoRelationships()
-//                 })
-//             })
-//             ContainerView(SoftwareSystem, "container", "A diagram of Software System", func() {
-//                 Add(Customer)
-//                 Add(MyContainer) // Same as Add("Container")
-//                 Add("Other System/Other Container")
-//             })
-//             DeploymentView(Global, "Production", "deployment", "A deployment overview diagram.", func() {
-//                 Add("Cloud/Kubernetes/Container")
-//                 Add("Cloud/Kubernetes/Container:2")
-//                 Add("Cloud:API Gateway")
-//             })
-//         })
-//     })
-//
+//	var _ = Design(func() {
+//	    var Customer = Person("Customer", "A customer", func() {
+//	        Uses("Software System", "Sends emails", "SMTP")
+//	    })
+//	    var MyContainer *expr.Container
+//	    var System = SoftwareSystem("Software System", "My software system.", func() {
+//	        MyContainer = Container("Container", "A container")
+//	    })
+//	    var OtherSystem = SoftwareSystem("Other System", "My other software system.", func() {
+//	        Container("Other Container", "Another container")
+//	    })
+//	    var Kubernetes *expr.DeploymentNode
+//	    DeploymentEnvironment("Production", func() {
+//	        DeploymentNode("Cloud", func() {
+//	            Kubernetes = DeploymentNode("Kubernetes", func() {
+//	                ContainerInstance(MyContainer) // Same as ContainerInstance("Software System/Container")
+//	                ContainerInstance(MyContainer, func() {
+//	                    InstanceID(2)
+//	                })
+//	            })
+//	            InfrastructureNode("API Gateway")
+//	        })
+//	    })
+//	    Views(func() {
+//	        SystemContextView(SoftwareSystem, "context", "An overview diagram.", func() {
+//	            Add(Customer, func() { // Same as Add("Customer", func() {
+//	                Coord(10, 10)
+//	                NoRelationships()
+//	            })
+//	        })
+//	        ContainerView(SoftwareSystem, "container", "A diagram of Software System", func() {
+//	            Add(Customer)
+//	            Add(MyContainer) // Same as Add("Container")
+//	            Add("Other System/Other Container")
+//	        })
+//	        DeploymentView(Global, "Production", "deployment", "A deployment overview diagram.", func() {
+//	            Add("Cloud/Kubernetes/Container")
+//	            Add("Cloud/Kubernetes/Container:2")
+//	            Add("Cloud:API Gateway")
+//	        })
+//	    })
+//	})
 func Add(element interface{}, dsl ...func()) {
 	var (
 		eh   expr.ElementHolder
@@ -907,82 +898,80 @@ func Add(element interface{}, dsl ...func()) {
 //
 // Usage:
 //
-//      Link(Source, Destination) // If only one relationship exists between Source
-//                                // and Destination.
-//      Link(Source, Destination, func()) // If only one relationship exists between
-//                                        // Source and Destination.
+//	Link(Source, Destination) // If only one relationship exists between Source
+//	                          // and Destination.
+//	Link(Source, Destination, func()) // If only one relationship exists between
+//	                                  // Source and Destination.
 //
-//      Link(Source, Destination, Description)
+//	Link(Source, Destination, Description)
 //
-//      Link(Source, Destination, Description, func())
-//
+//	Link(Source, Destination, Description, func())
 //
 // Where Source and Destination are one of:
 //
-//    - Person|"<Person>"
-//    - SoftwareSystem|"<Software System>"
-//    - Container
-//    - "<Container>" (if container is in the container or component view software system)
-//    - "<Software System/Container>"
-//    - Component
-//    - "<Component>" (if component is in the component view container)
-//    - "<Container>/<Component>" (if container is in the component view software system)
-//    - "<Software System>/<Container>/<Component>"
+//   - Person|"<Person>"
+//   - SoftwareSystem|"<Software System>"
+//   - Container
+//   - "<Container>" (if container is in the container or component view software system)
+//   - "<Software System/Container>"
+//   - Component
+//   - "<Component>" (if component is in the component view container)
+//   - "<Container>/<Component>" (if container is in the component view software system)
+//   - "<Software System>/<Container>/<Component>"
 //
 // Example:
 //
-//     var _ = Design(func() {
-//         var System = SoftwareSystem("Software System", "My software system.", func() {
-//             Container("Container")
-//             Container("Other Container", func() {
-//                 Uses("Container", "Makes requests to")
-//             })
-//         })
-//         var Person = Person("Customer", func() {
-//             External()
-//             Uses(System, "Sends emails", "SMTP")
-//         })
-//         DeploymentEnvironment("Production", func() {
-//             DeploymentNode("Cloud", func() {
-//                 ContainerInstance("Container")
-//                 ContainerInstance("Container", func() {
-//                     InstanceID(2)
-//                 })
-//                 ContainerInstance("Other Container")
-//             })
-//         })
-//         Views(func() {
-//             SystemContextView(SoftwareSystem, "context", "An overview diagram", func() {
-//                 Add(System, func() {
-//                     Coord(10, 10)
-//                     NoRelationships()
-//                 })
-//                 Link(Person, System, "Sends emails", func() {
-//                     Vertices(10, 20, 10, 40)
-//                     Routing(RoutingOrthogonal)
-//                     Position(45)
-//                 })
-//             })
-//             DeploymentView(Global, "Production", "deployment", "A deployment view", func() {
-//                 Add("Cloud/Container")
-//                 Add("Cloud/Container/2")
-//                 Add("Cloud/Other Container")
-//                 Link("Cloud/Container", "Cloud/Other Container")
-//                 Link("Cloud/Container/2", "Cloud/Other Container")
-//             })
-//             DynamicView(SoftwareSystem, "dynamic", func() {
-//                 Title("Customer flow")
-//                 Link(Person, System, "Sends emails", func() {
-//                     Vertices(10, 20, 10, 40)
-//                     Routing(RoutingOrthogonal)
-//                     Position(45)
-//                     Description("Customer sends email to support")
-//                     Order("1")
-//                 })
-//             })
-//         })
-//     })
-//
+//	var _ = Design(func() {
+//	    var System = SoftwareSystem("Software System", "My software system.", func() {
+//	        Container("Container")
+//	        Container("Other Container", func() {
+//	            Uses("Container", "Makes requests to")
+//	        })
+//	    })
+//	    var Person = Person("Customer", func() {
+//	        External()
+//	        Uses(System, "Sends emails", "SMTP")
+//	    })
+//	    DeploymentEnvironment("Production", func() {
+//	        DeploymentNode("Cloud", func() {
+//	            ContainerInstance("Container")
+//	            ContainerInstance("Container", func() {
+//	                InstanceID(2)
+//	            })
+//	            ContainerInstance("Other Container")
+//	        })
+//	    })
+//	    Views(func() {
+//	        SystemContextView(SoftwareSystem, "context", "An overview diagram", func() {
+//	            Add(System, func() {
+//	                Coord(10, 10)
+//	                NoRelationships()
+//	            })
+//	            Link(Person, System, "Sends emails", func() {
+//	                Vertices(10, 20, 10, 40)
+//	                Routing(RoutingOrthogonal)
+//	                Position(45)
+//	            })
+//	        })
+//	        DeploymentView(Global, "Production", "deployment", "A deployment view", func() {
+//	            Add("Cloud/Container")
+//	            Add("Cloud/Container/2")
+//	            Add("Cloud/Other Container")
+//	            Link("Cloud/Container", "Cloud/Other Container")
+//	            Link("Cloud/Container/2", "Cloud/Other Container")
+//	        })
+//	        DynamicView(SoftwareSystem, "dynamic", func() {
+//	            Title("Customer flow")
+//	            Link(Person, System, "Sends emails", func() {
+//	                Vertices(10, 20, 10, 40)
+//	                Routing(RoutingOrthogonal)
+//	                Position(45)
+//	                Description("Customer sends email to support")
+//	                Order("1")
+//	            })
+//	        })
+//	    })
+//	})
 func Link(source, destination interface{}, args ...interface{}) {
 	v, ok := eval.Current().(expr.View)
 	if !ok {
@@ -1013,19 +1002,18 @@ func Link(source, destination interface{}, args ...interface{}) {
 //
 // Example:
 //
-//     var _ = Design(func() {
-//         var System = SoftwareSystem("Software System", "My software system.")
-//         var Person = Person("Customer", func() {
-//             External()
-//             Uses(System, "Sends emails", "SMTP")
-//         })
-//         Views(func() {
-//             SystemContextView(SoftwareSystem, "context", "An overview diagram.", func() {
-//                 AddAll()
-//             })
-//         })
-//     })
-//
+//	var _ = Design(func() {
+//	    var System = SoftwareSystem("Software System", "My software system.")
+//	    var Person = Person("Customer", func() {
+//	        External()
+//	        Uses(System, "Sends emails", "SMTP")
+//	    })
+//	    Views(func() {
+//	        SystemContextView(SoftwareSystem, "context", "An overview diagram.", func() {
+//	            AddAll()
+//	        })
+//	    })
+//	})
 func AddAll() {
 	switch v := eval.Current().(type) {
 	case *expr.DynamicView:
@@ -1060,33 +1048,32 @@ func AddAll() {
 //
 // Example:
 //
-//     var _ = Design(func() {
-//         var System = SoftwareSystem("Software System", "My software system.", func() {
-//             Container("Container", func() {
-//                 Component("Component")
-//             })
-//         })
-//         SoftwareSystem("Other System", func() {
-//             Container("Container", func() {
-//                 Component("Component")
-//             })
-//         })
-//         var Customer = Person("Customer", func() {
-//             External()
-//             Uses(System, "Sends emails", "SMTP")
-//         })
-//         Views(func() {
-//             SystemContextView(SoftwareSystem, "context", "An overview diagram.", func() {
-//                 AddNeighbors(System)
-//                 AddNeighbors(Customer)
-//             })
-//             ComponentView("Software System/Container", func() {
-//                  Add("Component")
-//                  AddNeighbors("Other System/Container/Component")
-//             })
-//         })
-//     })
-//
+//	var _ = Design(func() {
+//	    var System = SoftwareSystem("Software System", "My software system.", func() {
+//	        Container("Container", func() {
+//	            Component("Component")
+//	        })
+//	    })
+//	    SoftwareSystem("Other System", func() {
+//	        Container("Container", func() {
+//	            Component("Component")
+//	        })
+//	    })
+//	    var Customer = Person("Customer", func() {
+//	        External()
+//	        Uses(System, "Sends emails", "SMTP")
+//	    })
+//	    Views(func() {
+//	        SystemContextView(SoftwareSystem, "context", "An overview diagram.", func() {
+//	            AddNeighbors(System)
+//	            AddNeighbors(Customer)
+//	        })
+//	        ComponentView("Software System/Container", func() {
+//	             Add("Component")
+//	             AddNeighbors("Other System/Container/Component")
+//	        })
+//	    })
+//	})
 func AddNeighbors(element interface{}) {
 	v, ok := eval.Current().(expr.View)
 	if !ok {
@@ -1102,14 +1089,14 @@ func AddNeighbors(element interface{}) {
 
 // AddDefault adds default elements that are relevant for the specific view:
 //
-//    - System landscape view: adds all software systems and people
-//    - System context view: adds softare system and other related software systems
-//      and people.
-//    - Container view: adds all containers in software system as well as related
-//      software systems and people.
-//    - Component view: adds all components in container as well as related
-//      containers, software systems and people.
-//    - Deployment view: adds all deployment nodes.
+//   - System landscape view: adds all software systems and people
+//   - System context view: adds softare system and other related software systems
+//     and people.
+//   - Container view: adds all containers in software system as well as related
+//     software systems and people.
+//   - Component view: adds all components in container as well as related
+//     containers, software systems and people.
+//   - Deployment view: adds all deployment nodes.
 //
 // AddDefault must appear in SystemLandscapeView, SystemContextView,
 // ContainerView or ComponentView.
@@ -1118,19 +1105,18 @@ func AddNeighbors(element interface{}) {
 //
 // Example:
 //
-//     var _ = Design(func() {
-//         var System = SoftwareSystem("Software System", "My software system.")
-//         var Customer = Person("Customer", func() {
-//             External()
-//             Uses(System, "Sends emails", "SMTP")
-//         })
-//         Views(func() {
-//             SystemContextView(SoftwareSystem, "context", "An overview diagram.", func() {
-//                 AddDefault()
-//             })
-//         })
-//     })
-//
+//	var _ = Design(func() {
+//	    var System = SoftwareSystem("Software System", "My software system.")
+//	    var Customer = Person("Customer", func() {
+//	        External()
+//	        Uses(System, "Sends emails", "SMTP")
+//	    })
+//	    Views(func() {
+//	        SystemContextView(SoftwareSystem, "context", "An overview diagram.", func() {
+//	            AddDefault()
+//	        })
+//	    })
+//	})
 func AddDefault() {
 	switch v := eval.Current().(type) {
 	case expr.View:
@@ -1205,43 +1191,42 @@ func AddComponents() {
 //
 // Usage:
 //
-//     Remove(Person|"<Person>")
+//	Remove(Person|"<Person>")
 //
-//     Remove(SoftwareSystem|"<Software System>")
+//	Remove(SoftwareSystem|"<Software System>")
 //
-//     Remove(Container)
+//	Remove(Container)
 //
-//     Remove("<Container>") // if container is in scope
+//	Remove("<Container>") // if container is in scope
 //
-//     Remove("<Software System>/<Container>")
+//	Remove("<Software System>/<Container>")
 //
-//     Remove(Component)
+//	Remove(Component)
 //
-//     Remove("<Component>") // if component is in scope
+//	Remove("<Component>") // if component is in scope
 //
-//     Remove("<Container>/<Component>") // if container is in scope
+//	Remove("<Container>/<Component>") // if container is in scope
 //
-//     Remove("<Software System>/<Container>/<Component>")
+//	Remove("<Software System>/<Container>/<Component>")
 //
 // Example:
 //
-//     var _ = Design(func() {
-//         var System = SoftwareSystem("Software System", "My software system.", func() {
-//             Container("Unwanted")
-//         })
-//         var Customer = Person("Customer", func() {
-//             External()
-//             Uses(System, "Sends emails", "SMTP")
-//         })
-//         Views(func() {
-//             SystemContextView(System, "context", "An overview diagram.", func() {
-//                 AddDefault()
-//                 Remove(Customer)
-//                 Remove("Unwanted")
-//             })
-//         })
-//     })
-//
+//	var _ = Design(func() {
+//	    var System = SoftwareSystem("Software System", "My software system.", func() {
+//	        Container("Unwanted")
+//	    })
+//	    var Customer = Person("Customer", func() {
+//	        External()
+//	        Uses(System, "Sends emails", "SMTP")
+//	    })
+//	    Views(func() {
+//	        SystemContextView(System, "context", "An overview diagram.", func() {
+//	            AddDefault()
+//	            Remove(Customer)
+//	            Remove("Unwanted")
+//	        })
+//	    })
+//	})
 func Remove(element interface{}) {
 	v, ok := eval.Current().(expr.View)
 	if !ok {
@@ -1266,30 +1251,29 @@ func Remove(element interface{}) {
 //
 // Usage:
 //
-//     RemoveTagged("<tag>")
+//	RemoveTagged("<tag>")
 //
 // Example:
 //
-//     var _ = Design(func() {
-//         var System = SoftwareSystem("Software System", "My software system.", func() {
-//             Container(System, "Unwanted", func() {
-//                 Tag("irrelevant")
-//             })
-//         })
-//         var Customer = Person("Customer", func() {
-//             External()
-//             Uses(System, "Sends emails", "SMTP", func() {
-//                 Tag("irrelevant")
-//             })
-//         })
-//         Views(func() {
-//             SystemContextView(SoftwareSystem, "context", "An overview diagram.", func() {
-//                 AddDefault()
-//                 RemoveTagged("irrelevant")
-//             })
-//         })
-//     })
-//
+//	var _ = Design(func() {
+//	    var System = SoftwareSystem("Software System", "My software system.", func() {
+//	        Container(System, "Unwanted", func() {
+//	            Tag("irrelevant")
+//	        })
+//	    })
+//	    var Customer = Person("Customer", func() {
+//	        External()
+//	        Uses(System, "Sends emails", "SMTP", func() {
+//	            Tag("irrelevant")
+//	        })
+//	    })
+//	    Views(func() {
+//	        SystemContextView(SoftwareSystem, "context", "An overview diagram.", func() {
+//	            AddDefault()
+//	            RemoveTagged("irrelevant")
+//	        })
+//	    })
+//	})
 func RemoveTagged(tag string) {
 	v, ok := eval.Current().(expr.View)
 	if !ok {
@@ -1320,37 +1304,36 @@ func RemoveTagged(tag string) {
 //
 // Usage:
 //
-//      Unlink(Source, Destination) // If only one relationship exists between
-//                                  // Source and Destination
-//      Unlink(Source, Destination, Description)
+//	Unlink(Source, Destination) // If only one relationship exists between
+//	                            // Source and Destination
+//	Unlink(Source, Destination, Description)
 //
 // Where Source and Destination are one of:
-//    - Person|"<Person>"
-//    - SoftwareSystem|"<Software System>"
-//    - Container
-//    - "<Container>" (if container is in the container or component view software system)
-//    - "<Software System/Container>"
-//    - Component
-//    - "<Component>" (if component is in the component view container)
-//    - "<Container>/<Component>" (if container is in the component view software system)
-//    - "<Software System>/<Container>/<Component>"
+//   - Person|"<Person>"
+//   - SoftwareSystem|"<Software System>"
+//   - Container
+//   - "<Container>" (if container is in the container or component view software system)
+//   - "<Software System/Container>"
+//   - Component
+//   - "<Component>" (if component is in the component view container)
+//   - "<Container>/<Component>" (if container is in the component view software system)
+//   - "<Software System>/<Container>/<Component>"
 //
 // Example:
 //
-//     var _ = Design(func() {
-//         var System = SoftwareSystem("Software System", "My software system.")
-//         var Person = Person("Customer", func() {
-//             External()
-//             Uses(System, "Sends emails", "SMTP")
-//         })
-//         Views(func() {
-//             SystemContextView(SoftwareSystem, "context", "An overview diagram.", func() {
-//                 AddDefault()
-//                 Unlink(Person, System, "Sends emails")
-//             })
-//         })
-//     })
-//
+//	var _ = Design(func() {
+//	    var System = SoftwareSystem("Software System", "My software system.")
+//	    var Person = Person("Customer", func() {
+//	        External()
+//	        Uses(System, "Sends emails", "SMTP")
+//	    })
+//	    Views(func() {
+//	        SystemContextView(SoftwareSystem, "context", "An overview diagram.", func() {
+//	            AddDefault()
+//	            Unlink(Person, System, "Sends emails")
+//	        })
+//	    })
+//	})
 func Unlink(source, destination interface{}, description ...string) {
 	v, ok := eval.Current().(expr.View)
 	if !ok {
@@ -1397,21 +1380,20 @@ func Unlink(source, destination interface{}, description ...string) {
 //
 // Example:
 //
-//     var _ = Design(func() {
-//         var System = SoftwareSystem("Software System", "My software system.")
-//         var OtherSystem = SoftwareSystem("Other software System")
-//         var Customer = Person("Customer", func() {
-//             External()
-//             Uses(System, "Sends emails", "SMTP")
-//         })
-//         Views(func() {
-//             SystemContextView(SoftwareSystem, "context", "An overview diagram.", func() {
-//                 AddDefault()
-//                 RemoveUnreachable(System) // Removes OtherSystem
-//             })
-//         })
-//     })
-//
+//	var _ = Design(func() {
+//	    var System = SoftwareSystem("Software System", "My software system.")
+//	    var OtherSystem = SoftwareSystem("Other software System")
+//	    var Customer = Person("Customer", func() {
+//	        External()
+//	        Uses(System, "Sends emails", "SMTP")
+//	    })
+//	    Views(func() {
+//	        SystemContextView(SoftwareSystem, "context", "An overview diagram.", func() {
+//	            AddDefault()
+//	            RemoveUnreachable(System) // Removes OtherSystem
+//	        })
+//	    })
+//	})
 func RemoveUnreachable(element interface{}) {
 	v, ok := eval.Current().(expr.View)
 	if !ok {
@@ -1435,21 +1417,20 @@ func RemoveUnreachable(element interface{}) {
 //
 // Example:
 //
-//     var _ = Design(func() {
-//         var System = SoftwareSystem("Software System", "My software system.")
-//         var OtherSystem = SoftwareSystem("Other software System")
-//         var Customer = Person("Customer", func() {
-//             External()
-//             Uses(System, "Sends emails", "SMTP")
-//         })
-//         Views(func() {
-//             SystemContextView(SoftwareSystem, "context", "An overview diagram.", func() {
-//                 AddDefault()
-//                 RemoveUnrelated()) // Removes OtherSystem
-//             })
-//         })
-//     })
-//
+//	var _ = Design(func() {
+//	    var System = SoftwareSystem("Software System", "My software system.")
+//	    var OtherSystem = SoftwareSystem("Other software System")
+//	    var Customer = Person("Customer", func() {
+//	        External()
+//	        Uses(System, "Sends emails", "SMTP")
+//	    })
+//	    Views(func() {
+//	        SystemContextView(SoftwareSystem, "context", "An overview diagram.", func() {
+//	            AddDefault()
+//	            RemoveUnrelated()) // Removes OtherSystem
+//	        })
+//	    })
+//	})
 func RemoveUnrelated() {
 	if v, ok := eval.Current().(expr.View); ok {
 		v.Props().RemoveUnrelated = true
@@ -1470,26 +1451,25 @@ func RemoveUnrelated() {
 //
 // Example:
 //
-//     var _ = Design(func() {
-//         var System = SoftwareSystem("Software System", "My software system.")
-//         var OtherSystem = SoftwareSystem("Other software System")
-//         var Customer = Person("Customer", func() {
-//             External()
-//             Uses(System, "Sends emails", "SMTP")
-//         })
-//         Views(func() {
-//             SystemContextView(SoftwareSystem, "context", "An overview diagram.", func() {
-//                 AddDefault()
-//                 AutoLayout(RankTopBottom, func() {
-//                     RankSeparation(200)
-//                     NodeSeparation(100)
-//                     EdgeSeparation(10)
-//                     Vertices()
-//                 })
-//             })
-//         })
-//     })
-//
+//	var _ = Design(func() {
+//	    var System = SoftwareSystem("Software System", "My software system.")
+//	    var OtherSystem = SoftwareSystem("Other software System")
+//	    var Customer = Person("Customer", func() {
+//	        External()
+//	        Uses(System, "Sends emails", "SMTP")
+//	    })
+//	    Views(func() {
+//	        SystemContextView(SoftwareSystem, "context", "An overview diagram.", func() {
+//	            AddDefault()
+//	            AutoLayout(RankTopBottom, func() {
+//	                RankSeparation(200)
+//	                NodeSeparation(100)
+//	                EdgeSeparation(10)
+//	                Vertices()
+//	            })
+//	        })
+//	    })
+//	})
 func AutoLayout(rank RankDirectionKind, args ...func()) {
 	v, ok := eval.Current().(expr.View)
 	if !ok {
@@ -1535,22 +1515,21 @@ func AutoLayout(rank RankDirectionKind, args ...func()) {
 //
 // Example
 //
-//     var _ = Design(func() {
-//         SoftwareSystem("Software System", "My software system.")
-//         var OtherSystem = SoftwareSystem("Other software System")
-//         var Customer = Person("Customer", func() {
-//             External()
-//             Uses("Software System", "Sends emails", "SMTP")
-//         })
-//         Views(func() {
-//             SystemContextView(SoftwareSystem, "context", "An overview diagram.", func() {
-//                 AddDefault()
-//                 AnimationStep(OtherSystem, Customer)
-//                 AnimationStep("Software System")
-//             })
-//         })
-//     })
-//
+//	var _ = Design(func() {
+//	    SoftwareSystem("Software System", "My software system.")
+//	    var OtherSystem = SoftwareSystem("Other software System")
+//	    var Customer = Person("Customer", func() {
+//	        External()
+//	        Uses("Software System", "Sends emails", "SMTP")
+//	    })
+//	    Views(func() {
+//	        SystemContextView(SoftwareSystem, "context", "An overview diagram.", func() {
+//	            AddDefault()
+//	            AnimationStep(OtherSystem, Customer)
+//	            AnimationStep("Software System")
+//	        })
+//	    })
+//	})
 func AnimationStep(elements ...interface{}) {
 	v, ok := eval.Current().(expr.ViewAdder)
 	if !ok {
@@ -1585,21 +1564,20 @@ func AnimationStep(elements ...interface{}) {
 //
 // Example
 //
-//     var _ = Design(func() {
-//         var System = SoftwareSystem("Software System", "My software system.")
-//         var OtherSystem = SoftwareSystem("Other software System")
-//         var Customer = Person("Customer", func() {
-//             External()
-//             Uses(System, "Sends emails", "SMTP")
-//         })
-//         Views(func() {
-//             SystemContextView(SoftwareSystem, "context", "An overview diagram.", func() {
-//                 AddDefault()
-//                 PaperSize(SizeSlide4X3)
-//             })
-//         })
-//     })
-//
+//	var _ = Design(func() {
+//	    var System = SoftwareSystem("Software System", "My software system.")
+//	    var OtherSystem = SoftwareSystem("Other software System")
+//	    var Customer = Person("Customer", func() {
+//	        External()
+//	        Uses(System, "Sends emails", "SMTP")
+//	    })
+//	    Views(func() {
+//	        SystemContextView(SoftwareSystem, "context", "An overview diagram.", func() {
+//	            AddDefault()
+//	            PaperSize(SizeSlide4X3)
+//	        })
+//	    })
+//	})
 func PaperSize(size PaperSizeKind) {
 	v, ok := eval.Current().(expr.View)
 	if !ok {
@@ -1665,21 +1643,20 @@ func ContainerBoundariesVisible() {
 //
 // Example:
 //
-//     var _ = Design(func() {
-//         var System = SoftwareSystem("Software System", "My software system.")
-//         var Customer = Person("Customer", func() {
-//             External()
-//             Uses(System, "Sends emails", "SMTP")
-//         })
-//         Views(func() {
-//             SystemContextView(System, "context", "An overview diagram.", func() {
-//                 Add(Customer, func() {
-//                     Coord(200,200)
-//                 })
-//             })
-//         })
-//     })
-//
+//	var _ = Design(func() {
+//	    var System = SoftwareSystem("Software System", "My software system.")
+//	    var Customer = Person("Customer", func() {
+//	        External()
+//	        Uses(System, "Sends emails", "SMTP")
+//	    })
+//	    Views(func() {
+//	        SystemContextView(System, "context", "An overview diagram.", func() {
+//	            Add(Customer, func() {
+//	                Coord(200,200)
+//	            })
+//	        })
+//	    })
+//	})
 func Coord(x, y int) {
 	if ev, ok := eval.Current().(*expr.ElementView); ok {
 		ev.X = &x
@@ -1697,22 +1674,21 @@ func Coord(x, y int) {
 //
 // Example:
 //
-//     var _ = Design(func() {
-//         var System = SoftwareSystem("Software System", "My software system.")
-//         var OtherSystem = SoftwareSystem("Other software System")
-//         var Customer = Person("Customer", func() {
-//             External()
-//             Uses(System, "Sends emails", "SMTP")
-//         })
-//         Views(func() {
-//             SystemContextView(SoftwareSystem, "context", "An overview diagram.", func() {
-//                 Add(Customer, func() {
-//                     NoRelationship()
-//                 })
-//             })
-//         })
-//     })
-//
+//	var _ = Design(func() {
+//	    var System = SoftwareSystem("Software System", "My software system.")
+//	    var OtherSystem = SoftwareSystem("Other software System")
+//	    var Customer = Person("Customer", func() {
+//	        External()
+//	        Uses(System, "Sends emails", "SMTP")
+//	    })
+//	    Views(func() {
+//	        SystemContextView(SoftwareSystem, "context", "An overview diagram.", func() {
+//	            Add(Customer, func() {
+//	                NoRelationship()
+//	            })
+//	        })
+//	    })
+//	})
 func NoRelationship() {
 	if ev, ok := eval.Current().(*expr.ElementView); ok {
 		ev.NoRelationship = true
@@ -1731,21 +1707,20 @@ func NoRelationship() {
 //
 // Example:
 //
-//     var _ = Design(func() {
-//         var System = SoftwareSystem("Software System", "My software system.")
-//         var Customer = Person("Customer", func() {
-//             External()
-//             Uses(System, "Sends emails", "SMTP")
-//         })
-//         Views(func() {
-//             SystemContextView(SoftwareSystem, "context", "An overview diagram.", func() {
-//                 Link(Customer, System, func() {
-//                     Vertices(300, 100, 400, 200)
-//                 })
-//             })
-//         })
-//     })
-//
+//	var _ = Design(func() {
+//	    var System = SoftwareSystem("Software System", "My software system.")
+//	    var Customer = Person("Customer", func() {
+//	        External()
+//	        Uses(System, "Sends emails", "SMTP")
+//	    })
+//	    Views(func() {
+//	        SystemContextView(SoftwareSystem, "context", "An overview diagram.", func() {
+//	            Link(Customer, System, func() {
+//	                Vertices(300, 100, 400, 200)
+//	            })
+//	        })
+//	    })
+//	})
 func Vertices(args ...int) {
 	if len(args)%2 != 0 {
 		eval.ReportError("Vertices: must be given an even number of arguments")
@@ -1770,21 +1745,20 @@ func Vertices(args ...int) {
 //
 // Example:
 //
-//     var _ = Design(func() {
-//         var System = SoftwareSystem("Software System", "My software system.")
-//         var Customer = Person("Customer", func() {
-//             External()
-//             Uses(System, "Sends emails", "SMTP")
-//         })
-//         Views(func() {
-//             SystemContextView(SoftwareSystem, "context", "An overview diagram.", func() {
-//                 Add(Customer, System, func() {
-//                     Routing(RoutingDirect)
-//                 })
-//             })
-//         })
-//     })
-//
+//	var _ = Design(func() {
+//	    var System = SoftwareSystem("Software System", "My software system.")
+//	    var Customer = Person("Customer", func() {
+//	        External()
+//	        Uses(System, "Sends emails", "SMTP")
+//	    })
+//	    Views(func() {
+//	        SystemContextView(SoftwareSystem, "context", "An overview diagram.", func() {
+//	            Add(Customer, System, func() {
+//	                Routing(RoutingDirect)
+//	            })
+//	        })
+//	    })
+//	})
 func Routing(kind RoutingKind) {
 	switch a := eval.Current().(type) {
 	case *expr.RelationshipView:
@@ -1806,21 +1780,20 @@ func Routing(kind RoutingKind) {
 //
 // Example:
 //
-//     var _ = Design(func() {
-//         var System = SoftwareSystem("Software System", "My software system.")
-//         var Customer = Person("Customer", func() {
-//             External()
-//             Uses(System, "Sends emails", "SMTP")
-//         })
-//         Views(func() {
-//             SystemContextView(SoftwareSystem, "context", "An overview diagram.", func() {
-//                 Add(Customer, System, func() {
-//                     Position(40)
-//                 })
-//             })
-//         })
-//     })
-//
+//	var _ = Design(func() {
+//	    var System = SoftwareSystem("Software System", "My software system.")
+//	    var Customer = Person("Customer", func() {
+//	        External()
+//	        Uses(System, "Sends emails", "SMTP")
+//	    })
+//	    Views(func() {
+//	        SystemContextView(SoftwareSystem, "context", "An overview diagram.", func() {
+//	            Add(Customer, System, func() {
+//	                Position(40)
+//	            })
+//	        })
+//	    })
+//	})
 func Position(pos int) {
 	if pos < 0 || pos > 100 {
 		eval.InvalidArgError("integer between 0 and 100", pos)
@@ -1844,17 +1817,16 @@ func Position(pos int) {
 //
 // Example:
 //
-//     var _ = Design(func() {
-//         var System = SoftwareSystem("Software System", "My software system.")
-//         Views(func() {
-//             SystemContextView(SoftwareSystem, "context", "An overview diagram.", func() {
-//                 AutoLayout(func() {
-//                     RankSeparation(500)
-//                 })
-//             })
-//         })
-//     })
-//
+//	var _ = Design(func() {
+//	    var System = SoftwareSystem("Software System", "My software system.")
+//	    Views(func() {
+//	        SystemContextView(SoftwareSystem, "context", "An overview diagram.", func() {
+//	            AutoLayout(func() {
+//	                RankSeparation(500)
+//	            })
+//	        })
+//	    })
+//	})
 func RankSeparation(sep int) {
 	if sep < 0 {
 		eval.ReportError("RankSeparation: value must be positive")
@@ -1875,17 +1847,16 @@ func RankSeparation(sep int) {
 //
 // Example:
 //
-//     var _ = Design(func() {
-//         var System = SoftwareSystem("Software System", "My software system.")
-//         Views(func() {
-//             SystemContextView(SoftwareSystem, "context", "An overview diagram.", func() {
-//                 AutoLayout(func() {
-//                     NodeSeparation(500)
-//                 })
-//             })
-//         })
-//     })
-//
+//	var _ = Design(func() {
+//	    var System = SoftwareSystem("Software System", "My software system.")
+//	    Views(func() {
+//	        SystemContextView(SoftwareSystem, "context", "An overview diagram.", func() {
+//	            AutoLayout(func() {
+//	                NodeSeparation(500)
+//	            })
+//	        })
+//	    })
+//	})
 func NodeSeparation(sep int) {
 	if sep < 0 {
 		eval.ReportError("NodeSeparation: value must be positive")
@@ -1906,17 +1877,16 @@ func NodeSeparation(sep int) {
 //
 // Example:
 //
-//     var _ = Design(func() {
-//         var System = SoftwareSystem("Software System", "My software system.")
-//         Views(func() {
-//             SystemContextView(SoftwareSystem, "context", "An overview diagram.", func() {
-//                 AutoLayout(func() {
-//                     EdgeSeparation(500)
-//                 })
-//             })
-//         })
-//     })
-//
+//	var _ = Design(func() {
+//	    var System = SoftwareSystem("Software System", "My software system.")
+//	    Views(func() {
+//	        SystemContextView(SoftwareSystem, "context", "An overview diagram.", func() {
+//	            AutoLayout(func() {
+//	                EdgeSeparation(500)
+//	            })
+//	        })
+//	    })
+//	})
 func EdgeSeparation(sep int) {
 	if sep < 0 {
 		eval.ReportError("EdgeSeparation: value must be positive")
@@ -1938,17 +1908,16 @@ func EdgeSeparation(sep int) {
 //
 // Example:
 //
-//     var _ = Design(func() {
-//         var System = SoftwareSystem("Software System", "My software system.")
-//         Views(func() {
-//             SystemContextView(SoftwareSystem, "context", "An overview diagram.", func() {
-//                 AutoLayout(func() {
-//                     RenderVertices()
-//                 })
-//             })
-//         })
-//     })
-//
+//	var _ = Design(func() {
+//	    var System = SoftwareSystem("Software System", "My software system.")
+//	    Views(func() {
+//	        SystemContextView(SoftwareSystem, "context", "An overview diagram.", func() {
+//	            AutoLayout(func() {
+//	                RenderVertices()
+//	            })
+//	        })
+//	    })
+//	})
 func RenderVertices() {
 	if a, ok := eval.Current().(*expr.AutoLayout); ok {
 		t := true
@@ -1961,9 +1930,8 @@ func RenderVertices() {
 // parseView is a helper function that parses the given view DSL
 // arguments. Accepted syntax are:
 //
-//     func()
-//     "[description]", func()
-//
+//	func()
+//	"[description]", func()
 func parseView(args ...interface{}) (description string, dsl func(), err error) {
 	if len(args) == 0 {
 		err = fmt.Errorf("missing argument")
@@ -2032,18 +2000,17 @@ func findViewElement(view expr.View, element interface{}) (expr.ElementHolder, e
 
 // findDeploymentViewElement returns the element identified as follows:
 //
-//    - DeploymentNode: returns the given deployment node.
-//    - InfrastructureNode: returns the given infrastructure node.
-//    - ContainerInstance: returns the given container instance.
-//    - "DeploymentNode/.../Child DeploymentNode": returns the deployment node with
-//      the given path (top level deployemnt node name to child deployment node name
-//      all separated with slashes).
-//    - "DeploymentNode/.../InfrastructureNode": returns the infrastructure node
-//      with the given name in the given deployment node path.
-//    - "DeploymentNode/.../Container:InstanceID": returns the container instance
-//      in the given deployment node path and with the given container name and
-//      instance ID.
-//
+//   - DeploymentNode: returns the given deployment node.
+//   - InfrastructureNode: returns the given infrastructure node.
+//   - ContainerInstance: returns the given container instance.
+//   - "DeploymentNode/.../Child DeploymentNode": returns the deployment node with
+//     the given path (top level deployemnt node name to child deployment node name
+//     all separated with slashes).
+//   - "DeploymentNode/.../InfrastructureNode": returns the infrastructure node
+//     with the given name in the given deployment node path.
+//   - "DeploymentNode/.../Container:InstanceID": returns the container instance
+//     in the given deployment node path and with the given container name and
+//     instance ID.
 func findDeploymentViewElement(env, path string) (expr.ElementHolder, error) {
 	elems := strings.Split(path, "/")
 	parent := expr.Root.Model.DeploymentNode(env, elems[0])

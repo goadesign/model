@@ -127,11 +127,11 @@ func (d *DeploymentNode) ContainerInstanceByName(name string, instanceID int) *C
 // there is already a deployment node with the given name then AddChild
 // merges both definitions. The merge algorithm:
 //
-//    * overrides the description, technology and URL if provided,
-//    * merges any new tag or propery into the existing tags and properties,
-//    * merges any new child deployment node into the existing children,
-//    * merges any new container instance or infrastructure nodes into existing
-//      ones.
+//   - overrides the description, technology and URL if provided,
+//   - merges any new tag or propery into the existing tags and properties,
+//   - merges any new child deployment node into the existing children,
+//   - merges any new container instance or infrastructure nodes into existing
+//     ones.
 //
 // AddChild returns the new or merged deployment node.
 func (d *DeploymentNode) AddChild(n *DeploymentNode) *DeploymentNode {
@@ -157,8 +157,8 @@ func (d *DeploymentNode) AddChild(n *DeploymentNode) *DeploymentNode {
 // node. If there is already an infrastructure node with the given name then
 // AddInfrastructureNode merges both definitions. The merge algorithm:
 //
-//    * overrides the description, technology and URL if provided,
-//    * merges any new tag or propery into the existing tags and properties.
+//   - overrides the description, technology and URL if provided,
+//   - merges any new tag or propery into the existing tags and properties.
 //
 // AddInfrastructureNode returns the new or merged infrastructure node.
 func (d *DeploymentNode) AddInfrastructureNode(n *InfrastructureNode) *InfrastructureNode {
@@ -185,9 +185,9 @@ func (d *DeploymentNode) AddInfrastructureNode(n *InfrastructureNode) *Infrastru
 // instance ID then AddContainerInstance merges both definitions. The merge
 // algorithm:
 //
-//    * overrides the description, technology and URL if provided,
-//    * merges any new tag or propery into the existing tags and properties,
-//    * merges any new health check into the existing health checks.
+//   - overrides the description, technology and URL if provided,
+//   - merges any new tag or propery into the existing tags and properties,
+//   - merges any new health check into the existing health checks.
 //
 // AddContainerInstance returns the new or merged container instance.
 func (d *DeploymentNode) AddContainerInstance(ci *ContainerInstance) *ContainerInstance {

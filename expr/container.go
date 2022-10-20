@@ -55,8 +55,8 @@ func (c *Container) Component(name string) *Component {
 // component with the given name then AddComponent merges both definitions. The
 // merge algorithm:
 //
-//    * overrides the description, technology and URL if provided,
-//    * merges any new tag or propery into the existing tags and properties,
+//   - overrides the description, technology and URL if provided,
+//   - merges any new tag or propery into the existing tags and properties,
 //
 // AddComponent returns the new or merged component.
 func (c *Container) AddComponent(cmp *Component) *Component {

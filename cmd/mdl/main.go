@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -84,7 +83,7 @@ func main() {
 		var b []byte
 		b, err = gen(pkg, *debug)
 		if err == nil {
-			err = ioutil.WriteFile(*out, b, 0644)
+			err = os.WriteFile(*out, b, 0644)
 		}
 	case "serve":
 		if pkg == "" {

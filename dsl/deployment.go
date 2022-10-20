@@ -18,14 +18,13 @@ import (
 //
 // Example:
 //
-//    var _ = Design(func() {
-//         DeploymentEnvironment("production", func() {
-//             DeploymentNode("AppServer", "Application server", "Go and Goa v3")
-//             InfrastructureNote("Router", "External traffic router", "AWS Route 53")
-//             ContainerInstance(Container)
-//         })
-//     })
-//
+//	var _ = Design(func() {
+//	     DeploymentEnvironment("production", func() {
+//	         DeploymentNode("AppServer", "Application server", "Go and Goa v3")
+//	         InfrastructureNote("Router", "External traffic router", "AWS Route 53")
+//	         ContainerInstance(Container)
+//	     })
+//	 })
 func DeploymentEnvironment(name string, dsl func()) {
 	_, ok := eval.Current().(*expr.Design)
 	if !ok {
@@ -52,46 +51,45 @@ func DeploymentEnvironment(name string, dsl func()) {
 //
 // Usage:
 //
-//    DeploymentNode("<name>")
+//	DeploymentNode("<name>")
 //
-//    DeploymentNode("<name>", "[description]")
+//	DeploymentNode("<name>", "[description]")
 //
-//    DeploymentNode("<name>", "[description]", "[technology]")
+//	DeploymentNode("<name>", "[description]", "[technology]")
 //
-//    DeploymentNode("<name>", func())
+//	DeploymentNode("<name>", func())
 //
-//    DeploymentNode("<name>", "[description]", func())
+//	DeploymentNode("<name>", "[description]", func())
 //
-//    DeploymentNode("<name>", "[description]", "[technology]", func())
+//	DeploymentNode("<name>", "[description]", "[technology]", func())
 //
 // Example:
 //
-//    var _ = Design(func() {
-//        DeploymentEnvironment("Production", func() {
-//            DeploymentNode("US", "US shard", func() {
-//                Tag("shard")
-//                Instances(3)
-//                URL("https://goa.design/docs/shard")
-//                InfrastructureNode("Gateway", "US gateway", func() {
-//                    Tag("gateway")
-//                    URL("https://goa.design/docs/shards/us")
-//                })
-//                ContainerInstance("Container", "System", func() {
-//                    Tag("service")
-//                    InstanceID(1)
-//                    HealthCheck("check", func() {
-//                        URL("https://goa.design/health")
-//                        Interval(10)
-//                        Timeout(1000)
-//                    })
-//                })
-//                DeploymentNode("Cluster", "K8 cluster", func() {
-//                    // ...
-//                })
-//            })
-//        })
-//    })
-//
+//	var _ = Design(func() {
+//	    DeploymentEnvironment("Production", func() {
+//	        DeploymentNode("US", "US shard", func() {
+//	            Tag("shard")
+//	            Instances(3)
+//	            URL("https://goa.design/docs/shard")
+//	            InfrastructureNode("Gateway", "US gateway", func() {
+//	                Tag("gateway")
+//	                URL("https://goa.design/docs/shards/us")
+//	            })
+//	            ContainerInstance("Container", "System", func() {
+//	                Tag("service")
+//	                InstanceID(1)
+//	                HealthCheck("check", func() {
+//	                    URL("https://goa.design/health")
+//	                    Interval(10)
+//	                    Timeout(1000)
+//	                })
+//	            })
+//	            DeploymentNode("Cluster", "K8 cluster", func() {
+//	                // ...
+//	            })
+//	        })
+//	    })
+//	})
 func DeploymentNode(name string, args ...interface{}) *expr.DeploymentNode {
 	if strings.Contains(name, "/") {
 		eval.ReportError("DeploymentNode: name cannot include slashes")
@@ -146,31 +144,30 @@ func DeploymentNode(name string, args ...interface{}) *expr.DeploymentNode {
 //
 // Usage:
 //
-//    InfrastructureNode("<name>")
+//	InfrastructureNode("<name>")
 //
-//    InfrastructureNode("<name>", "[description]")
+//	InfrastructureNode("<name>", "[description]")
 //
-//    InfrastructureNode("<name>", "[description]", "[technology]")
+//	InfrastructureNode("<name>", "[description]", "[technology]")
 //
-//    InfrastructureNode("<name>", func())
+//	InfrastructureNode("<name>", func())
 //
-//    InfrastructureNode("<name>", "[description]", func())
+//	InfrastructureNode("<name>", "[description]", func())
 //
-//    InfrastructureNode("<name>", "[description]", "[technology]", func())
+//	InfrastructureNode("<name>", "[description]", "[technology]", func())
 //
 // Example:
 //
-//    var _ = Design(func() {
-//        DeploymentEnvironment("Production", func() {
-//            DeploymentNode("US", "US shard", func() {
-//                InfrastructureNode("Gateway", "US gateway", func() {
-//                    Tag("gateway")
-//                    URL("https://goa.design/docs/shards/us")
-//                })
-//            })
-//        })
-//    })
-//
+//	var _ = Design(func() {
+//	    DeploymentEnvironment("Production", func() {
+//	        DeploymentNode("US", "US shard", func() {
+//	            InfrastructureNode("Gateway", "US gateway", func() {
+//	                Tag("gateway")
+//	                URL("https://goa.design/docs/shards/us")
+//	            })
+//	        })
+//	    })
+//	})
 func InfrastructureNode(name string, args ...interface{}) *expr.InfrastructureNode {
 	d, ok := eval.Current().(*expr.DeploymentNode)
 	if !ok {
@@ -211,40 +208,39 @@ func InfrastructureNode(name string, args ...interface{}) *expr.InfrastructureNo
 //
 // Usage:
 //
-//    ContainerInstance(Container)
+//	ContainerInstance(Container)
 //
-//    ContainerInstance(Container, func())
+//	ContainerInstance(Container, func())
 //
-//    ContainerInstance("<Software System>/<Container>")
+//	ContainerInstance("<Software System>/<Container>")
 //
-//    ContainerInstance("<Software System>/<Container>", func())
+//	ContainerInstance("<Software System>/<Container>", func())
 //
 // Example:
 //
-//    var _ = Design(func() {
-//        var MyContainer *expr.Container
-//        SoftwareSystem("SoftwareSystem", "A software system", func() {
-//            MyContainer = Container("Container")
-//        })
-//        DeploymentEnvironment("Production", func() {
-//            DeploymentNode("US", "US shard", func() {
-//                ContainerInstance(MyContainer, func() {
-//                    Tag("service")
-//                    InstanceID(1)
-//                    HealthCheck("check", func() {
-//                        URL("https://goa.design/health")
-//                        Interval(10)
-//                        Timeout(1000)
-//                    })
-//                })
-//                // Using the name instead:
-//                ContainerInstance("SoftwareSystem/Container", func() {
-//                    InstanceID(2
-//                })
-//            })
-//        })
-//    })
-//
+//	var _ = Design(func() {
+//	    var MyContainer *expr.Container
+//	    SoftwareSystem("SoftwareSystem", "A software system", func() {
+//	        MyContainer = Container("Container")
+//	    })
+//	    DeploymentEnvironment("Production", func() {
+//	        DeploymentNode("US", "US shard", func() {
+//	            ContainerInstance(MyContainer, func() {
+//	                Tag("service")
+//	                InstanceID(1)
+//	                HealthCheck("check", func() {
+//	                    URL("https://goa.design/health")
+//	                    Interval(10)
+//	                    Timeout(1000)
+//	                })
+//	            })
+//	            // Using the name instead:
+//	            ContainerInstance("SoftwareSystem/Container", func() {
+//	                InstanceID(2
+//	            })
+//	        })
+//	    })
+//	})
 func ContainerInstance(container interface{}, dsl ...func()) *expr.ContainerInstance {
 	d, ok := eval.Current().(*expr.DeploymentNode)
 	if !ok {
@@ -301,14 +297,13 @@ func ContainerInstance(container interface{}, dsl ...func()) *expr.ContainerInst
 //
 // Example:
 //
-//    var _ = Design(func() {
-//        DeploymentEnvironment("Production", func() {
-//            DeploymentNode("Web app", func() {
-//                Instances(3)
-//            })
-//        })
-//    })
-//
+//	var _ = Design(func() {
+//	    DeploymentEnvironment("Production", func() {
+//	        DeploymentNode("Web app", func() {
+//	            Instances(3)
+//	        })
+//	    })
+//	})
 func Instances(n int) {
 	node, ok := eval.Current().(*expr.DeploymentNode)
 	if !ok {
@@ -326,14 +321,13 @@ func Instances(n int) {
 //
 // Example:
 //
-//    var _ = Design(func() {
-//        DeploymentEnvironment("Production", func() {
-//            ContainerInstance(Container, func() {
-//                InstanceID(3)
-//            })
-//        })
-//    })
-//
+//	var _ = Design(func() {
+//	    DeploymentEnvironment("Production", func() {
+//	        ContainerInstance(Container, func() {
+//	            InstanceID(3)
+//	        })
+//	    })
+//	})
 func InstanceID(n int) {
 	node, ok := eval.Current().(*expr.ContainerInstance)
 	if !ok {
@@ -352,19 +346,18 @@ func InstanceID(n int) {
 //
 // Example:
 //
-//    var _ = Design(func() {
-//        DeploymentEnvironment("Production", func() {
-//            ContainerInstance(Container, func() {
-//                HealthCheck("check", func() {
-//                    URL("https://goa.design/health")
-//                    Interval(10)
-//                    Timeout(1000)
-//                    Header("X-Foo", "bar")
-//                })
-//            })
-//        })
-//    })
-//
+//	var _ = Design(func() {
+//	    DeploymentEnvironment("Production", func() {
+//	        ContainerInstance(Container, func() {
+//	            HealthCheck("check", func() {
+//	                URL("https://goa.design/health")
+//	                Interval(10)
+//	                Timeout(1000)
+//	                Header("X-Foo", "bar")
+//	            })
+//	        })
+//	    })
+//	})
 func HealthCheck(name string, dsl func()) {
 	c, ok := eval.Current().(*expr.ContainerInstance)
 	if !ok {
@@ -384,16 +377,15 @@ func HealthCheck(name string, dsl func()) {
 //
 // Example:
 //
-//    var _ = Design(func() {
-//        DeploymentEnvironment("Production", func() {
-//            ContainerInstance(Container, func() {
-//                HealthCheck("check", func() {
-//                    Interval(10)
-//                })
-//            })
-//        })
-//    })
-//
+//	var _ = Design(func() {
+//	    DeploymentEnvironment("Production", func() {
+//	        ContainerInstance(Container, func() {
+//	            HealthCheck("check", func() {
+//	                Interval(10)
+//	            })
+//	        })
+//	    })
+//	})
 func Interval(n int) {
 	hc, ok := eval.Current().(*expr.HealthCheck)
 	if !ok {
@@ -411,16 +403,15 @@ func Interval(n int) {
 //
 // Example:
 //
-//    var _ = Design(func() {
-//        DeploymentEnvironment("Production", func() {
-//            ContainerInstance(Container, func() {
-//                HealthCheck("check", func() {
-//                    Timeout(1000)
-//                })
-//            })
-//        })
-//    })
-//
+//	var _ = Design(func() {
+//	    DeploymentEnvironment("Production", func() {
+//	        ContainerInstance(Container, func() {
+//	            HealthCheck("check", func() {
+//	                Timeout(1000)
+//	            })
+//	        })
+//	    })
+//	})
 func Timeout(n int) {
 	hc, ok := eval.Current().(*expr.HealthCheck)
 	if !ok {
@@ -439,16 +430,15 @@ func Timeout(n int) {
 //
 // Example:
 //
-//    var _ = Design(func() {
-//        DeploymentEnvironment("Production", func() {
-//            ContainerInstance(Container, func() {
-//                HealthCheck("check", func() {
-//                    Header("X-Foo", "bar")
-//                })
-//            })
-//        })
-//    })
-//
+//	var _ = Design(func() {
+//	    DeploymentEnvironment("Production", func() {
+//	        ContainerInstance(Container, func() {
+//	            HealthCheck("check", func() {
+//	                Header("X-Foo", "bar")
+//	            })
+//	        })
+//	    })
+//	})
 func Header(n, v string) {
 	hc, ok := eval.Current().(*expr.HealthCheck)
 	if !ok {

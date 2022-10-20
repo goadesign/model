@@ -41,50 +41,49 @@ const (
 //
 // Usage:
 //
-//    Uses(Element, "<description>")
+//	Uses(Element, "<description>")
 //
-//    Uses(Element, "<description>", "[technology]")
+//	Uses(Element, "<description>", "[technology]")
 //
-//    Uses(Element, "<description>", Synchronous|Asynchronous)
+//	Uses(Element, "<description>", Synchronous|Asynchronous)
 //
-//    Uses(Element, "<description>", "[technology]", Synchronous|Asynchronous)
+//	Uses(Element, "<description>", "[technology]", Synchronous|Asynchronous)
 //
-//    Uses(Element, "<description>", func())
+//	Uses(Element, "<description>", func())
 //
-//    Uses(Element, "<description>", "[technology]", func())
+//	Uses(Element, "<description>", "[technology]", func())
 //
-//    Uses(Element, "<description>", Synchronous|Asynchronous, func())
+//	Uses(Element, "<description>", Synchronous|Asynchronous, func())
 //
-//    Uses(Element, "<description>", "[technology]", Synchronous|Asynchronous, func())
+//	Uses(Element, "<description>", "[technology]", Synchronous|Asynchronous, func())
 //
 // Where Element is one of:
 //
-//    - Person, SoftwareSystem, Container or Component
-//    - "<Person>", "<SoftwareSystem>", "<SoftwareSystem>/<Container>" or "<SoftwareSystem>/<Container>/<Component>"
-//    - "<Container>" (if container is a sibling of the source)
-//    - "<Component>" (if component is a sibling of the source)
-//    - "<Container>/<Component>" (if container is a sibling of the source)
+//   - Person, SoftwareSystem, Container or Component
+//   - "<Person>", "<SoftwareSystem>", "<SoftwareSystem>/<Container>" or "<SoftwareSystem>/<Container>/<Component>"
+//   - "<Container>" (if container is a sibling of the source)
+//   - "<Component>" (if component is a sibling of the source)
+//   - "<Container>/<Component>" (if container is a sibling of the source)
 //
 // Example:
 //
-//     var _ = Design("my workspace", "a great architecture model", func() {
-//         SoftwareSystem("SystemA", func() {
-//             Container("ContainerA")
-//             Container("ContainerB", func() {
-//                 Uses("ContainerA") // sibling, not need to specify system
-//             })
-//         })
-//         SoftwareSystem("SystemB", func() {
-//             Uses("SystemA/ContainerA") // not a sibling, need full path
-//         })
-//         Person("Customer", "Customers of enterprise", func () {
-//            Uses(SystemA, "Access", "HTTP", Synchronous)
-//         })
-//         Person("Staff", "Back office staff", func() {
-//            InteractsWith("Customer", "Sends invoices to", Synchronous)
-//         })
-//     })
-//
+//	var _ = Design("my workspace", "a great architecture model", func() {
+//	    SoftwareSystem("SystemA", func() {
+//	        Container("ContainerA")
+//	        Container("ContainerB", func() {
+//	            Uses("ContainerA") // sibling, not need to specify system
+//	        })
+//	    })
+//	    SoftwareSystem("SystemB", func() {
+//	        Uses("SystemA/ContainerA") // not a sibling, need full path
+//	    })
+//	    Person("Customer", "Customers of enterprise", func () {
+//	       Uses(SystemA, "Access", "HTTP", Synchronous)
+//	    })
+//	    Person("Staff", "Back office staff", func() {
+//	       InteractsWith("Customer", "Sends invoices to", Synchronous)
+//	    })
+//	})
 func Uses(element interface{}, description string, args ...interface{}) {
 	var src *expr.Element
 	switch e := eval.Current().(type) {
@@ -117,31 +116,30 @@ func Uses(element interface{}, description string, args ...interface{}) {
 //
 // Usage:
 //
-//    InteractsWith(Person|"Person", "<description>")
+//	InteractsWith(Person|"Person", "<description>")
 //
-//    InteractsWith(Person|"Person", "<description>", "[technology]")
+//	InteractsWith(Person|"Person", "<description>", "[technology]")
 //
-//    InteractsWith(Person|"Person", "<description>", Synchronous|Asynchronous)
+//	InteractsWith(Person|"Person", "<description>", Synchronous|Asynchronous)
 //
-//    InteractsWith(Person|"Person", "<description>", "[technology]", Synchronous|Asynchronous)
+//	InteractsWith(Person|"Person", "<description>", "[technology]", Synchronous|Asynchronous)
 //
-//    InteractsWith(Person|"Person", "<description>", func())
+//	InteractsWith(Person|"Person", "<description>", func())
 //
-//    InteractsWith(Person|"Person", "<description>", "[technology]", func())
+//	InteractsWith(Person|"Person", "<description>", "[technology]", func())
 //
-//    InteractsWith(Person|"Person", "<description>", Synchronous|Asynchronous, func())
+//	InteractsWith(Person|"Person", "<description>", Synchronous|Asynchronous, func())
 //
-//    InteractsWith(Person|"Person", "<description>", "[technology]", Synchronous|Asynchronous, func())
+//	InteractsWith(Person|"Person", "<description>", "[technology]", Synchronous|Asynchronous, func())
 //
 // Example:
 //
-//     var _ = Design("my workspace", "a great architecture model", func() {
-//         var Employee = Person("Employee")
-//         Person("Customer", "Customers of enterprise", func () {
-//            InteractsWith(Employee, "Sends requests to", "email")
-//         })
-//     })
-//
+//	var _ = Design("my workspace", "a great architecture model", func() {
+//	    var Employee = Person("Employee")
+//	    Person("Customer", "Customers of enterprise", func () {
+//	       InteractsWith(Employee, "Sends requests to", "email")
+//	    })
+//	})
 func InteractsWith(person interface{}, description string, args ...interface{}) {
 	src, ok := eval.Current().(*expr.Person)
 	if !ok {
@@ -181,31 +179,30 @@ func InteractsWith(person interface{}, description string, args ...interface{}) 
 //
 // Usage:
 //
-//    Delivers(Person|"Person", "<description>")
+//	Delivers(Person|"Person", "<description>")
 //
-//    Delivers(Person|"Person", "<description>", "[technology]")
+//	Delivers(Person|"Person", "<description>", "[technology]")
 //
-//    Delivers(Person|"Person", "<description>", Synchronous|Asynchronous)
+//	Delivers(Person|"Person", "<description>", Synchronous|Asynchronous)
 //
-//    Delivers(Person|"Person", "<description>", "[technology]", Synchronous|Asynchronous)
+//	Delivers(Person|"Person", "<description>", "[technology]", Synchronous|Asynchronous)
 //
-//    Delivers(Person|"Person", "<description>", func())
+//	Delivers(Person|"Person", "<description>", func())
 //
-//    Delivers(Person|"Person", "<description>", "[technology]", func())
+//	Delivers(Person|"Person", "<description>", "[technology]", func())
 //
-//    Delivers(Person|"Person", "<description>", Synchronous|Asynchronous, func())
+//	Delivers(Person|"Person", "<description>", Synchronous|Asynchronous, func())
 //
-//    Delivers(Person|"Person", "<description>", "[technology]", Synchronous|Asynchronous, func())
+//	Delivers(Person|"Person", "<description>", "[technology]", Synchronous|Asynchronous, func())
 //
 // Example:
 //
-//     var _ = Design("my workspace", "a great architecture model", func() {
-//         var Customer = Person("Customer")
-//         SoftwareSystem("MySystem", func () {
-//            Delivers(Customer, "Sends requests to", "email")
-//         })
-//     })
-//
+//	var _ = Design("my workspace", "a great architecture model", func() {
+//	    var Customer = Person("Customer")
+//	    SoftwareSystem("MySystem", func () {
+//	       Delivers(Customer, "Sends requests to", "email")
+//	    })
+//	})
 func Delivers(person interface{}, description string, args ...interface{}) {
 	var src *expr.Element
 	switch e := eval.Current().(type) {
