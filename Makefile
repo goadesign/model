@@ -21,9 +21,9 @@ GO_FILES=$(shell find . -type f -name '*.go')
 # Only list test and build dependencies
 # Standard dependencies are installed via go get
 DEPEND=\
-	golang.org/x/tools/cmd/goimports \
-	honnef.co/go/tools/cmd/staticcheck \
-	github.com/mjibson/esc
+	golang.org/x/tools/cmd/goimports@latest \
+	honnef.co/go/tools/cmd/staticcheck@latest \
+	github.com/mjibson/esc@latest
 
 all: lint check-generated test
 
