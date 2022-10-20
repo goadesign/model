@@ -17,27 +17,26 @@ import (
 //
 // The valid syntax for Person is thus:
 //
-//    Person("name")
+//	Person("name")
 //
-//    Person("name", "description")
+//	Person("name", "description")
 //
-//    Person("name", func())
+//	Person("name", func())
 //
-//    Person("name", "description", func())
+//	Person("name", "description", func())
 //
 // Example:
 //
-//    var _ = Design(func() {
-//        Person("Employee")
-//        Person("Customer", "A customer", func() {
-//            Tag("system")
-//            External()
-//            URL("https://acme.com/docs/customer.html")
-//            Uses(System)
-//            InteractsWith(Employee)
-//        })
-//    })
-//
+//	var _ = Design(func() {
+//	    Person("Employee")
+//	    Person("Customer", "A customer", func() {
+//	        Tag("system")
+//	        External()
+//	        URL("https://acme.com/docs/customer.html")
+//	        Uses(System)
+//	        InteractsWith(Employee)
+//	    })
+//	})
 func Person(name string, args ...interface{}) *expr.Person {
 	w, ok := eval.Current().(*expr.Design)
 	if !ok {

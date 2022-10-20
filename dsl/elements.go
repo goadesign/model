@@ -20,26 +20,25 @@ import (
 //
 // The valid syntax for SoftwareSystem is thus:
 //
-//    SoftwareSystem("<name>")
+//	SoftwareSystem("<name>")
 //
-//    SoftwareSystem("<name>", "[description]")
+//	SoftwareSystem("<name>", "[description]")
 //
-//    SoftwareSystem("<name>", func())
+//	SoftwareSystem("<name>", func())
 //
-//    SoftwareSystem("<name>", "[description]", func())
+//	SoftwareSystem("<name>", "[description]", func())
 //
 // Example:
 //
-//    var _ = Design(func() {
-//        SoftwareSystem("My system", "A system with a great architecture", func() {
-//            Tag("bill processing")
-//            URL("https://goa.design/mysystem")
-//            External()
-//            Uses("Other System", "Uses", "gRPC", Synchronous)
-//            Delivers("Customer", "Delivers emails to", "SMTP", Synchronous)
-//        })
-//    })
-//
+//	var _ = Design(func() {
+//	    SoftwareSystem("My system", "A system with a great architecture", func() {
+//	        Tag("bill processing")
+//	        URL("https://goa.design/mysystem")
+//	        External()
+//	        Uses("Other System", "Uses", "gRPC", Synchronous)
+//	        Delivers("Customer", "Delivers emails to", "SMTP", Synchronous)
+//	    })
+//	})
 func SoftwareSystem(name string, args ...interface{}) *expr.SoftwareSystem {
 	w, ok := eval.Current().(*expr.Design)
 	if !ok {
@@ -76,44 +75,43 @@ func SoftwareSystem(name string, args ...interface{}) *expr.SoftwareSystem {
 //
 // The valid syntax for Container is thus:
 //
-//    Container("<name>")
+//	Container("<name>")
 //
-//    Container("<name>", "[description]")
+//	Container("<name>", "[description]")
 //
-//    Container("<name>", "[description]", "[technology]")
+//	Container("<name>", "[description]", "[technology]")
 //
-//    Container("<name>", func())
+//	Container("<name>", func())
 //
-//    Container("<name>", "[description]", func())
+//	Container("<name>", "[description]", func())
 //
-//    Container("<name>", "[description]", "[technology]", func())
+//	Container("<name>", "[description]", "[technology]", func())
 //
 // Container also accepts a Goa service as argument in which case the name and
 // description are taken from the service and the technology is set to "Go and
 // Goa v3"
 //
-//    Container(Service)
+//	Container(Service)
 //
-//    Container(Service, func())
+//	Container(Service, func())
 //
 // Example:
 //
-//    var _ = Design(func() {
-//        SoftwareSystem("My system", "A system with a great architecture", func() {
-//            Container("My service", "A service", "Go and Goa", func() {
-//                Tag("bill processing")
-//                URL("https://goa.design/mysystem")
-//                Uses("Other Container", "Uses", "gRPC", Synchronous)
-//                Delivers("Customer", "Delivers emails to", "SMTP", Synchronous)
-//            })
+//	var _ = Design(func() {
+//	    SoftwareSystem("My system", "A system with a great architecture", func() {
+//	        Container("My service", "A service", "Go and Goa", func() {
+//	            Tag("bill processing")
+//	            URL("https://goa.design/mysystem")
+//	            Uses("Other Container", "Uses", "gRPC", Synchronous)
+//	            Delivers("Customer", "Delivers emails to", "SMTP", Synchronous)
+//	        })
 //
-//            // Alternate syntax using a Goa service.
-//            Container(Service, func() {
-//                // ...
-//            })
-//        })
-//    })
-//
+//	        // Alternate syntax using a Goa service.
+//	        Container(Service, func() {
+//	            // ...
+//	        })
+//	    })
+//	})
 func Container(args ...interface{}) *expr.Container {
 	system, ok := eval.Current().(*expr.SoftwareSystem)
 	if !ok {
@@ -185,33 +183,32 @@ func Container(args ...interface{}) *expr.Container {
 //
 // The valid syntax for Component is thus:
 //
-//    Component("<name>")
+//	Component("<name>")
 //
-//    Component("<name>", "[description]")
+//	Component("<name>", "[description]")
 //
-//    Component("<name>", "[description]", "[technology]")
+//	Component("<name>", "[description]", "[technology]")
 //
-//    Component("<name>", func())
+//	Component("<name>", func())
 //
-//    Component("<name>", "[description]", func())
+//	Component("<name>", "[description]", func())
 //
-//    Component("<name>", "[description]", "[technology]", func())
+//	Component("<name>", "[description]", "[technology]", func())
 //
 // Example:
 //
-//    var _ = Design(func() {
-//        SoftwareSystem("My system", "A system with a great architecture", func() {
-//            Container("My container", "A container with a great architecture", "Go and Goa", func() {
-//                Component(Container, "My component", "A component", "Go and Goa", func() {
-//                    Tag("bill processing")
-//                    URL("https://goa.design/mysystem")
-//                    Uses("Other Component", "Uses", "gRPC", Synchronous)
-//                    Delivers("Customer", "Delivers emails to", "SMTP", Synchronous)
-//                })
-//            })
-//        })
-//    })
-//
+//	var _ = Design(func() {
+//	    SoftwareSystem("My system", "A system with a great architecture", func() {
+//	        Container("My container", "A container with a great architecture", "Go and Goa", func() {
+//	            Component(Container, "My component", "A component", "Go and Goa", func() {
+//	                Tag("bill processing")
+//	                URL("https://goa.design/mysystem")
+//	                Uses("Other Component", "Uses", "gRPC", Synchronous)
+//	                Delivers("Customer", "Delivers emails to", "SMTP", Synchronous)
+//	            })
+//	        })
+//	    })
+//	})
 func Component(name string, args ...interface{}) *expr.Component {
 	container, ok := eval.Current().(*expr.Container)
 	if !ok {
@@ -241,12 +238,11 @@ func Component(name string, args ...interface{}) *expr.Component {
 // parseElement is a helper function that parses the given element DSL
 // arguments. Accepted syntax are:
 //
-//     "[decription]"
-//     "[description]", "[technology]"
-//     func()
-//     "[description]", func()
-//     "[description]", "[technology]", func()
-//
+//	"[decription]"
+//	"[description]", "[technology]"
+//	func()
+//	"[description]", func()
+//	"[description]", "[technology]", func()
 func parseElementArgs(args ...interface{}) (description, technology string, dsl func(), err error) {
 	if len(args) == 0 {
 		return

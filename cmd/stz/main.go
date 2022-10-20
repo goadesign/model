@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -92,7 +91,7 @@ func gen(pkg string, out string, debug bool) error {
 	if err != nil {
 		cwd = "."
 	}
-	tmpDir, err := ioutil.TempDir(cwd, "stz")
+	tmpDir, err := os.MkdirTemp(cwd, "stz")
 	if err != nil {
 		return err
 	}
@@ -107,7 +106,6 @@ func gen(pkg string, out string, debug bool) error {
 	{
 		imports := []*codegen.ImportSpec{
 			codegen.SimpleImport("fmt"),
-			codegen.SimpleImport("io/ioutil"),
 			codegen.SimpleImport("encoding/json"),
 			codegen.SimpleImport("os"),
 			codegen.SimpleImport("goa.design/model/stz"),
@@ -154,7 +152,7 @@ func get(out, wid, key, secret string, debug bool) error {
 	if err != nil {
 		return err
 	}
-	return ioutil.WriteFile(out, b, 0644)
+	return os.WriteFile(out, b, 0644)
 }
 
 func put(path, wid, key, secret string, debug bool) error {
@@ -201,7 +199,7 @@ func put(path, wid, key, secret string, debug bool) error {
 	if err != nil {
 		return err
 	}
-	if err := ioutil.WriteFile(layoutPath, b, 0777); err != nil {
+	if err := os.WriteFile(layoutPath, b, 0777); err != nil {
 		return err
 	}
 
@@ -258,7 +256,7 @@ const mainT = `func main() {
         fmt.Fprintf(os.Stderr, "failed to encode into JSON: %s", err.Error())
         os.Exit(1)
 	}
-	if err := ioutil.WriteFile(out, b, 0644); err != nil {
+	if err := os.WriteFile(out, b, 0644); err != nil {
         fmt.Fprintf(os.Stderr, "failed to write file: %s", err.Error())
         os.Exit(1)
 	}

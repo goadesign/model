@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"path"
@@ -134,7 +133,7 @@ func loadLayouts(dir string) ([]byte, error) {
 	var layouts Layouts = make(map[string]Layout)
 	lj := path.Join(dir, "layout.json")
 	if fileExists(lj) {
-		b, err := ioutil.ReadFile(lj)
+		b, err := os.ReadFile(lj)
 		if err != nil {
 			return nil, err
 		}
@@ -145,7 +144,7 @@ func loadLayouts(dir string) ([]byte, error) {
 	}
 
 	var svgFiles []string
-	files, err := ioutil.ReadDir(dir)
+	files, err := os.ReadDir(dir)
 	if err != nil {
 		return nil, err
 	}
@@ -155,7 +154,7 @@ func loadLayouts(dir string) ([]byte, error) {
 		}
 	}
 	for _, file := range svgFiles {
-		b, err := ioutil.ReadFile(path.Join(dir, file))
+		b, err := os.ReadFile(path.Join(dir, file))
 		if err != nil {
 			return nil, err
 		}

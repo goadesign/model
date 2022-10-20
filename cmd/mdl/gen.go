@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path"
@@ -24,7 +23,7 @@ func gen(pkg string, debug bool) ([]byte, error) {
 	if err != nil {
 		cwd = "."
 	}
-	tmpDir, err := ioutil.TempDir(cwd, tmpDirPrefix)
+	tmpDir, err := os.MkdirTemp(cwd, tmpDirPrefix)
 	if err != nil {
 		return nil, err
 	}
@@ -33,7 +32,6 @@ func gen(pkg string, debug bool) ([]byte, error) {
 	{
 		imports := []*codegen.ImportSpec{
 			codegen.SimpleImport("fmt"),
-			codegen.SimpleImport("io/ioutil"),
 			codegen.SimpleImport("encoding/json"),
 			codegen.SimpleImport("os"),
 			codegen.SimpleImport("goa.design/model/mdl"),
@@ -66,7 +64,7 @@ func gen(pkg string, debug bool) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	return ioutil.ReadFile(path.Join(tmpDir, "model.json"))
+	return os.ReadFile(path.Join(tmpDir, "model.json"))
 }
 
 func runCmd(path, dir string, args ...string) (string, error) {
@@ -99,7 +97,7 @@ const mainT = `func main() {
 		fmt.Fprintf(os.Stderr, "failed to encode into JSON: %s", err.Error())
 		os.Exit(1)
 	}
-	if err := ioutil.WriteFile(out, b, 0644); err != nil {
+	if err := os.WriteFile(out, b, 0644); err != nil {
 		fmt.Fprintf(os.Stderr, "failed to write file: %s", err.Error())
 		os.Exit(1)
 	}

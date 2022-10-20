@@ -170,10 +170,10 @@ func (m *Model) DeploymentNode(env, name string) *DeploymentNode {
 
 // FindElement finds the element with the given path in the given scope. The path must be one of:
 //
-//    - "<Person>", "<SoftwareSystem>", "<SoftwareSystem>/<Container>" or "<SoftwareSystem>/<Container>/<Component>"
-//    - "<Container>" (if container is a child of the software system scope)
-//    - "<Component>" (if component is a child of the container scope)
-//    - "<Container>/<Component>" (if container is a child of the software system scope)
+//   - "<Person>", "<SoftwareSystem>", "<SoftwareSystem>/<Container>" or "<SoftwareSystem>/<Container>/<Component>"
+//   - "<Container>" (if container is a child of the software system scope)
+//   - "<Component>" (if component is a child of the container scope)
+//   - "<Container>/<Component>" (if container is a child of the software system scope)
 //
 // The scope may be nil in which case the path must be rooted with a top level
 // element (person or software system).
@@ -250,9 +250,9 @@ func (m *Model) FindElement(scope ElementHolder, path string) (eh ElementHolder,
 // with the given name then AddPerson merges both definitions. The merge
 // algorithm:
 //
-//    * overrides the description, technology and URL if provided,
-//    * merges any new tag or propery into the existing tags and properties,
-//    * merges any new relationship into the existing relationships.
+//   - overrides the description, technology and URL if provided,
+//   - merges any new tag or propery into the existing tags and properties,
+//   - merges any new relationship into the existing relationships.
 //
 // AddPerson returns the new or merged person.
 func (m *Model) AddPerson(p *Person) *Person {
@@ -275,10 +275,10 @@ func (m *Model) AddPerson(p *Person) *Person {
 // software system with the given name then AddSystem merges both definitions.
 // The merge algorithm:
 //
-//    * overrides the description, technology and URL if provided,
-//    * merges any new tag or propery into the existing tags and properties,
-//    * merges any new relationship into the existing relationships,
-//    * merges any new container into the existing containers.
+//   - overrides the description, technology and URL if provided,
+//   - merges any new tag or propery into the existing tags and properties,
+//   - merges any new relationship into the existing relationships,
+//   - merges any new container into the existing containers.
 //
 // AddSystem returns the new or merged software system.
 func (m *Model) AddSystem(s *SoftwareSystem) *SoftwareSystem {
@@ -301,12 +301,12 @@ func (m *Model) AddSystem(s *SoftwareSystem) *SoftwareSystem {
 // already a deployment node with the given name then AddDeploymentNode merges
 // both definitions. The merge algorithm:
 //
-//    * overrides the description, technology and URL if provided,
-//    * merges any new tag or propery into the existing tags and properties,
-//    * merges any new relationship into the existing relationships,
-//    * merges any new child deployment node into the existing children,
-//    * merges any new container instance or infrastructure nodes into existing
-//      ones.
+//   - overrides the description, technology and URL if provided,
+//   - merges any new tag or propery into the existing tags and properties,
+//   - merges any new relationship into the existing relationships,
+//   - merges any new child deployment node into the existing children,
+//   - merges any new container instance or infrastructure nodes into existing
+//     ones.
 //
 // AddDeploymentNode returns the new or merged deployment node.
 func (m *Model) AddDeploymentNode(d *DeploymentNode) *DeploymentNode {
