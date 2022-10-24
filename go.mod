@@ -7,7 +7,7 @@ require (
 	github.com/jaschaephraim/lrserver v0.0.0-20171129202958-50d19f603f71
 	github.com/kylelemons/godebug v1.1.0
 	goa.design/goa/v3 v3.10.1
-	golang.org/x/tools v0.1.12
+	golang.org/x/tools v0.2.0
 )
 
 require (
@@ -23,8 +23,8 @@ require (
 	github.com/sergi/go-diff v1.2.0 // indirect
 	github.com/smartystreets/assertions v1.2.1 // indirect
 	github.com/zach-klippenstein/goregen v0.0.0-20160303162051-795b5e3961ea // indirect
-	golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4 // indirect
-	golang.org/x/sys v0.0.0-20221006211917-84dc82d7e875 // indirect
+	golang.org/x/mod v0.6.0 // indirect
+	golang.org/x/sys v0.1.0 // indirect
 	golang.org/x/text v0.3.7 // indirect
 	gopkg.in/fsnotify.v1 v1.4.7 // indirect
 )
