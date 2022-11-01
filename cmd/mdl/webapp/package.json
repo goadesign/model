@@ -26,7 +26,7 @@
 		"@babel/preset-typescript": "7.18.6",
 		"@pmmmwh/react-refresh-webpack-plugin": "^0.5.8",
 		"@types/dagre": "^0.7.48",
-		"@types/react": "18.0.22",
+		"@types/react": "18.0.24",
 		"@types/react-dom": "18.0.8",
 		"@types/react-router": "5.1.19",
 		"@types/react-router-dom": "5.3.3",
