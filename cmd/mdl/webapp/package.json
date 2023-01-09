@@ -31,7 +31,7 @@
 		"@types/react-router": "5.1.20",
 		"@types/react-router-dom": "5.3.3",
 		"@types/react-syntax-highlighter": "15.5.5",
-		"babel-loader": "9.1.0",
+		"babel-loader": "9.1.2",
 		"css-loader": "6.7.3",
 		"eslint": "^8.31.0",
 		"eslint-plugin-react": "7.31.11",
