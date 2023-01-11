@@ -293,7 +293,7 @@ func ContainerInstance(container interface{}, dsl ...func()) *expr.ContainerInst
 //
 // Instances must appear in a DeploymentNode expression.
 //
-// Instances accepts a single argument which is the string.
+// Instances accepts a single argument which is a string.
 //
 // Instances can either be a static number, or a range (e.g. 0..1, 1..3, 5..10, 0..N, 0..*, 1..N, 1..*, etc).
 //
