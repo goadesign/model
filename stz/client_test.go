@@ -550,7 +550,7 @@ var bigBankPLC = `{
                 "description": "A developer laptop.",
                 "environment": "Development",
                 "technology": "Microsoft Windows 10 or Apple macOS",
-                "instances": 1,
+                "instances": "1",
                 "children": [
                     {
                         "id": "55",
@@ -559,7 +559,7 @@ var bigBankPLC = `{
                         "description": "A Docker container.",
                         "environment": "Development",
                         "technology": "Docker",
-                        "instances": 1,
+                        "instances": "1",
                         "children": [
                             {
                                 "id": "56",
@@ -568,7 +568,7 @@ var bigBankPLC = `{
                                 "description": "A development database.",
                                 "environment": "Development",
                                 "technology": "Oracle 12c",
-                                "instances": 1,
+                                "instances": "1",
                                 "containerInstances": [
                                     {
                                         "id": "57",
@@ -593,7 +593,7 @@ var bigBankPLC = `{
                         "description": "A Docker container.",
                         "environment": "Development",
                         "technology": "Docker",
-                        "instances": 1,
+                        "instances": "1",
                         "children": [
                             {
                                 "id": "52",
@@ -607,7 +607,7 @@ var bigBankPLC = `{
                                 "description": "An open source Java EE web server.",
                                 "environment": "Development",
                                 "technology": "Apache Tomcat 8.x",
-                                "instances": 1,
+                                "instances": "1",
                                 "containerInstances": [
                                     {
                                         "id": "54",
@@ -660,7 +660,7 @@ var bigBankPLC = `{
                         "name": "Web Browser",
                         "environment": "Development",
                         "technology": "Chrome, Firefox, Safari, or Edge",
-                        "instances": 1,
+                        "instances": "1",
                         "containerInstances": [
                             {
                                 "id": "60",
@@ -695,7 +695,7 @@ var bigBankPLC = `{
                 "name": "Big Bank plc",
                 "environment": "Live",
                 "technology": "Big Bank plc data center",
-                "instances": 1,
+                "instances": "1",
                 "children": [
                     {
                         "id": "73",
@@ -707,7 +707,7 @@ var bigBankPLC = `{
                         "description": "A web server residing in the web server farm, accessed via F5 BIG-IP LTMs.",
                         "environment": "Live",
                         "technology": "Ubuntu 16.04 LTS",
-                        "instances": 8,
+                        "instances": "8",
                         "children": [
                             {
                                 "id": "74",
@@ -721,7 +721,7 @@ var bigBankPLC = `{
                                 "description": "An open source Java EE web server.",
                                 "environment": "Live",
                                 "technology": "Apache Tomcat 8.x",
-                                "instances": 1,
+                                "instances": "1",
                                 "containerInstances": [
                                     {
                                         "id": "75",
@@ -770,7 +770,7 @@ var bigBankPLC = `{
                         "description": "The primary database server.",
                         "environment": "Live",
                         "technology": "Ubuntu 16.04 LTS",
-                        "instances": 1,
+                        "instances": "1",
                         "children": [
                             {
                                 "id": "79",
@@ -789,7 +789,7 @@ var bigBankPLC = `{
                                 ],
                                 "environment": "Live",
                                 "technology": "Oracle 12c",
-                                "instances": 1,
+                                "instances": "1",
                                 "containerInstances": [
                                     {
                                         "id": "80",
@@ -817,7 +817,7 @@ var bigBankPLC = `{
                         "description": "The secondary database server.",
                         "environment": "Live",
                         "technology": "Ubuntu 16.04 LTS",
-                        "instances": 1,
+                        "instances": "1",
                         "children": [
                             {
                                 "id": "83",
@@ -826,7 +826,7 @@ var bigBankPLC = `{
                                 "description": "A secondary, standby database server, used for failover purposes only.",
                                 "environment": "Live",
                                 "technology": "Oracle 12c",
-                                "instances": 1,
+                                "instances": "1",
                                 "containerInstances": [
                                     {
                                         "id": "84",
@@ -854,7 +854,7 @@ var bigBankPLC = `{
                         "description": "A web server residing in the web server farm, accessed via F5 BIG-IP LTMs.",
                         "environment": "Live",
                         "technology": "Ubuntu 16.04 LTS",
-                        "instances": 4,
+                        "instances": "4",
                         "children": [
                             {
                                 "id": "70",
@@ -868,7 +868,7 @@ var bigBankPLC = `{
                                 "description": "An open source Java EE web server.",
                                 "environment": "Live",
                                 "technology": "Apache Tomcat 8.x",
-                                "instances": 1,
+                                "instances": "1",
                                 "containerInstances": [
                                     {
                                         "id": "71",
@@ -906,7 +906,7 @@ var bigBankPLC = `{
                 "name": "Customer's computer",
                 "environment": "Live",
                 "technology": "Microsoft Windows or Apple macOS",
-                "instances": 1,
+                "instances": "1",
                 "children": [
                     {
                         "id": "66",
@@ -914,7 +914,7 @@ var bigBankPLC = `{
                         "name": "Web Browser",
                         "environment": "Live",
                         "technology": "Chrome, Firefox, Safari, or Edge",
-                        "instances": 1,
+                        "instances": "1",
                         "containerInstances": [
                             {
                                 "id": "67",
@@ -949,7 +949,7 @@ var bigBankPLC = `{
                 "name": "Customer's mobile device",
                 "environment": "Live",
                 "technology": "Apple iOS or Android",
-                "instances": 1,
+                "instances": "1",
                 "containerInstances": [
                     {
                         "id": "64",

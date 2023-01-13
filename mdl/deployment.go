@@ -15,7 +15,7 @@ type (
 		// node resides (e.g. "Development", "Live", etc).
 		Environment string `json:"environment"`
 		// Instances is the number of instances.
-		Instances *int `json:"instances,omitempty"`
+		Instances *string `json:"instances,omitempty"`
 		// Tags attached to element as comma separated list if any.
 		Tags string `json:"tags,omitempty"`
 		// URL where more information about this element can be found.

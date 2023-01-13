@@ -18,7 +18,7 @@ type (
 		Children            []*DeploymentNode
 		InfrastructureNodes []*InfrastructureNode
 		ContainerInstances  []*ContainerInstance
-		Instances           *int
+		Instances           *string
 		Environment         string
 	}
 

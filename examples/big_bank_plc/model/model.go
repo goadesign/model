@@ -262,7 +262,7 @@ var _ = Design("Big Bank plc", "This is an example workspace to illustrate the k
 
 			BigBankAPI = DeploymentNode("bigbank-api***", "A web server residing in the web server farm, accessed via F5 BIG-IP LTMs.", "Ubuntu 16.04 LTS", func() {
 				Tag("Element", "Deployment Node")
-				Instances(8)
+				Instances("8")
 				Prop("Location", "London and Reading")
 
 				LiveAPIApp = DeploymentNode("Apache Tomcat", "An open source Java EE web server.", "Apache Tomcat 8.x", func() {
@@ -308,7 +308,7 @@ var _ = Design("Big Bank plc", "This is an example workspace to illustrate the k
 
 			BigBankWeb = DeploymentNode("bigbank-web***", "A web server residing in the web server farm, accessed via F5 BIG-IP LTMs.", "Ubuntu 16.04 LTS", func() {
 				Tag("Element", "Deployment Node")
-				Instances(4)
+				Instances("4")
 				Prop("Location", "London and Reading")
 
 				LiveWebApp = DeploymentNode("Apache Tomcat", "An open source Java EE web server.", "Apache Tomcat 8.x", func() {

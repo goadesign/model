@@ -113,7 +113,7 @@ func DeploymentNode(name string, args ...interface{}) *expr.DeploymentNode {
 		eval.ReportError("DeploymentNode: " + err.Error())
 		return nil
 	}
-	one := 1
+	one := "1"
 	node := &expr.DeploymentNode{
 		Element: &expr.Element{
 			Name:        name,
@@ -293,18 +293,20 @@ func ContainerInstance(container interface{}, dsl ...func()) *expr.ContainerInst
 //
 // Instances must appear in a DeploymentNode expression.
 //
-// Instances accepts a single argument which is the number.
+// Instances accepts a single argument which is a string.
+//
+// Instances can either be a static number, or a range (e.g. 0..1, 1..3, 5..10, 0..N, 0..*, 1..N, 1..*, etc).
 //
 // Example:
 //
 //	var _ = Design(func() {
 //	    DeploymentEnvironment("Production", func() {
 //	        DeploymentNode("Web app", func() {
-//	            Instances(3)
+//	            Instances("3")
 //	        })
 //	    })
 //	})
-func Instances(n int) {
+func Instances(n string) {
 	node, ok := eval.Current().(*expr.DeploymentNode)
 	if !ok {
 		eval.IncompatibleDSL()
