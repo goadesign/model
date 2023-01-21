@@ -1,0 +1,2829 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>expr: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">goa.design/model/expr/component.go (100.0%)</option>
+				
+				<option value="file1">goa.design/model/expr/container.go (93.3%)</option>
+				
+				<option value="file2">goa.design/model/expr/deployment.go (0.0%)</option>
+				
+				<option value="file3">goa.design/model/expr/design.go (12.5%)</option>
+				
+				<option value="file4">goa.design/model/expr/element.go (71.0%)</option>
+				
+				<option value="file5">goa.design/model/expr/filtered_views.go (0.0%)</option>
+				
+				<option value="file6">goa.design/model/expr/model.go (0.0%)</option>
+				
+				<option value="file7">goa.design/model/expr/person.go (100.0%)</option>
+				
+				<option value="file8">goa.design/model/expr/registry.go (37.0%)</option>
+				
+				<option value="file9">goa.design/model/expr/relationship.go (0.0%)</option>
+				
+				<option value="file10">goa.design/model/expr/render.go (0.0%)</option>
+				
+				<option value="file11">goa.design/model/expr/system.go (0.0%)</option>
+				
+				<option value="file12">goa.design/model/expr/view_props.go (0.0%)</option>
+				
+				<option value="file13">goa.design/model/expr/views.go (0.0%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package expr
+
+import (
+        "fmt"
+)
+
+type (
+        // Component represents a component.
+        Component struct {
+                *Element
+                Container *Container
+        }
+
+        // Components is a slice of components that can be easily converted into
+        // a slice of ElementHolder.
+        Components []*Component
+)
+
+// EvalName returns the generic expression name used in error messages.
+func (c *Component) EvalName() string <span class="cov8" title="1">{
+        if c.Name == "" </span><span class="cov8" title="1">{
+                return "unnamed component"
+        }</span>
+        <span class="cov8" title="1">return fmt.Sprintf("component %q", c.Name)</span>
+}
+
+// Finalize adds the 'Component' tag ands finalizes relationships.
+func (c *Component) Finalize() <span class="cov8" title="1">{
+        c.PrefixTags("Element", "Component")
+        c.Element.Finalize()
+}</span>
+
+// Elements returns a slice of ElementHolder that contains the elements of c.
+func (cs Components) Elements() []ElementHolder <span class="cov8" title="1">{
+        res := make([]ElementHolder, len(cs))
+        for i, cc := range cs </span><span class="cov8" title="1">{
+                res[i] = cc
+        }</span>
+        <span class="cov8" title="1">return res</span>
+}
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package expr
+
+import (
+        "fmt"
+        "strings"
+)
+
+type (
+        // Container represents a container.
+        Container struct {
+                *Element
+                Components Components
+                System     *SoftwareSystem
+        }
+
+        // Containers is a slice of containers that can be easily
+        // converted into a slice of ElementHolder.
+        Containers []*Container
+)
+
+// EvalName returns the generic expression name used in error messages.
+func (c *Container) EvalName() string <span class="cov8" title="1">{
+        if c.Name == "" </span><span class="cov8" title="1">{
+                return "unnamed container"
+        }</span>
+        <span class="cov8" title="1">return fmt.Sprintf("container %q", c.Name)</span>
+}
+
+// Finalize adds the 'Container' tag ands finalizes relationships.
+func (c *Container) Finalize() <span class="cov8" title="1">{
+        c.PrefixTags("Element", "Container")
+        c.Element.Finalize()
+}</span>
+
+// Elements returns a slice of ElementHolder that contains the elements of c.
+func (c Containers) Elements() []ElementHolder <span class="cov8" title="1">{
+        res := make([]ElementHolder, len(c))
+        for i, cc := range c </span><span class="cov8" title="1">{
+                res[i] = cc
+        }</span>
+        <span class="cov8" title="1">return res</span>
+}
+
+// Component returns the component with the given name if any, nil otherwise.
+func (c *Container) Component(name string) *Component <span class="cov8" title="1">{
+        for _, cc := range c.Components </span><span class="cov8" title="1">{
+                if cc.Name == name </span><span class="cov8" title="1">{
+                        return cc
+                }</span>
+        }
+        <span class="cov8" title="1">return nil</span>
+}
+
+// AddComponent adds the given component to the container. If there is already a
+// component with the given name then AddComponent merges both definitions. The
+// merge algorithm:
+//
+//   - overrides the description, technology and URL if provided,
+//   - merges any new tag or propery into the existing tags and properties,
+//
+// AddComponent returns the new or merged component.
+func (c *Container) AddComponent(cmp *Component) *Component <span class="cov8" title="1">{
+        existing := c.Component(cmp.Name)
+        if existing == nil </span><span class="cov8" title="1">{
+                Identify(cmp)
+                c.Components = append(c.Components, cmp)
+                return cmp
+        }</span>
+        <span class="cov8" title="1">if cmp.Description != "" </span><span class="cov8" title="1">{
+                existing.Description = cmp.Description
+        }</span>
+        <span class="cov8" title="1">if cmp.Technology != "" </span><span class="cov8" title="1">{
+                existing.Technology = cmp.Technology
+        }</span>
+        <span class="cov8" title="1">if cmp.URL != "" </span><span class="cov8" title="1">{
+                existing.URL = cmp.URL
+        }</span>
+        <span class="cov8" title="1">existing.MergeTags(strings.Split(cmp.Tags, ",")...)
+        if olddsl := existing.DSLFunc; olddsl != nil </span><span class="cov8" title="1">{
+                existing.DSLFunc = func() </span><span class="cov0" title="0">{ olddsl(); cmp.DSLFunc() }</span>
+        }
+        <span class="cov8" title="1">return existing</span>
+}
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">package expr
+
+import (
+        "fmt"
+)
+
+type (
+        // DeploymentEnvironment provides context to the other deployment expressions.
+        DeploymentEnvironment struct {
+                // Name of environment.
+                Name string
+        }
+
+        // DeploymentNode describes a single deployment node.
+        DeploymentNode struct {
+                *Element
+                Parent              *DeploymentNode
+                Children            []*DeploymentNode
+                InfrastructureNodes []*InfrastructureNode
+                ContainerInstances  []*ContainerInstance
+                Instances           *string
+                Environment         string
+        }
+
+        // InfrastructureNode describes an infrastructure node.
+        InfrastructureNode struct {
+                *Element
+                Parent      *DeploymentNode
+                Environment string
+        }
+
+        // ContainerInstance describes an instance of a container.
+        ContainerInstance struct {
+                // cheating a bit: a ContainerInstance does not have a name,
+                // description, technology or URL.
+                *Element
+                Parent       *DeploymentNode
+                Container    *Container
+                HealthChecks []*HealthCheck
+                ContainerID  string
+                InstanceID   int
+                Environment  string
+        }
+
+        // InfrastructureNodes is a slice of infrastructure nodes that can be
+        // converted into a slice of ElementHolder.
+        InfrastructureNodes []*InfrastructureNode
+
+        // ContainerInstances is a slice of container instances that can be
+        // converted into a slice of ElementHolder.
+        ContainerInstances []*ContainerInstance
+
+        // HealthCheck is a HTTP-based health check.
+        HealthCheck struct {
+                Name     string
+                URL      string
+                Interval int
+                Timeout  int
+                Headers  map[string]string
+        }
+)
+
+// EvalName returns the generic expression name used in error messages.
+func (d *DeploymentEnvironment) EvalName() string <span class="cov0" title="0">{
+        return fmt.Sprintf("deployment environment %q", d.Name)
+}</span>
+
+// EvalName returns the generic expression name used in error messages.
+func (d *DeploymentNode) EvalName() string <span class="cov0" title="0">{ return fmt.Sprintf("deployment node %q", d.Name) }</span>
+
+// Finalize adds the 'Deployment Node' tag ands finalizes relationships.
+func (d *DeploymentNode) Finalize() <span class="cov0" title="0">{
+        d.PrefixTags("Element", "Deployment Node")
+        d.Element.Finalize()
+}</span>
+
+// Child returns the child deployment node with the given name if any,
+// nil otherwise.
+func (d *DeploymentNode) Child(name string) *DeploymentNode <span class="cov0" title="0">{
+        for _, dd := range d.Children </span><span class="cov0" title="0">{
+                if dd.Name == name </span><span class="cov0" title="0">{
+                        return dd
+                }</span>
+        }
+        <span class="cov0" title="0">return nil</span>
+}
+
+// InfrastructureNode returns the infrastructure node with the given name if
+// any, nil otherwise.
+func (d *DeploymentNode) InfrastructureNode(name string) *InfrastructureNode <span class="cov0" title="0">{
+        for _, i := range d.InfrastructureNodes </span><span class="cov0" title="0">{
+                if i.Name == name </span><span class="cov0" title="0">{
+                        return i
+                }</span>
+        }
+        <span class="cov0" title="0">return nil</span>
+}
+
+// ContainerInstanceByID returns the container instance for the given container
+// with the given instance ID if any, nil otherwise.
+func (d *DeploymentNode) ContainerInstanceByID(containerID string, instanceID int) *ContainerInstance <span class="cov0" title="0">{
+        for _, ci := range d.ContainerInstances </span><span class="cov0" title="0">{
+                if ci.ContainerID == containerID &amp;&amp; ci.InstanceID == instanceID </span><span class="cov0" title="0">{
+                        return ci
+                }</span>
+        }
+        <span class="cov0" title="0">return nil</span>
+}
+
+// ContainerInstanceByName returns the container instance for the given
+// container with the given name if any, nil otherwise.
+//
+// Note that in theory there could be be multiple containers with the given name
+// coming from different software systems in a single deployment node. In
+// practice the likelyhood of this happening seems pretty slim so we'll keep it
+// simple for now...
+func (d *DeploymentNode) ContainerInstanceByName(name string, instanceID int) *ContainerInstance <span class="cov0" title="0">{
+        for _, ci := range d.ContainerInstances </span><span class="cov0" title="0">{
+                if ci.Name == name &amp;&amp; ci.InstanceID == instanceID </span><span class="cov0" title="0">{
+                        return ci
+                }</span>
+        }
+        <span class="cov0" title="0">return nil</span>
+}
+
+// AddChild adds the given child deployment node to the parent. If
+// there is already a deployment node with the given name then AddChild
+// merges both definitions. The merge algorithm:
+//
+//   - overrides the description, technology and URL if provided,
+//   - merges any new tag or propery into the existing tags and properties,
+//   - merges any new child deployment node into the existing children,
+//   - merges any new container instance or infrastructure nodes into existing
+//     ones.
+//
+// AddChild returns the new or merged deployment node.
+func (d *DeploymentNode) AddChild(n *DeploymentNode) *DeploymentNode <span class="cov0" title="0">{
+        existing := d.Child(n.Name)
+        if existing == nil </span><span class="cov0" title="0">{
+                Identify(n)
+                d.Children = append(d.Children, n)
+                return n
+        }</span>
+        <span class="cov0" title="0">if n.Description != "" </span><span class="cov0" title="0">{
+                existing.Description = n.Description
+        }</span>
+        <span class="cov0" title="0">if n.Technology != "" </span><span class="cov0" title="0">{
+                existing.Technology = n.Technology
+        }</span>
+        <span class="cov0" title="0">if olddsl := existing.DSLFunc; olddsl != nil </span><span class="cov0" title="0">{
+                existing.DSLFunc = func() </span><span class="cov0" title="0">{ olddsl(); n.DSLFunc() }</span>
+        }
+        <span class="cov0" title="0">return existing</span>
+}
+
+// AddInfrastructureNode adds the given infrastructure node to the deployment
+// node. If there is already an infrastructure node with the given name then
+// AddInfrastructureNode merges both definitions. The merge algorithm:
+//
+//   - overrides the description, technology and URL if provided,
+//   - merges any new tag or propery into the existing tags and properties.
+//
+// AddInfrastructureNode returns the new or merged infrastructure node.
+func (d *DeploymentNode) AddInfrastructureNode(n *InfrastructureNode) *InfrastructureNode <span class="cov0" title="0">{
+        existing := d.InfrastructureNode(n.Name)
+        if existing == nil </span><span class="cov0" title="0">{
+                Identify(n)
+                d.InfrastructureNodes = append(d.InfrastructureNodes, n)
+                return n
+        }</span>
+        <span class="cov0" title="0">if n.Description != "" </span><span class="cov0" title="0">{
+                existing.Description = n.Description
+        }</span>
+        <span class="cov0" title="0">if n.Technology != "" </span><span class="cov0" title="0">{
+                existing.Technology = n.Technology
+        }</span>
+        <span class="cov0" title="0">if olddsl := existing.DSLFunc; olddsl != nil </span><span class="cov0" title="0">{
+                existing.DSLFunc = func() </span><span class="cov0" title="0">{ olddsl(); n.DSLFunc() }</span>
+        }
+        <span class="cov0" title="0">return existing</span>
+}
+
+// AddContainerInstance adds the given container instance to the deployment
+// node. If there is already a container instance with the given container and
+// instance ID then AddContainerInstance merges both definitions. The merge
+// algorithm:
+//
+//   - overrides the description, technology and URL if provided,
+//   - merges any new tag or propery into the existing tags and properties,
+//   - merges any new health check into the existing health checks.
+//
+// AddContainerInstance returns the new or merged container instance.
+func (d *DeploymentNode) AddContainerInstance(ci *ContainerInstance) *ContainerInstance <span class="cov0" title="0">{
+        c := Registry[ci.ContainerID].(*Container)
+        existing := d.ContainerInstanceByID(c.ID, ci.InstanceID)
+        if existing == nil </span><span class="cov0" title="0">{
+                Identify(ci)
+                d.ContainerInstances = append(d.ContainerInstances, ci)
+                return ci
+        }</span>
+        <span class="cov0" title="0">if ci.Description != "" </span><span class="cov0" title="0">{
+                existing.Description = ci.Description
+        }</span>
+        <span class="cov0" title="0">if ci.Technology != "" </span><span class="cov0" title="0">{
+                existing.Technology = ci.Technology
+        }</span>
+        <span class="cov0" title="0">existing.HealthChecks = append(existing.HealthChecks, ci.HealthChecks...)
+        if olddsl := existing.DSLFunc; olddsl != nil </span><span class="cov0" title="0">{
+                existing.DSLFunc = func() </span><span class="cov0" title="0">{ olddsl(); ci.DSLFunc() }</span>
+        }
+        <span class="cov0" title="0">return existing</span>
+}
+
+// EvalName returns the generic expression name used in error messages.
+func (i *InfrastructureNode) EvalName() string <span class="cov0" title="0">{
+        return fmt.Sprintf("infrastructure node %q", i.Name)
+}</span>
+
+// Finalize adds the 'Infrastructure Node' tag ands finalizes relationships.
+func (i *InfrastructureNode) Finalize() <span class="cov0" title="0">{
+        i.PrefixTags("Element", "Infrastructure Node")
+        i.Element.Finalize()
+}</span>
+
+// EvalName returns the generic expression name used in error messages.
+func (ci *ContainerInstance) EvalName() string <span class="cov0" title="0">{
+        n := "unknown container"
+        if cn, ok := Registry[ci.ContainerID]; ok </span><span class="cov0" title="0">{
+                n = fmt.Sprintf("container %q", cn.(*Container).Name)
+        }</span>
+        <span class="cov0" title="0">return fmt.Sprintf("instance %d of %s", ci.InstanceID, n)</span>
+}
+
+// Finalize adds the "Container Instance" tag if not present.
+func (ci *ContainerInstance) Finalize() <span class="cov0" title="0">{
+        ci.PrefixTags("Container Instance")
+        ci.Element.Finalize()
+}</span>
+
+// EvalName returns the generic expression name used in error messages.
+func (hc *HealthCheck) EvalName() string <span class="cov0" title="0">{
+        return fmt.Sprintf("health check %q", hc.Name)
+}</span>
+
+// Elements returns a slice of ElementHolder that contains the elements of inf.
+func (inf InfrastructureNodes) Elements() []ElementHolder <span class="cov0" title="0">{
+        res := make([]ElementHolder, len(inf))
+        for i, cc := range inf </span><span class="cov0" title="0">{
+                res[i] = cc
+        }</span>
+        <span class="cov0" title="0">return res</span>
+}
+
+// Elements returns a slice of ElementHolder that contains the elements of ci.
+func (ci ContainerInstances) Elements() []ElementHolder <span class="cov0" title="0">{
+        res := make([]ElementHolder, len(ci))
+        for i, cc := range ci </span><span class="cov0" title="0">{
+                res[i] = cc
+        }</span>
+        <span class="cov0" title="0">return res</span>
+}
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">package expr
+
+import (
+        "fmt"
+
+        "goa.design/goa/v3/eval"
+        "goa.design/goa/v3/expr"
+        model "goa.design/model/pkg"
+)
+
+type (
+        // Design contains the AST generated from the DSL.
+        Design struct {
+                Name        string
+                Description string
+                Version     string
+                Model       *Model
+                Views       *Views
+        }
+)
+
+// Root is the design root expression.
+var Root = &amp;Design{Model: &amp;Model{}, Views: &amp;Views{}}
+
+// Register design root with eval engine.
+func init() <span class="cov8" title="1">{
+        eval.Register(Root)
+}</span>
+
+// WalkSets iterates over the elements and views.
+// Elements DSL cannot be executed on init because all elements must first be
+// loaded and their IDs captured in the registry before relationships can be
+// built with DSL.
+func (d *Design) WalkSets(walk eval.SetWalker) <span class="cov0" title="0">{
+        // 1. Model
+        walk([]eval.Expression{d.Model})
+        // 2. People
+        walk(eval.ToExpressionSet(d.Model.People))
+        // 3. Systems
+        walk(eval.ToExpressionSet(d.Model.Systems))
+        // 4. Containers
+        for _, s := range d.Model.Systems </span><span class="cov0" title="0">{
+                walk(eval.ToExpressionSet(s.Containers))
+        }</span>
+        // 5. Components
+        <span class="cov0" title="0">for _, s := range d.Model.Systems </span><span class="cov0" title="0">{
+                for _, c := range s.Containers </span><span class="cov0" title="0">{
+                        walk(eval.ToExpressionSet(c.Components))
+                }</span>
+        }
+        // 6. Deployment environments
+        <span class="cov0" title="0">walkDeploymentNodes(d.Model.DeploymentNodes, walk)
+        // 7. Views
+        walk([]eval.Expression{d.Views})</span>
+}
+
+// Packages returns the import path to the Go packages that make
+// up the DSL. This is used to skip frames that point to files
+// in these packages when computing the location of errors.
+func (d *Design) Packages() []string <span class="cov8" title="1">{
+        return []string{
+                "goa.design/model/expr",
+                "goa.design/model/dsl",
+                fmt.Sprintf("goa.design/model@%s/expr", model.Version()),
+                fmt.Sprintf("goa.design/model@%s/dsl", model.Version()),
+        }
+}</span>
+
+// DependsOn tells the eval engine to run the goa DSL first.
+func (d *Design) DependsOn() []eval.Root <span class="cov0" title="0">{ return []eval.Root{expr.Root} }</span>
+
+// EvalName returns the generic expression name used in error messages.
+func (d *Design) EvalName() string <span class="cov8" title="1">{ return "root" }</span>
+
+func walkDeploymentNodes(n []*DeploymentNode, walk eval.SetWalker) <span class="cov0" title="0">{
+        if n == nil </span><span class="cov0" title="0">{
+                return
+        }</span>
+        <span class="cov0" title="0">walk(eval.ToExpressionSet(n))
+        for _, d := range n </span><span class="cov0" title="0">{
+                walk(eval.ToExpressionSet(d.InfrastructureNodes))
+                walk(eval.ToExpressionSet(d.ContainerInstances))
+                walkDeploymentNodes(d.Children, walk)
+        }</span>
+}
+
+// Person returns the person with the given name if any, nil otherwise.
+func (d *Design) Person(name string) *Person <span class="cov0" title="0">{
+        return d.Model.Person(name)
+}</span>
+
+// SoftwareSystem returns the software system with the given name if any, nil
+// otherwise.
+func (d *Design) SoftwareSystem(name string) *SoftwareSystem <span class="cov0" title="0">{
+        return d.Model.SoftwareSystem(name)
+}</span>
+
+// DeploymentNode returns the deployment node with the given name in the given
+// environment if any, nil otherwise.
+func (d *Design) DeploymentNode(env, name string) *DeploymentNode <span class="cov0" title="0">{
+        return d.Model.DeploymentNode(env, name)
+}</span>
+</pre>
+		
+		<pre class="file" id="file4" style="display: none">package expr
+
+import (
+        "strings"
+)
+
+type (
+        // Element describes an element.
+        Element struct {
+                ID            string
+                Name          string
+                Description   string
+                Technology    string
+                Tags          string
+                URL           string
+                Properties    map[string]string
+                Relationships []*Relationship
+                DSLFunc       func()
+        }
+
+        // ElementHolder provides access to the underlying element.
+        ElementHolder interface {
+                GetElement() *Element
+        }
+
+        // LocationKind is the enum for possible locations.
+        LocationKind int
+)
+
+const (
+        // LocationUndefined means no location specified in design.
+        LocationUndefined LocationKind = iota
+        // LocationInternal defines an element internal to the enterprise.
+        LocationInternal
+        // LocationExternal defines an element external to the enterprise.
+        LocationExternal
+)
+
+// DSL returns the attached DSL.
+func (e *Element) DSL() func() <span class="cov0" title="0">{ return e.DSLFunc }</span>
+
+// Finalize finalizes the relationships.
+func (e *Element) Finalize() <span class="cov8" title="1">{
+        for _, rel := range e.Relationships </span><span class="cov0" title="0">{
+                rel.Finalize()
+        }</span>
+}
+
+// GetElement returns the underlying element.
+func (e *Element) GetElement() *Element <span class="cov0" title="0">{ return e }</span>
+
+// MergeTags adds the given tags. It skips tags already present in e.Tags.
+func (e *Element) MergeTags(tags ...string) <span class="cov8" title="1">{
+        e.Tags = mergeTags(e.Tags, tags)
+}</span>
+
+// PrefixTags adds the given tags to the beginning of the comma separated list.
+func (e *Element) PrefixTags(tags ...string) <span class="cov8" title="1">{
+        prefix := strings.Join(tags, ",")
+        if e.Tags == "" </span><span class="cov0" title="0">{
+                e.Tags = prefix
+                return
+        }</span>
+        <span class="cov8" title="1">e.Tags = mergeTags(prefix, strings.Split(e.Tags, ","))</span>
+}
+
+// mergeTags merges the comma separated tags in old with the ones in tags and
+// returns a comma separated string with the results.
+func mergeTags(existing string, tags []string) string <span class="cov8" title="1">{
+        if existing == "" </span><span class="cov8" title="1">{
+                return strings.Join(tags, ",")
+        }</span>
+        <span class="cov8" title="1">old := strings.Split(existing, ",")
+        var merged []string
+        for _, o := range old </span><span class="cov8" title="1">{
+                found := false
+                for _, tag := range tags </span><span class="cov8" title="1">{
+                        if tag == o </span><span class="cov0" title="0">{
+                                found = true
+                                break</span>
+                        }
+                }
+                <span class="cov8" title="1">if !found </span><span class="cov8" title="1">{
+                        merged = append(merged, o)
+                }</span>
+        }
+        <span class="cov8" title="1">for _, tag := range tags </span><span class="cov8" title="1">{
+                found := false
+                for _, o := range merged </span><span class="cov8" title="1">{
+                        if tag == o </span><span class="cov0" title="0">{
+                                found = true
+                                break</span>
+                        }
+                }
+                <span class="cov8" title="1">if !found </span><span class="cov8" title="1">{
+                        merged = append(merged, tag)
+                }</span>
+        }
+        <span class="cov8" title="1">return strings.Join(merged, ",")</span>
+}
+</pre>
+		
+		<pre class="file" id="file5" style="display: none">package expr
+
+import (
+        "fmt"
+)
+
+type (
+        // FilteredView describes a filtered view on top of a specified view.
+        FilteredView struct {
+                Title       string
+                Description string
+                Key         string `json:"key"`
+                BaseKey     string
+                Exclude     bool
+                FilterTags  []string
+        }
+)
+
+// EvalName returns the generic expression name used in error messages.
+func (fv *FilteredView) EvalName() string <span class="cov0" title="0">{
+        var suffix string
+        if fv.Key != "" </span><span class="cov0" title="0">{
+                suffix = fmt.Sprintf(" key %q and", fv.Key)
+        }</span>
+        <span class="cov0" title="0">return fmt.Sprintf("filtered view with%s base key %q", suffix, fv.BaseKey)</span>
+}
+</pre>
+		
+		<pre class="file" id="file6" style="display: none">package expr
+
+import (
+        "fmt"
+        "strings"
+
+        "goa.design/goa/v3/eval"
+)
+
+type (
+        // Model describes a software architecture model.
+        Model struct {
+                Enterprise              string
+                People                  People
+                Systems                 SoftwareSystems
+                DeploymentNodes         []*DeploymentNode
+                AddImpliedRelationships bool
+        }
+)
+
+// Parent returns the parent scope for the given element, nil if eh is a Person
+// or SoftwareSystem.
+func Parent(eh ElementHolder) ElementHolder <span class="cov0" title="0">{
+        switch e := eh.(type) </span>{
+        case *SoftwareSystem, *Person:<span class="cov0" title="0">
+                return nil</span>
+        case *Container:<span class="cov0" title="0">
+                return e.System</span>
+        case *Component:<span class="cov0" title="0">
+                return e.Container</span>
+        default:<span class="cov0" title="0">
+                panic(fmt.Sprintf("unknown element type %T", e))</span> // bug
+        }
+}
+
+// EvalName is the qualified name of the DSL expression.
+func (m *Model) EvalName() string <span class="cov0" title="0">{ return "model" }</span>
+
+// Validate makes sure all element names are unique.
+func (m *Model) Validate() error <span class="cov0" title="0">{
+        verr := new(eval.ValidationErrors)
+        known := make(map[string]struct{})
+        for _, p := range m.People </span><span class="cov0" title="0">{
+                if _, ok := known[p.Name]; ok </span><span class="cov0" title="0">{
+                        verr.Add(p, "name already in use")
+                }</span>
+                <span class="cov0" title="0">known[p.Name] = struct{}{}</span>
+        }
+        <span class="cov0" title="0">for _, s := range m.Systems </span><span class="cov0" title="0">{
+                if _, ok := known[s.Name]; ok </span><span class="cov0" title="0">{
+                        verr.Add(s, "name already in use")
+                }</span>
+                <span class="cov0" title="0">known[s.Name] = struct{}{}
+                containers := make(map[string]struct{})
+                for _, c := range s.Containers </span><span class="cov0" title="0">{
+                        if _, ok := containers[c.Name]; ok </span><span class="cov0" title="0">{
+                                verr.Add(c, "name already in use")
+                        }</span>
+                        <span class="cov0" title="0">containers[c.Name] = struct{}{}
+                        components := make(map[string]struct{})
+                        for _, cm := range c.Components </span><span class="cov0" title="0">{
+                                if _, ok := components[cm.Name]; ok </span><span class="cov0" title="0">{
+                                        verr.Add(cm, "name already in use")
+                                }</span>
+                                <span class="cov0" title="0">components[cm.Name] = struct{}{}</span>
+                        }
+                }
+        }
+
+        // Finalize all relationship destination now that the DSL has been executed.
+        <span class="cov0" title="0">IterateRelationships(func(r *Relationship) </span><span class="cov0" title="0">{
+                if r.Destination != nil </span><span class="cov0" title="0">{
+                        return
+                }</span>
+                // Relationship was created with Uses and used one or more strings to
+                // identify the destination.
+                <span class="cov0" title="0">src, ok := Registry[r.Source.ID]
+                if !ok </span><span class="cov0" title="0">{
+                        verr.AddError(r, fmt.Errorf("source not found"))
+                }</span>
+                <span class="cov0" title="0">eh, err := m.FindElement(Parent(src.(ElementHolder)), r.DestinationPath)
+                if err != nil </span><span class="cov0" title="0">{
+                        verr.AddError(r, err)
+                        return
+                }</span>
+                <span class="cov0" title="0">r.Destination = eh.GetElement()</span>
+        })
+
+        <span class="cov0" title="0">return verr</span>
+}
+
+// Finalize adds all implied relationships if needed.
+func (m *Model) Finalize() <span class="cov0" title="0">{
+        // Add relationships between container instances.
+        Iterate(func(e interface{}) </span><span class="cov0" title="0">{
+                if ci, ok := e.(*ContainerInstance); ok </span><span class="cov0" title="0">{
+                        c := Registry[ci.ContainerID].(*Container)
+                        for _, r := range c.Relationships </span><span class="cov0" title="0">{
+                                dc, ok := Registry[r.Destination.ID].(*Container)
+                                if !ok </span><span class="cov0" title="0">{
+                                        continue</span>
+                                }
+                                <span class="cov0" title="0">Iterate(func(e interface{}) </span><span class="cov0" title="0">{
+                                        eci, ok := e.(*ContainerInstance)
+                                        if !ok </span><span class="cov0" title="0">{
+                                                return
+                                        }</span>
+                                        <span class="cov0" title="0">if eci.ContainerID == dc.ID </span><span class="cov0" title="0">{
+                                                rc := r.Dup(ci.Element, eci.Element)
+                                                rc.LinkedRelationshipID = r.ID
+                                                ci.Relationships = append(ci.Relationships, rc)
+                                        }</span>
+                                })
+                        }
+                }
+        })
+        <span class="cov0" title="0">if !m.AddImpliedRelationships </span><span class="cov0" title="0">{
+                return
+        }</span>
+        // Add relationship between element parents.
+        <span class="cov0" title="0">Iterate(func(e interface{}) </span><span class="cov0" title="0">{
+                if r, ok := e.(*Relationship); ok </span><span class="cov0" title="0">{
+                        src := Registry[r.Source.ID].(ElementHolder)
+                        switch s := src.(type) </span>{
+                        case *Person, *SoftwareSystem:<span class="cov0" title="0">
+                                addImpliedRelationships(src, r.Destination, r)</span>
+                        case *Container:<span class="cov0" title="0">
+                                addImpliedRelationships(src, r.Destination, r)
+                                addImpliedRelationships(s.System, r.Destination, r)</span>
+                        case *Component:<span class="cov0" title="0">
+                                addImpliedRelationships(src, r.Destination, r)
+                                addImpliedRelationships(s.Container, r.Destination, r)
+                                addImpliedRelationships(s.Container.System, r.Destination, r)</span>
+                        }
+                }
+        })
+}
+
+// Person returns the person with the given name if any, nil otherwise.
+func (m *Model) Person(name string) *Person <span class="cov0" title="0">{
+        for _, pp := range m.People </span><span class="cov0" title="0">{
+                if pp.Name == name </span><span class="cov0" title="0">{
+                        return pp
+                }</span>
+        }
+        <span class="cov0" title="0">return nil</span>
+}
+
+// SoftwareSystem returns the software system with the given name if any, nil
+// otherwise.
+func (m *Model) SoftwareSystem(name string) *SoftwareSystem <span class="cov0" title="0">{
+        for _, s := range m.Systems </span><span class="cov0" title="0">{
+                if s.Name == name </span><span class="cov0" title="0">{
+                        return s
+                }</span>
+        }
+        <span class="cov0" title="0">return nil</span>
+}
+
+// DeploymentNode returns the deployment node with the given name if any, nil
+// otherwise.
+func (m *Model) DeploymentNode(env, name string) *DeploymentNode <span class="cov0" title="0">{
+        for _, d := range m.DeploymentNodes </span><span class="cov0" title="0">{
+                if d.Environment == env &amp;&amp; d.Name == name </span><span class="cov0" title="0">{
+                        return d
+                }</span>
+        }
+        <span class="cov0" title="0">return nil</span>
+}
+
+// FindElement finds the element with the given path in the given scope. The path must be one of:
+//
+//   - "&lt;Person&gt;", "&lt;SoftwareSystem&gt;", "&lt;SoftwareSystem&gt;/&lt;Container&gt;" or "&lt;SoftwareSystem&gt;/&lt;Container&gt;/&lt;Component&gt;"
+//   - "&lt;Container&gt;" (if container is a child of the software system scope)
+//   - "&lt;Component&gt;" (if component is a child of the container scope)
+//   - "&lt;Container&gt;/&lt;Component&gt;" (if container is a child of the software system scope)
+//
+// The scope may be nil in which case the path must be rooted with a top level
+// element (person or software system).
+func (m *Model) FindElement(scope ElementHolder, path string) (eh ElementHolder, err error) <span class="cov0" title="0">{
+        elems := strings.Split(path, "/")
+        switch len(elems) </span>{
+        case 1:<span class="cov0" title="0">
+                switch s := scope.(type) </span>{
+                case *SoftwareSystem:<span class="cov0" title="0">
+                        if c := s.Container(path); c != nil </span><span class="cov0" title="0">{
+                                eh = c
+                        }</span>
+                case *Container:<span class="cov0" title="0">
+                        if c := s.Component(path); c != nil </span><span class="cov0" title="0">{
+                                eh = c
+                        }</span>
+                }
+                <span class="cov0" title="0">if eh == nil </span><span class="cov0" title="0">{
+                        if p := m.Person(path); p != nil </span><span class="cov0" title="0">{
+                                eh = p
+                        }</span> else<span class="cov0" title="0"> if sys := m.SoftwareSystem(path); sys != nil </span><span class="cov0" title="0">{
+                                eh = sys
+                        }</span> else<span class="cov0" title="0"> {
+                                n := "unknown element"
+                                if scope != nil </span><span class="cov0" title="0">{
+                                        n = scope.GetElement().Name
+                                }</span>
+                                <span class="cov0" title="0">return nil, fmt.Errorf("%q does not match the name of a person, a software system or an element in the scope of %q", path, n)</span>
+                        }
+                }
+        case 2:<span class="cov0" title="0">
+                if s, ok := scope.(*SoftwareSystem); ok </span><span class="cov0" title="0">{
+                        if c := s.Container(elems[0]); c != nil </span><span class="cov0" title="0">{
+                                if cmp := c.Component(elems[1]); cmp != nil </span><span class="cov0" title="0">{
+                                        eh = cmp
+                                }</span>
+                        }
+                }
+                <span class="cov0" title="0">if eh == nil </span><span class="cov0" title="0">{
+                        if s := m.SoftwareSystem(elems[0]); s != nil </span><span class="cov0" title="0">{
+                                if c := s.Container(elems[1]); c != nil </span><span class="cov0" title="0">{
+                                        eh = c
+                                }</span>
+                        }
+                        <span class="cov0" title="0">if eh == nil </span><span class="cov0" title="0">{
+                                if scope == nil </span><span class="cov0" title="0">{
+                                        return nil, fmt.Errorf("%q does not match the name of a software system and container or the name of a container and component in scope", path)
+                                }</span>
+                                <span class="cov0" title="0">name := "&lt;unknown element&gt;"
+                                if e := scope.GetElement(); e != nil </span><span class="cov0" title="0">{
+                                        name = e.Name
+                                }</span>
+                                <span class="cov0" title="0">return nil, fmt.Errorf("%q does not match the name of a software system and container or the name of a container and component in the scope of %q", path, name)</span>
+                        }
+                }
+        case 3:<span class="cov0" title="0">
+                if s := m.SoftwareSystem(elems[0]); s != nil </span><span class="cov0" title="0">{
+                        if c := s.Container(elems[1]); c != nil </span><span class="cov0" title="0">{
+                                if cmp := c.Component(elems[2]); cmp != nil </span><span class="cov0" title="0">{
+                                        eh = cmp
+                                }</span>
+                        }
+                }
+                <span class="cov0" title="0">if eh == nil </span><span class="cov0" title="0">{
+                        return nil, fmt.Errorf("%q does not match the name of a software system, container and component", path)
+                }</span>
+        default:<span class="cov0" title="0">
+                return nil, fmt.Errorf("too many colons in path")</span>
+        }
+        <span class="cov0" title="0">return eh, nil</span>
+}
+
+// AddPerson adds the given person to the model. If there is already a person
+// with the given name then AddPerson merges both definitions. The merge
+// algorithm:
+//
+//   - overrides the description, technology and URL if provided,
+//   - merges any new tag or propery into the existing tags and properties,
+//   - merges any new relationship into the existing relationships.
+//
+// AddPerson returns the new or merged person.
+func (m *Model) AddPerson(p *Person) *Person <span class="cov0" title="0">{
+        existing := m.Person(p.Name)
+        if existing == nil </span><span class="cov0" title="0">{
+                Identify(p)
+                m.People = append(m.People, p)
+                return p
+        }</span>
+        <span class="cov0" title="0">if p.Description != "" </span><span class="cov0" title="0">{
+                existing.Description = p.Description
+        }</span>
+        <span class="cov0" title="0">if olddsl := existing.DSLFunc; olddsl != nil </span><span class="cov0" title="0">{
+                existing.DSLFunc = func() </span><span class="cov0" title="0">{ olddsl(); p.DSLFunc() }</span>
+        }
+        <span class="cov0" title="0">return existing</span>
+}
+
+// AddSystem adds the given software system to the model. If there is already a
+// software system with the given name then AddSystem merges both definitions.
+// The merge algorithm:
+//
+//   - overrides the description, technology and URL if provided,
+//   - merges any new tag or propery into the existing tags and properties,
+//   - merges any new relationship into the existing relationships,
+//   - merges any new container into the existing containers.
+//
+// AddSystem returns the new or merged software system.
+func (m *Model) AddSystem(s *SoftwareSystem) *SoftwareSystem <span class="cov0" title="0">{
+        existing := m.SoftwareSystem(s.Name)
+        if existing == nil </span><span class="cov0" title="0">{
+                Identify(s)
+                m.Systems = append(m.Systems, s)
+                return s
+        }</span>
+        <span class="cov0" title="0">if s.Description != "" </span><span class="cov0" title="0">{
+                existing.Description = s.Description
+        }</span>
+        <span class="cov0" title="0">if olddsl := existing.DSLFunc; olddsl != nil </span><span class="cov0" title="0">{
+                existing.DSLFunc = func() </span><span class="cov0" title="0">{ olddsl(); s.DSLFunc() }</span>
+        }
+        <span class="cov0" title="0">return existing</span>
+}
+
+// AddDeploymentNode adds the given deployment node to the model. If there is
+// already a deployment node with the given name then AddDeploymentNode merges
+// both definitions. The merge algorithm:
+//
+//   - overrides the description, technology and URL if provided,
+//   - merges any new tag or propery into the existing tags and properties,
+//   - merges any new relationship into the existing relationships,
+//   - merges any new child deployment node into the existing children,
+//   - merges any new container instance or infrastructure nodes into existing
+//     ones.
+//
+// AddDeploymentNode returns the new or merged deployment node.
+func (m *Model) AddDeploymentNode(d *DeploymentNode) *DeploymentNode <span class="cov0" title="0">{
+        existing := m.DeploymentNode(d.Environment, d.Name)
+        if existing == nil </span><span class="cov0" title="0">{
+                Identify(d)
+                m.DeploymentNodes = append(m.DeploymentNodes, d)
+                return d
+        }</span>
+        <span class="cov0" title="0">if d.Description != "" </span><span class="cov0" title="0">{
+                existing.Description = d.Description
+        }</span>
+        <span class="cov0" title="0">if d.Technology != "" </span><span class="cov0" title="0">{
+                existing.Technology = d.Technology
+        }</span>
+        <span class="cov0" title="0">if olddsl := existing.DSLFunc; olddsl != nil </span><span class="cov0" title="0">{
+                existing.DSLFunc = func() </span><span class="cov0" title="0">{ olddsl(); d.DSLFunc() }</span>
+        }
+        <span class="cov0" title="0">return existing</span>
+}
+
+// addImpliedRelationships adds relationships from src to element with ID destID
+// and its parents (container system software and component container) based on
+// the properties of existing. It only adds a relationship if one doesn't
+// already exist with the same description. It also does not add relationships
+// between elements that belong to the same lineage.
+func addImpliedRelationships(src ElementHolder, destElem *Element, existing *Relationship) <span class="cov0" title="0">{
+        var (
+                srcElem = src.GetElement()
+                dest    = Registry[destElem.ID].(ElementHolder)
+        )
+
+        // Make sure the two elements are not in the same lineage.
+        for s := src; s != nil; s = Parent(s) </span><span class="cov0" title="0">{
+                for d := dest; d != nil; d = Parent(d) </span><span class="cov0" title="0">{
+                        if s.GetElement().ID == d.GetElement().ID </span><span class="cov0" title="0">{
+                                return
+                        }</span>
+                }
+        }
+
+        // Make sure there isn't an existing relationship.
+        <span class="cov0" title="0">exists := false
+        for _, r := range srcElem.Relationships </span><span class="cov0" title="0">{
+                if r.Destination.ID == destElem.ID &amp;&amp; r.Description == existing.Description </span><span class="cov0" title="0">{
+                        exists = true
+                        break</span>
+                }
+        }
+
+        <span class="cov0" title="0">if !exists </span><span class="cov0" title="0">{
+                r := existing.Dup(srcElem, destElem)
+                srcElem.Relationships = append(srcElem.Relationships, r)
+        }</span>
+
+        // Add relationships to destination parents as well.
+        <span class="cov0" title="0">switch e := dest.(type) </span>{
+        case *Container:<span class="cov0" title="0">
+                addImpliedRelationships(src, e.System.Element, existing)</span>
+        case *Component:<span class="cov0" title="0">
+                addImpliedRelationships(src, e.Container.Element, existing)
+                addImpliedRelationships(src, e.Container.System.Element, existing)</span>
+        }
+}
+</pre>
+		
+		<pre class="file" id="file7" style="display: none">package expr
+
+import (
+        "fmt"
+)
+
+type (
+        // Person represents a person.
+        Person struct {
+                *Element
+                Location LocationKind
+        }
+
+        // People is a slide of Person that can easily be converted into a slice of ElementHolder.
+        People []*Person
+)
+
+// EvalName returns the generic expression name used in error messages.
+func (p *Person) EvalName() string <span class="cov8" title="1">{
+        if p.Name == "" </span><span class="cov8" title="1">{
+                return "unnamed person"
+        }</span>
+        <span class="cov8" title="1">return fmt.Sprintf("person %q", p.Name)</span>
+}
+
+// Finalize adds the 'Person' tag ands finalizes relationships.
+func (p *Person) Finalize() <span class="cov8" title="1">{
+        p.PrefixTags("Element", "Person")
+        p.Element.Finalize()
+}</span>
+
+// Elements returns a slice of ElementHolder that contains the people.
+func (p People) Elements() []ElementHolder <span class="cov8" title="1">{
+        res := make([]ElementHolder, len(p))
+        for i, pp := range p </span><span class="cov8" title="1">{
+                res[i] = pp
+        }</span>
+        <span class="cov8" title="1">return res</span>
+}
+</pre>
+		
+		<pre class="file" id="file8" style="display: none">package expr
+
+import (
+        "fmt"
+        "hash/fnv"
+        "math/big"
+        "sort"
+)
+
+// Registry captures all the elements, people and relationships.
+var Registry = make(map[string]interface{})
+
+// Iterate iterates through all elements, people and relationships in the
+// registry in a consistent order.
+func Iterate(visitor func(elem interface{})) <span class="cov0" title="0">{
+        keys := make([]string, len(Registry))
+        i := 0
+        for k := range Registry </span><span class="cov0" title="0">{
+                keys[i] = k
+                i++
+        }</span>
+        <span class="cov0" title="0">sort.Strings(keys)
+        for _, k := range keys </span><span class="cov0" title="0">{
+                visitor(Registry[k])
+        }</span>
+}
+
+// IterateRelationships iterates through all relationships in the registry in a
+// consistent order.
+func IterateRelationships(visitor func(r *Relationship)) <span class="cov0" title="0">{
+        Iterate(func(e interface{}) </span><span class="cov0" title="0">{
+                if r, ok := e.(*Relationship); ok </span><span class="cov0" title="0">{
+                        visitor(r)
+                }</span>
+        })
+}
+
+// Identify sets the ID field of the given element or relationship and registers
+// it with the global registery. The algorithm first compute a unique moniker
+// for the element or relatioship (based on names and parent scope ID) then
+// hashes and base36 encodes the result.
+func Identify(element interface{}) <span class="cov8" title="1">{
+        switch e := element.(type) </span>{
+        case *Person:<span class="cov0" title="0">
+                e.ID = idify(e.Name)
+                Registry[e.ID] = e</span>
+        case *SoftwareSystem:<span class="cov0" title="0">
+                e.ID = idify(e.Name)
+                Registry[e.ID] = e</span>
+        case *Container:<span class="cov0" title="0">
+                e.ID = idify(e.System.ID + ":" + e.Name)
+                Registry[e.ID] = e</span>
+        case *Component:<span class="cov8" title="1">
+                e.ID = idify(e.Container.ID + ":" + e.Name)
+                Registry[e.ID] = e</span>
+        case *DeploymentNode:<span class="cov0" title="0">
+                prefix := "dn:" + e.Environment + ":"
+                for f := e.Parent; f != nil; f = f.Parent </span><span class="cov0" title="0">{
+                        prefix += f.ID + ":"
+                }</span>
+                <span class="cov0" title="0">e.ID = idify(prefix + e.Name)
+                Registry[e.ID] = e</span>
+        case *InfrastructureNode:<span class="cov0" title="0">
+                e.ID = idify(e.Environment + ":" + e.Parent.ID + ":" + e.Name)
+                Registry[e.ID] = e</span>
+        case *ContainerInstance:<span class="cov0" title="0">
+                e.ID = idify(e.Environment + ":" + e.Parent.ID + ":" + e.ContainerID)
+                Registry[e.ID] = e</span>
+        case *Relationship:<span class="cov0" title="0">
+                var dest string
+                if e.Destination != nil </span><span class="cov0" title="0">{
+                        dest = e.Destination.ID
+                }</span> else<span class="cov0" title="0"> {
+                        dest = e.DestinationPath
+                }</span>
+                <span class="cov0" title="0">e.ID = idify(e.Source.ID + ":" + dest + ":" + e.Description)
+                Registry[e.ID] = e</span>
+        default:<span class="cov0" title="0">
+                panic(fmt.Sprintf("element of type %T does not have an ID", element))</span> // bug
+        }
+}
+
+var h = fnv.New32a()
+
+func idify(s string) string <span class="cov8" title="1">{
+        h.Reset()
+        h.Write([]byte(s))
+        return encodeToBase36(h.Sum(nil))
+}</span>
+
+var encodeStd = [36]byte{
+        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e',
+        'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't',
+        'u', 'v', 'w', 'x', 'y', 'z',
+}
+
+var bigRadix = big.NewInt(36)
+var bigZero = big.NewInt(0)
+
+func encodeToBase36(b []byte) string <span class="cov8" title="1">{
+        x := new(big.Int)
+        x.SetBytes(b)
+        res := make([]byte, 0, len(b)*136/100)
+        for x.Cmp(bigZero) &gt; 0 </span><span class="cov8" title="1">{
+                mod := new(big.Int)
+                x.DivMod(x, bigRadix, mod)
+                res = append(res, encodeStd[mod.Int64()])
+        }</span>
+        <span class="cov8" title="1">for _, i := range b </span><span class="cov8" title="1">{
+                if i != 0 </span><span class="cov8" title="1">{
+                        break</span>
+                }
+                <span class="cov0" title="0">res = append(res, byte(48))</span>
+        }
+        <span class="cov8" title="1">alen := len(res)
+        for i := 0; i &lt; alen/2; i++ </span><span class="cov8" title="1">{
+                res[i], res[alen-1-i] = res[alen-1-i], res[i]
+        }</span>
+        <span class="cov8" title="1">return string(res)</span>
+}
+</pre>
+		
+		<pre class="file" id="file9" style="display: none">package expr
+
+import (
+        "fmt"
+)
+
+type (
+        // Relationship describes a uni-directional relationship between two elements.
+        Relationship struct {
+                ID               string
+                Source           *Element
+                Description      string
+                Technology       string
+                InteractionStyle InteractionStyleKind
+                Tags             string
+                URL              string
+
+                // DestinationPath is used to compute the destination after all DSL has
+                // completed execution.
+                DestinationPath string
+
+                // Destination is only guaranteed to be initialized after the DSL has
+                // been executed. It can be used in validations and finalizers.
+                Destination *Element
+
+                // LinkedRelationshipID is the ID of the relationship pointing to the
+                // container corresponding to the container instance with this
+                // relationship.
+                LinkedRelationshipID string
+        }
+
+        // InteractionStyleKind is the enum for possible interaction styles.
+        InteractionStyleKind int
+)
+
+const (
+        // InteractionUndefined means no interaction style specified in design.
+        InteractionUndefined InteractionStyleKind = iota
+        // InteractionSynchronous describes a synchronous interaction.
+        InteractionSynchronous
+        // InteractionAsynchronous describes an asynchronous interaction.
+        InteractionAsynchronous
+)
+
+// EvalName is the qualified name of the expression.
+func (r *Relationship) EvalName() string <span class="cov0" title="0">{
+        var src, dest = "&lt;unknown source&gt;", "&lt;unknown destination&gt;"
+        if r.Source != nil </span><span class="cov0" title="0">{
+                src = r.Source.Name
+        }</span>
+        <span class="cov0" title="0">if r.Destination != nil </span><span class="cov0" title="0">{
+                dest = r.Destination.Name
+        }</span>
+        <span class="cov0" title="0">return fmt.Sprintf("relationship %q [%s -&gt; %s]", r.Description, src, dest)</span>
+}
+
+// Finalize computes the destination and adds the "Relationship" tag.
+func (r *Relationship) Finalize() <span class="cov0" title="0">{
+        // prefix tags
+        if r.InteractionStyle == InteractionAsynchronous </span><span class="cov0" title="0">{
+                r.Tags = mergeTags("Asynchronous", []string{r.Tags})
+        }</span>
+        <span class="cov0" title="0">r.Tags = mergeTags("Relationship", []string{r.Tags})</span>
+}
+
+// Dup creates a new relationship with identical description, tags, URL,
+// technology and interaction style as r. Dup also creates a new ID for the
+// result.
+func (r *Relationship) Dup(newSrc, newDest *Element) *Relationship <span class="cov0" title="0">{
+        dup := &amp;Relationship{
+                Source:           newSrc,
+                InteractionStyle: r.InteractionStyle,
+                Tags:             r.Tags,
+                URL:              r.URL,
+                Destination:      newDest,
+                Description:      r.Description,
+                Technology:       r.Technology,
+        }
+        Identify(dup)
+        return dup
+}</span>
+
+// MergeTags adds the given tags. It skips tags already present in e.Tags.
+func (r *Relationship) MergeTags(tags ...string) <span class="cov0" title="0">{
+        r.Tags = mergeTags(r.Tags, tags)
+}</span>
+</pre>
+		
+		<pre class="file" id="file10" style="display: none">package expr
+
+import (
+        "fmt"
+        "strings"
+)
+
+// addAllElements adds all top level elements (people and software systems) as
+// well as all elements in scope to the view.
+func addAllElements(view View) <span class="cov0" title="0">{
+        m := Root.Model
+        switch v := view.(type) </span>{
+        case *LandscapeView:<span class="cov0" title="0">
+                v.AddElements(m.People.Elements()...)
+                v.AddElements(m.Systems.Elements()...)</span>
+        case *ContextView:<span class="cov0" title="0">
+                v.AddElements(m.People.Elements()...)
+                v.AddElements(m.Systems.Elements()...)</span>
+        case *ContainerView:<span class="cov0" title="0">
+                v.AddElements(m.People.Elements()...)
+                v.AddElements(m.Systems.Elements()...)
+                v.AddElements(Registry[v.SoftwareSystemID].(*SoftwareSystem).Containers.Elements()...)
+                removeElements(v.Props(), Registry[v.SoftwareSystemID].(*SoftwareSystem).Element)</span>
+        case *ComponentView:<span class="cov0" title="0">
+                v.AddElements(m.People.Elements()...)
+                v.AddElements(m.Systems.Elements()...)
+                c := Registry[v.ContainerID].(*Container)
+                v.AddElements(c.System.Containers.Elements()...)
+                v.AddElements(c.Components.Elements()...)</span>
+        case *DeploymentView:<span class="cov0" title="0">
+                for _, n := range m.DeploymentNodes </span><span class="cov0" title="0">{
+                        if n.Environment == "" || n.Environment == v.Environment </span><span class="cov0" title="0">{
+                                v.AddElements(n)
+                        }</span>
+                }
+        default:<span class="cov0" title="0">
+                panic(fmt.Sprintf("AddAllElements called on %T", view))</span>
+        }
+}
+
+// addDefaultElements adds a default set of elements and relationships for the
+// given view.
+func addDefaultElements(view View) <span class="cov0" title="0">{
+        // Add default elements if needed.
+        switch v := view.(type) </span>{
+        case *LandscapeView:<span class="cov0" title="0">
+                addAllElements(v)</span>
+        case *ContextView:<span class="cov0" title="0">
+                s := Registry[v.SoftwareSystemID].(*SoftwareSystem)
+                v.AddElements(s)
+                addNeighbors(s.Element, v)</span>
+        case *ContainerView:<span class="cov0" title="0">
+                s := Registry[v.SoftwareSystemID].(*SoftwareSystem)
+                v.AddElements(s.Containers.Elements()...)
+                for _, c := range s.Containers </span><span class="cov0" title="0">{
+                        v.AddElements(relatedSoftwareSystems(c.Element).Elements()...)
+                        v.AddElements(relatedPeople(c.Element).Elements()...)
+                }</span>
+        case *ComponentView:<span class="cov0" title="0">
+                c := Registry[v.ContainerID].(*Container)
+                v.AddElements(c.Components.Elements()...)
+                for _, c := range c.Components </span><span class="cov0" title="0">{
+                        v.AddElements(relatedContainers(c.Element).Elements()...)
+                        v.AddElements(relatedSoftwareSystems(c.Element).Elements()...)
+                        v.AddElements(relatedPeople(c.Element).Elements()...)
+                }</span>
+        case *DeploymentView:<span class="cov0" title="0">
+                addAllElements(v)</span>
+        }
+}
+
+// addMissingElementsAndRelationships adds all elements that form edges of
+// relationships in the view and adds all relationships between elements that
+// are in the view.
+func addMissingElementsAndRelationships(vp *ViewProps) <span class="cov0" title="0">{
+        for _, rv := range vp.RelationshipViews </span><span class="cov0" title="0">{
+                addElements(vp, rv.Source)
+                addElements(vp, rv.Destination)
+        }</span>
+        <span class="cov0" title="0">for _, ev := range vp.ElementViews </span><span class="cov0" title="0">{
+                var rels []*Relationship
+                IterateRelationships(func(r *Relationship) </span><span class="cov0" title="0">{
+                        if r.Source.ID == ev.Element.ID </span><span class="cov0" title="0">{
+                                for _, ev2 := range vp.ElementViews </span><span class="cov0" title="0">{
+                                        if r.Destination.ID == ev2.Element.ID </span><span class="cov0" title="0">{
+                                                rels = append(rels, r)
+                                                break</span>
+                                        }
+                                }
+                        }
+                })
+        <span class="cov0" title="0">loop:
+                for _, r := range rels </span><span class="cov0" title="0">{
+                        // Do not add previously added relationship views
+                        for _, existing := range vp.RelationshipViews </span><span class="cov0" title="0">{
+                                if r.ID == existing.RelationshipID </span><span class="cov0" title="0">{
+                                        continue loop</span>
+                                }
+                        }
+
+                        // Do not automatically add relationship views across different
+                        // top-level deployment nodes.
+                        //
+                        // Note: this rule is a little bit arbitrary however it is possible
+                        // to override the behavior using `Link` and `Unlink` explicitly in
+                        // the design. We'll see how that works out over time.
+                        <span class="cov0" title="0">top := func(d *DeploymentNode) string </span><span class="cov0" title="0">{
+                                id := d.ID
+                                for p := d.Parent; p != nil; p = p.Parent </span><span class="cov0" title="0">{
+                                        id = p.ID
+                                }</span>
+                                <span class="cov0" title="0">return id</span>
+                        }
+                        <span class="cov0" title="0">var srcTop, destTop string
+                        switch s := Registry[r.Source.ID].(type) </span>{
+                        case *DeploymentNode:<span class="cov0" title="0">
+                                srcTop = top(s)</span>
+                        case *InfrastructureNode:<span class="cov0" title="0">
+                                srcTop = top(s.Parent)</span>
+                        case *ContainerInstance:<span class="cov0" title="0">
+                                srcTop = top(s.Parent)</span>
+                        }
+                        <span class="cov0" title="0">switch d := Registry[r.Destination.ID].(type) </span>{
+                        case *DeploymentNode:<span class="cov0" title="0">
+                                destTop = top(d)</span>
+                        case *InfrastructureNode:<span class="cov0" title="0">
+                                destTop = top(d.Parent)</span>
+                        case *ContainerInstance:<span class="cov0" title="0">
+                                destTop = top(d.Parent)</span>
+                        }
+                        <span class="cov0" title="0">if srcTop != destTop </span><span class="cov0" title="0">{
+                                continue loop</span>
+                        }
+
+                        <span class="cov0" title="0">vp.RelationshipViews = append(vp.RelationshipViews,
+                                &amp;RelationshipView{
+                                        Source:         r.Source,
+                                        Destination:    r.Destination,
+                                        Description:    r.Description,
+                                        RelationshipID: r.ID,
+                                })</span>
+                }
+        }
+}
+
+func addNeighbors(e *Element, view View) <span class="cov0" title="0">{
+        switch v := view.(type) </span>{
+        case *LandscapeView:<span class="cov0" title="0">
+                v.AddElements(relatedPeople(e).Elements()...)
+                v.AddElements(relatedSoftwareSystems(e).Elements()...)</span>
+        case *ContextView:<span class="cov0" title="0">
+                v.AddElements(relatedPeople(e).Elements()...)
+                v.AddElements(relatedSoftwareSystems(e).Elements()...)</span>
+        case *ContainerView:<span class="cov0" title="0">
+                v.AddElements(relatedPeople(e).Elements()...)
+                v.AddElements(relatedSoftwareSystems(e).Elements()...)
+                v.AddElements(relatedContainers(e).Elements()...)</span>
+        case *ComponentView:<span class="cov0" title="0">
+                v.AddElements(relatedPeople(e).Elements()...)
+                v.AddElements(relatedSoftwareSystems(e).Elements()...)
+                v.AddElements(relatedContainers(e).Elements()...)
+                v.AddElements(relatedComponents(e).Elements()...)</span>
+        case *DeploymentView:<span class="cov0" title="0">
+                v.AddElements(relatedInfrastructureNodes(e).Elements()...)
+                v.AddElements(relatedContainerInstances(e).Elements()...)</span>
+        }
+
+}
+
+func addInfluencers(cv *ContainerView) <span class="cov0" title="0">{
+        system := Registry[cv.SoftwareSystemID].(*SoftwareSystem)
+        m := Root.Model
+        for _, s := range m.Systems </span><span class="cov0" title="0">{
+                for _, r := range s.Relationships </span><span class="cov0" title="0">{
+                        if r.Destination.ID == cv.SoftwareSystemID </span><span class="cov0" title="0">{
+                                cv.AddElements(s)
+                        }</span>
+                }
+                <span class="cov0" title="0">for _, r := range system.Relationships </span><span class="cov0" title="0">{
+                        if r.Destination.ID == s.ID </span><span class="cov0" title="0">{
+                                cv.AddElements(s)
+                        }</span>
+                }
+        }
+
+        <span class="cov0" title="0">for _, p := range m.People </span><span class="cov0" title="0">{
+                for _, r := range p.Relationships </span><span class="cov0" title="0">{
+                        if r.Destination.ID == cv.SoftwareSystemID </span><span class="cov0" title="0">{
+                                cv.AddElements(p)
+                        }</span>
+                }
+                <span class="cov0" title="0">for _, r := range system.Relationships </span><span class="cov0" title="0">{
+                        if r.Destination.ID == p.ID </span><span class="cov0" title="0">{
+                                cv.AddElements(p)
+                        }</span>
+                }
+        }
+
+        <span class="cov0" title="0">for i, rv := range cv.RelationshipViews </span><span class="cov0" title="0">{
+                src := rv.Source
+                var keep bool
+                if keep = src.ID == cv.SoftwareSystemID; !keep </span><span class="cov0" title="0">{
+                        if c, ok := Registry[src.ID].(*Container); ok </span><span class="cov0" title="0">{
+                                keep = c.System.ID == cv.SoftwareSystemID
+                        }</span> else<span class="cov0" title="0"> if c, ok := Registry[src.ID].(*Component); ok </span><span class="cov0" title="0">{
+                                keep = c.Container.System.ID == cv.SoftwareSystemID
+                        }</span>
+                }
+                <span class="cov0" title="0">if !keep </span><span class="cov0" title="0">{
+                        dest := rv.Destination
+                        if keep = dest.ID == cv.SoftwareSystemID; !keep </span><span class="cov0" title="0">{
+                                if c, ok := Registry[dest.ID].(*Container); ok </span><span class="cov0" title="0">{
+                                        keep = c.System.ID == cv.SoftwareSystemID
+                                }</span> else<span class="cov0" title="0"> if c, ok := Registry[dest.ID].(*Component); ok </span><span class="cov0" title="0">{
+                                        keep = c.Container.System.ID == cv.SoftwareSystemID
+                                }</span>
+                        }
+                }
+                <span class="cov0" title="0">if !keep </span><span class="cov0" title="0">{
+                        cv.RelationshipViews = append(cv.RelationshipViews[:i], cv.RelationshipViews[i+1:]...)
+                }</span>
+        }
+}
+
+// Add implied animation step relationships
+func addAnimationStepRelationships(vp *ViewProps) <span class="cov0" title="0">{
+        for _, s := range vp.AnimationSteps </span><span class="cov0" title="0">{
+                var newSrc, newDest, oldSrc, oldDest bool
+                for _, rv := range vp.RelationshipViews </span><span class="cov0" title="0">{
+                        for _, eh := range s.Elements </span><span class="cov0" title="0">{
+                                id := eh.GetElement().ID
+                                if id == rv.Source.ID </span><span class="cov0" title="0">{
+                                        oldSrc = true
+                                }</span> else<span class="cov0" title="0"> if id == rv.Destination.ID </span><span class="cov0" title="0">{
+                                        oldDest = true
+                                }</span>
+                                <span class="cov0" title="0">if oldSrc &amp;&amp; oldDest </span><span class="cov0" title="0">{
+                                        break</span>
+                                }
+                        }
+                        <span class="cov0" title="0">if oldSrc &amp;&amp; oldDest </span><span class="cov0" title="0">{
+                                break</span>
+                        }
+                        <span class="cov0" title="0">for _, ev := range vp.ElementViews </span><span class="cov0" title="0">{
+                                if ev.Element.ID == rv.Source.ID </span><span class="cov0" title="0">{
+                                        newSrc = true
+                                }</span> else<span class="cov0" title="0"> if ev.Element.ID == rv.Destination.ID </span><span class="cov0" title="0">{
+                                        newDest = true
+                                }</span>
+                                <span class="cov0" title="0">if newSrc &amp;&amp; newDest </span><span class="cov0" title="0">{
+                                        break</span>
+                                }
+                        }
+                        <span class="cov0" title="0">if newSrc &amp;&amp; oldDest || oldSrc &amp;&amp; newDest </span><span class="cov0" title="0">{
+                                s.RelationshipIDs = append(s.RelationshipIDs, rv.RelationshipID)
+                        }</span>
+                }
+        }
+}
+
+// removeElements removes the given elements from the given view as well as any
+// relationship that uses the element as source or destination.
+func removeElements(vp *ViewProps, elems ...*Element) <span class="cov0" title="0">{
+        for _, e := range elems </span><span class="cov0" title="0">{
+                i := 0
+                for _, ev := range vp.ElementViews </span><span class="cov0" title="0">{
+                        if ev.Element.ID != e.ID </span><span class="cov0" title="0">{
+                                vp.ElementViews[i] = ev
+                                i++
+                        }</span> else<span class="cov0" title="0"> {
+                                // Remove corresponding relationships.
+                                j := 0
+                                for _, rv := range vp.RelationshipViews </span><span class="cov0" title="0">{
+                                        if rv.Source.ID != e.ID &amp;&amp; rv.Destination.ID != e.ID </span><span class="cov0" title="0">{
+                                                vp.RelationshipViews[j] = rv
+                                                j++
+                                        }</span>
+                                }
+                                <span class="cov0" title="0">vp.RelationshipViews = vp.RelationshipViews[:j]</span>
+                        }
+                }
+                <span class="cov0" title="0">vp.ElementViews = vp.ElementViews[:i]</span>
+        }
+}
+
+func removeRelationship(vp *ViewProps, r *Relationship) <span class="cov0" title="0">{
+        i := 0
+        for _, rv := range vp.RelationshipViews </span><span class="cov0" title="0">{
+                if rv.Source.ID != r.Source.ID || rv.Destination.ID != r.Destination.ID || rv.Description != r.Description </span><span class="cov0" title="0">{
+                        vp.RelationshipViews[i] = rv
+                        i++
+                }</span>
+        }
+        <span class="cov0" title="0">vp.RelationshipViews = vp.RelationshipViews[:i]</span>
+}
+
+// allUnrelated fetches all elements that have no relationship to other elements
+// in the view.
+func unrelated(v *ViewProps) (elems []*Element) <span class="cov0" title="0">{
+loop:
+        for _, ev := range v.ElementViews </span><span class="cov0" title="0">{
+                for _, rv := range v.RelationshipViews </span><span class="cov0" title="0">{
+                        if rv.Source.ID == ev.Element.ID || rv.Destination.ID == ev.Element.ID </span><span class="cov0" title="0">{
+                                continue loop</span>
+                        }
+                }
+                <span class="cov0" title="0">elems = append(elems, ev.Element)</span>
+        }
+        <span class="cov0" title="0">return</span>
+}
+
+// relatedPeople returns all people the element has a relationship with
+// (either as source or as destination).
+func relatedPeople(elem *Element) (res People) <span class="cov0" title="0">{
+        add := func(p *Person) </span><span class="cov0" title="0">{
+                for _, ep := range res </span><span class="cov0" title="0">{
+                        if ep.ID == p.ID </span><span class="cov0" title="0">{
+                                return
+                        }</span>
+                }
+                <span class="cov0" title="0">res = append(res, p)</span>
+        }
+        <span class="cov0" title="0">IterateRelationships(func(r *Relationship) </span><span class="cov0" title="0">{
+                if r.Source.ID == elem.ID </span><span class="cov0" title="0">{
+                        if p, ok := Registry[r.Destination.ID].(*Person); ok </span><span class="cov0" title="0">{
+                                add(p)
+                        }</span>
+                }
+                <span class="cov0" title="0">if r.Destination.ID == elem.ID </span><span class="cov0" title="0">{
+                        if p, ok := Registry[r.Source.ID].(*Person); ok </span><span class="cov0" title="0">{
+                                add(p)
+                        }</span>
+                }
+        })
+        <span class="cov0" title="0">return</span>
+}
+
+// relatedSoftwareSystems returns all software systems the element has a
+// relationship with (either as source or as destination).
+func relatedSoftwareSystems(elem *Element) (res SoftwareSystems) <span class="cov0" title="0">{
+        add := func(s *SoftwareSystem) </span><span class="cov0" title="0">{
+                for _, es := range res </span><span class="cov0" title="0">{
+                        if es.ID == s.ID </span><span class="cov0" title="0">{
+                                return
+                        }</span>
+                }
+                <span class="cov0" title="0">res = append(res, s)</span>
+        }
+        <span class="cov0" title="0">IterateRelationships(func(r *Relationship) </span><span class="cov0" title="0">{
+                if r.Source.ID == elem.ID </span><span class="cov0" title="0">{
+                        if s, ok := Registry[r.Destination.ID].(*SoftwareSystem); ok </span><span class="cov0" title="0">{
+                                add(s)
+                        }</span>
+                }
+                <span class="cov0" title="0">if r.Destination.ID == elem.ID </span><span class="cov0" title="0">{
+                        if s, ok := Registry[r.Source.ID].(*SoftwareSystem); ok </span><span class="cov0" title="0">{
+                                add(s)
+                        }</span>
+                }
+        })
+        <span class="cov0" title="0">return</span>
+}
+
+// relatedContainers returns all containers the element has a relationship with
+// (either as source or as destination).
+func relatedContainers(elem *Element) (res Containers) <span class="cov0" title="0">{
+        add := func(cc *Container) </span><span class="cov0" title="0">{
+                for _, es := range res </span><span class="cov0" title="0">{
+                        if es.ID == cc.ID </span><span class="cov0" title="0">{
+                                return
+                        }</span>
+                }
+                <span class="cov0" title="0">res = append(res, cc)</span>
+        }
+        <span class="cov0" title="0">IterateRelationships(func(r *Relationship) </span><span class="cov0" title="0">{
+                if r.Source.ID == elem.ID </span><span class="cov0" title="0">{
+                        if c, ok := Registry[r.Destination.ID].(*Container); ok </span><span class="cov0" title="0">{
+                                add(c)
+                        }</span>
+                }
+                <span class="cov0" title="0">if r.Destination.ID == elem.ID </span><span class="cov0" title="0">{
+                        if c, ok := Registry[r.Source.ID].(*Container); ok </span><span class="cov0" title="0">{
+                                add(c)
+                        }</span>
+                }
+        })
+        <span class="cov0" title="0">return</span>
+}
+
+// relatedComponents returns all components the element has a relationship with
+// (either as source or as destination).
+func relatedComponents(elem *Element) (res Components) <span class="cov0" title="0">{
+        add := func(c *Component) </span><span class="cov0" title="0">{
+                for _, es := range res </span><span class="cov0" title="0">{
+                        if es.ID == c.ID </span><span class="cov0" title="0">{
+                                return
+                        }</span>
+                }
+                <span class="cov0" title="0">res = append(res, c)</span>
+        }
+        <span class="cov0" title="0">IterateRelationships(func(r *Relationship) </span><span class="cov0" title="0">{
+                if r.Source.ID == elem.ID </span><span class="cov0" title="0">{
+                        if c, ok := Registry[r.Destination.ID].(*Component); ok </span><span class="cov0" title="0">{
+                                add(c)
+                        }</span>
+                }
+                <span class="cov0" title="0">if r.Destination.ID == elem.ID </span><span class="cov0" title="0">{
+                        if c, ok := Registry[r.Source.ID].(*Component); ok </span><span class="cov0" title="0">{
+                                add(c)
+                        }</span>
+                }
+        })
+        <span class="cov0" title="0">return</span>
+}
+
+// relatedInfrastructureNodes returns all infrastructure nodes the element has a
+// relationship with (either as source or as destination).
+func relatedInfrastructureNodes(elem *Element) (res InfrastructureNodes) <span class="cov0" title="0">{
+        add := func(i *InfrastructureNode) </span><span class="cov0" title="0">{
+                for _, inf := range res </span><span class="cov0" title="0">{
+                        if inf.ID == i.ID </span><span class="cov0" title="0">{
+                                return
+                        }</span>
+                }
+                <span class="cov0" title="0">res = append(res, i)</span>
+        }
+        <span class="cov0" title="0">IterateRelationships(func(r *Relationship) </span><span class="cov0" title="0">{
+                if r.Source.ID == elem.ID </span><span class="cov0" title="0">{
+                        if inf, ok := Registry[r.Destination.ID].(*InfrastructureNode); ok </span><span class="cov0" title="0">{
+                                add(inf)
+                        }</span>
+                }
+                <span class="cov0" title="0">if r.Destination.ID == elem.ID </span><span class="cov0" title="0">{
+                        if inf, ok := Registry[r.Source.ID].(*InfrastructureNode); ok </span><span class="cov0" title="0">{
+                                add(inf)
+                        }</span>
+                }
+        })
+        <span class="cov0" title="0">return</span>
+}
+
+// relatedContainerInstances returns all container instances the element has a
+// relationship with (either as source or as destination).
+func relatedContainerInstances(elem *Element) (res ContainerInstances) <span class="cov0" title="0">{
+        add := func(ci *ContainerInstance) </span><span class="cov0" title="0">{
+                for _, eci := range res </span><span class="cov0" title="0">{
+                        if eci.ID == ci.ID </span><span class="cov0" title="0">{
+                                return
+                        }</span>
+                }
+                <span class="cov0" title="0">res = append(res, ci)</span>
+        }
+        <span class="cov0" title="0">IterateRelationships(func(r *Relationship) </span><span class="cov0" title="0">{
+                if r.Source.ID == elem.ID </span><span class="cov0" title="0">{
+                        if ci, ok := Registry[r.Destination.ID].(*ContainerInstance); ok </span><span class="cov0" title="0">{
+                                add(ci)
+                        }</span>
+                }
+                <span class="cov0" title="0">if r.Destination.ID == elem.ID </span><span class="cov0" title="0">{
+                        if ci, ok := Registry[r.Source.ID].(*ContainerInstance); ok </span><span class="cov0" title="0">{
+                                add(ci)
+                        }</span>
+                }
+        })
+        <span class="cov0" title="0">return</span>
+}
+
+// allUnreachable fetches all elements in view not reachable from eh (directory
+// or not).
+func unreachable(v *ViewProps, eh ElementHolder) (elems []*Element) <span class="cov0" title="0">{
+        ids := reachable(eh.GetElement())
+loop:
+        for _, e := range v.ElementViews </span><span class="cov0" title="0">{
+                for _, id := range ids </span><span class="cov0" title="0">{
+                        if id == e.Element.ID </span><span class="cov0" title="0">{
+                                continue loop</span>
+                        }
+                }
+                <span class="cov0" title="0">elems = append(elems, e.Element)</span>
+        }
+        <span class="cov0" title="0">return</span>
+}
+
+// allTagged returns all elements with the given tag in the view.
+func tagged(v *ViewProps, tag string) (elems []*Element) <span class="cov0" title="0">{
+        for _, ev := range v.ElementViews </span><span class="cov0" title="0">{
+                vals := strings.Split(ev.Element.Tags, ",")
+                for _, val := range vals </span><span class="cov0" title="0">{
+                        if val == tag </span><span class="cov0" title="0">{
+                                elems = append(elems, ev.Element)
+                                break</span>
+                        }
+                }
+        }
+        <span class="cov0" title="0">return</span>
+}
+</pre>
+		
+		<pre class="file" id="file11" style="display: none">package expr
+
+import (
+        "fmt"
+        "strings"
+)
+
+type (
+        // SoftwareSystem represents a software system.
+        SoftwareSystem struct {
+                *Element
+                Location   LocationKind
+                Containers Containers
+        }
+
+        // SoftwareSystems is a slice of software system that can be easily
+        // converted into a slice of ElementHolder.
+        SoftwareSystems []*SoftwareSystem
+)
+
+// EvalName returns the generic expression name used in error messages.
+func (s *SoftwareSystem) EvalName() string <span class="cov0" title="0">{
+        if s.Name == "" </span><span class="cov0" title="0">{
+                return "unnamed software system"
+        }</span>
+        <span class="cov0" title="0">return fmt.Sprintf("software system %q", s.Name)</span>
+}
+
+// Finalize adds the 'SoftwareSystem' tag ands finalizes relationships.
+func (s *SoftwareSystem) Finalize() <span class="cov0" title="0">{
+        s.PrefixTags("Element", "Software System")
+        s.Element.Finalize()
+}</span>
+
+// Elements returns a slice of ElementHolder that contains the elements of s.
+func (s SoftwareSystems) Elements() []ElementHolder <span class="cov0" title="0">{
+        res := make([]ElementHolder, len(s))
+        for i, ss := range s </span><span class="cov0" title="0">{
+                res[i] = ss
+        }</span>
+        <span class="cov0" title="0">return res</span>
+}
+
+// Container returns the container with the given name if any, nil otherwise.
+func (s *SoftwareSystem) Container(name string) *Container <span class="cov0" title="0">{
+        for _, c := range s.Containers </span><span class="cov0" title="0">{
+                if c.Name == name </span><span class="cov0" title="0">{
+                        return c
+                }</span>
+        }
+        <span class="cov0" title="0">return nil</span>
+}
+
+// AddContainer adds the given container to the software system. If there is
+// already a container with the given name then AddContainer merges both
+// definitions. The merge algorithm:
+//
+//   - overrides the description, technology and URL if provided,
+//   - merges any new tag or propery into the existing tags and properties,
+//   - merges any new component into the existing components.
+//
+// AddContainer returns the new or merged person.
+func (s *SoftwareSystem) AddContainer(c *Container) *Container <span class="cov0" title="0">{
+        existing := s.Container(c.Name)
+        if existing == nil </span><span class="cov0" title="0">{
+                Identify(c)
+                s.Containers = append(s.Containers, c)
+                return c
+        }</span>
+        <span class="cov0" title="0">if c.Description != "" </span><span class="cov0" title="0">{
+                existing.Description = c.Description
+        }</span>
+        <span class="cov0" title="0">if c.Technology != "" </span><span class="cov0" title="0">{
+                existing.Technology = c.Technology
+        }</span>
+        <span class="cov0" title="0">if c.URL != "" </span><span class="cov0" title="0">{
+                existing.URL = c.URL
+        }</span>
+        <span class="cov0" title="0">existing.MergeTags(strings.Split(c.Tags, ",")...)
+        for _, cmp := range c.Components </span><span class="cov0" title="0">{
+                existing.AddComponent(cmp) // will merge if needed
+        }</span>
+        <span class="cov0" title="0">if olddsl := existing.DSLFunc; olddsl != nil </span><span class="cov0" title="0">{
+                existing.DSLFunc = func() </span><span class="cov0" title="0">{ olddsl(); c.DSLFunc() }</span>
+        }
+        <span class="cov0" title="0">return existing</span>
+}
+</pre>
+		
+		<pre class="file" id="file12" style="display: none">package expr
+
+import (
+        "fmt"
+
+        "goa.design/goa/v3/eval"
+)
+
+type (
+        // ViewProps contains common properties of a view as well as helper
+        // methods to fetch them.
+        ViewProps struct {
+                Key               string
+                Description       string
+                Title             string
+                AutoLayout        *AutoLayout
+                PaperSize         PaperSizeKind
+                ElementViews      []*ElementView
+                RelationshipViews []*RelationshipView
+                AnimationSteps    []*AnimationStep
+
+                // The following fields are used to compute the elements and
+                // relationships that should be added to the view.
+                AddAll              bool
+                AddDefault          bool
+                AddNeighbors        []*Element
+                RemoveElements      []*Element
+                RemoveTags          []string
+                RemoveRelationships []*Relationship
+                RemoveUnreachable   []*Element
+                RemoveUnrelated     bool
+        }
+
+        // ElementView describes an instance of a model element (Person,
+        // Software System, Container or Component) in a View.
+        ElementView struct {
+                Element        *Element
+                NoRelationship bool
+                X              *int
+                Y              *int
+        }
+
+        // RelationshipView describes an instance of a model relationship in a
+        // view.
+        RelationshipView struct {
+                Source      *Element
+                Destination *Element
+                Description string
+                Order       string
+                Vertices    []*Vertex
+                Routing     RoutingKind
+                Position    *int
+
+                // RelationshipID is computed in finalize.
+                RelationshipID string
+        }
+
+        // AutoLayout describes an automatic layout.
+        AutoLayout struct {
+                RankDirection RankDirectionKind
+                RankSep       *int
+                NodeSep       *int
+                EdgeSep       *int
+                Vertices      *bool
+        }
+
+        // Vertex describes the x and y coordinate of a bend in a line.
+        Vertex struct {
+                X int
+                Y int
+        }
+
+        // AnimationStep represents an animation step.
+        AnimationStep struct {
+                Elements        []ElementHolder
+                RelationshipIDs []string
+                Order           int
+                View            View
+        }
+        // PaperSizeKind is the enum for possible paper kinds.
+        PaperSizeKind int
+
+        // RoutingKind is the enum for possible routing algorithms.
+        RoutingKind int
+
+        // RankDirectionKind is the enum for possible automatic layout rank
+        // directions.
+        RankDirectionKind int
+)
+
+const (
+        SizeUndefined PaperSizeKind = iota
+        SizeA0Landscape
+        SizeA0Portrait
+        SizeA1Landscape
+        SizeA1Portrait
+        SizeA2Landscape
+        SizeA2Portrait
+        SizeA3Landscape
+        SizeA3Portrait
+        SizeA4Landscape
+        SizeA4Portrait
+        SizeA5Landscape
+        SizeA5Portrait
+        SizeA6Landscape
+        SizeA6Portrait
+        SizeLegalLandscape
+        SizeLegalPortrait
+        SizeLetterLandscape
+        SizeLetterPortrait
+        SizeSlide16X10
+        SizeSlide16X9
+        SizeSlide4X3
+)
+
+const (
+        RoutingUndefined RoutingKind = iota
+        RoutingDirect
+        RoutingOrthogonal
+        RoutingCurved
+)
+
+const (
+        RankUndefined RankDirectionKind = iota
+        RankTopBottom
+        RankBottomTop
+        RankLeftRight
+        RankRightLeft
+)
+
+// ElementView returns the element view for the element with the given ID if
+// any.
+func (v *ViewProps) ElementView(id string) *ElementView <span class="cov0" title="0">{
+        for _, ev := range v.ElementViews </span><span class="cov0" title="0">{
+                if ev.Element.ID == id </span><span class="cov0" title="0">{
+                        return ev
+                }</span>
+        }
+        <span class="cov0" title="0">return nil</span>
+}
+
+// Props returns the underlying properties object.
+func (v *ViewProps) Props() *ViewProps <span class="cov0" title="0">{ return v }</span>
+
+// EvalName returns the generic expression name used in error messages.
+func (v *ViewProps) EvalName() string <span class="cov0" title="0">{
+        var suf string
+        switch </span>{
+        case v.Title != "":<span class="cov0" title="0">
+                suf = fmt.Sprintf(" with title %q and key %q", v.Title, v.Key)</span>
+        default:<span class="cov0" title="0">
+                suf = fmt.Sprintf(" %q", v.Key)</span>
+        }
+        <span class="cov0" title="0">return fmt.Sprintf("view%s", suf)</span>
+}
+
+// EvalName returns the generic expression name used in error messages.
+func (l *AnimationStep) EvalName() string <span class="cov0" title="0">{ return "animation step" }</span>
+
+// Add adds the given elements to the animation step.
+func (l *AnimationStep) Add(eh ElementHolder) <span class="cov0" title="0">{
+        l.Elements = append(l.Elements, eh)
+}</span>
+
+// EvalName returns the generic expression name used in error messages.
+func (l *AutoLayout) EvalName() string <span class="cov0" title="0">{ return "automatic layout" }</span>
+
+// EvalName returns the generic expression name used in error messages.
+func (v *ElementView) EvalName() string <span class="cov0" title="0">{ return "element view" }</span>
+
+// EvalName returns the generic expression name used in error messages.
+func (v *RelationshipView) EvalName() string <span class="cov0" title="0">{ return "relationship view" }</span>
+
+// Validate makes sure there is a corresponding relationship (and exactly one).
+func (v *RelationshipView) Validate() error <span class="cov0" title="0">{
+        verr := new(eval.ValidationErrors)
+        var rel *Relationship
+        found := false
+        IterateRelationships(func(r *Relationship) </span><span class="cov0" title="0">{
+                if r.Source.ID == v.Source.ID &amp;&amp; r.Destination.ID == v.Destination.ID </span><span class="cov0" title="0">{
+                        if v.Description != "" </span><span class="cov0" title="0">{
+                                if r.Description == v.Description </span><span class="cov0" title="0">{
+                                        rel = r
+                                }</span>
+                        } else<span class="cov0" title="0"> {
+                                rel = r
+                                if found </span><span class="cov0" title="0">{
+                                        verr.Add(v, "Link: there exists multiple relationships between %q and %q, specify the relationship description.", v.Source.Name, v.Destination.Name)
+                                }</span>
+                                <span class="cov0" title="0">found = true</span>
+                        }
+                }
+        })
+        <span class="cov0" title="0">if rel == nil </span><span class="cov0" title="0">{
+                var suffix string
+                if v.Description != "" </span><span class="cov0" title="0">{
+                        suffix = fmt.Sprintf(" with description %q", v.Description)
+                }</span>
+                <span class="cov0" title="0">verr.Add(v, "Link: no relationship between %q and %q%s", v.Source.Name, v.Destination.Name, suffix)</span>
+        }
+        <span class="cov0" title="0">return verr</span>
+}
+
+// reachable returns the IDs of all elements that can be reached by traversing
+// the relationships from the given root.
+func reachable(e *Element) (res []string) <span class="cov0" title="0">{
+        seen := make(map[string]struct{})
+        traverse(e, seen)
+        res = make([]string, len(seen))
+        for k := range seen </span><span class="cov0" title="0">{
+                res = append(res, k)
+        }</span>
+        <span class="cov0" title="0">return</span>
+}
+
+func traverse(e *Element, seen map[string]struct{}) <span class="cov0" title="0">{
+        add := func(nid string) bool </span><span class="cov0" title="0">{
+                for id := range seen </span><span class="cov0" title="0">{
+                        if id == nid </span><span class="cov0" title="0">{
+                                return false
+                        }</span>
+                }
+                <span class="cov0" title="0">seen[nid] = struct{}{}
+                return true</span>
+        }
+        <span class="cov0" title="0">IterateRelationships(func(r *Relationship) </span><span class="cov0" title="0">{
+                if r.Source.ID == e.ID </span><span class="cov0" title="0">{
+                        if add(r.Destination.ID) </span><span class="cov0" title="0">{
+                                traverse(r.Destination, seen)
+                        }</span>
+                }
+                <span class="cov0" title="0">if r.Destination.ID == e.ID </span><span class="cov0" title="0">{
+                        if add(r.Source.ID) </span><span class="cov0" title="0">{
+                                traverse(r.Source, seen)
+                        }</span>
+                }
+        })
+}
+</pre>
+		
+		<pre class="file" id="file13" style="display: none">package expr
+
+import (
+        "fmt"
+
+        "goa.design/goa/v3/eval"
+)
+
+type (
+        // Views is the container for all views.
+        Views struct {
+                LandscapeViews  []*LandscapeView
+                ContextViews    []*ContextView
+                ContainerViews  []*ContainerView
+                ComponentViews  []*ComponentView
+                DynamicViews    []*DynamicView
+                DeploymentViews []*DeploymentView
+                FilteredViews   []*FilteredView
+                Styles          *Styles
+                DSLFunc         func()
+        }
+
+        // LandscapeView describes a system landscape view.
+        LandscapeView struct {
+                *ViewProps
+                EnterpriseBoundaryVisible *bool
+        }
+
+        // ContextView describes a system context view.
+        ContextView struct {
+                *ViewProps
+                EnterpriseBoundaryVisible *bool
+                SoftwareSystemID          string
+        }
+
+        // ContainerView describes a container view for a specific software
+        // system.
+        ContainerView struct {
+                *ViewProps
+                SystemBoundariesVisible *bool
+                SoftwareSystemID        string
+                AddInfluencers          bool
+        }
+
+        // ComponentView describes a component view for a specific container.
+        ComponentView struct {
+                *ViewProps
+                ContainerBoundariesVisible *bool
+                ContainerID                string
+        }
+
+        // DynamicView describes a dynamic view for a specified scope.
+        DynamicView struct {
+                *ViewProps
+                ElementID string
+        }
+
+        // DeploymentView describes a deployment view.
+        DeploymentView struct {
+                *ViewProps
+                SoftwareSystemID string
+                Environment      string
+        }
+
+        // Styles describes the styles for a view.
+        Styles struct {
+                Elements      []*ElementStyle
+                Relationships []*RelationshipStyle
+        }
+
+        // ElementStyle defines an element style.
+        ElementStyle struct {
+                Tag         string
+                Shape       ShapeKind
+                Icon        string
+                Background  string
+                Color       string
+                Stroke      string
+                Width       *int
+                Height      *int
+                FontSize    *int
+                Metadata    *bool
+                Description *bool
+                Opacity     *int
+                Border      BorderKind
+        }
+
+        // RelationshipStyle defines a relationship style.
+        RelationshipStyle struct {
+                Tag       string
+                Thickness *int
+                FontSize  *int
+                Width     *int
+                Position  *int
+                Color     string
+                Stroke    string
+                Dashed    *bool
+                Routing   RoutingKind
+                Opacity   *int
+        }
+
+        // View is the common interface for all views.
+        View interface {
+                Props() *ViewProps
+        }
+
+        // ViewAdder is the interface implemented by views that allow adding
+        // elements and animations explicitly.
+        ViewAdder interface {
+                AddElements(...ElementHolder) error
+                AddAnimationStep(*AnimationStep) error
+        }
+
+        // ShapeKind is the enum used to represent shapes used to render elements.
+        ShapeKind int
+
+        // BorderKind is the enum used to represent element border styles.
+        BorderKind int
+)
+
+const (
+        ShapeUndefined ShapeKind = iota
+        ShapeBox
+        ShapeCircle
+        ShapeCylinder
+        ShapeEllipse
+        ShapeHexagon
+        ShapeRoundedBox
+        ShapeComponent
+        ShapeFolder
+        ShapeMobileDeviceLandscape
+        ShapeMobileDevicePortrait
+        ShapePerson
+        ShapePipe
+        ShapeRobot
+        ShapeWebBrowser
+)
+
+const (
+        BorderUndefined BorderKind = iota
+        BorderSolid
+        BorderDashed
+        BorderDotted
+)
+
+var (
+        // Make sure views implement View.
+        _ View = &amp;LandscapeView{}
+        _ View = &amp;ContextView{}
+        _ View = &amp;ContainerView{}
+        _ View = &amp;ComponentView{}
+        _ View = &amp;DynamicView{}
+        _ View = &amp;DeploymentView{}
+
+        // Make sure static views implement ViewAdder.
+        _ ViewAdder = &amp;LandscapeView{}
+        _ ViewAdder = &amp;ContextView{}
+        _ ViewAdder = &amp;ContainerView{}
+        _ ViewAdder = &amp;ComponentView{}
+        _ ViewAdder = &amp;DeploymentView{}
+)
+
+// DSL returns the DSL to execute.
+func (vs *Views) DSL() func() <span class="cov0" title="0">{
+        return vs.DSLFunc
+}</span>
+
+// EvalName returns the generic expression name used in error messages.
+func (vs *Views) EvalName() string <span class="cov0" title="0">{
+        return "views"
+}</span>
+
+// Validate makes sure the right element are in the right views, it also makes
+// sure all animation steps have elements.
+func (vs *Views) Validate() error <span class="cov0" title="0">{
+        verr := new(eval.ValidationErrors)
+
+        // Make sure views don't include elements that are not allowed for that type
+        // of view.
+        checkElements := func(title string, evs []*ElementView, allowContainers bool) </span><span class="cov0" title="0">{
+                for _, ev := range evs </span><span class="cov0" title="0">{
+                        switch Registry[ev.Element.ID].(type) </span>{
+                        case *SoftwareSystem, *Person:<span class="cov0" title="0"></span>
+                                // all good
+                        case *Container:<span class="cov0" title="0">
+                                if !allowContainers </span><span class="cov0" title="0">{
+                                        verr.Add(vs, fmt.Sprintf("%s can only contain software systems and people", title))
+                                }</span>
+                        default:<span class="cov0" title="0">
+                                var suffix = " and people"
+                                if allowContainers </span><span class="cov0" title="0">{
+                                        suffix = ", people and containers"
+                                }</span>
+                                <span class="cov0" title="0">verr.Add(vs, fmt.Sprintf("%s can only contain software systems%s", title, suffix))</span>
+                        }
+                }
+        }
+        <span class="cov0" title="0">for _, lv := range vs.LandscapeViews </span><span class="cov0" title="0">{
+                checkElements("software landscape views", lv.ElementViews, false)
+        }</span>
+        <span class="cov0" title="0">for _, cv := range vs.ContextViews </span><span class="cov0" title="0">{
+                checkElements("software context views", cv.ElementViews, false)
+        }</span>
+        <span class="cov0" title="0">for _, cv := range vs.ContainerViews </span><span class="cov0" title="0">{
+                checkElements("container views", cv.ElementViews, true)
+        }</span>
+
+        <span class="cov0" title="0">for _, view := range vs.All() </span><span class="cov0" title="0">{
+                v := view.Props()
+
+                // Map relationship views created explicitly to model relationships.
+                for _, rv := range v.RelationshipViews </span><span class="cov0" title="0">{
+                        srcID := rv.Source.ID
+                        destID := rv.Destination.ID
+                        desc := rv.Description
+
+                        // The relationships between container instances is implicitly
+                        // derived from the relationships between the corresponding
+                        // containers so make sure there is one for all relationships added
+                        // explicitly to the deployment view and if so create the
+                        // relationship between the container instances.
+                        sci, srcIsCI := Registry[rv.Source.ID].(*ContainerInstance)
+                        dci, destIsCI := Registry[rv.Destination.ID].(*ContainerInstance)
+                        if srcIsCI &amp;&amp; destIsCI </span><span class="cov0" title="0">{
+                                srcID = sci.ContainerID
+                                destID = dci.ContainerID
+                        }</span>
+
+                        <span class="cov0" title="0">IterateRelationships(func(r *Relationship) </span><span class="cov0" title="0">{
+                                if r.Destination == nil </span><span class="cov0" title="0">{
+                                        return // a validation error was already created in model.Validate
+                                }</span>
+                                <span class="cov0" title="0">if r.Source.ID == srcID &amp;&amp; r.Destination.ID == destID &amp;&amp; r.Description == desc </span><span class="cov0" title="0">{
+                                        if srcIsCI &amp;&amp; destIsCI </span><span class="cov0" title="0">{
+                                                rci := r.Dup(sci.Element, dci.Element)
+                                                rci.LinkedRelationshipID = r.ID
+                                                sci.Relationships = append(sci.Relationships, rci)
+                                                r = rci
+                                        }</span>
+                                        <span class="cov0" title="0">rv.RelationshipID = r.ID</span>
+                                }
+                        })
+                        <span class="cov0" title="0">if rv.RelationshipID == "" </span><span class="cov0" title="0">{
+                                verr.Add(rv, "could not find relationship %q [%s -&gt; %s] to add to view %q", desc, rv.Source.Name, rv.Destination.Name, v.Key)
+                        }</span>
+                }
+
+                // Make sure all elements used to remove unreachable are in scope.
+                <span class="cov0" title="0">for _, e := range v.RemoveUnreachable </span><span class="cov0" title="0">{
+                        validateElementInView(v, e, "RemoveUnreachable", verr)
+                }</span>
+
+                <span class="cov0" title="0">for i, s := range v.AnimationSteps </span><span class="cov0" title="0">{
+                        // Make sure all animation steps define at least one element.
+                        if len(s.Elements) == 0 </span><span class="cov0" title="0">{
+                                verr.AddError(v, fmt.Errorf("animation step %d in view %q introduces no new elements", i, v.Key))
+                        }</span>
+                        // Make sure all animation step elements are in scope.
+                        <span class="cov0" title="0">for _, eh := range s.Elements </span><span class="cov0" title="0">{
+                                validateElementInView(v, eh.GetElement(), fmt.Sprintf("animation step %d", i), verr)
+                        }</span>
+                }
+        }
+
+        <span class="cov0" title="0">return verr</span>
+}
+
+// Finalize relationships.
+func (vs *Views) Finalize() <span class="cov0" title="0">{
+        // Add influencers to container views.
+        for _, view := range vs.ContainerViews </span><span class="cov0" title="0">{
+                if view.AddInfluencers </span><span class="cov0" title="0">{
+                        addInfluencers(view)
+                }</span>
+        }
+
+        <span class="cov0" title="0">for _, view := range vs.All() </span><span class="cov0" title="0">{
+                vp := view.Props()
+
+                if vp.AddAll </span><span class="cov0" title="0">{
+                        addAllElements(view)
+                }</span> else<span class="cov0" title="0"> if vp.AddDefault </span><span class="cov0" title="0">{
+                        addDefaultElements(view)
+                }</span>
+                <span class="cov0" title="0">for _, e := range vp.AddNeighbors </span><span class="cov0" title="0">{
+                        addNeighbors(e, vp)
+                }</span>
+                <span class="cov0" title="0">addMissingElementsAndRelationships(vp)
+                addAnimationStepRelationships(vp)
+
+                // Then remove elements and relationships that need to be removed
+                // explicitly.
+                for _, e := range vp.RemoveElements </span><span class="cov0" title="0">{
+                        removeElements(vp, e)
+                }</span>
+                <span class="cov0" title="0">for _, r := range vp.RemoveRelationships </span><span class="cov0" title="0">{
+                        removeRelationship(vp, r)
+                }</span>
+                <span class="cov0" title="0">for _, tag := range vp.RemoveTags </span><span class="cov0" title="0">{
+                        removeElements(vp, tagged(vp, tag)...)
+                }</span>
+                <span class="cov0" title="0">for _, e := range vp.RemoveUnreachable </span><span class="cov0" title="0">{
+                        removeElements(vp, unreachable(vp, e)...)
+                }</span>
+                <span class="cov0" title="0">if vp.RemoveUnrelated </span><span class="cov0" title="0">{
+                        removeElements(vp, unrelated(vp)...)
+                }</span>
+                <span class="cov0" title="0">for _, ev := range vp.ElementViews </span><span class="cov0" title="0">{
+                        if ev.NoRelationship </span><span class="cov0" title="0">{
+                                i := 0
+                                for _, rv := range vp.RelationshipViews </span><span class="cov0" title="0">{
+                                        if rv.Source.ID != ev.Element.ID &amp;&amp; rv.Destination.ID != ev.Element.ID </span><span class="cov0" title="0">{
+                                                vp.RelationshipViews[i] = rv
+                                                i++
+                                        }</span>
+                                }
+                                <span class="cov0" title="0">vp.RelationshipViews = vp.RelationshipViews[:i]</span>
+                        }
+                }
+        }
+}
+
+// All returns all the views in a single slice.
+func (vs Views) All() (vps []View) <span class="cov0" title="0">{
+        for _, lv := range vs.LandscapeViews </span><span class="cov0" title="0">{
+                vps = append(vps, lv)
+        }</span>
+        <span class="cov0" title="0">for _, cv := range vs.ContextViews </span><span class="cov0" title="0">{
+                vps = append(vps, cv)
+        }</span>
+        <span class="cov0" title="0">for _, cv := range vs.ContainerViews </span><span class="cov0" title="0">{
+                vps = append(vps, cv)
+        }</span>
+        <span class="cov0" title="0">for _, cv := range vs.ComponentViews </span><span class="cov0" title="0">{
+                vps = append(vps, cv)
+        }</span>
+        <span class="cov0" title="0">for _, dv := range vs.DynamicViews </span><span class="cov0" title="0">{
+                vps = append(vps, dv)
+        }</span>
+        <span class="cov0" title="0">for _, dv := range vs.DeploymentViews </span><span class="cov0" title="0">{
+                vps = append(vps, dv)
+        }</span>
+        <span class="cov0" title="0">return</span>
+}
+
+// AddElements adds the given elements to the view if not already present.
+func (cv *LandscapeView) AddElements(ehs ...ElementHolder) error <span class="cov0" title="0">{
+        for _, eh := range ehs </span><span class="cov0" title="0">{
+                if !isPS(eh) </span><span class="cov0" title="0">{
+                        return fmt.Errorf("elements of type %T cannot be added to landscape view", eh)
+                }</span>
+        }
+        <span class="cov0" title="0">addElements(cv.ViewProps, ehs...)
+        return nil</span>
+}
+
+// AddAnimationStep adds the given animation step to the view.
+func (cv *LandscapeView) AddAnimationStep(s *AnimationStep) error <span class="cov0" title="0">{
+        for _, eh := range s.Elements </span><span class="cov0" title="0">{
+                if !isPS(eh) </span><span class="cov0" title="0">{
+                        return fmt.Errorf("elements of type %T cannot be added to an animation step in a landscape view", eh)
+                }</span>
+        }
+        <span class="cov0" title="0">return addAnimationStep(cv.ViewProps, s)</span>
+}
+
+// AddElements adds the given elements to the view if not already present.
+func (cv *ContextView) AddElements(ehs ...ElementHolder) error <span class="cov0" title="0">{
+        for _, eh := range ehs </span><span class="cov0" title="0">{
+                if !isPS(eh) </span><span class="cov0" title="0">{
+                        return fmt.Errorf("elements of type %T cannot be added to context view", eh)
+                }</span>
+        }
+        <span class="cov0" title="0">addElements(cv.ViewProps, ehs...)
+        return nil</span>
+}
+
+// AddAnimationStep adds the given animation step to the view.
+func (cv *ContextView) AddAnimationStep(s *AnimationStep) error <span class="cov0" title="0">{
+        for _, eh := range s.Elements </span><span class="cov0" title="0">{
+                if !isPS(eh) </span><span class="cov0" title="0">{
+                        return fmt.Errorf("elements of type %T cannot be added to an animation step in a context view", eh)
+                }</span>
+        }
+        <span class="cov0" title="0">return addAnimationStep(cv.ViewProps, s)</span>
+}
+
+// AddElements adds the given elements to the view if not already present.
+func (cv *ContainerView) AddElements(ehs ...ElementHolder) error <span class="cov0" title="0">{
+        for _, eh := range ehs </span><span class="cov0" title="0">{
+                if !isPSC(eh) </span><span class="cov0" title="0">{
+                        return fmt.Errorf("elements of type %T cannot be added to container view", eh)
+                }</span>
+        }
+        <span class="cov0" title="0">addElements(cv.ViewProps, ehs...)
+        return nil</span>
+}
+
+// AddAnimationStep adds the given animation step to the view.
+func (cv *ContainerView) AddAnimationStep(s *AnimationStep) error <span class="cov0" title="0">{
+        for _, eh := range s.Elements </span><span class="cov0" title="0">{
+                if !isPSC(eh) </span><span class="cov0" title="0">{
+                        return fmt.Errorf("elements of type %T cannot be added to an animation step in a container view", eh)
+                }</span>
+        }
+        <span class="cov0" title="0">return addAnimationStep(cv.ViewProps, s)</span>
+}
+
+// AddElements adds the given elements to the view if not already present.
+func (cv *ComponentView) AddElements(ehs ...ElementHolder) error <span class="cov0" title="0">{
+        for _, eh := range ehs </span><span class="cov0" title="0">{
+                if !isPSCC(eh) </span><span class="cov0" title="0">{
+                        return fmt.Errorf("elements of type %T cannot be added to component view", eh)
+                }</span>
+        }
+        <span class="cov0" title="0">addElements(cv.ViewProps, ehs...)
+        return nil</span>
+}
+
+// AddAnimationStep adds the given animation step to the view.
+func (cv *ComponentView) AddAnimationStep(s *AnimationStep) error <span class="cov0" title="0">{
+        for _, eh := range s.Elements </span><span class="cov0" title="0">{
+                if !isPSCC(eh) </span><span class="cov0" title="0">{
+                        return fmt.Errorf("elements of type %T cannot be added to an animation step in a component view", eh)
+                }</span>
+        }
+        <span class="cov0" title="0">return addAnimationStep(cv.ViewProps, s)</span>
+}
+
+// AddElements adds the given elements to the view if not already present.
+func (dv *DeploymentView) AddElements(ehs ...ElementHolder) error <span class="cov0" title="0">{
+        var nodes []*DeploymentNode
+        for _, eh := range ehs </span><span class="cov0" title="0">{
+                switch e := eh.(type) </span>{
+                case *DeploymentNode:<span class="cov0" title="0">
+                        if addDeploymentNodeChildren(dv, e) </span><span class="cov0" title="0">{
+                                nodes = append(nodes, e)
+                        }</span>
+                case *ContainerInstance:<span class="cov0" title="0">
+                        if dv.SoftwareSystemID == "" || dv.SoftwareSystemID == Registry[e.ContainerID].(*Container).System.ID </span><span class="cov0" title="0">{
+                                addElements(dv.ViewProps, e)
+                                nodes = append(nodes, e.Parent)
+                        }</span>
+                case *InfrastructureNode:<span class="cov0" title="0">
+                        addElements(dv.ViewProps, e)
+                        nodes = append(nodes, e.Parent)</span>
+                default:<span class="cov0" title="0">
+                        return fmt.Errorf("elements of type %T cannot be added to deployment views", eh)</span>
+                }
+        }
+
+        // Add deployment node hierarchy.
+        <span class="cov0" title="0">for _, n := range nodes </span><span class="cov0" title="0">{
+                addElements(dv.ViewProps, n)
+                p := n.Parent
+                for p != nil </span><span class="cov0" title="0">{
+                        addElements(dv.ViewProps, p)
+                        p = p.Parent
+                }</span>
+        }
+
+        <span class="cov0" title="0">return nil</span>
+}
+
+// AddAnimationStep adds the given animation step to the view.
+func (dv *DeploymentView) AddAnimationStep(s *AnimationStep) error <span class="cov0" title="0">{
+        for _, eh := range s.Elements </span><span class="cov0" title="0">{
+                if !isDCI(eh) </span><span class="cov0" title="0">{
+                        return fmt.Errorf("elements of type %T cannot be added to an animation step in a deployment view", eh)
+                }</span>
+        }
+        <span class="cov0" title="0">return addAnimationStep(dv.ViewProps, s)</span>
+}
+
+// EvalName returns the generic expression name used in error messages.
+func (c *Styles) EvalName() string <span class="cov0" title="0">{
+        return "styles"
+}</span>
+
+// EvalName returns the generic expression name used in error messages.
+func (es *ElementStyle) EvalName() string <span class="cov0" title="0">{
+        return fmt.Sprintf("element style for tag %q", es.Tag)
+}</span>
+
+// EvalName returns the generic expression name used in error messages.
+func (rs *RelationshipStyle) EvalName() string <span class="cov0" title="0">{
+        return fmt.Sprintf("relationship style for tag %q", rs.Tag)
+}</span>
+
+// isPS returns true if element is a person or software system, false otherwise.
+func isPS(eh ElementHolder) bool <span class="cov0" title="0">{
+        switch eh.(type) </span>{
+        case *Person, *SoftwareSystem:<span class="cov0" title="0">
+                return true</span>
+        }
+        <span class="cov0" title="0">return false</span>
+}
+
+// isPSC returns true if element is a person, a software system or a container,
+// false otherwise.
+func isPSC(eh ElementHolder) bool <span class="cov0" title="0">{
+        if isPS(eh) </span><span class="cov0" title="0">{
+                return true
+        }</span>
+        <span class="cov0" title="0">_, ok := eh.(*Container)
+        return ok</span>
+}
+
+// isPSCC returns true if element is a person, a software system, a container or
+// a component, false otherwise.
+func isPSCC(eh ElementHolder) bool <span class="cov0" title="0">{
+        if isPSC(eh) </span><span class="cov0" title="0">{
+                return true
+        }</span>
+        <span class="cov0" title="0">_, ok := eh.(*Component)
+        return ok</span>
+}
+
+// isDCI returns true if element is a deployment node, a container instance or
+// an infrastructure node, false otherwise.
+func isDCI(eh ElementHolder) bool <span class="cov0" title="0">{
+        switch eh.(type) </span>{
+        case *DeploymentNode, *ContainerInstance, *InfrastructureNode:<span class="cov0" title="0">
+                return true</span>
+        }
+        <span class="cov0" title="0">return false</span>
+}
+
+// addElements adds the given elements to the view if not already present.
+func addElements(v *ViewProps, ehs ...ElementHolder) <span class="cov0" title="0">{
+loop:
+        for _, eh := range ehs </span><span class="cov0" title="0">{
+                e := eh.GetElement()
+                for _, ev := range v.ElementViews </span><span class="cov0" title="0">{
+                        if ev.Element.ID == e.ID </span><span class="cov0" title="0">{
+                                continue loop</span>
+                        }
+                }
+                <span class="cov0" title="0">v.ElementViews = append(v.ElementViews, &amp;ElementView{Element: e})</span>
+        }
+}
+
+// addDeploymentNodeChildren adds the children, infrastructure nodes and container
+// instances of n to dv and returns true if anything was added, false otherwise.
+func addDeploymentNodeChildren(dv *DeploymentView, n *DeploymentNode) bool <span class="cov0" title="0">{
+        var nested bool
+        for _, inst := range n.ContainerInstances </span><span class="cov0" title="0">{
+                if dv.SoftwareSystemID == "" || Registry[inst.ContainerID].(*Container).System.ID == dv.SoftwareSystemID </span><span class="cov0" title="0">{
+                        addElements(dv.ViewProps, inst)
+                        nested = true
+                }</span>
+        }
+        <span class="cov0" title="0">for _, inf := range n.InfrastructureNodes </span><span class="cov0" title="0">{
+                addElements(dv.ViewProps, inf)
+                nested = true
+        }</span>
+        <span class="cov0" title="0">for _, c := range n.Children </span><span class="cov0" title="0">{
+                if nest := addDeploymentNodeChildren(dv, c); nest </span><span class="cov0" title="0">{
+                        addElements(dv.ViewProps, c)
+                        nested = true
+                }</span>
+        }
+        <span class="cov0" title="0">return nested</span>
+}
+
+// addAnimation adds the animations to the view after normalizing their content.
+// It makes sure that all the elements are in the view, that each element is
+// only included in one animation step, that the relationships are initialized
+// and that any dependent deployment nodes is added.
+func addAnimationStep(v *ViewProps, s *AnimationStep) error <span class="cov0" title="0">{
+        var known []ElementHolder
+        for _, as := range v.AnimationSteps </span><span class="cov0" title="0">{
+                known = append(known, as.Elements...)
+        }</span>
+        <span class="cov0" title="0">s.Order = len(v.AnimationSteps) + 1
+        var filtered []ElementHolder
+loop:
+        for _, e := range s.Elements </span><span class="cov0" title="0">{
+                if e == nil </span><span class="cov0" title="0">{
+                        return fmt.Errorf("element not initialized")
+                }</span>
+                <span class="cov0" title="0">id := e.GetElement().ID
+                for _, k := range known </span><span class="cov0" title="0">{
+                        if k.GetElement().ID == id </span><span class="cov0" title="0">{
+                                continue loop</span> // item already in a step, skip
+                        }
+                }
+                <span class="cov0" title="0">known = append(known, e)
+                filtered = append(filtered, e)
+
+                // Add parent deployment nodes for infrastructure nodes
+                // and container instances.
+                var node *DeploymentNode
+                if inf, ok := e.(*InfrastructureNode); ok </span><span class="cov0" title="0">{
+                        node = inf.Parent
+                }</span> else<span class="cov0" title="0"> if ci, ok := e.(*ContainerInstance); ok </span><span class="cov0" title="0">{
+                        node = ci.Parent
+                }</span>
+                <span class="cov0" title="0">for node != nil </span><span class="cov0" title="0">{
+                        known = append(known, node)
+                        filtered = append(filtered, node)
+                        node = node.Parent
+                }</span>
+        }
+        <span class="cov0" title="0">if len(filtered) == 0 </span><span class="cov0" title="0">{
+                return fmt.Errorf("none of the specified elements exist in this view or do not already appear in previous animation steps")
+        }</span>
+        <span class="cov0" title="0">s.Elements = filtered
+
+        v.AnimationSteps = append(v.AnimationSteps, s)
+        return nil</span>
+}
+
+// validateElementInView makes sure there is an ElementView corresponding to e
+// in v. It adds an error to verr using title if that's not the case.
+func validateElementInView(v *ViewProps, e *Element, title string, verr *eval.ValidationErrors) <span class="cov0" title="0">{
+        for _, ev := range v.ElementViews </span><span class="cov0" title="0">{
+                if ev.Element.ID == e.ID </span><span class="cov0" title="0">{
+                        return
+                }</span>
+        }
+        <span class="cov0" title="0">verr.Add(v, "%T %q used in %s not added to the view %q", e, e.Name, title, v.Key)</span>
+}
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>
