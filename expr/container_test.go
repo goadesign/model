@@ -141,7 +141,6 @@ func TestAddComponent(t *testing.T) {
 		tt := tt
 		t.Run(fmt.Sprint(i), func(t *testing.T) {
 			got := OuterContainer.AddComponent(tt.component2Add)
-			//if got := container.AddComponent(tt.component2Add); got != tt.want {
 			if got != tt.want {
 				t.Errorf("got %#v, want %#v", got.Element, tt.want.Element)
 			}
