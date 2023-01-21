@@ -94,3 +94,57 @@ func TestContainerComponent(t *testing.T) {
 		})
 	}
 }
+
+func TestAddComponent(t *testing.T) {
+	t.Parallel()
+	mElementFoo := Element{ID: "1", Name: "foo", Description: ""}
+	mElementBar := Element{ID: "2", Name: "bar", Description: ""}
+	componentFoo := Component{
+		Element: &Element{ID: "1", Name: "foo", Description: "", DSLFunc: func() {
+			fmt.Println("1")
+			return
+		}},
+	}
+	components := make([]*Component, 1)
+	components[0] = &componentFoo
+	OuterContainer := Container{
+		Element:    &mElementFoo,
+		Components: components,
+		System:     nil,
+	}
+	InnerContainer := Container{
+		Element:    &mElementBar,
+		Components: components,
+		System:     nil,
+	}
+	componentBar := Component{
+		Element:   &Element{ID: "2", Name: "bar", Description: ""},
+		Container: &InnerContainer,
+	}
+	componentFooPlus := Component{
+		Element: &Element{ID: "3", Name: "foo", Description: "Description", Technology: "Golang", URL: "https://github.com/goadesign/model/", DSLFunc: func() {
+			fmt.Printf("hello")
+			return
+		}},
+	}
+
+	tests := []struct {
+		name          string
+		component2Add *Component
+		want          *Component
+	}{
+		{name: "foo", component2Add: &componentFoo, want: &componentFoo}, // already in container
+		{name: "bar", component2Add: &componentBar, want: &componentBar}, // now appended
+		{name: "foo", component2Add: &componentFooPlus, want: &componentFoo},
+	}
+	for i, tt := range tests {
+		tt := tt
+		t.Run(fmt.Sprint(i), func(t *testing.T) {
+			got := OuterContainer.AddComponent(tt.component2Add)
+			//if got := container.AddComponent(tt.component2Add); got != tt.want {
+			if got != tt.want {
+				t.Errorf("got %#v, want %#v", got.Element, tt.want.Element)
+			}
+		})
+	}
+}
