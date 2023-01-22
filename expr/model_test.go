@@ -8,8 +8,7 @@ import (
 )
 
 func Test_EvalName(t *testing.T) {
-	var mDeployNode DeploymentNode
-	mDeployNode = DeploymentNode{}
+	var mDeployNode = DeploymentNode{}
 	mDeploymentNodes := make([]*DeploymentNode, 1)
 	mDeploymentNodes[0] = &mDeployNode
 	m := Model{}
@@ -240,36 +239,35 @@ func Test_Validate_DuplicateSystems(t *testing.T) {
 	}
 }
 
-/*
-Yet to complete - commented out to push interim to github
+// Yet to complete - commented out to push interim to github
 func Test_Validate_DuplicateContainers(t *testing.T) {
 
 	mPeople := make([]*Person, 1)
 	mPeople[0] = &Person{Element: &Element{Name: "Brian"}, Location: LocationExternal}
 
 	mComponents := Components{} //make([]Component,1)
-	mContainer := make([]Container, 2)
-	mContainer[0] = Container{
+	mContainers := make([]*Container, 2)
+	mContainers[0] = &Container{
 		Element:    &Element{Name: "Box"},
 		Components: mComponents,
 	}
-	mContainer[1] = Container{
+	mContainers[1] = &Container{
 		Element:    &Element{Name: "Box"},
 		Components: mComponents,
 	}
 
 	mBigBankSystem := SoftwareSystem{
 		Element:    &Element{Name: "BigBank"},
-		Containers: mContainer,
+		Containers: mContainers,
 	}
-	mSystem := make([]*SoftwareSystem, 2)
+	mSystem := make([]*SoftwareSystem, 1)
 	mSystem[0] = &mBigBankSystem
 
 	mDuplicateSystems := Model{
 		People:  mPeople,
 		Systems: mSystem,
 	}
-	duplicate_person_verr := errors.New("container \"BigBank\": name already in use")
+	duplicate_person_verr := errors.New("container \"Box\": name already in use")
 	t.Parallel()
 	tests := []struct {
 		name  string
@@ -292,4 +290,57 @@ func Test_Validate_DuplicateContainers(t *testing.T) {
 		})
 	}
 }
-*/
+
+func Test_Validate_DuplicateComponents(t *testing.T) {
+
+	mPeople := make([]*Person, 1)
+	mPeople[0] = &Person{Element: &Element{Name: "Brian"}, Location: LocationExternal}
+
+	mComponents := make([]*Component, 2)
+	mComponents[0] = &Component{
+		Element: &Element{Name: "Widget"},
+	}
+	mComponents[1] = &Component{
+		Element: &Element{Name: "Widget"},
+	}
+
+	mContainers := make([]*Container, 1)
+	mContainers[0] = &Container{
+		Element:    &Element{Name: "Box"},
+		Components: mComponents,
+	}
+
+	mBigBankSystem := SoftwareSystem{
+		Element:    &Element{Name: "BigBank"},
+		Containers: mContainers,
+	}
+	mSystem := make([]*SoftwareSystem, 1)
+	mSystem[0] = &mBigBankSystem
+
+	mDuplicateSystems := Model{
+		People:  mPeople,
+		Systems: mSystem,
+	}
+	duplicate_person_verr := errors.New("component \"Widget\": name already in use")
+	t.Parallel()
+	tests := []struct {
+		name  string
+		model Model
+		want  error
+	}{
+		{name: "KnownSystem", model: mDuplicateSystems, want: duplicate_person_verr},
+	}
+	for i, tt := range tests {
+		tt := tt
+		t.Run(fmt.Sprint(i), func(t *testing.T) {
+			got := tt.model.Validate()
+			// the types are awkward - arrange to pick the underlying strings out as these are the important
+			// issues to check for equality
+			mgot := string((got.Error()))
+			mwant := string((tt.want.Error()))
+			if mgot != mwant {
+				t.Errorf("got %v, want %v", mgot, mwant)
+			}
+		})
+	}
+}

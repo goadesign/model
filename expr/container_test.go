@@ -102,7 +102,6 @@ func TestAddComponent(t *testing.T) {
 	componentFoo := Component{
 		Element: &Element{ID: "1", Name: "foo", Description: "", DSLFunc: func() {
 			fmt.Println("1")
-			return
 		}},
 	}
 	components := make([]*Component, 1)
@@ -124,7 +123,6 @@ func TestAddComponent(t *testing.T) {
 	componentFooPlus := Component{
 		Element: &Element{ID: "3", Name: "foo", Description: "Description", Technology: "Golang", URL: "https://github.com/goadesign/model/", DSLFunc: func() {
 			fmt.Printf("hello")
-			return
 		}},
 	}
 
