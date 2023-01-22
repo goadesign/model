@@ -1,3 +1,0 @@
-go test -coverprofile ./tmp/coverage.out $1
-#go tool cover func ./tmp/func_coverage.out
-go tool cover -html ./tmp/coverage.out -o ./tmp/$1_coverage.html
