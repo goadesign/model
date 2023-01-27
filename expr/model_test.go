@@ -8,7 +8,6 @@ import (
 )
 
 // Don't use t.parallel. Crashes when file tests are run as concurrent map read & write.
-
 func Test_EvalName(t *testing.T) {
 	var mDeployNode = DeploymentNode{}
 	mDeploymentNodes := make([]*DeploymentNode, 1)
@@ -34,7 +33,6 @@ func Test_Parent(t *testing.T) {
 	mContainer := Container{}
 	mComponent := Component{}
 	mPerson := Person{}
-
 	tests := []struct {
 		eh   ElementHolder
 		want ElementHolder
@@ -100,7 +98,6 @@ func Test_SoftwareSystem(t *testing.T) {
 	m := Model{
 		Systems: mSystem,
 	}
-
 	tests := []struct {
 		name string
 		want *SoftwareSystem
@@ -135,7 +132,6 @@ func Test_DeploymentNode(t *testing.T) {
 	m := Model{
 		DeploymentNodes: mDPNode,
 	}
-
 	tests := []struct {
 		name        string
 		environment string
@@ -171,7 +167,6 @@ func Test_Validate_DuplicatePeople(t *testing.T) {
 		Systems: mSystem,
 	}
 	duplicate_person_verr := errors.New("person \"Brian\": name already in use")
-
 	tests := []struct {
 		name  string
 		model Model
@@ -210,7 +205,6 @@ func Test_Validate_DuplicateSystems(t *testing.T) {
 		Systems: mSystem,
 	}
 	duplicate_person_verr := errors.New("software system \"BigBank\": name already in use")
-
 	tests := []struct {
 		name  string
 		model Model
@@ -262,7 +256,6 @@ func Test_Validate_DuplicateContainers(t *testing.T) {
 		Systems: mSystem,
 	}
 	duplicate_person_verr := errors.New("container \"Box\": name already in use")
-
 	tests := []struct {
 		name  string
 		model Model
@@ -316,7 +309,6 @@ func Test_Validate_DuplicateComponents(t *testing.T) {
 		Systems: mSystem,
 	}
 	duplicate_person_verr := errors.New("component \"Widget\": name already in use")
-	//t.Replace()
 	tests := []struct {
 		name  string
 		model Model
