@@ -381,16 +381,27 @@ func Test_AddElements2ComponentView(t *testing.T) {
 
 }
 
-/*
 func Test_AddElements2DeploymentView(t *testing.T) {
 	mLViewProp := ViewProps{Key: "LV"}
 	mDeploymentView := DeploymentView{ViewProps: &mLViewProp}
+	mRootInfrastructureNode := InfrastructureNode{
+		Element: &Element{Name: "InfrastructureNode"},
+	}
+	mInfrastructureNodes := make([]*InfrastructureNode, 1)
+	mInfrastructureNodes[0] = &mRootInfrastructureNode
+	mRootDeploymentNode := DeploymentNode{
+		Element: &Element{Name: "RootDeploymentNode"},
+	}
+
 	mDeploymentNode := DeploymentNode{
-		Element: &Element{Name: "SoftwareSystem"},
+		Element:             &Element{Name: "DeploymentNode"},
+		Parent:              &mRootDeploymentNode,
+		InfrastructureNodes: mInfrastructureNodes,
 	}
 	mSoftwareSystem := SoftwareSystem{
 		Element: &Element{ID: "2", Name: "SoftwareSystem"},
 	}
+	Identify(&mSoftwareSystem)
 
 	mContainer := Container{
 		Element: &Element{ID: "7", Name: "Container"},
@@ -399,29 +410,29 @@ func Test_AddElements2DeploymentView(t *testing.T) {
 	Identify(&mContainer)
 	mContainerInstance := ContainerInstance{
 		Element:     &Element{Name: "ContainerInstance"},
-		ContainerID: "7:Container",
+		ContainerID: mContainer.ID,
 		Container:   &mContainer,
+		Parent:      &mDeploymentNode,
 	}
-	mDeploymentView.SoftwareSystemID = "1"
-	/*mComponent := Component{
-		Element: &Element{Name: "Component"},
-	}*/
-/*	tests := []struct {
+	mDeploymentView.SoftwareSystemID = mSoftwareSystem.ID
+
+	mInfrastructureNode := InfrastructureNode{
+		Element: &Element{Name: "InfrastructureNode"},
+		Parent:  &mDeploymentNode,
+	}
+	tests := []struct {
 		ehs1 ElementHolder
 		ehs2 ElementHolder
 		want int
 	}{
+		{ehs1: &mSoftwareSystem, want: 0},
 		{ehs1: &mDeploymentNode, want: 1},
 		{ehs1: &mContainerInstance, want: 1},
+		{ehs1: &mInfrastructureNode, want: 1},
 	}
 	for i, tt := range tests {
 		t.Run(fmt.Sprint(i), func(t *testing.T) {
-			if i == 0 {
-				mDeploymentView.AddElements(tt.ehs1)
-			} else {
-				mDeploymentView.AddElements(tt.ehs1)
-			}
-
+			mDeploymentView.AddElements(tt.ehs1)
 			got := len(mDeploymentView.ElementViews)
 			if got != tt.want {
 				t.Errorf("Got %d, wanted %d", got, tt.want)
@@ -430,7 +441,7 @@ func Test_AddElements2DeploymentView(t *testing.T) {
 	}
 
 }
-*/
+
 func Test_AddAnimationStep2LandscapeView(t *testing.T) {
 	var eHolder []ElementHolder
 	var fHolder []ElementHolder
