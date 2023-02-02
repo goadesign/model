@@ -230,7 +230,7 @@ func Test_AllViews(t *testing.T) {
 }
 
 func assessViewResult(vps []View) string {
-	var res string = ""
+	var res string
 	var intermed = make(map[string]int)
 	intermed["LV"] = 0
 	intermed["CTXV"] = 0
@@ -265,11 +265,10 @@ func Test_AddElements2LandscapeView(t *testing.T) {
 	for i, tt := range tests {
 		t.Run(fmt.Sprint(i), func(t *testing.T) {
 			if i == 0 {
-				mLandscapeView.AddElements(tt.ehs1)
+				_ = mLandscapeView.AddElements(tt.ehs1)
 			} else {
-				mLandscapeView.AddElements(tt.ehs1, tt.ehs2)
+				_ = mLandscapeView.AddElements(tt.ehs1, tt.ehs2)
 			}
-
 			got := len(mLandscapeView.ElementViews)
 			if got != tt.want {
 				t.Errorf("Got %d, wanted %d", got, tt.want)
@@ -299,9 +298,9 @@ func Test_AddElements2ContextView(t *testing.T) {
 	for i, tt := range tests {
 		t.Run(fmt.Sprint(i), func(t *testing.T) {
 			if i == 0 {
-				mContextView.AddElements(tt.ehs1)
+				_ = mContextView.AddElements(tt.ehs1)
 			} else {
-				mContextView.AddElements(tt.ehs1, tt.ehs2)
+				_ = mContextView.AddElements(tt.ehs1, tt.ehs2)
 			}
 
 			got := len(mContextView.ElementViews)
@@ -333,9 +332,9 @@ func Test_AddElements2ContainerView(t *testing.T) {
 	for i, tt := range tests {
 		t.Run(fmt.Sprint(i), func(t *testing.T) {
 			if i == 0 {
-				mContainerView.AddElements(tt.ehs1)
+				_ = mContainerView.AddElements(tt.ehs1)
 			} else {
-				mContainerView.AddElements(tt.ehs1, tt.ehs2)
+				_ = mContainerView.AddElements(tt.ehs1, tt.ehs2)
 			}
 
 			got := len(mContainerView.ElementViews)
@@ -367,9 +366,9 @@ func Test_AddElements2ComponentView(t *testing.T) {
 	for i, tt := range tests {
 		t.Run(fmt.Sprint(i), func(t *testing.T) {
 			if i == 0 {
-				mComponentView.AddElements(tt.ehs1)
+				_ = mComponentView.AddElements(tt.ehs1)
 			} else {
-				mComponentView.AddElements(tt.ehs1, tt.ehs2)
+				_ = mComponentView.AddElements(tt.ehs1, tt.ehs2)
 			}
 
 			got := len(mComponentView.ElementViews)
@@ -432,7 +431,7 @@ func Test_AddElements2DeploymentView(t *testing.T) {
 	}
 	for i, tt := range tests {
 		t.Run(fmt.Sprint(i), func(t *testing.T) {
-			mDeploymentView.AddElements(tt.ehs1)
+			_ = mDeploymentView.AddElements(tt.ehs1)
 			got := len(mDeploymentView.ElementViews)
 			if got != tt.want {
 				t.Errorf("Got %d, wanted %d", got, tt.want)
@@ -481,9 +480,9 @@ func Test_AddAnimationStep2LandscapeView(t *testing.T) {
 	for i, tt := range tests {
 		t.Run(fmt.Sprint(i), func(t *testing.T) {
 			if i == 0 {
-				mLandscapeView.AddAnimationStep(&tt.ehs1)
+				_ = mLandscapeView.AddAnimationStep(&tt.ehs1)
 			} else {
-				mLandscapeView.AddAnimationStep(&tt.ehs1)
+				_ = mLandscapeView.AddAnimationStep(&tt.ehs1)
 			}
 
 			got := len(mLandscapeView.AnimationSteps)
@@ -534,9 +533,9 @@ func Test_AddAnimationStep2ContextView(t *testing.T) {
 	for i, tt := range tests {
 		t.Run(fmt.Sprint(i), func(t *testing.T) {
 			if i == 0 {
-				mContextView.AddAnimationStep(&tt.ehs1)
+				_ = mContextView.AddAnimationStep(&tt.ehs1)
 			} else {
-				mContextView.AddAnimationStep(&tt.ehs1)
+				_ = mContextView.AddAnimationStep(&tt.ehs1)
 			}
 
 			got := len(mContextView.AnimationSteps)
@@ -587,9 +586,9 @@ func Test_AddAnimationStep2ContainerView(t *testing.T) {
 	for i, tt := range tests {
 		t.Run(fmt.Sprint(i), func(t *testing.T) {
 			if i == 0 {
-				mContainerView.AddAnimationStep(&tt.ehs1)
+				_ = mContainerView.AddAnimationStep(&tt.ehs1)
 			} else {
-				mContainerView.AddAnimationStep(&tt.ehs1)
+				_ = mContainerView.AddAnimationStep(&tt.ehs1)
 			}
 
 			got := len(mContainerView.AnimationSteps)
@@ -640,9 +639,9 @@ func Test_AddAnimationStep2ComponentView(t *testing.T) {
 	for i, tt := range tests {
 		t.Run(fmt.Sprint(i), func(t *testing.T) {
 			if i == 0 {
-				mComponentView.AddAnimationStep(&tt.ehs1)
+				_ = mComponentView.AddAnimationStep(&tt.ehs1)
 			} else {
-				mComponentView.AddAnimationStep(&tt.ehs1)
+				_ = mComponentView.AddAnimationStep(&tt.ehs1)
 			}
 
 			got := len(mComponentView.AnimationSteps)
