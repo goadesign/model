@@ -3,6 +3,8 @@ package expr
 import (
 	"fmt"
 	"testing"
+
+	"goa.design/goa/v3/eval"
 )
 
 // Don't use t.parallel. Crashes when file tests are run as concurrent map read & write.
@@ -494,6 +496,72 @@ func Test_AddAnimationStep2LandscapeView(t *testing.T) {
 
 }
 
+func Test_AddDeploymentNodeChildren(t *testing.T) {
+	mSoftwareSystem := SoftwareSystem{
+		Element: &Element{Name: "SoftwareSystem"},
+	}
+	Identify(&mSoftwareSystem)
+	mContainer := Container{
+		Element: &Element{Name: "Container"},
+		System:  &mSoftwareSystem,
+	}
+	Identify(&mContainer)
+	mContainerInstance := ContainerInstance{
+		Element:     &Element{ID: "7", Name: "ContainerInstance"},
+		Container:   &mContainer,
+		ContainerID: mContainer.ID,
+	}
+	mContainerInstances := make([]*ContainerInstance, 1)
+	mContainerInstances[0] = &mContainerInstance
+
+	mDeploymentNode := DeploymentNode{
+		Element: &Element{Name: "Main"},
+	}
+	mDeploymentNodes := make([]*DeploymentNode, 1)
+	mDeploymentNodes[0] = &mDeploymentNode
+	mInfrastructureNode := InfrastructureNode{
+		Element:     &Element{Name: "Infrastructure"},
+		Parent:      &mDeploymentNode,
+		Environment: "Greenfield",
+	}
+	Identify(&mInfrastructureNode)
+	mInfrastructureNodes := make([]*InfrastructureNode, 1)
+	mInfrastructureNodes[0] = &mInfrastructureNode
+	n := DeploymentNode{
+		ContainerInstances:  mContainerInstances,
+		InfrastructureNodes: mInfrastructureNodes,
+		Children:            mDeploymentNodes,
+	}
+	mElementView := ElementView{
+		Element: &Element{ID: "1", Name: "Element"},
+	}
+	mElementViews := make([]*ElementView, 1)
+	mElementViews[0] = &mElementView
+	mViewProps := ViewProps{
+		ElementViews: mElementViews,
+	}
+	dv := DeploymentView{
+		ViewProps:        &mViewProps,
+		SoftwareSystemID: mSoftwareSystem.Element.ID,
+	}
+	tests := []struct {
+		dv1  *DeploymentView
+		dn1  *DeploymentNode
+		want bool
+	}{
+		{dv1: &dv, dn1: &n, want: true},
+	}
+	for i, tt := range tests {
+		t.Run(fmt.Sprint(i), func(t *testing.T) {
+			got := addDeploymentNodeChildren(tt.dv1, tt.dn1)
+			if got != tt.want {
+				t.Errorf("Got %t, wanted %t", got, tt.want)
+			}
+		})
+	}
+
+}
+
 func Test_AddAnimationStep2ContextView(t *testing.T) {
 	var eHolder []ElementHolder
 	var fHolder []ElementHolder
@@ -645,6 +713,391 @@ func Test_AddAnimationStep2ComponentView(t *testing.T) {
 			}
 
 			got := len(mComponentView.AnimationSteps)
+			if got != tt.want {
+				t.Errorf("Got %d, wanted %d", got, tt.want)
+			}
+		})
+	}
+
+}
+
+func Test_AddAnimationStep2DeploymentView(t *testing.T) {
+	var eHolder []ElementHolder
+	var fHolder []ElementHolder
+	mLViewProp := ViewProps{Key: "LV"}
+	mComponentView := ComponentView{ViewProps: &mLViewProp}
+
+	mSoftwareSystem := SoftwareSystem{
+		Element: &Element{Name: "SoftwareSystem"},
+	}
+
+	mDeploymentView := DeploymentView{ViewProps: &mLViewProp}
+
+	mDeploymentNode := DeploymentNode{
+		Element: &Element{Name: "DeploymentNode"},
+	}
+
+	eHolder = make([]ElementHolder, 1)
+	eHolder[0] = &mSoftwareSystem
+
+	mFalseAnimationStep := AnimationStep{
+		Order:    1,
+		Elements: eHolder,
+	}
+	fHolder = make([]ElementHolder, 1)
+	fHolder[0] = &mDeploymentNode
+
+	mAnimationStep := AnimationStep{
+		Order:    1,
+		Elements: fHolder,
+	}
+
+	tests := []struct {
+		ehs1 AnimationStep
+		want int
+	}{
+		{ehs1: mAnimationStep, want: 1},
+		{ehs1: mFalseAnimationStep, want: 1}, // i.e. another one isn't added..
+	}
+	for i, tt := range tests {
+		t.Run(fmt.Sprint(i), func(t *testing.T) {
+			_ = mDeploymentView.AddAnimationStep(&tt.ehs1)
+
+			got := len(mComponentView.AnimationSteps)
+			if got != tt.want {
+				t.Errorf("Got %d, wanted %d", got, tt.want)
+			}
+		})
+	}
+
+}
+
+func Test_ValidateViews(t *testing.T) {
+	// set up all the elements needed to test the one function
+	// it's a marathon... rather than a sprint..
+	mSoftwareSystem := SoftwareSystem{
+		Element: &Element{Name: "SoftwareSystem"},
+	}
+	mComponent := Component{
+		Element: &Element{Name: "Component"},
+	}
+
+	mSrcDeploymentNode := DeploymentNode{
+		Element: &Element{Name: "SrcDeploymentNode"},
+	}
+	mDstDeploymentNode := DeploymentNode{
+		Element: &Element{Name: "DstDeploymentNode"},
+	}
+
+	mRelationship := Relationship{
+		Source:      mSrcDeploymentNode.Element,
+		Destination: mDstDeploymentNode.Element,
+		Description: "Sample",
+	}
+	Identify(&mRelationship)
+	eHolder := make([]ElementHolder, 1)
+	eHolder[0] = &mSoftwareSystem
+
+	mAnimationStep := AnimationStep{
+		Order:    1,
+		Elements: eHolder,
+	}
+	mAnimationSteps := make([]*AnimationStep, 1)
+	mAnimationSteps[0] = &mAnimationStep
+
+	mContainer := Container{
+		Element: &Element{ID: "1"},
+		System:  &mSoftwareSystem,
+	}
+	Identify(&mContainer)
+	mElementView := ElementView{
+		Element: mContainer.Element,
+	}
+	mElementViews := make([]*ElementView, 1)
+	mElementViews[0] = &mElementView
+
+	mSSElementView := ElementView{
+		Element: mSoftwareSystem.Element,
+	}
+	mSSElementViews := make([]*ElementView, 1)
+	mSSElementViews[0] = &mSSElementView
+
+	mCTElementView := ElementView{
+		Element: mComponent.Element,
+	}
+	mCTElementViews := make([]*ElementView, 1)
+	mCTElementViews[0] = &mCTElementView
+
+	mSourceContainerInstance := ContainerInstance{
+		Element:     &Element{Name: "Source"},
+		Parent:      &mSrcDeploymentNode,
+		ContainerID: "1",
+	}
+	Identify(&mSourceContainerInstance)
+	// this is probably cheating as the ids ought to refer to the containers.
+	mSourceContainerInstance.ContainerID = mSourceContainerInstance.ID
+
+	mDestinationContainerInstance := ContainerInstance{
+		Element:     &Element{Name: "Destination"},
+		Parent:      &mDstDeploymentNode,
+		ContainerID: "2",
+	}
+	Identify(&mDestinationContainerInstance)
+	// this is probably cheating as the ids ought to refer to the containers.
+	mDestinationContainerInstance.ContainerID = mDestinationContainerInstance.ID
+	mCIRelationship := Relationship{
+		Source:      mSourceContainerInstance.Element,
+		Destination: mDestinationContainerInstance.Element,
+		Description: "CIRelationship",
+	}
+	Identify(&mCIRelationship)
+
+	mRelationshipView := RelationshipView{
+		Source:         mSourceContainerInstance.Element,
+		Destination:    mDestinationContainerInstance.Element,
+		Description:    "CIRelationship",
+		RelationshipID: "",
+	}
+	mRelationshipViews := make([]*RelationshipView, 1)
+	mRelationshipViews[0] = &mRelationshipView
+	mLVViewProps := ViewProps{
+		Description:       "House",
+		RelationshipViews: mRelationshipViews,
+		AnimationSteps:    mAnimationSteps,
+		ElementViews:      mElementViews,
+	}
+
+	mBadRelationshipView := RelationshipView{
+		Source:         &Element{ID: "1"},
+		Destination:    &Element{ID: "2"},
+		Description:    "BadRelationship",
+		RelationshipID: "",
+	}
+	mBadRelationshipViews := make([]*RelationshipView, 1)
+	mBadRelationshipViews[0] = &mBadRelationshipView
+	mLandscapeView := LandscapeView{
+		ViewProps: &mLVViewProps,
+	}
+	mLandscapeViews := make([]*LandscapeView, 1)
+	mLandscapeViews[0] = &mLandscapeView
+	mCVViewProps := ViewProps{
+		Description:       "House",
+		RelationshipViews: mRelationshipViews,
+		AnimationSteps:    mAnimationSteps,
+		ElementViews:      mSSElementViews,
+	}
+
+	mUnreachable := Element{Name: "unreachable"}
+	mUnreachables := make([]*Element, 1)
+	mUnreachables[0] = &mUnreachable
+
+	mCTViewProps := ViewProps{
+		Description:       "House",
+		RelationshipViews: mBadRelationshipViews,
+		AnimationSteps:    mAnimationSteps,
+		ElementViews:      mCTElementViews,
+		RemoveUnreachable: mUnreachables,
+	}
+
+	mContextView := ContextView{
+		ViewProps: &mCVViewProps,
+	}
+
+	mContextViews := make([]*ContextView, 1)
+	mContextViews[0] = &mContextView
+
+	mContainerView := ContainerView{
+		ViewProps: &mCTViewProps,
+	}
+
+	mContainerViews := make([]*ContainerView, 1)
+	mContainerViews[0] = &mContainerView
+
+	mViews := Views{
+		LandscapeViews: mLandscapeViews,
+		ContextViews:   mContextViews,
+		ContainerViews: mContainerViews,
+	}
+	tests := []struct {
+		ehs1 Views
+		want int
+	}{
+		{ehs1: mViews, want: 5},
+	}
+	for i, tt := range tests {
+		t.Run(fmt.Sprint(i), func(t *testing.T) {
+			got := tt.ehs1.Validate()
+			evalgot := got.(*eval.ValidationErrors)
+			if len(evalgot.Errors) != tt.want {
+				t.Errorf("Got %d, wanted %d", len(evalgot.Errors), tt.want)
+			}
+		})
+	}
+
+}
+
+func Test_Finalize(t *testing.T) {
+	// set up all the elements needed to test the one function
+	// it's a marathon... rather than a sprint..
+	mSoftwareSystem := SoftwareSystem{
+		Element: &Element{Name: "SoftwareSystem"},
+	}
+	Identify(&mSoftwareSystem)
+	mUnrelatedSoftwareSystem := SoftwareSystem{
+		Element: &Element{Name: "UnrelatedSoftwareSystem"},
+	}
+	Identify(&mUnrelatedSoftwareSystem)
+	mSrcDeploymentNode := DeploymentNode{
+		Element: &Element{Name: "SrcDeploymentNode"},
+	}
+	mDstDeploymentNode := DeploymentNode{
+		Element: &Element{Name: "DstDeploymentNode"},
+	}
+
+	mRelationship := Relationship{
+		Source:      mSrcDeploymentNode.Element,
+		Destination: mDstDeploymentNode.Element,
+		Description: "Sample",
+	}
+	Identify(&mRelationship)
+	eHolder := make([]ElementHolder, 1)
+	eHolder[0] = &mSoftwareSystem
+
+	mAnimationStep := AnimationStep{
+		Order:    1,
+		Elements: eHolder,
+	}
+	mAnimationSteps := make([]*AnimationStep, 1)
+	mAnimationSteps[0] = &mAnimationStep
+
+	mContainer := Container{
+		Element: &Element{ID: "1"},
+		System:  &mSoftwareSystem,
+	}
+	Identify(&mContainer)
+	mComponent := Component{
+		Element:   &Element{Name: "Component"},
+		Container: &mContainer,
+	}
+	Identify(&mComponent)
+
+	mCTElementView := ElementView{
+		Element:        mComponent.Element,
+		NoRelationship: true,
+	}
+	mCTElementViews := make([]*ElementView, 1)
+	mCTElementViews[0] = &mCTElementView
+
+	mSourceContainerInstance := ContainerInstance{
+		Element:     &Element{Name: "Source"},
+		Parent:      &mSrcDeploymentNode,
+		ContainerID: "1",
+	}
+	Identify(&mSourceContainerInstance)
+	// this is probably cheating as the ids ought to refer to the containers.
+	mSourceContainerInstance.ContainerID = mSourceContainerInstance.ID
+
+	mDestinationContainerInstance := ContainerInstance{
+		Element:     &Element{Name: "Destination"},
+		Parent:      &mDstDeploymentNode,
+		ContainerID: "2",
+	}
+	Identify(&mDestinationContainerInstance)
+	// this is probably cheating as the ids ought to refer to the containers.
+	mDestinationContainerInstance.ContainerID = mDestinationContainerInstance.ID
+	mCIRelationship := Relationship{
+		Source:      mSourceContainerInstance.Element,
+		Destination: mDestinationContainerInstance.Element,
+		Description: "CIRelationship",
+	}
+	Identify(&mCIRelationship)
+	mCIRelationships := make([]*Relationship, 1)
+	mCIRelationships[0] = &mCIRelationship
+
+	mRelationshipView := RelationshipView{
+		Source:         mSourceContainerInstance.Element,
+		Destination:    mDestinationContainerInstance.Element,
+		Description:    "CIRelationship",
+		RelationshipID: "",
+	}
+	mUnrelationshipView := RelationshipView{
+		Source:         mSoftwareSystem.Element,
+		Destination:    mDestinationContainerInstance.Element,
+		Description:    "Dummy",
+		RelationshipID: "",
+	}
+	mRelationshipViews := make([]*RelationshipView, 2)
+	mRelationshipViews[0] = &mRelationshipView
+	mRelationshipViews[1] = &mUnrelationshipView
+
+	mTags := make([]string, 2)
+	mTags[0] = "String1"
+	mTags[1] = "String1"
+	mNeighbourElement := Element{ID: "1"}
+	mNeighbourElements := make([]*Element, 1)
+	mNeighbourElements[0] = &mNeighbourElement
+
+	mRemoveElement := Element{ID: "1"}
+	mRemoveElements := make([]*Element, 1)
+	mRemoveElements[0] = &mRemoveElement
+	mUnreachable := Element{Name: "unreachable"}
+	mUnreachables := make([]*Element, 1)
+	mUnreachables[0] = &mUnreachable
+
+	mCTViewProps := ViewProps{
+		Description:         "House",
+		RelationshipViews:   mRelationshipViews,
+		AnimationSteps:      mAnimationSteps,
+		ElementViews:        mCTElementViews,
+		AddAll:              true,
+		AddDefault:          true,
+		AddNeighbors:        mNeighbourElements,
+		RemoveElements:      mRemoveElements,
+		RemoveRelationships: mCIRelationships,
+		RemoveTags:          mTags,
+		RemoveUnreachable:   mUnreachables,
+		RemoveUnrelated:     true,
+	}
+
+	mCTNotAllViewProps := ViewProps{
+		Description:       "House",
+		RelationshipViews: mRelationshipViews,
+		AnimationSteps:    mAnimationSteps,
+		ElementViews:      mCTElementViews,
+		AddAll:            false,
+		AddDefault:        true,
+		AddNeighbors:      mNeighbourElements,
+		RemoveElements:    mRemoveElements,
+	}
+
+	mContainerView := ContainerView{
+		ViewProps:        &mCTViewProps,
+		SoftwareSystemID: mSoftwareSystem.ID,
+		AddInfluencers:   true,
+	}
+	mContainerNotAllView := ContainerView{
+		ViewProps:        &mCTNotAllViewProps,
+		SoftwareSystemID: mSoftwareSystem.ID,
+		AddInfluencers:   true,
+	}
+
+	mContainerViews := make([]*ContainerView, 2)
+	mContainerViews[0] = &mContainerView
+	mContainerViews[1] = &mContainerNotAllView
+
+	mViews := Views{
+		ContainerViews: mContainerViews,
+	}
+	tests := []struct {
+		ehs1 Views
+		want int
+	}{
+		{ehs1: mViews, want: 4},
+	}
+	for i, tt := range tests {
+		t.Run(fmt.Sprint(i), func(t *testing.T) {
+			tt.ehs1.Finalize()
+			got := 4
 			if got != tt.want {
 				t.Errorf("Got %d, wanted %d", got, tt.want)
 			}
