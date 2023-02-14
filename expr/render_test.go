@@ -5,88 +5,12 @@ import (
 	"testing"
 )
 
-func makeSimModel() (*Model, *SoftwareSystem) {
-	mPerson := Person{
-		Element: &Element{Name: "Person"},
-	}
-	mPeople := make([]*Person, 1)
-	mPeople[0] = &mPerson
-	mContainers := make([]*Container, 1)
-	mContainers[0] = &Container{
-		Element: &Element{Name: "SubContainer"},
-	}
-	mSoftwareSystem := SoftwareSystem{
-		Element:    &Element{Name: "SoftwareSystem"},
-		Containers: mContainers,
-	}
-	Identify(&mSoftwareSystem)
-	mSystems := make([]*SoftwareSystem, 1)
-	mSystems[0] = &mSoftwareSystem
-
-	mDeploymentNodes := make([]*DeploymentNode, 1)
-	mDeploymentNodes[0] = &DeploymentNode{
-		Element:     &Element{Name: "Fields"},
-		Environment: "GreenField",
-	}
-	mNewModel := Model{
-		Systems:         mSystems,
-		People:          mPeople,
-		DeploymentNodes: mDeploymentNodes,
-	}
-	return &mNewModel, &mSoftwareSystem
-}
-
-func makeViewProps() ViewProps {
-	mElementViews := make([]*ElementView, 1)
-	mElementViews[0] = &ElementView{
-		Element: &Element{ID: "1", Name: "Element"},
-	}
-	mViewProps := ViewProps{
-		ElementViews: mElementViews,
-	}
-	return mViewProps
-}
-
-func makeComponents(mSoftwareSystem *SoftwareSystem) Components {
-	mRelationships := make([]*Relationship, 1)
-	mSource := Container{
-		Element: &Element{Name: "Source"},
-		System:  mSoftwareSystem,
-	}
-	Identify(&mSource)
-	mDestination := Container{
-		Element: &Element{Name: "Destination"},
-		System:  mSoftwareSystem,
-	}
-	Identify(&mDestination)
-	mRelationships[0] = &Relationship{
-		Source:      mSource.Element,
-		Destination: mDestination.Element,
-	}
-	mContainer2 := Container{
-		Element: &Element{Name: "ComponentContainer"},
-		System:  mSoftwareSystem,
-	}
-	mComponent := Component{
-		Element: &Element{
-			ID:            "1",
-			Name:          "Component",
-			Relationships: mRelationships,
-		},
-		Container: &mContainer2,
-	}
-	mComponents := make([]*Component, 1)
-	mComponents[0] = &mComponent
-	Identify(&mComponent)
-	return mComponents
-}
-
 func Test_AddAllElements(t *testing.T) {
-	mModel, mSoftwareSystem := makeSimModel()
+	mModel, mSoftwareSystem := makeSimModel(t)
 	Root = &Design{
 		Model: mModel,
 	}
-	mViewProps := makeViewProps()
+	mViewProps := makeViewProps(t)
 	mLandscapeView := LandscapeView{
 		ViewProps: &mViewProps,
 	}
@@ -123,11 +47,11 @@ func Test_AddAllElements(t *testing.T) {
 }
 
 func Test_AddDefaultElements(t *testing.T) {
-	mModel, mSoftwareSystem := makeSimModel()
+	mModel, mSoftwareSystem := makeSimModel(t)
 	Root = &Design{
 		Model: mModel,
 	}
-	mViewProps := makeViewProps()
+	mViewProps := makeViewProps(t)
 	mLandscapeView := LandscapeView{
 		ViewProps: &mViewProps,
 	}
@@ -135,7 +59,7 @@ func Test_AddDefaultElements(t *testing.T) {
 		ViewProps:        &mViewProps,
 		SoftwareSystemID: mSoftwareSystem.ID,
 	}
-	mComponents := makeComponents(mSoftwareSystem)
+	mComponents := makeComponents(mSoftwareSystem, t)
 	mContainer := Container{
 		Element:    &Element{Name: "Container"},
 		Components: mComponents,
@@ -172,11 +96,11 @@ func Test_AddDefaultElements(t *testing.T) {
 }
 
 func Test_AddNeighbors(t *testing.T) {
-	mModel, mSoftwareSystem := makeSimModel()
+	mModel, mSoftwareSystem := makeSimModel(t)
 	Root = &Design{
 		Model: mModel,
 	}
-	mViewProps := makeViewProps()
+	mViewProps := makeViewProps(t)
 	mLandscapeView := LandscapeView{
 		ViewProps: &mViewProps,
 	}
@@ -184,7 +108,7 @@ func Test_AddNeighbors(t *testing.T) {
 		ViewProps:        &mViewProps,
 		SoftwareSystemID: mSoftwareSystem.ID,
 	}
-	mComponents := makeComponents(mSoftwareSystem)
+	mComponents := makeComponents(mSoftwareSystem, t)
 	mContainer := Container{
 		Element:    &Element{Name: "Container"},
 		Components: mComponents,
@@ -221,27 +145,8 @@ func Test_AddNeighbors(t *testing.T) {
 	}
 }
 
-func makeRelatedPeople() (Person, Person) {
-	mRelationships := make([]*Relationship, 1)
-	mSource := Person{
-		Element: &Element{Name: "SourcePerson"},
-	}
-	Identify(&mSource)
-	mDestination := Person{
-		Element: &Element{Name: "DestinationPerson"},
-	}
-	Identify(&mDestination)
-	mRelationships[0] = &Relationship{
-		Source:      mSource.Element,
-		Destination: mDestination.Element,
-		Description: "Family",
-	}
-	Identify(mRelationships[0])
-	return mSource, mDestination
-}
-
 func Test_RelatedPeople(t *testing.T) {
-	mSource, mDestination := makeRelatedPeople()
+	mSource, mDestination := makeRelatedPeople(t)
 	tests := []struct {
 		el   *Element
 		want *Element
@@ -262,26 +167,8 @@ func Test_RelatedPeople(t *testing.T) {
 
 }
 
-func makeRelatedSystems() (SoftwareSystem, SoftwareSystem) {
-	mRelationships := make([]*Relationship, 1)
-	mSource := SoftwareSystem{
-		Element: &Element{Name: "SourceSoftwareSystem"},
-	}
-	Identify(&mSource)
-	mDestination := SoftwareSystem{
-		Element: &Element{Name: "DestinationSoftwareSystem"},
-	}
-	Identify(&mDestination)
-	mRelationships[0] = &Relationship{
-		Source:      mSource.Element,
-		Destination: mDestination.Element,
-		Description: "Empire",
-	}
-	Identify(mRelationships[0])
-	return mSource, mDestination
-}
 func Test_RelatedSoftwareSystems(t *testing.T) {
-	mSource, mDestination := makeRelatedSystems()
+	mSource, mDestination := makeRelatedSystems(t)
 	tests := []struct {
 		el   *Element
 		want *Element
@@ -302,32 +189,8 @@ func Test_RelatedSoftwareSystems(t *testing.T) {
 
 }
 
-func makeRelatedContainers() (Container, Container) {
-	mRelationships := make([]*Relationship, 1)
-	mSystem := SoftwareSystem{
-		Element: &Element{Name: "SourceSoftwareSystem"},
-	}
-	Identify(&mSystem)
-	mSource := Container{
-		Element: &Element{Name: "SourceContainer"},
-		System:  &mSystem,
-	}
-	Identify(&mSource)
-	mDestination := Container{
-		Element: &Element{Name: "DestinationContainer"},
-		System:  &mSystem,
-	}
-	Identify(&mDestination)
-	mRelationships[0] = &Relationship{
-		Source:      mSource.Element,
-		Destination: mDestination.Element,
-		Description: "Group",
-	}
-	Identify(mRelationships[0])
-	return mSource, mDestination
-}
 func Test_RelatedContainers(t *testing.T) {
-	mSource, mDestination := makeRelatedContainers()
+	mSource, mDestination := makeRelatedContainers(t)
 	tests := []struct {
 		el   *Element
 		want *Element
@@ -348,44 +211,8 @@ func Test_RelatedContainers(t *testing.T) {
 
 }
 
-func makeRelatedComponents() (Component, Component) {
-	mRelationships := make([]*Relationship, 1)
-	mSystem := SoftwareSystem{
-		Element: &Element{Name: "SourceSoftwareSystem"},
-	}
-	Identify(&mSystem)
-
-	mSrcContainer := Container{
-		Element: &Element{Name: "SourceContainer"},
-		System:  &mSystem,
-	}
-	Identify(&mSrcContainer)
-	mDstContainer := Container{
-		Element: &Element{Name: "SourceContainer"},
-		System:  &mSystem,
-	}
-	Identify(&mDstContainer)
-	mSource := Component{
-		Element:   &Element{Name: "SourceComponent"},
-		Container: &mSrcContainer,
-	}
-	Identify(&mSource)
-	mDestination := Component{
-		Element:   &Element{Name: "DestinationComponent"},
-		Container: &mDstContainer,
-	}
-	Identify(&mDestination)
-	mRelationships[0] = &Relationship{
-		Source:      mSource.Element,
-		Destination: mDestination.Element,
-		Description: "Group",
-	}
-	Identify(mRelationships[0])
-	return mSource, mDestination
-}
-
 func Test_RelatedComponents(t *testing.T) {
-	mSource, mDestination := makeRelatedComponents()
+	mSource, mDestination := makeRelatedComponents(t)
 	tests := []struct {
 		el   *Element
 		want *Element
@@ -406,36 +233,8 @@ func Test_RelatedComponents(t *testing.T) {
 
 }
 
-func makeRelatedInfrastructureNodes() (InfrastructureNode, InfrastructureNode) {
-	mRelationships := make([]*Relationship, 1)
-
-	mDeploymentNode := DeploymentNode{
-		Element:     &Element{Name: "DemploymentNode"},
-		Environment: "BrownField",
-	}
-	Identify(&mDeploymentNode)
-	mSource := InfrastructureNode{
-		Element:     &Element{Name: "SourceInfrastructureNode"},
-		Parent:      &mDeploymentNode,
-		Environment: "BrownField",
-	}
-	Identify(&mSource)
-	mDestination := InfrastructureNode{
-		Element:     &Element{Name: "DestinationInfrastructureNode"},
-		Parent:      &mDeploymentNode,
-		Environment: "BrownField",
-	}
-	Identify(&mDestination)
-	mRelationships[0] = &Relationship{
-		Source:      mSource.Element,
-		Destination: mDestination.Element,
-		Description: "Group",
-	}
-	Identify(mRelationships[0])
-	return mSource, mDestination
-}
 func Test_RelatedInfrastructureNodes(t *testing.T) {
-	mSource, mDestination := makeRelatedInfrastructureNodes()
+	mSource, mDestination := makeRelatedInfrastructureNodes(t)
 	tests := []struct {
 		el   *Element
 		want *Element
@@ -456,58 +255,8 @@ func Test_RelatedInfrastructureNodes(t *testing.T) {
 
 }
 
-func makeRelatedContainerInstances() (ContainerInstance, ContainerInstance) {
-	mRelationships := make([]*Relationship, 1)
-	mSystem := SoftwareSystem{
-		Element: &Element{Name: "SourceSoftwareSystem"},
-	}
-	Identify(&mSystem)
-
-	mSrcContainer := Container{
-		Element: &Element{Name: "SourceContainer"},
-		System:  &mSystem,
-	}
-	Identify(&mSrcContainer)
-	mDstContainer := Container{
-		Element: &Element{Name: "SourceContainer"},
-		System:  &mSystem,
-	}
-	Identify(&mDstContainer)
-
-	mSrcDeploymentNode := DeploymentNode{
-		Element:     &Element{Name: "SourceContainer"},
-		Environment: "mSrcDeploymentNode",
-	}
-	Identify(&mSrcDeploymentNode)
-	mDestDeploymentNode := DeploymentNode{
-		Element:     &Element{Name: "DestinationContainer"},
-		Environment: "mDestDeploymentNode",
-	}
-	Identify(&mDestDeploymentNode)
-
-	mSrcContainerInstance := ContainerInstance{
-		Element:     &Element{Name: "SourceContainerInstance"},
-		Parent:      &mSrcDeploymentNode,
-		ContainerID: mSrcContainer.ID,
-	}
-	Identify(&mSrcContainerInstance)
-	mDstContainerInstance := ContainerInstance{
-		Element:     &Element{Name: "SourceContainerInstance"},
-		Parent:      &mDestDeploymentNode,
-		ContainerID: mDstContainer.ID,
-	}
-	Identify(&mDstContainerInstance)
-	mRelationships[0] = &Relationship{
-		Source:      mSrcContainerInstance.Element,
-		Destination: mDstContainerInstance.Element,
-		Description: "Group",
-	}
-	Identify(mRelationships[0])
-	return mSrcContainerInstance, mDstContainerInstance
-}
-
 func Test_RelatedContainerInstances(t *testing.T) {
-	mSource, mDestination := makeRelatedContainerInstances()
+	mSource, mDestination := makeRelatedContainerInstances(t)
 	tests := []struct {
 		el   *Element
 		want *Element
@@ -528,43 +277,10 @@ func Test_RelatedContainerInstances(t *testing.T) {
 
 }
 
-func makeContainerView(mSystem SoftwareSystem) (ContainerView, []*Relationship) {
-	mContainers := make([]*Container, 1)
-	mContainers[0] = &Container{
-		Element: &Element{Name: "SubContainer"},
-	}
-	mOtherSoftwareSystem := SoftwareSystem{
-		Element:    &Element{Name: "SoftwareSystem"},
-		Containers: mContainers,
-	}
-	Identify(&mOtherSoftwareSystem)
-	mRelationshipView := RelationshipView{
-		Source:      mOtherSoftwareSystem.Element,
-		Destination: mSystem.Element,
-	}
-	mRelationshipViews := make([]*RelationshipView, 1)
-	mRelationshipViews[0] = &mRelationshipView
-	mViewProps := ViewProps{
-		RelationshipViews: mRelationshipViews,
-	}
-	mContainerView := ContainerView{
-		ViewProps:        &mViewProps,
-		SoftwareSystemID: mSystem.ID,
-	}
-	mRelationship := Relationship{
-		Source:      mOtherSoftwareSystem.Element,
-		Destination: mSystem.Element,
-	}
-	mRelationships := make([]*Relationship, 1)
-	mRelationships[0] = &mRelationship
-
-	return mContainerView, mRelationships
-}
-
 func Test_AddInfluencers(t *testing.T) {
-	mModel, mSoftwareSystem := makeSimModel()
+	mModel, mSoftwareSystem := makeSimModel(t)
 
-	mContainerView, mRelationships := makeContainerView(*mSoftwareSystem)
+	mContainerView, mRelationships := makeContainerView(*mSoftwareSystem, t)
 	mModel.Systems[0].Relationships = mRelationships
 	mSoftwareSystem.Relationships = mRelationships
 
