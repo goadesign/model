@@ -23,7 +23,7 @@
 		"@babel/core": "7.21.0",
 		"@babel/preset-env": "7.20.2",
 		"@babel/preset-react": "7.18.6",
-		"@babel/preset-typescript": "7.18.6",
+		"@babel/preset-typescript": "7.21.0",
 		"@pmmmwh/react-refresh-webpack-plugin": "^0.5.10",
 		"@types/dagre": "^0.7.48",
 		"@types/react": "18.0.28",
