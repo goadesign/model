@@ -616,20 +616,76 @@ func TestModelFinalize(t *testing.T) {
 	mBContainers[0].System = mBigBankB
 	mBComponents[0].Container = mBContainers[0]
 
-	// Register the pieces
-	/*	Identify(mASystem[0])
-		Identify(mAContainers[0])
-		Identify(mAComponents[0])
-		Identify(mBSystem[0])
-		Identify(mBContainers[0])
-		Identify(mBComponents[0])
-	*/
+	mRelationshipA1 := Relationship{
+		ID:          "R123",
+		Source:      mAContainers[0].Element,
+		Destination: mBContainers[0].Element,
+	}
+	mRelationshipA2 := Relationship{
+		ID:          "R123",
+		Source:      mBContainers[0].Element,
+		Destination: mAContainers[0].Element,
+	}
+
+	mRelationshipA3 := Relationship{
+		ID:          "R123",
+		Source:      mAComponents[0].Element,
+		Destination: mBComponents[0].Element,
+	}
+	mRelationshipA4 := Relationship{
+		ID:          "R123",
+		Source:      mBComponents[0].Element,
+		Destination: mAComponents[0].Element,
+	}
+
+	mAContainers[0].Relationships = make([]*Relationship, 1)
+	mAContainers[0].Relationships[0] = &mRelationshipA1
+	mBContainers[0].Relationships = make([]*Relationship, 1)
+	mBContainers[0].Relationships[0] = &mRelationshipA2
+	mAComponents[0].Relationships = make([]*Relationship, 1)
+	mAComponents[0].Relationships[0] = &mRelationshipA3
+	mBComponents[0].Relationships = make([]*Relationship, 1)
+	mBComponents[0].Relationships[0] = &mRelationshipA4
+	// Register the pieces as if the registry is empty finalize does nothing.
+	Identify(mASystem[0])
+	Identify(mAContainers[0])
+	Identify(mAComponents[0])
+	Identify(mBSystem[0])
+	Identify(mBContainers[0])
+	Identify(mBComponents[0])
+	Identify(&mRelationshipA1)
+	Identify(&mRelationshipA2)
+	Identify(&mRelationshipA3)
+	Identify(&mRelationshipA4)
+
+	mSrcDeploymentNode := DeploymentNode{
+		Element: &Element{ID: "123SD", Name: "SrcDeploymentNode"},
+	}
+	mDstDeploymentNode := DeploymentNode{
+		Element: &Element{ID: "123DD", Name: "DstDeploymentNode"},
+	}
+
+	mContainerInstanceA := ContainerInstance{
+		Element:     &Element{ID: "123", Name: "ContainerInstanceA"},
+		Parent:      &mSrcDeploymentNode,
+		ContainerID: mAContainers[0].ID,
+		Environment: "London",
+	}
+
+	mContainerInstanceB := ContainerInstance{
+		Element:     &Element{ID: "456", Name: "ContainerInstanceB"},
+		Parent:      &mDstDeploymentNode,
+		ContainerID: mBContainers[0].ID,
+		Environment: "Manchester",
+	}
+	Identify(&mContainerInstanceA)
+	Identify(&mContainerInstanceB)
+
 	m := Model{
 		Systems:                 mBSystem,
 		AddImpliedRelationships: true,
 	}
 
-	//t.Replace()
 	tests := []struct {
 	}{
 		{},

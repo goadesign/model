@@ -4,6 +4,16 @@ import (
 	"testing"
 )
 
+func makeViews(mSystem SoftwareSystem, t *testing.T) *Views {
+	t.Helper()
+	mViews := &Views{}
+	mContainers := make([]*Container, 1)
+	mContainers[0] = &Container{
+		Element: &Element{Name: "SubContainer"},
+	}
+	return mViews
+}
+
 func makeContainerView(mSystem SoftwareSystem, t *testing.T) (ContainerView, []*Relationship) {
 	t.Helper()
 	mContainers := make([]*Container, 1)
