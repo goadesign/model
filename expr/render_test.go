@@ -292,12 +292,6 @@ func Test_AddInfluencers(t *testing.T) {
 	for i, tt := range tests {
 		t.Run(fmt.Sprint(i), func(t *testing.T) {
 			addInfluencers(tt.el)
-			/*got := cv
-			if got != nil {
-				if got[0].Name != tt.want.Name {
-					t.Errorf("Got %s, wanted %s", got[0].Name, tt.want.Name)
-				}
-			}*/
 		})
 	}
 
