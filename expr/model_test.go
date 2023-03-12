@@ -227,13 +227,12 @@ func Test_Validate_DuplicateSystems(t *testing.T) {
 	}
 }
 
-// Yet to complete - commented out to push interim to github
 func Test_Validate_DuplicateContainers(t *testing.T) {
 
 	mPeople := make([]*Person, 1)
 	mPeople[0] = &Person{Element: &Element{Name: "Brian"}, Location: LocationExternal}
 
-	mComponents := Components{} //make([]Component,1)
+	mComponents := Components{}
 	mContainers := make([]*Container, 2)
 	mContainers[0] = &Container{
 		Element:    &Element{Name: "Box"},
@@ -359,7 +358,7 @@ func Test_FindElement(t *testing.T) {
 		Systems: mSystem,
 		People:  mPeople,
 	}
-	//t.Replace()
+
 	tests := []struct {
 		eh    ElementHolder
 		path  string
@@ -405,7 +404,6 @@ func Test_AddPerson(t *testing.T) {
 	m := Model{
 		People: mPeople,
 	}
-	//t.Replace()
 	tests := []struct {
 		Person *Person
 		want   *Person
@@ -447,7 +445,7 @@ func Test_AddSystem(t *testing.T) {
 	m := Model{
 		Systems: mSoftwareSystems,
 	}
-	//t.Replace()
+
 	tests := []struct {
 		System *SoftwareSystem
 		want   *SoftwareSystem
@@ -488,7 +486,7 @@ func Test_AddDeployment(t *testing.T) {
 	m := Model{
 		DeploymentNodes: mDeploymentNodes,
 	}
-	//t.Replace()
+
 	tests := []struct {
 		DPNode *DeploymentNode
 		want   *DeploymentNode
@@ -556,7 +554,7 @@ func Test_AddImpliedRelationship(t *testing.T) {
 	Identify(mBContainers[0])
 	Identify(mBComponents[0])
 	nilRelationship := Relationship{}
-	//t.Replace()
+
 	tests := []struct {
 		src      ElementHolder
 		dst      *Element
