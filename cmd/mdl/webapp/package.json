@@ -15,7 +15,7 @@
 		"react-is": "18.2.0",
 		"react-router": "6.10.0",
 		"react-router-dom": "6.10.0",
-		"styled-components": "^5.3.9",
+		"styled-components": "^5.3.10",
 		"svg-editor-tools": "github:dvictor/svg-editor-tools#1.0.1",
 		"yarn": "^1.22.19"
 	},
