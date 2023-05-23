@@ -39,7 +39,7 @@
 		"html-loader": "4.2.0",
 		"html-webpack-plugin": "5.5.1",
 		"react-refresh": "0.14.0",
-		"style-loader": "3.3.2",
+		"style-loader": "3.3.3",
 		"typescript": "5.0.4",
 		"webpack": "5.82.1",
 		"webpack-cli": "^5.1.1",
