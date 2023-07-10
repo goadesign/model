@@ -4532,9 +4532,9 @@ style-loader@3.3.3:
   version "3.3.3"
   resolved "https://registry.yarnpkg.com/style-loader/-/style-loader-3.3.3.tgz#bba8daac19930169c0c9c96706749a597ae3acff"
 
-styled-components@^6.0.2:
-  version "6.0.2"
-  resolved "https://registry.yarnpkg.com/styled-components/-/styled-components-6.0.2.tgz#97e94d33422d7634b5c9915a4f33c628da94c0f4"
+styled-components@^6.0.3:
+  version "6.0.3"
+  resolved "https://registry.yarnpkg.com/styled-components/-/styled-components-6.0.3.tgz#03863133b8340912f52be623e3262ba9eb87ccc0"
   dependencies:
     "@babel/cli" "^7.21.0"
     "@babel/core" "^7.21.0"
