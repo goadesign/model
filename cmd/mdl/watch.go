@@ -10,6 +10,8 @@ import (
 	"github.com/fsnotify/fsnotify"
 	"github.com/jaschaephraim/lrserver"
 	"golang.org/x/tools/go/packages"
+
+	"goa.design/model/codegen"
 )
 
 // watch implements functionality to listen to changes in the model files
@@ -50,7 +52,7 @@ func watch(pkg string, reload func()) error {
 		for {
 			select {
 			case ev := <-watcher.Events:
-				if strings.HasPrefix(filepath.Base(ev.Name), tmpDirPrefix) {
+				if strings.HasPrefix(filepath.Base(ev.Name), codegen.TmpDirPrefix) {
 					continue
 				}
 

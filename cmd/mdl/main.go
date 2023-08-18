@@ -10,7 +10,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"goa.design/goa/v3/codegen"
+	goacodegen "goa.design/goa/v3/codegen"
+
+	"goa.design/model/codegen"
 	"goa.design/model/mdl"
 	model "goa.design/model/pkg"
 )
@@ -24,7 +26,7 @@ func main() {
 		out    = genset.String("out", "design.json", "set path to generated JSON representation")
 
 		svrset = flag.NewFlagSet("serve", flag.ExitOnError)
-		dir    = svrset.String("dir", codegen.Gendir, "set output directory used by editor to save SVG files")
+		dir    = svrset.String("dir", goacodegen.Gendir, "set output directory used by editor to save SVG files")
 		port   = svrset.Int("port", 8080, "set local HTTP port used to serve diagram editor")
 
 		devmode = os.Getenv("DEVMODE") == "1"
@@ -81,7 +83,7 @@ func main() {
 			fail(`missing PACKAGE argument, use "--help" for usage`)
 		}
 		var b []byte
-		b, err = gen(pkg, *debug)
+		b, err = codegen.JSON(pkg, *debug)
 		if err == nil {
 			err = os.WriteFile(*out, b, 0644)
 		}
@@ -108,7 +110,7 @@ func main() {
 
 func serve(out, pkg string, port int, devmode, debug bool) error {
 	// Retrieve initial design and create server.
-	b, err := gen(pkg, debug)
+	b, err := codegen.JSON(pkg, debug)
 	if err != nil {
 		return err
 	}
@@ -120,7 +122,7 @@ func serve(out, pkg string, port int, devmode, debug bool) error {
 
 	// Update server whenever design changes on disk.
 	err = watch(pkg, func() {
-		b, err := gen(pkg, debug)
+		b, err := codegen.JSON(pkg, debug)
 		if err != nil {
 			fmt.Println("error parsing DSL:\n" + err.Error())
 			return

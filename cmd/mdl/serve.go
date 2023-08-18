@@ -60,13 +60,13 @@ func (s *Server) Serve(outDir string, devmode bool, port int) error {
 		http.Handle("/", http.FileServer(FS(false)))
 	}
 
-	http.HandleFunc("/data/model.json", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/data/model.json", func(w http.ResponseWriter, _ *http.Request) {
 		s.lock.Lock()
 		defer s.lock.Unlock()
 		_, _ = w.Write(s.design)
 	})
 
-	http.HandleFunc("/data/layout.json", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/data/layout.json", func(w http.ResponseWriter, _ *http.Request) {
 		s.lock.Lock()
 		defer s.lock.Unlock()
 
