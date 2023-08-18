@@ -1,4 +1,4 @@
-package main
+package codegen
 
 import (
 	"fmt"
@@ -10,9 +10,12 @@ import (
 	"golang.org/x/tools/go/packages"
 )
 
-const tmpDirPrefix = "mdl--"
+// TmpDirPrefix is the prefix used to create temporary directories.
+const TmpDirPrefix = "mdl--"
 
-func gen(pkg string, debug bool) ([]byte, error) {
+// JSON generates a JSON representation of the model described in pkg.
+// pkg must be a valid Go package import path.
+func JSON(pkg string, debug bool) ([]byte, error) {
 	// Validate package import path
 	if _, err := packages.Load(&packages.Config{Mode: packages.NeedName}, pkg); err != nil {
 		return nil, err
@@ -23,7 +26,7 @@ func gen(pkg string, debug bool) ([]byte, error) {
 	if err != nil {
 		cwd = "."
 	}
-	tmpDir, err := os.MkdirTemp(cwd, tmpDirPrefix)
+	tmpDir, err := os.MkdirTemp(cwd, TmpDirPrefix)
 	if err != nil {
 		return nil, err
 	}
