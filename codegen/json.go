@@ -71,7 +71,6 @@ func JSON(pkg string, debug bool) ([]byte, error) {
 }
 
 func runCmd(path, dir string, args ...string) (string, error) {
-	_ = os.Setenv("GO111MODULE", "on")
 	args = append([]string{path}, args...) // args[0] becomes exec path
 	c := exec.Cmd{Path: path, Args: args, Dir: dir}
 	b, err := c.CombinedOutput()
