@@ -151,7 +151,8 @@ func AddImpliedRelationships() {
 // identify group of elements that should be rendered together for example.
 //
 // Tag may appear in Person, SoftwareSystem, Container, Component,
-// DeploymentNode, InfrastructureNode, ContainerInstance.
+// DeploymentNode, InfrastructureNode, ContainerInstance, Uses, InteractsWith or
+// Delivers.
 //
 // Tag accepts the set of tag values as argument. Tag may appear multiple times
 // in the same expression in which case the tags accumulate.
