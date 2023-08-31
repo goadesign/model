@@ -1,7 +1,7 @@
 # JSON Model Example
 
 This example `model` package contains a valid DSL definition of a simple
-software system that makes use of the `Endpoint` and `Call` DSLs. The
+software system that makes use of the `Endpoint` and `Calls` DSLs. The
 main function in the `main` package serializes the underlying model as
 JSON and prints it to standard output.
 
