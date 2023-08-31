@@ -75,6 +75,8 @@ type (
 		Relationships []*Relationship `json:"relationships,omitempty"`
 		// Components list the components within the container.
 		Components []*Component `json:"components,omitempty"`
+		// Endpoints list the endpoints exposed by the container.
+		Endpoints []*Endpoint `json:"endpoints,omitempty"`
 	}
 
 	// Component represents a component.
@@ -96,6 +98,16 @@ type (
 		// Relationships is the set of relationships from this element to other
 		// elements.
 		Relationships []*Relationship `json:"relationships,omitempty"`
+	}
+
+	// Endpoint describes a container endpoint.
+	//
+	// Note:  Endpoint information is not used directly in diagrams instead
+	// it is serialized in the system JSON representation for other tools to
+	// consume.
+	Endpoint struct {
+		Name        string `json:"name"`
+		Description string `json:"description,omitempty"`
 	}
 
 	// LocationKind is the enum for possible locations.

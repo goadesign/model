@@ -99,7 +99,9 @@ func Uses(element interface{}, description string, args ...interface{}) {
 		eval.IncompatibleDSL()
 		return
 	}
-	uses(src, element, description, args...)
+	if err := uses(src, element, description, args...); err != nil {
+		eval.ReportError("Uses: %s", err.Error())
+	}
 }
 
 // InteractsWith adds an interaction between a person and another.
@@ -236,6 +238,40 @@ func Delivers(person interface{}, description string, args ...interface{}) {
 		return
 	}
 
+}
+
+// Calls specifies a list of endpoint names that the relationship source calls.
+// The target of the relationship must be a container.
+//
+// Calls must appear in Uses.
+//
+// Calls takes one or more arguments each of which is the name of an endpoint
+// defined in the target container.
+//
+// Usage:
+//
+//	Calls("endpoint")
+//
+//	Calls("endpoint1", "endpoint2")
+//
+// Example:
+//
+//	var _ = Design("my workspace", "a great architecture model", func() {
+//	    SoftwareSystem("SystemA", func() {
+//	        Container("ContainerA", func() {
+//	           Uses("ContainerB", "Uses", func() {
+//	               Calls("endpoint1", "endpoint2")
+//	           })
+//	        })
+//	    })
+//	})
+func Calls(endpoints ...string) {
+	v, ok := eval.Current().(*expr.Relationship)
+	if !ok {
+		eval.IncompatibleDSL()
+		return
+	}
+	v.Endpoints = endpoints
 }
 
 // Description provides a short description for a relationship displayed in a
