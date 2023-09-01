@@ -14,6 +14,7 @@ type (
 		InteractionStyle InteractionStyleKind
 		Tags             string
 		URL              string
+		Endpoints        []string
 
 		// DestinationPath is used to compute the destination after all DSL has
 		// completed execution.

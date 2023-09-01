@@ -16,6 +16,8 @@ type (
 		Tags string `json:"tags,omitempty"`
 		// URL where more information can be found.
 		URL string `json:"url,omitempty"`
+		// Endpoints of relationship if any.
+		Endpoints []string `json:"endpoints,omitempty"`
 		// SourceID is the ID of the source element.
 		SourceID string `json:"sourceId"`
 		// DestinationID is ID the destination element.

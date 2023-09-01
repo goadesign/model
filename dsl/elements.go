@@ -235,6 +235,54 @@ func Component(name string, args ...interface{}) *expr.Component {
 	return container.AddComponent(c)
 }
 
+// Endpoint defines an endpoint on a container. The endpoint may be a REST
+// endpoint, a gRPC endpoint or any other kind of endpoint.
+//
+// Endpoint must appear in a Container expression.
+//
+// Endpoint takes 1 to 2 arguments: the endpoint name and an optional
+// description.
+//
+// The valid syntax for Endpoint is thus:
+//
+//	Endpoint("<name>", "[description]")
+//
+// Example:
+//
+//	var _ = Design(func() {
+//	    SoftwareSystem("My system", "A system with a great architecture", func() {
+//	        Container("My container", "A container with a great architecture", "Go and Goa", func() {
+//	            Endpoint("MyEndpoint", "An endpoint")
+//	        })
+//	    })
+//	})
+func Endpoint(name string, args ...interface{}) {
+	container, ok := eval.Current().(*expr.Container)
+	if !ok {
+		eval.IncompatibleDSL()
+		return
+	}
+	if len(args) > 1 {
+		eval.ReportError("Endpoint: too many arguments")
+		return
+	}
+	description, _, _, err := parseElementArgs(args...)
+	if err != nil {
+		eval.ReportError("Endpoint: " + err.Error())
+		return
+	}
+	for _, e := range container.Endpoints {
+		if e.Name == name {
+			eval.ReportError("Endpoint %q already defined", name)
+			return
+		}
+	}
+	container.Endpoints = append(container.Endpoints, &expr.Endpoint{
+		Name:        name,
+		Description: description,
+	})
+}
+
 // parseElement is a helper function that parses the given element DSL
 // arguments. Accepted syntax are:
 //
