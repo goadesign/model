@@ -566,7 +566,7 @@ func Test_AddImpliedRelationship(t *testing.T) {
 	}
 	for i, tt := range tests {
 		tt := tt
-		t.Run(fmt.Sprint(i), func(t *testing.T) {
+		t.Run(fmt.Sprint(i), func(_ *testing.T) {
 			addImpliedRelationships(tt.src, tt.dst, tt.existing)
 		})
 	}
@@ -689,7 +689,7 @@ func TestModelFinalize(t *testing.T) {
 		{},
 	}
 	for i := range tests {
-		t.Run(fmt.Sprint(i), func(t *testing.T) {
+		t.Run(fmt.Sprint(i), func(_ *testing.T) {
 			m.Finalize()
 		})
 	}

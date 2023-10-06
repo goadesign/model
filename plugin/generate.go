@@ -46,7 +46,7 @@ func Generate(_ string, roots []eval.Root, files []*codegen.File) ([]*codegen.Fi
 	return files, nil
 }
 
-func toJSON(d interface{}) string {
+func toJSON(d any) string {
 	b, err := json.MarshalIndent(d, "", "    ")
 	if err != nil {
 		panic("design: " + err.Error()) // bug

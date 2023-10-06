@@ -621,3 +621,53 @@ func validateElementInView(v *ViewProps, e *Element, title string, verr *eval.Va
 	}
 	verr.Add(v, "%T %q used in %s not added to the view %q", e, e.Name, title, v.Key)
 }
+
+// Name returns then name of the shape.
+func (s ShapeKind) Name() string {
+	switch s {
+	case ShapeBox:
+		return "ShapeBox"
+	case ShapeCircle:
+		return "ShapeCircle"
+	case ShapeCylinder:
+		return "ShapeCylinder"
+	case ShapeEllipse:
+		return "ShapeEllipse"
+	case ShapeHexagon:
+		return "ShapeHexagon"
+	case ShapeRoundedBox:
+		return "ShapeRoundedBox"
+	case ShapeComponent:
+		return "ShapeComponent"
+	case ShapeFolder:
+		return "ShapeFolder"
+	case ShapeMobileDeviceLandscape:
+		return "ShapeMobileDeviceLandscape"
+	case ShapeMobileDevicePortrait:
+		return "ShapeMobileDevicePortrait"
+	case ShapePerson:
+		return "ShapePerson"
+	case ShapePipe:
+		return "ShapePipe"
+	case ShapeRobot:
+		return "ShapeRobot"
+	case ShapeWebBrowser:
+		return "ShapeWebBrowser"
+	default:
+		return "ShapeUndefined"
+	}
+}
+
+// Name returns the name of the border kind.
+func (b BorderKind) Name() string {
+	switch b {
+	case BorderSolid:
+		return "BorderSolid"
+	case BorderDashed:
+		return "BorderDashed"
+	case BorderDotted:
+		return "BorderDotted"
+	default:
+		return "BorderUndefined"
+	}
+}

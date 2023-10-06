@@ -44,7 +44,7 @@ import (
 //	var _ = Design("My Design", "A great architecture.", func() {
 //	    SoftwareSystem("My Software System")
 //	})
-func Design(args ...interface{}) *expr.Design {
+func Design(args ...any) *expr.Design {
 	_, ok := eval.Current().(eval.TopExpr)
 	if !ok {
 		eval.IncompatibleDSL()

@@ -124,7 +124,6 @@ func modelizePerson(p *expr.Person) *Person {
 		ID:            p.Element.ID,
 		Name:          p.Element.Name,
 		Description:   p.Element.Description,
-		Technology:    p.Element.Technology,
 		Tags:          p.Element.Tags,
 		URL:           p.Element.URL,
 		Properties:    p.Element.Properties,
@@ -156,7 +155,6 @@ func modelizeSystem(sys *expr.SoftwareSystem) *SoftwareSystem {
 		ID:            sys.ID,
 		Name:          sys.Name,
 		Description:   sys.Description,
-		Technology:    sys.Technology,
 		Tags:          sys.Tags,
 		URL:           sys.URL,
 		Properties:    sys.Properties,
@@ -273,6 +271,7 @@ func modelizeProps(prop *expr.ViewProps) *ViewProps {
 		ElementViews:      modelizeElementViews(prop.ElementViews),
 		RelationshipViews: modelizeRelationshipViews(prop.RelationshipViews),
 		Animations:        modelizeAnimationSteps(prop.AnimationSteps),
+		Settings:          modelizeSettings(prop),
 	}
 	if layout := prop.AutoLayout; layout != nil {
 		props.AutoLayout = &AutoLayout{
@@ -331,6 +330,35 @@ func modelizeAnimationSteps(as []*expr.AnimationStep) []*AnimationStep {
 		}
 	}
 	return res
+}
+
+func modelizeSettings(p *expr.ViewProps) *ViewSettings {
+	var addNeighborsIDs []string
+	for _, e := range p.AddNeighbors {
+		addNeighborsIDs = append(addNeighborsIDs, e.GetElement().ID)
+	}
+	var removeElementsIDs []string
+	for _, e := range p.RemoveElements {
+		removeElementsIDs = append(removeElementsIDs, e.GetElement().ID)
+	}
+	var removeRelationshipsIDs []string
+	for _, e := range p.RemoveRelationships {
+		removeRelationshipsIDs = append(removeRelationshipsIDs, e.ID)
+	}
+	var removeUnreachableIDs []string
+	for _, e := range p.RemoveUnreachable {
+		removeUnreachableIDs = append(removeUnreachableIDs, e.GetElement().ID)
+	}
+	return &ViewSettings{
+		AddAll:                p.AddAll,
+		AddDefault:            p.AddDefault,
+		AddNeighborIDs:        addNeighborsIDs,
+		RemoveElementIDs:      removeElementsIDs,
+		RemoveTags:            p.RemoveTags,
+		RemoveRelationshipIDs: removeRelationshipsIDs,
+		RemoveUnreachableIDs:  removeUnreachableIDs,
+		RemoveUnrelated:       p.RemoveUnrelated,
+	}
 }
 
 func modelizeStyles(s *expr.Styles) *Styles {

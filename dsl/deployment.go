@@ -90,7 +90,7 @@ func DeploymentEnvironment(name string, dsl func()) {
 //	        })
 //	    })
 //	})
-func DeploymentNode(name string, args ...interface{}) *expr.DeploymentNode {
+func DeploymentNode(name string, args ...any) *expr.DeploymentNode {
 	if strings.Contains(name, "/") {
 		eval.ReportError("DeploymentNode: name cannot include slashes")
 	}
@@ -168,7 +168,7 @@ func DeploymentNode(name string, args ...interface{}) *expr.DeploymentNode {
 //	        })
 //	    })
 //	})
-func InfrastructureNode(name string, args ...interface{}) *expr.InfrastructureNode {
+func InfrastructureNode(name string, args ...any) *expr.InfrastructureNode {
 	d, ok := eval.Current().(*expr.DeploymentNode)
 	if !ok {
 		eval.IncompatibleDSL()
@@ -241,7 +241,7 @@ func InfrastructureNode(name string, args ...interface{}) *expr.InfrastructureNo
 //	        })
 //	    })
 //	})
-func ContainerInstance(container interface{}, dsl ...func()) *expr.ContainerInstance {
+func ContainerInstance(container any, dsl ...func()) *expr.ContainerInstance {
 	d, ok := eval.Current().(*expr.DeploymentNode)
 	if !ok {
 		eval.IncompatibleDSL()
