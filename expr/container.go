@@ -9,19 +9,8 @@ type (
 	// Container represents a container.
 	Container struct {
 		*Element
-		Endpoints  []*Endpoint
 		Components Components
 		System     *SoftwareSystem
-	}
-
-	// Endpoint describes a container endpoint.
-	//
-	// Note:  Endpoint information is not used directly in diagrams instead
-	// it is serialized in the system JSON representation for other tools to
-	// consume.
-	Endpoint struct {
-		Name        string
-		Description string
 	}
 
 	// Containers is a slice of containers that can be easily

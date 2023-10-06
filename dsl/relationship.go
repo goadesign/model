@@ -240,52 +240,6 @@ func Delivers(person interface{}, description string, args ...interface{}) {
 
 }
 
-// Calls specifies a list of endpoint names that the relationship source calls.
-// The target of the relationship must be a container.
-//
-// Calls must appear in Uses.
-//
-// Calls takes one or more arguments each of which is the name of an endpoint
-// defined in the target container.
-//
-// Usage:
-//
-//	Calls("endpoint")
-//
-//	Calls("endpoint1", "endpoint2")
-//
-// Example:
-//
-//	var _ = Design("my workspace", "a great architecture model", func() {
-//	    SoftwareSystem("SystemA", func() {
-//	        Container("ContainerA", func() {
-//	           Uses("ContainerB", "Uses", func() {
-//	               Calls("endpoint1", "endpoint2")
-//	           })
-//	        })
-//	    })
-//	})
-func Calls(endpoints ...string) {
-	v, ok := eval.Current().(*expr.Relationship)
-	if !ok {
-		eval.IncompatibleDSL()
-		return
-	}
-	for _, e := range endpoints {
-		if e == "" {
-			eval.ReportError("Calls: endpoint name cannot be empty")
-			return
-		}
-		for _, ep := range v.Endpoints {
-			if ep == e {
-				eval.ReportError("Calls: endpoint %q already defined", e)
-				return
-			}
-		}
-		v.Endpoints = append(v.Endpoints, e)
-	}
-}
-
 // Description provides a short description for a relationship displayed in a
 // dynamic view.
 //

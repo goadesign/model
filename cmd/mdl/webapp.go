@@ -8,6 +8,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"path"
@@ -65,7 +66,7 @@ func (_escStaticFS) prepare(name string) (*_escFile, error) {
 		if err != nil {
 			return
 		}
-		f.data, err = io.ReadAll(gr)
+		f.data, err = ioutil.ReadAll(gr)
 	})
 	if err != nil {
 		return nil, err
@@ -175,7 +176,7 @@ func FSByte(useLocal bool, name string) ([]byte, error) {
 		if err != nil {
 			return nil, err
 		}
-		b, err := io.ReadAll(f)
+		b, err := ioutil.ReadAll(f)
 		_ = f.Close()
 		return b, err
 	}
@@ -212,7 +213,7 @@ var _escData = map[string]*_escFile{
 		name:    "index.html",
 		local:   "webapp/dist/index.html",
 		size:    277,
-		modtime: 1637014993,
+		modtime: 1678180080,
 		compressed: `
 H4sIAAAAAAAC/3yPsU7EMAxAfyV4vhIhMTpZmPmIEPtUQ2JXienp/h7RMjHcYuvJz8PDJ7Lq943D6r1l
 /JtcKGNnL0FL5wS78G2z4RCqqbN6gpuQr4l4l8rLARdRcSltmbU0Ti+XuQ7Rr8VtuYonNcjo4o3z22t4
@@ -225,7 +226,7 @@ AQAA///xl4z5FQEAAA==
 		name:    "main.js",
 		local:   "webapp/dist/main.js",
 		size:    286399,
-		modtime: 1637014993,
+		modtime: 1678180080,
 		compressed: `
 H4sIAAAAAAAC/+z9e3/bNrIwjv//exU02kdLWBAtOXEuVBA/jpNus5smOUnabqvo5EOLkMSEBlQQtKXK
 fO+/D64EJUp2upfnnP3uOdtYxGUADAaDmQEwc3R4EHzHeJBnE0ILEmR0yvhlIjJGg0VOkoIEBSHBZZLR
@@ -1694,7 +1695,7 @@ vmzlWsBM3f73l4xJHD6o+fugrjtMn+IgZ5MB0tAEy6gVMoqmKyMi0qAGql7VC8SwbrZqMVPMJ93Z3zvE
 		name:    "main.js.map",
 		local:   "webapp/dist/main.js.map",
 		size:    1033006,
-		modtime: 1637014993,
+		modtime: 1678180080,
 		compressed: `
 H4sIAAAAAAAC/+z9SXfqvrY3jH6X3Y3HpQohPLclycIY4xhCCCG9hBDquuZ++Ts0f9O2SEjW+u+zz3nO
 eMfbWSvYssqpWRf/v3/t++vNaDH/1/8pOP/6HE37//o//5q9jeb/n/HmX86/Zm/L5Wg+2Pzr//zr/5t/
@@ -6456,7 +6457,7 @@ vy/crP6vq6v/838DAAD//2JD4IQuww8A
 		name:    "runtime.js",
 		local:   "webapp/dist/runtime.js",
 		size:    1347,
-		modtime: 1637014993,
+		modtime: 1678180080,
 		compressed: `
 H4sIAAAAAAAC/2xUwW7jNhC99ytsFxA4MMPIPeRgZbyHoj114aJoT4KwYKRRzIQmiRGVNJD07wUlq9nD
 Xgxy+B6pN++NhQA8Dbu+o00X2dRxV7xp3rAkHCYZcZiKtnd1NN5tnGAY0qnHWHJVmFa8edNs8i2iB6bY
@@ -6479,7 +6480,7 @@ eunUVYf/AgAA//9Z02owQwUAAA==
 		name:    "runtime.js.map",
 		local:   "webapp/dist/runtime.js.map",
 		size:    7854,
-		modtime: 1637014993,
+		modtime: 1678180080,
 		compressed: `
 H4sIAAAAAAAC/4xYe3faOLD/Klr9kZqzah59bsnSe2TjOpSkNEnTbDdwcgzIYGJs1xZ5bJvvfs/MSMZO
 4fb+ERNL8/jNUyP/4LeqKOMs5e2XgkdxonibF6tUx0u1uyi54Mswz+N0VvI2X7lS9qTwRd/zpCd8KV+4
