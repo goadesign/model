@@ -40,7 +40,7 @@ func Test_AddAllElements(t *testing.T) {
 		{in: &mDeploymentView},
 	}
 	for i, tt := range tests {
-		t.Run(fmt.Sprint(i), func(t *testing.T) {
+		t.Run(fmt.Sprint(i), func(_ *testing.T) {
 			addAllElements(tt.in)
 		})
 	}
@@ -89,7 +89,7 @@ func Test_AddDefaultElements(t *testing.T) {
 		{in: &mDeploymentView},
 	}
 	for i, tt := range tests {
-		t.Run(fmt.Sprint(i), func(t *testing.T) {
+		t.Run(fmt.Sprint(i), func(_ *testing.T) {
 			addDefaultElements(tt.in)
 		})
 	}
@@ -139,7 +139,7 @@ func Test_AddNeighbors(t *testing.T) {
 		{el: mContainer.Element, in: &mDeploymentView},
 	}
 	for i, tt := range tests {
-		t.Run(fmt.Sprint(i), func(t *testing.T) {
+		t.Run(fmt.Sprint(i), func(_ *testing.T) {
 			addNeighbors(tt.el, tt.in)
 		})
 	}
@@ -290,7 +290,7 @@ func Test_AddInfluencers(t *testing.T) {
 		{el: &mContainerView},
 	}
 	for i, tt := range tests {
-		t.Run(fmt.Sprint(i), func(t *testing.T) {
+		t.Run(fmt.Sprint(i), func(_ *testing.T) {
 			addInfluencers(tt.el)
 		})
 	}

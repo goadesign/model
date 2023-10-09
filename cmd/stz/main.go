@@ -46,7 +46,9 @@ func main() {
 		}
 	}
 done:
-	fs.Parse(os.Args[idx:])
+	if err := fs.Parse(os.Args[idx:]); err != nil {
+		fail(err.Error())
+	}
 
 	pathOrDefault := func(p string) string {
 		if p == "" {

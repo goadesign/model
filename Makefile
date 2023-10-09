@@ -22,7 +22,7 @@ GO_FILES=$(shell find . -type f -name '*.go')
 # Standard dependencies are installed via go get
 DEPEND=\
 	golang.org/x/tools/cmd/goimports@latest \
-	honnef.co/go/tools/cmd/staticcheck@latest \
+	github.com/golangci/golangci-lint/cmd/golangci-lint@latest \
 	github.com/mjibson/esc@latest
 
 all: lint check-generated test
@@ -41,8 +41,8 @@ ifneq ($(GOOS),windows)
 	@if [ "`goimports -l $(GO_FILES) | tee /dev/stderr`" ]; then \
 		echo "^ - Repo contains improperly formatted go files" && echo && exit 1; \
 	fi
-	@if [ "`staticcheck ./... | tee /dev/stderr`" ]; then \
-		echo "^ - staticcheck errors!" && echo && exit 1; \
+	@if [ "`golangci-lint run ./... | tee /dev/stderr`" ]; then \
+		echo "^ - golangci-lint errors!" && echo && exit 1; \
 	fi
 endif
 

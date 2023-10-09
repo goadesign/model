@@ -143,7 +143,7 @@ func (c *Client) lockUnlock(id string, lock bool) error {
 
 	if resp.StatusCode != http.StatusOK {
 		var res Response
-		json.NewDecoder(resp.Body).Decode(&res) // ignore error, just trying
+		json.NewDecoder(resp.Body).Decode(&res) // nolint: errcheck
 		err = fmt.Errorf("service error: %s", resp.Status)
 		if res.Message != "" {
 			err = errors.New(res.Message)

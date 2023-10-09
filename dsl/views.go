@@ -418,8 +418,8 @@ func ComponentView(container any, key string, args ...any) {
 //
 // FilteredView must appear in Views.
 //
-// FilteredView accepts 2 arguments: the view being filtered and a function
-// describing additional properties.
+// FilteredView accepts 2 arguments: the view being filtered or its key and a
+// function describing additional properties.
 //
 // Example:
 //
@@ -442,18 +442,21 @@ func FilteredView(view any, dsl func()) {
 		eval.IncompatibleDSL()
 		return
 	}
-	var key string
-	if v, ok := view.(expr.View); ok {
-		key = v.Props().Key
-	} else {
+	var baseKey string
+	switch actual := view.(type) {
+	case string:
+		baseKey = actual
+	case expr.View:
+		baseKey = actual.Props().Key
+	default:
 		eval.IncompatibleDSL()
 		return
 	}
-	if key == "" {
+	if baseKey == "" {
 		eval.ReportError("Filtered view applied on a view with no key. Make sure the view given as argument defines a key.")
 		return
 	}
-	fv := &expr.FilteredView{BaseKey: key}
+	fv := &expr.FilteredView{BaseKey: baseKey}
 	eval.Execute(dsl, fv)
 	vs.FilteredViews = append(vs.FilteredViews, fv)
 }
@@ -1134,10 +1137,10 @@ func AddDefault() {
 func AddContainers() {
 	switch v := eval.Current().(type) {
 	case *expr.ContainerView:
-		v.AddElements(expr.Registry[v.SoftwareSystemID].(*expr.SoftwareSystem).Containers.Elements()...)
+		v.AddElements(expr.Registry[v.SoftwareSystemID].(*expr.SoftwareSystem).Containers.Elements()...) // nolint: errcheck
 	case *expr.ComponentView:
 		c := expr.Registry[v.ContainerID].(*expr.Container)
-		v.AddElements(c.System.Containers.Elements()...)
+		v.AddElements(c.System.Containers.Elements()...) // nolint: errcheck
 	default:
 		eval.IncompatibleDSL()
 	}
@@ -1167,7 +1170,7 @@ func AddInfluencers() {
 // AddComponents takes no argument
 func AddComponents() {
 	if cv, ok := eval.Current().(*expr.ComponentView); ok {
-		cv.AddElements(expr.Registry[cv.ContainerID].(*expr.Container).Components.Elements()...)
+		cv.AddElements(expr.Registry[cv.ContainerID].(*expr.Container).Components.Elements()...) // nolint: errcheck
 		return
 	}
 	eval.IncompatibleDSL()
@@ -1730,7 +1733,10 @@ func Vertices(args ...int) {
 		eval.IncompatibleDSL()
 	}
 	for i := 0; i < len(args); i += 2 {
-		rv.Vertices = append(rv.Vertices, &expr.Vertex{args[i], args[i+1]})
+		rv.Vertices = append(rv.Vertices, &expr.Vertex{
+			X: args[i],
+			Y: args[i+1],
+		})
 	}
 }
 

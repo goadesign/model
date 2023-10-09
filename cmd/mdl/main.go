@@ -62,13 +62,19 @@ func main() {
 	switch cmd {
 	case "gen":
 		addGlobals(genset)
-		genset.Parse(os.Args[idx:])
+		if err := genset.Parse(os.Args[idx:]); err != nil {
+			fail(err.Error())
+		}
 	case "serve":
 		addGlobals(svrset)
-		svrset.Parse(os.Args[idx:])
+		if err := svrset.Parse(os.Args[idx:]); err != nil {
+			fail(err.Error())
+		}
 	default:
 		addGlobals(gset)
-		gset.Parse(os.Args[idx:])
+		if err := gset.Parse(os.Args[idx:]); err != nil {
+			fail(err.Error())
+		}
 	}
 
 	if *h || *help {

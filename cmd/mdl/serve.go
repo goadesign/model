@@ -31,7 +31,7 @@ type (
 	}
 
 	// Layout is position info saved for one view (diagram)
-	Layout = map[string]interface{}
+	Layout = map[string]any
 
 	// Layouts is a map from view key to the view Layout
 	Layouts = map[string]Layout
@@ -102,6 +102,23 @@ func (s *Server) Serve(outDir string, devmode bool, port int) error {
 		w.WriteHeader(http.StatusAccepted)
 	})
 
+	http.HandleFunc("/data/gen", func(w http.ResponseWriter, r *http.Request) {
+		var design mdl.Design
+
+		s.lock.Lock()
+		defer s.lock.Unlock()
+
+		if err := json.NewDecoder(r.Body).Decode(&design); err != nil {
+			fmt.Println(err)
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		s.SetDesign(&design)
+
+		w.WriteHeader(http.StatusAccepted)
+	})
+
 	// start the server
 	fmt.Printf("Editor started. Open http://localhost:%d in your browser.\n", port)
 	return http.ListenAndServe(fmt.Sprintf("127.0.0.1:%d", port), nil)
@@ -164,7 +181,7 @@ func loadLayouts(dir string) ([]byte, error) {
 		end := bytes.Index(b, endMark)
 		b = b[begin:end]
 
-		var l Layout = make(map[string]interface{})
+		var l Layout = make(map[string]any)
 		err = json.Unmarshal(b, &l)
 		if err != nil {
 			return nil, err
