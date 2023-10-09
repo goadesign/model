@@ -92,7 +92,7 @@ func (m *Model) Validate() error {
 // Finalize adds all implied relationships if needed.
 func (m *Model) Finalize() {
 	// Add relationships between container instances.
-	Iterate(func(e interface{}) {
+	Iterate(func(e any) {
 		if ci, ok := e.(*ContainerInstance); ok {
 			c := Registry[ci.ContainerID].(*Container)
 			for _, r := range c.Relationships {
@@ -100,7 +100,7 @@ func (m *Model) Finalize() {
 				if !ok {
 					continue
 				}
-				Iterate(func(e interface{}) {
+				Iterate(func(e any) {
 					eci, ok := e.(*ContainerInstance)
 					if !ok {
 						return
@@ -118,7 +118,7 @@ func (m *Model) Finalize() {
 		return
 	}
 	// Add relationship between element parents.
-	Iterate(func(e interface{}) {
+	Iterate(func(e any) {
 		if r, ok := e.(*Relationship); ok {
 			src := Registry[r.Source.ID].(ElementHolder)
 			switch s := src.(type) {

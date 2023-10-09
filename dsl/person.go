@@ -37,7 +37,7 @@ import (
 //	        InteractsWith(Employee)
 //	    })
 //	})
-func Person(name string, args ...interface{}) *expr.Person {
+func Person(name string, args ...any) *expr.Person {
 	w, ok := eval.Current().(*expr.Design)
 	if !ok {
 		eval.IncompatibleDSL()

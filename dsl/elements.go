@@ -39,7 +39,7 @@ import (
 //	        Delivers("Customer", "Delivers emails to", "SMTP", Synchronous)
 //	    })
 //	})
-func SoftwareSystem(name string, args ...interface{}) *expr.SoftwareSystem {
+func SoftwareSystem(name string, args ...any) *expr.SoftwareSystem {
 	w, ok := eval.Current().(*expr.Design)
 	if !ok {
 		eval.IncompatibleDSL()
@@ -112,7 +112,7 @@ func SoftwareSystem(name string, args ...interface{}) *expr.SoftwareSystem {
 //	        })
 //	    })
 //	})
-func Container(args ...interface{}) *expr.Container {
+func Container(args ...any) *expr.Container {
 	system, ok := eval.Current().(*expr.SoftwareSystem)
 	if !ok {
 		eval.IncompatibleDSL()
@@ -209,7 +209,7 @@ func Container(args ...interface{}) *expr.Container {
 //	        })
 //	    })
 //	})
-func Component(name string, args ...interface{}) *expr.Component {
+func Component(name string, args ...any) *expr.Component {
 	container, ok := eval.Current().(*expr.Container)
 	if !ok {
 		eval.IncompatibleDSL()
@@ -243,7 +243,7 @@ func Component(name string, args ...interface{}) *expr.Component {
 //	func()
 //	"[description]", func()
 //	"[description]", "[technology]", func()
-func parseElementArgs(args ...interface{}) (description, technology string, dsl func(), err error) {
+func parseElementArgs(args ...any) (description, technology string, dsl func(), err error) {
 	if len(args) == 0 {
 		return
 	}

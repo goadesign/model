@@ -103,7 +103,7 @@ const (
 //	    Views(func() {
 //	        SystemContext(System, "SystemContext", "An example of a System Context diagram.", func() {
 //	            AddAll()
-//	            AutoLayout()
+//	            AutoLayout(RankTopBottom)
 //	        })
 //	    })
 //	})
@@ -145,14 +145,14 @@ func Views(dsl func()) {
 //	            Title("Overview of system")
 //	            AddAll()
 //	            Remove(OtherSystem)
-//	            AutoLayout()
+//	            AutoLayout(RankTopBottom)
 //	            AnimationStep(System)
 //	            PaperSize(SizeSlide4X3)
 //	            EnterpriseBoundaryVisible()
 //	        })
 //	    })
 //	})
-func SystemLandscapeView(key string, args ...interface{}) {
+func SystemLandscapeView(key string, args ...any) {
 	vs, ok := eval.Current().(*expr.Views)
 	if !ok {
 		eval.IncompatibleDSL()
@@ -205,14 +205,14 @@ func SystemLandscapeView(key string, args ...interface{}) {
 //	            Title("Overview of system")
 //	            AddAll()
 //	            Remove(OtherSystem)
-//	            AutoLayout()
+//	            AutoLayout(RankTopBottom)
 //	            AnimationStep(System)
 //	            PaperSize(SizeSlide4X3)
 //	            EnterpriseBoundaryVisible()
 //	        })
 //	    })
 //	})
-func SystemContextView(system interface{}, key string, args ...interface{}) {
+func SystemContextView(system any, key string, args ...any) {
 	vs, ok := eval.Current().(*expr.Views)
 	if !ok {
 		eval.IncompatibleDSL()
@@ -282,14 +282,14 @@ func SystemContextView(system interface{}, key string, args ...interface{}) {
 //	            AddAll()
 //	            Remove(OtherSystem)
 //	            // Alternatively to AddAll + Remove: Add
-//	            AutoLayout()
+//	            AutoLayout(RankTopBottom)
 //	            AnimationStep(System)
 //	            PaperSize(SizeSlide4X3)
 //	            SystemBoundariesVisible()
 //	        })
 //	    })
 //	})
-func ContainerView(system interface{}, key string, args ...interface{}) {
+func ContainerView(system any, key string, args ...any) {
 	vs, ok := eval.Current().(*expr.Views)
 	if !ok {
 		eval.IncompatibleDSL()
@@ -364,14 +364,14 @@ func ContainerView(system interface{}, key string, args ...interface{}) {
 //	            Title("Overview of container")
 //	            AddAll()
 //	            Remove("Other System")
-//	            AutoLayout()
+//	            AutoLayout(RankTopBottom)
 //	            AnimationStep("Software System")
 //	            PaperSize(SizeSlide4X3)
 //	            ContainerBoundariesVisible()
 //	        })
 //	    })
 //	})
-func ComponentView(container interface{}, key string, args ...interface{}) {
+func ComponentView(container any, key string, args ...any) {
 	vs, ok := eval.Current().(*expr.Views)
 	if !ok {
 		eval.IncompatibleDSL()
@@ -428,7 +428,7 @@ func ComponentView(container interface{}, key string, args ...interface{}) {
 //	    Views(func() {
 //	        SystemContextView(SoftwareSystem, "context", "An overview diagram.", func() {
 //	            AddAll()
-//	            AutoLayout()
+//	            AutoLayout(RankTopBottom)
 //	        })
 //	        FilteredView(SystemContextView, func() {
 //	            FilterTag("infra")
@@ -436,7 +436,7 @@ func ComponentView(container interface{}, key string, args ...interface{}) {
 //	        })
 //	    })
 //	})
-func FilteredView(view interface{}, dsl func()) {
+func FilteredView(view any, dsl func()) {
 	vs, ok := eval.Current().(*expr.Views)
 	if !ok {
 		eval.IncompatibleDSL()
@@ -535,12 +535,12 @@ func FilterTag(tag string, tags ...string) {
 //	        DynamicView(Global, "dynamic", "A dynamic diagram.", func() {
 //	            Title("Overview of system")
 //	            Link(FirstSystem, SecondSystem)
-//	            AutoLayout()
+//	            AutoLayout(RankTopBottom)
 //	            PaperSize(SizeSlide4X3)
 //	        })
 //	    })
 //	})
-func DynamicView(scope interface{}, key string, args ...interface{}) {
+func DynamicView(scope any, key string, args ...any) {
 	vs, ok := eval.Current().(*expr.Views)
 	if !ok {
 		eval.IncompatibleDSL()
@@ -648,20 +648,20 @@ func DynamicView(scope interface{}, key string, args ...interface{}) {
 //	            Title("Overview of deployment")
 //	            AddAll()
 //	            Remove("System/OtherContainer")
-//	            AutoLayout()
+//	            AutoLayout(RankTopBottom)
 //	            AnimationStep("System/Container")
 //	            PaperSize(SizeSlide4X3)
 //	        })
 //	    })
 //	})
-func DeploymentView(scope interface{}, env, key string, args ...interface{}) {
+func DeploymentView(scope any, env, key string, args ...any) {
 	vs, ok := eval.Current().(*expr.Views)
 	if !ok {
 		eval.IncompatibleDSL()
 		return
 	}
 	missing := true
-	expr.Iterate(func(e interface{}) {
+	expr.Iterate(func(e any) {
 		if dn, ok := e.(*expr.DeploymentNode); ok {
 			if dn.Environment == env {
 				missing = false
@@ -840,7 +840,7 @@ func Title(t string) {
 //	        })
 //	    })
 //	})
-func Add(element interface{}, dsl ...func()) {
+func Add(element any, dsl ...func()) {
 	var (
 		eh   expr.ElementHolder
 		err  error
@@ -972,7 +972,7 @@ func Add(element interface{}, dsl ...func()) {
 //	        })
 //	    })
 //	})
-func Link(source, destination interface{}, args ...interface{}) {
+func Link(source, destination any, args ...any) {
 	v, ok := eval.Current().(expr.View)
 	if !ok {
 		eval.IncompatibleDSL()
@@ -1074,7 +1074,7 @@ func AddAll() {
 //	        })
 //	    })
 //	})
-func AddNeighbors(element interface{}) {
+func AddNeighbors(element any) {
 	v, ok := eval.Current().(expr.View)
 	if !ok {
 		eval.IncompatibleDSL()
@@ -1227,7 +1227,7 @@ func AddComponents() {
 //	        })
 //	    })
 //	})
-func Remove(element interface{}) {
+func Remove(element any) {
 	v, ok := eval.Current().(expr.View)
 	if !ok {
 		eval.IncompatibleDSL()
@@ -1334,14 +1334,14 @@ func RemoveTagged(tag string) {
 //	        })
 //	    })
 //	})
-func Unlink(source, destination interface{}, description ...string) {
+func Unlink(source, destination any, description ...string) {
 	v, ok := eval.Current().(expr.View)
 	if !ok {
 		eval.IncompatibleDSL()
 	}
-	var args []interface{}
+	var args []any
 	if len(description) > 0 {
-		args = []interface{}{description[0]}
+		args = []any{description[0]}
 		if len(description) > 1 {
 			eval.ReportError("Unlink: too many arguments")
 		}
@@ -1394,7 +1394,7 @@ func Unlink(source, destination interface{}, description ...string) {
 //	        })
 //	    })
 //	})
-func RemoveUnreachable(element interface{}) {
+func RemoveUnreachable(element any) {
 	v, ok := eval.Current().(expr.View)
 	if !ok {
 		eval.IncompatibleDSL()
@@ -1530,7 +1530,7 @@ func AutoLayout(rank RankDirectionKind, args ...func()) {
 //	        })
 //	    })
 //	})
-func AnimationStep(elements ...interface{}) {
+func AnimationStep(elements ...any) {
 	v, ok := eval.Current().(expr.ViewAdder)
 	if !ok {
 		eval.IncompatibleDSL()
@@ -1932,7 +1932,7 @@ func RenderVertices() {
 //
 //	func()
 //	"[description]", func()
-func parseView(args ...interface{}) (description string, dsl func(), err error) {
+func parseView(args ...any) (description string, dsl func(), err error) {
 	if len(args) == 0 {
 		err = fmt.Errorf("missing argument")
 		return
@@ -1967,7 +1967,7 @@ func parseView(args ...interface{}) (description string, dsl func(), err error) 
 
 // findViewElement returns the element identifed by element that
 // is in scope for the given view. See model.FindElement for details.
-func findViewElement(view expr.View, element interface{}) (expr.ElementHolder, error) {
+func findViewElement(view expr.View, element any) (expr.ElementHolder, error) {
 	if eh, ok := element.(expr.ElementHolder); ok {
 		return eh, nil
 	}
@@ -2044,7 +2044,7 @@ func findDeploymentViewElement(env, path string) (expr.ElementHolder, error) {
 	return nil, fmt.Errorf("could not find %q in path %q", name, path)
 }
 
-func parseLinkArgs(v expr.View, source interface{}, destination interface{}, args []interface{}) (src, dest expr.ElementHolder, desc string, dsl func(), err error) {
+func parseLinkArgs(v expr.View, source any, destination any, args []any) (src, dest expr.ElementHolder, desc string, dsl func(), err error) {
 	var ok bool
 	if len(args) > 0 {
 		if dsl, ok = args[len(args)-1].(func()); ok {

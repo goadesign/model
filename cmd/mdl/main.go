@@ -154,7 +154,7 @@ func printUsage(fss ...*flag.FlagSet) {
 	}
 }
 
-func fail(format string, args ...interface{}) {
+func fail(format string, args ...any) {
 	fmt.Fprintf(os.Stderr, format+"\n", args...)
 	os.Exit(1)
 }

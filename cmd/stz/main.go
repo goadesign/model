@@ -208,7 +208,7 @@ func put(path, wid, key, secret string, debug bool) error {
 	return c.Put(wid, local)
 }
 
-func fail(format string, args ...interface{}) {
+func fail(format string, args ...any) {
 	fmt.Fprintf(os.Stderr, format+"\n", args...)
 	os.Exit(1)
 }
