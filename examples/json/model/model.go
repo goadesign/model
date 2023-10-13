@@ -8,13 +8,13 @@ var _ = Design("Getting Started", "This is a model of my software system.", func
 			Tag("database")
 		})
 		Container("Web Application", "Delivers content to users.", func() {
-			Endpoint("Web", "Delivers HTML pages.")
+			Component("Dashboard Endpoint", "Serve dashboard content.", func() {
+				Tag("endpoint")
+			})
 			Uses("Application Database", "Reads from and writes to", "MySQL", Synchronous)
 		})
 		Container("Load Balancer", "Distributes requests across the Web Application instances.", func() {
-			Uses("Web Application", "Routes requests to", "HTTPS", Synchronous, func() {
-				Calls("Web")
-			})
+			Uses("Web Application/Dashboard Endpoint", "Routes requests to", "HTTPS", Synchronous)
 		})
 		Tag("system")
 	})

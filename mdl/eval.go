@@ -141,7 +141,6 @@ func modelizeRelationships(rels []*expr.Relationship) []*Relationship {
 			Description:          r.Description,
 			Tags:                 r.Tags,
 			URL:                  r.URL,
-			Endpoints:            r.Endpoints,
 			SourceID:             r.Source.ID,
 			DestinationID:        r.Destination.ID,
 			Technology:           r.Technology,
@@ -180,7 +179,6 @@ func modelizeContainers(cs []*expr.Container) []*Container {
 			Properties:    c.Properties,
 			Relationships: modelizeRelationships(c.Relationships),
 			Components:    modelizeComponents(c.Components),
-			Endpoints:     modelizeEndpoints(c.Endpoints),
 		}
 	}
 	return res
@@ -198,17 +196,6 @@ func modelizeComponents(cs []*expr.Component) []*Component {
 			URL:           c.URL,
 			Properties:    c.Properties,
 			Relationships: modelizeRelationships(c.Relationships),
-		}
-	}
-	return res
-}
-
-func modelizeEndpoints(es []*expr.Endpoint) []*Endpoint {
-	res := make([]*Endpoint, len(es))
-	for i, e := range es {
-		res[i] = &Endpoint{
-			Name:        e.Name,
-			Description: e.Description,
 		}
 	}
 	return res
