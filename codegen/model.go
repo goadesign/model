@@ -8,6 +8,7 @@ import (
 	"goa.design/goa/v3/codegen"
 	"golang.org/x/tools/imports"
 
+	"goa.design/model/dsl"
 	"goa.design/model/expr"
 	"goa.design/model/mdl"
 	model "goa.design/model/pkg"
@@ -45,22 +46,33 @@ func Model(d *mdl.Design, pkg string) ([]byte, error) {
 	section := &codegen.SectionTemplate{
 		Name:   pkg,
 		Source: template,
-		Data:   map[string]any{"Design": d, "Pkg": pkg, "ToolVersion": model.Version()},
+		Data: map[string]any{
+			"Design":      d,
+			"Pkg":         pkg,
+			"ToolVersion": model.Version(),
+		},
 		FuncMap: map[string]any{
-			"elementPath":        elementPath,
-			"filterTags":         filterTags,
-			"softwareSystemData": softwareSystemData,
-			"containerData":      containerData,
-			"componentData":      componentData,
-			"personData":         personData,
-			"relData":            relData,
-			"relDSLFunc":         relDSLFunc,
-			"systemHasFunc":      systemHasFunc,
-			"containerHasFunc":   containerHasFunc,
-			"componentHasFunc":   componentHasFunc,
-			"personHasFunc":      personHasFunc,
-			"hasViews":           hasViews,
-			"findRelationship":   findRelationship,
+			"elementPath":             elementPath,
+			"filterTags":              filterTags,
+			"softwareSystemData":      softwareSystemData,
+			"containerData":           containerData,
+			"componentData":           componentData,
+			"personData":              personData,
+			"systemLandscapeViewData": systemLandscapeViewData,
+			"systemContextViewData":   systemContextViewData,
+			"containerViewData":       containerViewData,
+			"componentViewData":       componentViewData,
+			"viewPropsData":           viewPropsData,
+			"relData":                 relData,
+			"relDSLFunc":              relDSLFunc,
+			"systemHasFunc":           systemHasFunc,
+			"containerHasFunc":        containerHasFunc,
+			"componentHasFunc":        componentHasFunc,
+			"personHasFunc":           personHasFunc,
+			"autoLayoutHasFunc":       autoLayoutHasFunc,
+			"hasViews":                hasViews,
+			"findRelationship":        findRelationship,
+			"deref":                   func(i *int) int { return *i },
 		},
 	}
 	var buf bytes.Buffer
@@ -137,6 +149,49 @@ func personData(mod *mdl.Model, p *mdl.Person) map[string]any {
 	return map[string]any{
 		"Model":  mod,
 		"Person": p,
+	}
+}
+
+// systemLandscapeViewData produces a data structure appropriate for running the systemLandscapeViewT template.
+func systemLandscapeViewData(mod *mdl.Model, v *mdl.LandscapeView) map[string]any {
+	return map[string]any{
+		"Model": mod,
+		"View":  v,
+	}
+}
+
+// systemContextViewData produces a data structure appropriate for running the systemContextViewT template.
+func systemContextViewData(mod *mdl.Model, v *mdl.ContextView) map[string]any {
+	return map[string]any{
+		"Model": mod,
+		"View":  v,
+	}
+}
+
+// containerViewData produces a data structure appropriate for running the containerViewT template.
+func containerViewData(mod *mdl.Model, v *mdl.ContainerView) map[string]any {
+	return map[string]any{
+		"Model": mod,
+		"View":  v,
+	}
+}
+
+// componentViewData produces a data structure appropriate for running the componentViewT template.
+func componentViewData(mod *mdl.Model, v *mdl.ComponentView) map[string]any {
+	return map[string]any{
+		"Model": mod,
+		"View":  v,
+	}
+}
+
+// viewPropsData produces a data structure appropriate for running the viewPropsT template.
+func viewPropsData(mod *mdl.Model, v *mdl.ViewProps) map[string]any {
+	return map[string]any{
+		"Model":                 mod,
+		"Props":                 v,
+		"DefaultRankSeparation": dsl.DefaultRankSeparation,
+		"DefaultNodeSeparation": dsl.DefaultNodeSeparation,
+		"DefaultEdgeSeparation": dsl.DefaultEdgeSeparation,
 	}
 }
 
@@ -262,6 +317,14 @@ func componentHasFunc(cmp *mdl.Component) bool {
 		len(cmp.Relationships) > 0
 }
 
+// autoLayoutHasFunc returns true if an anonymous DSL function must be generated for v.
+func autoLayoutHasFunc(l *mdl.AutoLayout) bool {
+	return l.RankSep != nil && *l.RankSep != dsl.DefaultRankSeparation ||
+		l.NodeSep != nil && *l.NodeSep != dsl.DefaultNodeSeparation ||
+		l.EdgeSep != nil && *l.EdgeSep != dsl.DefaultEdgeSeparation ||
+		l.Vertices != nil && *l.Vertices
+}
+
 // hasViews returns true if the given views is not empty.
 func hasViews(v *mdl.Views) bool {
 	return len(v.LandscapeViews) > 0 ||
@@ -317,16 +380,16 @@ var _ = Design("{{.Name}}", "{{.Description}}", func() {
 	{{- if hasViews .Views }}
 	Views(func() {
 	{{- range .Views.LandscapeViews }}
-	{{ template "systemLandscapeViewT" . }}
+	{{ template "systemLandscapeViewT" (systemLandscapeViewData $.Design.Model .) }}
 	{{- end }}
 	{{- range .Views.ContextViews }}
-	{{ template "systemContextViewT" . }}
+	{{ template "systemContextViewT" (systemContextViewData $.Design.Model .) }}
 	{{- end }}
 	{{- range .Views.ContainerViews }}
-	{{ template "containerViewT" . }}
+	{{ template "containerViewT" (containerViewData $.Design.Model .) }}
 	{{- end }}
 	{{- range .Views.ComponentViews }}
-	{{ template "componentViewT" . }}
+	{{ template "componentViewT" (componentViewData $.Design.Model .) }}
 	{{- end }}
 	{{- range .Views.DeploymentViews }}
 	{{ template "deploymentViewT" . }}
@@ -491,40 +554,54 @@ var healthCheckT = `HealthCheck({{ printf "%q" .Name }}, func() {
 	{{- end }}
 })`
 
-var viewPropsT = `Title({{ printf "%q" .Title }})
-{{ if .PaperSize }}PaperSize({{ .PaperSize.Name }}){{ end }}
-{{ if .AutoLayout }}AutoLayout({{ .AutoLayout.RankDirection.Name }}{{ if or .RankSep .NodeSep .EdgeSep .Vertices }}, func () {
-	{{- if .RankSep }}RankSeparation({{ .RankSep }}){{ end }}
-	{{- if .NodeSep }}NodeSeparation({{ .NodeSep }}){{ end }}
-	{{- if .EdgeSep }}EdgeSeparation({{ .EdgeSep }}){{ end }}
-	{{- if .Vertices }}RenderVertices(){{ end }}
-}{{ end }}){{- end }}
-{{- if .ViewSettings.AddAll }}
+var viewPropsT = `{{ with .Props }}Title({{ printf "%q" .Title }})
+{{- if .PaperSize }}
+PaperSize({{ .PaperSize.Name }})
+{{- end }}
+{{- if .AutoLayout }}{{ with .AutoLayout }}
+AutoLayout({{ .RankDirection.Name }}{{ if autoLayoutHasFunc . }}, func () {
+	{{- if and .RankSep  (ne (deref .RankSep) $.DefaultRankSeparation) }}
+	RankSeparation({{ .RankSep }})
+	{{- end }}
+	{{- if and .NodeSep (ne (deref .NodeSep) $.DefaultNodeSeparation) }}
+	NodeSeparation({{ .NodeSep }})
+	{{- end }}
+	{{- if and .EdgeSep (ne (deref .EdgeSep) $.DefaultEdgeSeparation) }}
+	EdgeSeparation({{ .EdgeSep }})
+	{{- end }}
+	{{- if .Vertices }}
+	RenderVertices()
+	{{- end }}
+}{{ end }})
+{{- end }}{{- end }}
+{{- with .Settings }}
+{{- if .AddAll }}
 	AddAll()
 {{- end }}
-{{- if .ViewSettings.AddDefault }}
+{{- if .AddDefault }}
 	AddDefault()
 {{- end }}
-{{- range .ViewSettings.AddNeighborIDs }}
+{{- range .AddNeighborIDs }}
 	AddNeighbors("{{ elementPath $.Model . }}")
 {{- end }}
-{{- range .ViewSettings.RemoveElementIDs }}
+{{- range .RemoveElementIDs }}
 	Remove("{{ elementPath $.Model . }}")
 {{- end }}
-{{- range .ViewSettings.RemoveTags }}
+{{- range .RemoveTags }}
 	RemoveTagged({{ printf "%q" . }})
 {{- end }}
-{{- range .ViewSettings.RemoveRelationshipIDs }}
+{{- range .RemoveRelationshipIDs }}
 	{{- $rel := findRelationship $ . }}
 	{{- if $rel }}
 	Unlink("{{ elementPath $.Model $rel.SourceID }}", "{{ elementPath $.Model $rel.DestinationID }}"{{ if $rel.Description }}, {{ printf "%q" $rel.Description }}{{ end }})
 	{{- end }}
 {{- end }}
-{{- range .ViewSettings.RemoveUnreachable }}
+{{- range .RemoveUnreachableIDs }}
 	RemoveUnreachable("{{ elementPath $.Model .ID }}")
 {{- end }}
-{{- if .ViewSettings.RemoveUnrelated }}
+{{- if .RemoveUnrelated }}
 	RemoveUnrelated()
+{{- end }}
 {{- end }}
 {{- range .ElementViews }}
 	Add("{{ elementPath $.Model .ID }}"{{ if .X }}, func() {
@@ -546,39 +623,40 @@ var viewPropsT = `Title({{ printf "%q" .Title }})
 		}{{ end }}{{ if .Routing }}, {{ .Routing.Name }}{{ end }}{{ if .Position }}, {{ .Position }}{{ end }})
 	{{- end }}
 {{- end }}
-{{- range .AnimationSteps }}
+{{- range .Animations }}
 	AnimationStep({{ range .Elements }}"{{ elementPath .GetElement.ID }}", {{ end }})
+{{- end }}
 {{- end }}`
 
-var systemLandscapeViewT = `SystemLandscapeView("{{.Key}}"{{ if .Description}}, {{ printf "%q" .Description }}{{ end }}, func() {
-	{{ template "viewPropT" . }}
-	{{- if .EnterpriseBoundaryVisible }}
+var systemLandscapeViewT = `SystemLandscapeView("{{.View.Key}}"{{ if .View.Description}}, {{ printf "%q" .View.Description }}{{ end }}, func() {
+	{{ template "viewPropsT" (viewPropsData $.Model .View.ViewProps) }}
+	{{- if .View.EnterpriseBoundaryVisible }}
 	EnterpriseBoundaryVisible()
 	{{- end }}
 })`
 
-var systemContextViewT = `SystemContextView("{{ elementPath .SoftwareSystemID }}", "{{.Key}}"{{ if .Description}}, {{ printf "%q" .Description }}{{ end }}, func() {
-	{{ template "viewPropT" . }}
-	{{- if .EnterpriseBoundaryVisible }}
+var systemContextViewT = `SystemContextView("{{ elementPath .View.SoftwareSystemID }}", "{{ .View.Key }}"{{ if .View.Description}}, {{ printf "%q" .View.Description }}{{ end }}, func() {
+	{{ template "viewPropsT" (viewPropsData .Model .View.ViewProps) }}
+	{{- if .View.EnterpriseBoundaryVisible }}
 	EnterpriseBoundaryVisible()
 	{{- end }}
 })`
 
-var containerViewT = `ContainerView("{{ elementPath .SoftwareSystemID }}", "{{.Key}}"{{ if .Description}}, {{ printf "%q" .Description }}{{ end }}, func() {
-	{{ template "viewPropT" . }}
-	{{- if .SystemBoundaryVisible }}
+var containerViewT = `ContainerView("{{ elementPath .View.SoftwareSystemID }}", "{{ .View.Key }}"{{ if .View.Description}}, {{ printf "%q" .View.Description }}{{ end }}, func() {
+	{{ template "viewPropsT" (viewPropsData .Model .View.ViewProps) }}
+	{{- if .View.SystemBoundaryVisible }}
 	SystemBoundaryVisible()
 	{{- end }}
 })`
 
-var componentViewT = `ComponentView("{{ elementPath .SoftwareSystemID }}", "{{.Key}}"{{ if .Description}}, {{ printf "%q" .Description }}{{ end }}, func() {
-	{{ template "viewPropT" . }}
-	{{- if .ContainerBoundaryVisible }}
+var componentViewT = `ComponentView("{{ elementPath .View.SoftwareSystemID }}", "{{ .View.Key }}"{{ if .View.Description}}, {{ printf "%q" .View.Description }}{{ end }}, func() {
+	{{ template "viewPropsT" (viewPropsData .Model .View.ViewProps) }}
+	{{- if .View.ContainerBoundaryVisible }}
 	ContainerBoundaryVisible()
 	{{- end }}
 })`
 
-var filteredViewT = `FilteredView("{{.Key}}", func() {
+var filteredViewT = `FilteredView("{{ .Key }}", func() {
 	{{- range .FilterTags }}
 	FilterTag({{ printf "%q" . }})
 	{{- end }}

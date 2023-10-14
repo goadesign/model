@@ -1442,6 +1442,15 @@ func RemoveUnrelated() {
 	eval.IncompatibleDSL()
 }
 
+// DefaultRankSeparation sets the default rank separation for auto layout.
+var DefaultRankSeparation = 300
+
+// DefaultNodeSeparation sets the default node separation for auto layout.
+var DefaultNodeSeparation = 600
+
+// DefaultEdgeSeparation sets the default edge separation for auto layout.
+var DefaultEdgeSeparation = 200
+
 // AutoLayout enables automatic layout mode for the diagram. The
 // first argument indicates the rank direction, it must be one of
 // RankTopBottom, RankBottomTop, RankLeftRight or RankRightLeft
@@ -1486,12 +1495,11 @@ func AutoLayout(rank RankDirectionKind, args ...func()) {
 			eval.ReportError("AutoLayout: too many arguments")
 		}
 	}
-	r, n, e := 300, 600, 200
 	layout := &expr.AutoLayout{
 		RankDirection: expr.RankDirectionKind(rank),
-		RankSep:       &r,
-		NodeSep:       &n,
-		EdgeSep:       &e,
+		RankSep:       &DefaultRankSeparation,
+		NodeSep:       &DefaultNodeSeparation,
+		EdgeSep:       &DefaultEdgeSeparation,
 	}
 	if dsl != nil {
 		eval.Execute(dsl, layout)

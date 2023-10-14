@@ -44,7 +44,7 @@ const (
 )
 
 // RelationshipTags lists the tags that are added to all relationships.
-var RelationshipTags = []string{"Relationship"}
+var RelationshipTags = []string{"Relationship", "Asynchronous", "Synchronous"}
 
 // EvalName is the qualified name of the expression.
 func (r *Relationship) EvalName() string {
