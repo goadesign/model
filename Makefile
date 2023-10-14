@@ -52,12 +52,12 @@ check-generated: generate
   	fi
 
 test:
-	env GO111MODULE=on go test ./...
+	go test ./...
 
 release:
 # First make sure all is clean
 	@git diff-index --quiet HEAD
-	@go mod tidy --compat=1.17
+	@go mod tidy
 
 # Bump version number
 	@sed 's/Major = .*/Major = $(MAJOR)/' pkg/version.go > _tmp && mv _tmp pkg/version.go

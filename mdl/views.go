@@ -125,9 +125,6 @@ type (
 		RelationshipViews []*RelationshipView `json:"relationships,omitempty"`
 		// Animations describes the animation steps if any.
 		Animations []*AnimationStep `json:"animations,omitempty"`
-		// Settings records DSL settings used to compute the elements and
-		// relationships included in the view.
-		Settings *ViewSettings `json:"viewSettings,omitempty"`
 	}
 
 	// ElementView describes an instance of a model element (Person,

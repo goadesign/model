@@ -40,8 +40,8 @@ func Test_Relationship_Finalize(t *testing.T) {
 		InteractionStyle InteractionStyleKind
 		want             string
 	}{
-		{InteractionStyle: InteractionAsynchronous, want: "Relationship,Asynchronous,"},
-		{InteractionStyle: InteractionSynchronous, want: "Relationship,"},
+		{InteractionStyle: InteractionAsynchronous, want: "Relationship,Asynchronous"},
+		{InteractionStyle: InteractionSynchronous, want: "Relationship"},
 	}
 	for i, tt := range tests {
 		mRelationship.InteractionStyle = tt.InteractionStyle

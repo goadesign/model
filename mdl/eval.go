@@ -271,7 +271,6 @@ func modelizeProps(prop *expr.ViewProps) *ViewProps {
 		ElementViews:      modelizeElementViews(prop.ElementViews),
 		RelationshipViews: modelizeRelationshipViews(prop.RelationshipViews),
 		Animations:        modelizeAnimationSteps(prop.AnimationSteps),
-		Settings:          modelizeSettings(prop),
 	}
 	if layout := prop.AutoLayout; layout != nil {
 		props.AutoLayout = &AutoLayout{
@@ -330,35 +329,6 @@ func modelizeAnimationSteps(as []*expr.AnimationStep) []*AnimationStep {
 		}
 	}
 	return res
-}
-
-func modelizeSettings(p *expr.ViewProps) *ViewSettings {
-	var addNeighborsIDs []string
-	for _, e := range p.AddNeighbors {
-		addNeighborsIDs = append(addNeighborsIDs, e.GetElement().ID)
-	}
-	var removeElementsIDs []string
-	for _, e := range p.RemoveElements {
-		removeElementsIDs = append(removeElementsIDs, e.GetElement().ID)
-	}
-	var removeRelationshipsIDs []string
-	for _, e := range p.RemoveRelationships {
-		removeRelationshipsIDs = append(removeRelationshipsIDs, e.ID)
-	}
-	var removeUnreachableIDs []string
-	for _, e := range p.RemoveUnreachable {
-		removeUnreachableIDs = append(removeUnreachableIDs, e.GetElement().ID)
-	}
-	return &ViewSettings{
-		AddAll:                p.AddAll,
-		AddDefault:            p.AddDefault,
-		AddNeighborIDs:        addNeighborsIDs,
-		RemoveElementIDs:      removeElementsIDs,
-		RemoveTags:            p.RemoveTags,
-		RemoveRelationshipIDs: removeRelationshipsIDs,
-		RemoveUnreachableIDs:  removeUnreachableIDs,
-		RemoveUnrelated:       p.RemoveUnrelated,
-	}
 }
 
 func modelizeStyles(s *expr.Styles) *Styles {
