@@ -173,34 +173,6 @@ type (
 		Relationships []string `json:"relationships,omitempty"`
 	}
 
-	// ViewSettings describes the settings used to compute the elements and
-	// relationships included in the view.
-	ViewSettings struct {
-		// AddAll describes whether all elements/relationships should be
-		// included.
-		AddAll bool `json:"addAll"`
-		// AddDefault describes whether default elements/relationships should be
-		// included.
-		AddDefault bool `json:"addDefault"`
-		// AddNeighborIDs lists the elements that should be included in the view.
-		AddNeighborIDs []string `json:"addNeighbors,omitempty"`
-		// RemoveElementIDs lists the elements that should be removed from the
-		// view.
-		RemoveElementIDs []string `json:"removeElements,omitempty"`
-		// RemoveTags lists the tags that should be removed from the view.
-		RemoveTags []string `json:"removeTags,omitempty"`
-		// RemoveRelationshipIDs lists the relationship IDs that should be
-		// removed from the view.
-		RemoveRelationshipIDs []string `json:"removeRelationships,omitempty"`
-		// RemoveUnreachableIDs lists the element IDs that should be
-		// removed from the view if they are not reachable from a
-		// specified element.
-		RemoveUnreachableIDs []string `json:"removeUnreachable,omitempty"`
-		// RemoveUnrelated describes whether unrelated elements should be
-		// removed from the view.
-		RemoveUnrelated bool `json:"removeUnrelated"`
-	}
-
 	// AutoLayout describes an automatic layout.
 	AutoLayout struct {
 		// Algorithm rank direction.
