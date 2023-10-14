@@ -33,7 +33,6 @@ func init() {
 
 // Model generates the model DSL from the given design package.
 // pkg is the name of the generated package (e.g. "model").
-// path is used to resolve import paths.
 func Model(d *mdl.Design, pkg string) ([]byte, error) {
 	if d.Model == nil {
 		return nil, fmt.Errorf("model is nil")

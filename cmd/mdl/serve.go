@@ -11,6 +11,7 @@ import (
 	"strings"
 	"sync"
 
+	"goa.design/model/codegen"
 	"goa.design/model/mdl"
 )
 
@@ -81,7 +82,7 @@ func (s *Server) Serve(outDir string, devmode bool, port int) error {
 	http.HandleFunc("/data/save", func(w http.ResponseWriter, r *http.Request) {
 		id := r.URL.Query().Get("id")
 		if id == "" {
-			http.Error(w, "Param id is missing", http.StatusBadRequest)
+			handleError(w, fmt.Errorf("missing id"))
 			return
 		}
 
@@ -91,9 +92,7 @@ func (s *Server) Serve(outDir string, devmode bool, port int) error {
 		svgFile := path.Join(outDir, id+".svg")
 		f, err := os.Create(svgFile)
 		if err != nil {
-			msg := fmt.Sprintf("Saving failed, can't write to %s: %s!\n", svgFile, err)
-			fmt.Println(msg)
-			http.Error(w, msg, http.StatusInternalServerError)
+			handleError(w, err)
 			return
 		}
 		defer func() { _ = f.Close() }()
@@ -109,14 +108,23 @@ func (s *Server) Serve(outDir string, devmode bool, port int) error {
 		defer s.lock.Unlock()
 
 		if err := json.NewDecoder(r.Body).Decode(&design); err != nil {
-			fmt.Println(err)
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			handleError(w, err)
 			return
 		}
 
 		s.SetDesign(&design)
 
-		w.WriteHeader(http.StatusAccepted)
+		dsl, err := codegen.Model(&design, outDir)
+		if err != nil {
+			handleError(w, err)
+			return
+		}
+		if err := os.WriteFile(path.Join(outDir, "model.go"), dsl, 0644); err != nil {
+			handleError(w, err)
+			return
+		}
+
+		w.WriteHeader(http.StatusNoContent)
 	})
 
 	// start the server
@@ -138,6 +146,12 @@ func (s *Server) SetDesign(d *mdl.Design) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	s.design = b
+}
+
+// handleError writes the given error to stderr and http.Error.
+func handleError(w http.ResponseWriter, err error) {
+	fmt.Fprintln(os.Stderr, err.Error())
+	http.Error(w, err.Error(), http.StatusInternalServerError)
 }
 
 // loadLayouts lists out directory and reads layout info from SVG files
