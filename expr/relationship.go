@@ -2,6 +2,7 @@ package expr
 
 import (
 	"fmt"
+	"strings"
 )
 
 type (
@@ -42,6 +43,9 @@ const (
 	InteractionAsynchronous
 )
 
+// RelationshipTags lists the tags that are added to all relationships.
+var RelationshipTags = []string{"Relationship"}
+
 // EvalName is the qualified name of the expression.
 func (r *Relationship) EvalName() string {
 	var src, dest = "<unknown source>", "<unknown destination>"
@@ -58,11 +62,12 @@ func (r *Relationship) EvalName() string {
 func (r *Relationship) Finalize() {
 	// prefix tags
 	if r.InteractionStyle == InteractionAsynchronous {
-		r.Tags = mergeTags("Asynchronous", []string{r.Tags})
+		r.Tags = mergeTags("Asynchronous", strings.Split(r.Tags, ","))
 	}
-	r.Tags = mergeTags("Relationship", []string{r.Tags})
+	r.Tags = mergeTags(RelationshipTags[0], strings.Split(r.Tags, ","))
 }
 
+// PrefixTags adds the given tags to the beginning of the comm
 // Dup creates a new relationship with identical description, tags, URL,
 // technology and interaction style as r. Dup also creates a new ID for the
 // result.

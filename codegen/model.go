@@ -1,68 +1,86 @@
 package codegen
 
 import (
+	"bytes"
 	"fmt"
-	"path/filepath"
 	"strings"
 
 	"goa.design/goa/v3/codegen"
-	"golang.org/x/tools/go/packages"
+	"golang.org/x/tools/imports"
 
+	"goa.design/model/expr"
 	"goa.design/model/mdl"
+	model "goa.design/model/pkg"
 )
 
-// Model generates the model DSL from the given design.
-func Model(d *mdl.Design, pkg string) error {
-	file, err := findModelFile(pkg)
-	if err != nil {
-		return fmt.Errorf("failed to find model file: %s", err)
+// Tags that should not be generated in DSL.
+var builtInTags []string
+
+func init() {
+	for _, tags := range [][]string{
+		expr.PersonTags,
+		expr.SoftwareSystemTags,
+		expr.ContainerTags,
+		expr.ComponentTags,
+		expr.DeploymentNodeTags,
+		expr.InfrastructureNodeTags,
+		expr.ContainerInstanceTags,
+		expr.RelationshipTags,
+	} {
+		builtInTags = append(builtInTags, tags...)
+	}
+}
+
+// Model generates the model DSL from the given design package.
+// pkg is the name of the generated package (e.g. "model").
+// path is used to resolve import paths.
+func Model(d *mdl.Design, pkg string) ([]byte, error) {
+	if d.Model == nil {
+		return nil, fmt.Errorf("model is nil")
 	}
 	var template string
 	for name, tmpl := range templates {
 		template += fmt.Sprintf("{{define %q}}%s{{end}}", name, tmpl)
 	}
 	template += designT
-	sections := []*codegen.SectionTemplate{
-		codegen.Header(d.Name, "model", []*codegen.ImportSpec{codegen.NewImport(".", "goa.design/model/dsl")}),
-		{
-			Name:   "design",
-			Source: template,
-			Data:   d,
-			FuncMap: map[string]any{
-				"relDSL":           relDSL,
-				"elementPath":      elementPath,
-				"elementPaths":     elementPaths,
-				"findRelationship": findRelationship,
-			},
+	section := &codegen.SectionTemplate{
+		Name:   pkg,
+		Source: template,
+		Data:   map[string]any{"Design": d, "Pkg": pkg, "ToolVersion": model.Version()},
+		FuncMap: map[string]any{
+			"elementPath":        elementPath,
+			"filterTags":         filterTags,
+			"softwareSystemData": softwareSystemData,
+			"containerData":      containerData,
+			"componentData":      componentData,
+			"personData":         personData,
+			"relData":            relData,
+			"relDSLFunc":         relDSLFunc,
+			"systemHasFunc":      systemHasFunc,
+			"containerHasFunc":   containerHasFunc,
+			"componentHasFunc":   componentHasFunc,
+			"personHasFunc":      personHasFunc,
+			"hasViews":           hasViews,
+			"findRelationship":   findRelationship,
 		},
 	}
-	cf := &codegen.File{Path: filepath.Base(file), SectionTemplates: sections}
-	if _, err := cf.Render(filepath.Dir(file)); err != nil {
-		return fmt.Errorf("failed to render model file: %s", err)
+	var buf bytes.Buffer
+	if err := section.Write(&buf); err != nil {
+		return nil, err
 	}
-	return nil
-}
-
-// findModelFile finds the package directory for the given package name.
-func findModelFile(name string) (string, error) {
-	cfg := &packages.Config{
-		Mode: packages.NeedFiles,
-	}
-	pkgs, err := packages.Load(cfg, name)
+	opt := imports.Options{Comments: true, FormatOnly: true}
+	res, err := imports.Process("", buf.Bytes(), &opt)
 	if err != nil {
-		return "", err
+		// Print content for troubleshooting
+		fmt.Println(buf.String())
 	}
-	if len(pkgs) == 0 {
-		return "", fmt.Errorf("package %q not found", name)
-	}
-	if len(pkgs[0].GoFiles) == 0 {
-		return "", fmt.Errorf("package %q does not contain any Go file", name)
-	}
-	return pkgs[0].GoFiles[0], nil
+	return res, err
 }
 
-// relDSL is a function used by the DSL codegen to compute the name of the DSL function used to represent the corresponding relationship, one of "Uses", "Delivers" or "InteractsWith".
-func relDSL(mod *mdl.Model, rel *mdl.Relationship) string {
+// relDSLFunc is a function used by the DSL codegen to compute the name of the
+// DSL function used to represent the corresponding relationship, one of "Uses",
+// "Delivers" or "InteractsWith".
+func relDSLFunc(mod *mdl.Model, rel *mdl.Relationship) string {
 	var sourceIsPerson, destIsPerson bool
 	for _, p := range mod.People {
 		if p.ID == rel.SourceID {
@@ -80,38 +98,85 @@ func relDSL(mod *mdl.Model, rel *mdl.Relationship) string {
 	return "Uses"
 }
 
+// relData produces a data structure appropriate for running the useT template.
+func relData(mod *mdl.Model, rel *mdl.Relationship, current string) map[string]any {
+	return map[string]any{
+		"Model":        mod,
+		"Relationship": rel,
+		"CurrentPath":  current,
+	}
+}
+
+// softwareSystemData produces a data structure appropriate for running the systemT template.
+func softwareSystemData(mod *mdl.Model, s *mdl.SoftwareSystem) map[string]any {
+	return map[string]any{
+		"Model":          mod,
+		"SoftwareSystem": s,
+	}
+}
+
+// containerData produces a data structure appropriate for running the containerT template.
+func containerData(mod *mdl.Model, c *mdl.Container, current string) map[string]any {
+	return map[string]any{
+		"Model":       mod,
+		"Container":   c,
+		"CurrentPath": current,
+	}
+}
+
+// componentData produces a data structure appropriate for running the componentT template.
+func componentData(mod *mdl.Model, cmp *mdl.Component, current string) map[string]any {
+	return map[string]any{
+		"Model":       mod,
+		"Component":   cmp,
+		"CurrentPath": current,
+	}
+}
+
+// personData produces a data structure appropriate for running the personT template.
+func personData(mod *mdl.Model, p *mdl.Person) map[string]any {
+	return map[string]any{
+		"Model":  mod,
+		"Person": p,
+	}
+}
+
 // elementPath is used by templates codegen to compute the path to the element with the given ID.
-func elementPath(mod *mdl.Model, id string) string {
+func elementPath(mod *mdl.Model, id string, roots ...string) string {
+	var root string
+	if len(roots) > 0 {
+		root = roots[0]
+	}
 	for _, p := range mod.People {
 		if p.ID == id {
-			return fmt.Sprintf("%q", p.Name)
+			return p.Name
 		}
 	}
 	for _, s := range mod.Systems {
 		if s.ID == id {
-			return fmt.Sprintf("%q", s.Name)
+			return s.Name
 		}
 		for _, c := range s.Containers {
 			if c.ID == id {
-				return fmt.Sprintf("%q/%q", s.Name, c.Name)
+				if root == s.Name {
+					return c.Name
+				}
+				return fmt.Sprintf("%s/%s", s.Name, c.Name)
 			}
 			for _, cmp := range c.Components {
 				if cmp.ID == id {
-					return fmt.Sprintf("%q/%q/%q", s.Name, c.Name, cmp.Name)
+					if root == s.Name {
+						return fmt.Sprintf("%s/%s", c.Name, cmp.Name)
+					}
+					if root == fmt.Sprintf("%s/%s", s.Name, c.Name) {
+						return cmp.Name
+					}
+					return fmt.Sprintf("%s/%s/%s", s.Name, c.Name, cmp.Name)
 				}
 			}
 		}
 	}
 	return ""
-}
-
-// ElementPaths is used by templates to compute a comma separated list of element paths.
-func elementPaths(mod *mdl.Model, ids []string) string {
-	res := make([]string, len(ids))
-	for _, id := range ids {
-		res = append(res, elementPath(mod, id))
-	}
-	return strings.Join(res, ", ")
 }
 
 // findRelatioship returns the relationship with the given id.
@@ -147,6 +212,67 @@ func findRelationship(mod *mdl.Model, id string) *mdl.Relationship {
 	return nil
 }
 
+func filterTags(s string) []string {
+	parts := strings.Split(s, ",")
+	var res []string
+loop:
+	for _, p := range parts {
+		p = strings.TrimSpace(p)
+		for _, builtIn := range builtInTags {
+			if p == builtIn {
+				continue loop
+			}
+		}
+		res = append(res, p)
+	}
+	return res
+}
+
+// personHasFunc returns true if an anonymous DSL function must be generated for p.
+func personHasFunc(p *mdl.Person) bool {
+	return len(filterTags(p.Tags)) > 0 ||
+		p.URL != "" ||
+		len(p.Properties) > 0 ||
+		len(p.Relationships) > 0
+}
+
+// systemHasFunc returns true if an anonymous DSL function must be generated for s.
+func systemHasFunc(s *mdl.SoftwareSystem) bool {
+	return len(filterTags(s.Tags)) > 0 ||
+		s.URL != "" ||
+		s.Location == mdl.LocationExternal ||
+		len(s.Properties) > 0 ||
+		len(s.Relationships) > 0 ||
+		len(s.Containers) > 0
+}
+
+// containerHasFunc returns true if an anonymous DSL function must be generated for c.
+func containerHasFunc(c *mdl.Container) bool {
+	return len(filterTags(c.Tags)) > 0 ||
+		c.URL != "" ||
+		len(c.Properties) > 0 ||
+		len(c.Relationships) > 0 ||
+		len(c.Components) > 0
+}
+
+// componentHasFunc returns true if an anonymous DSL function must be generated for cmp.
+func componentHasFunc(cmp *mdl.Component) bool {
+	return len(filterTags(cmp.Tags)) > 0 ||
+		cmp.URL != "" ||
+		len(cmp.Properties) > 0 ||
+		len(cmp.Relationships) > 0
+}
+
+// hasViews returns true if the given views is not empty.
+func hasViews(v *mdl.Views) bool {
+	return len(v.LandscapeViews) > 0 ||
+		len(v.ContextViews) > 0 ||
+		len(v.ContainerViews) > 0 ||
+		len(v.ComponentViews) > 0 ||
+		len(v.DeploymentViews) > 0 ||
+		len(v.FilteredViews) > 0
+}
+
 var templates = map[string]string{
 	"systemT":                systemT,
 	"containerT":             containerT,
@@ -169,189 +295,192 @@ var templates = map[string]string{
 	"styleT":                 styleT,
 }
 
-var designT = `package design
+const designT = `// Code generated by mdl {{.ToolVersion}}.
+
+package {{ .Pkg }}
 
 import . "goa.design/model/dsl"
 
+{{- with .Design }}
 var _ = Design("{{.Name}}", "{{.Description}}", func() {
-	{{- if .Enterprise }}
-	Enterprise({{ printf "%q" .Enterprise }})
-	{{ end }}
+	{{- if .Model.Enterprise }}
+	Enterprise({{ printf "%q" .Model.Enterprise }})
+	{{- end }}
 	{{- range .Model.People }}
-	{{ template "personT" . }}
-	{{ end }}
+	{{ template "personT" (personData $.Model .) }}
+	{{- end }}
 	{{- range .Model.Systems }}
-	{{ template "systemT" . }}
-	{{ end }}
+	{{ template "systemT" (softwareSystemData $.Design.Model .) }}
+	{{- end }}
 	{{- range .Model.DeploymentNodes }}
 	{{ template "deploymentEnvironmentT" . }}
-	{{ end }}
+	{{- end }}
+	{{- if hasViews .Views }}
 	Views(func() {
 	{{- range .Views.LandscapeViews }}
 	{{ template "systemLandscapeViewT" . }}
-	{{ end }}
+	{{- end }}
 	{{- range .Views.ContextViews }}
 	{{ template "systemContextViewT" . }}
-	{{ end }}
+	{{- end }}
 	{{- range .Views.ContainerViews }}
 	{{ template "containerViewT" . }}
-	{{ end }}
+	{{- end }}
 	{{- range .Views.ComponentViews }}
 	{{ template "componentViewT" . }}
-	{{ end }}
+	{{- end }}
 	{{- range .Views.DeploymentViews }}
 	{{ template "deploymentViewT" . }}
-	{{ end }}
+	{{- end }}
 	{{- range .Views.FilteredViews }}
 	{{ template "filteredViewT" . }}
-	{{ end }}
+	{{- end }}
 	{{- if .Views.Styles }}
 	{{ template "styleT" .Views.Styles }}
-	{{ end }}
+	{{- end }}
 	})
-})`
+	{{- end }}
+})
+{{- end }}`
 
-var systemT = `SoftwareSystem("{{.Name}}", "{{.Description}}", func() {
-	{{- range .Tags }}
+var systemT = `SoftwareSystem("{{ .SoftwareSystem.Name}}", "{{ .SoftwareSystem.Description }}"{{ if systemHasFunc .SoftwareSystem }}, func() {
+	{{- range filterTags .SoftwareSystem.Tags }}
 	Tag({{ printf "%q" . }})
-	{{ end }}
-	{{- if .URL }}
-	URL({{ printf "%q" .URL }})
-	{{ end }}
-	{{- if eq .Location 2 }}
+	{{- end }}
+	{{- if .SoftwareSystem.URL }}
+	URL({{ printf "%q" .SoftwareSystem.URL }})
+	{{- end }}
+	{{- if eq .SoftwareSystem.Location 2 }}
 	External()
-	{{ end }}
-	{{- range $k, $v := .Properties }}
+	{{- end }}
+	{{- range $k, $v := .SoftwareSystem.Properties }}
 	Prop({{ printf "%q" $k }}, {{ printf "%q" $v }})
-	{{ end }}
-	{{- range .Relationships }}
-	{{ template "useT" . }}
-	{{ end }}
-	{{- range .Containers }}
-	{{ template "containerT" . }}
-	{{ end }}
-})`
-
-var containerT = `Container("{{.Name}}"{{ if .Description }}, {{ printf "%q".Description }}{{ end }}{{ if .Technology }}, {{ printf "%q" .Technology }}{{ end }}", func() {
-	{{- range .Tags }}
-	Tag({{ printf "%q" . }})
-	{{ end }}
-	{{- if .URL }}
-	URL({{ printf "%q" .URL }})
-	{{ end }}
-	{{- range $k, $v := .Properties }}
-	Prop({{ printf "%q" $k }}, {{ printf "%q" $v }})
-	{{ end }}
-	{{- range .Relationships }}
-	{{ template "useT" . }}
-	{{ end }}
-	{{- range .Components }}
-	{{ template "componentT" . }}
-	{{ end }}
-})`
-
-var componentT = `Component("{{.Name}}"{{ if .Description }}, {{ printf "%q".Description }}{{ end }}{{ if .Technology }}, {{ printf "%q" .Technology }}{{ end }}", func() {
-	{{- range .Tags }}
-	Tag({{ printf "%q" . }})
-	{{ end }}
-	{{- if .URL }}
-	URL({{ printf "%q" .URL }})
-	{{ end }}
-	{{- if eq .Location 2 }}
-	External()
-	{{ end }}
-	{{- range $k, $v := .Properties }}
-	Prop({{ printf "%q" $k }}, {{ printf "%q" $v }})
-	{{ end }}
-	{{- range .Relationships }}
-	{{ template "useT" . }}
-	{{ end }}
-})`
-
-var personT = `Person("{{.Name}}"{{ if .Description }}{{ printf "%q" .Description}}{{ end }}, func() {
-	{{- range .Tags }}
-	Tag({{ printf "%q" . }})
-	{{ end }}
-	{{- if .URL }}
-	URL({{ printf "%q" .URL }})
-	{{ end }}
-	{{- range $k, $v := .Properties }}
-	Prop({{ printf "%q" $k }}, {{ printf "%q" $v }})
-	{{ end }}
-	{{- range .Relationships }}
-	{{ template "useT" . }}
-	{{ end }}
-})`
-
-var useT = `{{ relDSL $.Model . }}("{{.Name}}"{{ if .Description}}, {{ printf "%q" .Description }}{{ end }}{{ if .Technology}}, {{ printf "%q" .Technology }}{{ end }}{{ if eq .InteractionStyle 1 }}, Synchronous{{ end }}{{ if eq .InteractionStyle 2 }}, Asynchronous{{ end }}{{ if or .Tags .URL }}, func() {
-	{{- range .Tags }}
-	Tag({{ printf "%q" . }})
-	{{ end }}
-	{{- if .URL }}
-	URL({{ printf "%q" .URL }})
-	{{ end }}
+	{{- end }}
+	{{- range .SoftwareSystem.Containers }}
+	{{ template "containerT" (containerData $.Model . $.SoftwareSystem.Name) }}
+	{{- end }}
+	{{- range .SoftwareSystem.Relationships }}
+	{{ template "useT" (relData $.Model . .SoftwareSystem.Name) }}
+	{{- end }}
 }{{ end }})`
+
+var containerT = `Container("{{ .Container.Name }}"{{ if .Container.Description }}, {{ printf "%q" .Container.Description }}{{ end }}{{ if .Container.Technology }}, {{ printf "%q" .Container.Technology }}{{ end }}{{ if containerHasFunc .Container }}, func() {
+	{{- range filterTags .Container.Tags }}
+	Tag({{ printf "%q" . }})
+	{{- end }}
+	{{- if .Container.URL }}
+	URL({{ printf "%q" .Container.URL }})
+	{{- end }}
+	{{- range $k, $v := .Container.Properties }}
+	Prop({{ printf "%q" $k }}, {{ printf "%q" $v }})
+	{{- end }}
+	{{- range .Container.Components }}
+	{{ template "componentT" (componentData $.Model . (printf "%s/%s" $.CurrentPath  $.Container.Name)) }}
+	{{- end }}
+	{{- range .Container.Relationships }}
+	{{ template "useT" (relData $.Model . $.CurrentPath) }}
+	{{- end }}
+}{{ end }})`
+
+var componentT = `Component("{{ .Component.Name }}"{{ if .Component.Description }}, {{ printf "%q" .Component.Description }}{{ end }}{{ if .Component.Technology }}, {{ printf "%q" .Component.Technology }}{{ end }}{{ if componentHasFunc .Component }}, func() {
+	{{- range filterTags .Component.Tags }}
+	Tag({{ printf "%q" . }})
+	{{- end }}
+	{{- if .Component.URL }}
+	URL({{ printf "%q" .Component.URL }})
+	{{- end }}
+	{{- range $k, $v := .Component.Properties }}
+	Prop({{ printf "%q" $k }}, {{ printf "%q" $v }})
+	{{- end }}
+	{{- range .Component.Relationships }}
+	{{ template "useT" (relData $.Model . $.CurrentPath) }}
+	{{- end }}
+}{{ end }})`
+
+var personT = `Person("{{ .Person.Name }}"{{ if .Person.Description }}{{ printf "%q" .Person.Description}}{{ end }}{{ if personHasFunc .Person }}, func() {
+	{{- range filterTags .Person.Tags }}
+	Tag({{ printf "%q" . }})
+	{{- end }}
+	{{- if .Person.URL }}
+	URL({{ printf "%q" .Person.URL }})
+	{{- end }}
+	{{- range $k, $v := .Person.Properties }}
+	Prop({{ printf "%q" $k }}, {{ printf "%q" $v }})
+	{{- end }}
+	{{- range .Person.Relationships }}
+	{{ template "useT" (relData $.Model . .Person.Name) }}
+	{{- end }}
+}{{ end }})`
+
+var useT = `{{ relDSLFunc .Model .Relationship }}{{ with .Relationship }}("{{ elementPath $.Model .DestinationID $.CurrentPath }}"{{ if .Description}}, {{ printf "%q" .Description }}{{ end }}{{ if .Technology}}, {{ printf "%q" .Technology }}{{ end }}{{ if eq .InteractionStyle 1 }}, Synchronous{{ end }}{{ if eq .InteractionStyle 2 }}, Asynchronous{{ end }}{{ if or (filterTags .Tags) .URL }}, func() {
+	{{- range filterTags .Tags }}
+	Tag({{ printf "%q" . }})
+	{{- end }}
+	{{- if .URL }}
+	URL({{ printf "%q" .URL }})
+	{{- end }}
+}{{ end }}){{ end }}`
 
 var deploymentEnvironmentT = `DeploymentEnvironment({{ printf "%q" .Environment }}, func() {
 	{{ template "deploymentNodeT" . }}
 })`
 
 var deploymentNodeT = `DeploymentNode("{{.Name}}"{{ if .Description}}, {{ printf "%q" .Description }}{{ end }}{{ if .Technology}}, {{ printf "%q" .Technology }}{{ end }}, func() {
-	{{- range .Tags }}
+	{{- range filterTags .Tags }}
 	Tag({{ printf "%q" . }})
-	{{ end }}
+	{{- end }}
 	{{- if .URL }}
 	URL({{ printf "%q" .URL }})
-	{{ end }}
+	{{- end }}
 	{{- if .Instances }}
 	Instances({{ .Instances }})
-	{{ end }}
+	{{- end }}
 	{{- range $k, $v := .Properties }}
 	Prop({{ printf "%q" $k }}, {{ printf "%q" $v }})
-	{{ end }}
+	{{- end }}
 	{{- range .Relationships }}
-	{{ template "useT" . }}
-	{{ end }}
+	{{ template "useT" (relData $.Model .  "") }}
+	{{- end }}
 	{{- range .Children }}
 	{{ template "deploymentNodeT" . }}
-	{{ end }}
+	{{- end }}
 	{{- range .InfrastructureNodes }}
 	{{ template "infrastructureNodeT" . }}
-	{{ end }}
+	{{- end }}
 	{{- range .ContainerInstances }}
 	{{ template "containerInstanceT" . }}
-	{{ end }}
+	{{- end }}
 })`
 
 var infrastructureNodeT = `InfrastructureNode("{{.Name}}"{{ if .Description}}, {{ printf "%q" .Description }}{{ end }}{{ if .Technology}}, {{ printf "%q" .Technology }}{{ end }}{{ if or .Tags .URL .Properties .Relationships }}, func() {
-	{{- range .Tags }}
+	{{- range filterTags .Tags }}
 	Tag({{ printf "%q" . }})
-	{{ end }}
+	{{- end }}
 	{{- if .URL }}
 	URL({{ printf "%q" .URL }})
-	{{ end }}
+	{{- end }}
 	{{- range $k, $v := .Properties }}
 	Prop({{ printf "%q" $k }}, {{ printf "%q" $v }})
-	{{ end }}
+	{{- end }}
 	{{- range .Relationships }}
-	{{ template "useT" . }}
-	{{ end }}
+	{{ template "useT" (relData $.Model . "") }}
+	{{- end }}
 }{{ end }})`
 
-var containerInstanceT = `ContainerInstance("{{ elementPath $.Model .ContainerID }}", func() {
+var containerInstanceT = `ContainerInstance("{{ elementPath $.Model .ContainerID .CurrentPath }}", func() {
 	InstanceID({{ .InstanceID }})
-	{{- range .Tags }}
+	{{- range filterTags .Tags "ContainerInstance" }}
 	Tag({{ printf "%q" . }})
-	{{ end }}
+	{{- end }}
 	{{- if .URL }}
 	URL({{ printf "%q" .URL }})
-	{{ end }}
+	{{- end }}
 	{{- range $k, $v := .Properties }}
 	Prop({{ printf "%q" $k }}, {{ printf "%q" $v }})
-	{{ end }}
+	{{- end }}
 	{{- range .HealthChecks }}
 	{{ template "healthCheckT" . }}
-	{{ end }}
+	{{- end }}
 })`
 
 var healthCheckT = `HealthCheck({{ printf "%q" .Name }}, func() {
@@ -360,7 +489,7 @@ var healthCheckT = `HealthCheck({{ printf "%q" .Name }}, func() {
 	Timeout({{ .Timeout }})
 	{{- range $k, $v := .Headers }}
 	Header({{ printf "%q" $k }}, {{ printf "%q" $v }})
-	{{ end }}
+	{{- end }}
 })`
 
 var viewPropsT = `Title({{ printf "%q" .Title }})
@@ -370,56 +499,56 @@ var viewPropsT = `Title({{ printf "%q" .Title }})
 	{{- if .NodeSep }}NodeSeparation({{ .NodeSep }}){{ end }}
 	{{- if .EdgeSep }}EdgeSeparation({{ .EdgeSep }}){{ end }}
 	{{- if .Vertices }}RenderVertices(){{ end }}
-}{{ end }}){{ end }}
+}{{ end }}){{- end }}
 {{- if .ViewSettings.AddAll }}
 	AddAll()
-{{ end }}
+{{- end }}
 {{- if .ViewSettings.AddDefault }}
 	AddDefault()
-{{ end }}
+{{- end }}
 {{- range .ViewSettings.AddNeighborIDs }}
-	AddNeighbors({{ elementPath $.Model . }})
-{{ end }}
+	AddNeighbors("{{ elementPath $.Model . }}")
+{{- end }}
 {{- range .ViewSettings.RemoveElementIDs }}
-	Remove({{ elementPath $.Model .ID }})
-{{ end }}
+	Remove("{{ elementPath $.Model . }}")
+{{- end }}
 {{- range .ViewSettings.RemoveTags }}
 	RemoveTagged({{ printf "%q" . }})
-{{ end }}
+{{- end }}
 {{- range .ViewSettings.RemoveRelationshipIDs }}
 	{{- $rel := findRelationship $ . }}
 	{{- if $rel }}
-	Unlink({{ elementPath $.Model $rel.SourceID }}, {{ elementPath $.Model $rel.DestinationID }}{{ if $rel.Description }}, {{ printf "%q" $rel.Description }}{{ end }})
+	Unlink("{{ elementPath $.Model $rel.SourceID }}", "{{ elementPath $.Model $rel.DestinationID }}"{{ if $rel.Description }}, {{ printf "%q" $rel.Description }}{{ end }})
 	{{- end }}
-{{ end }}
+{{- end }}
 {{- range .ViewSettings.RemoveUnreachable }}
-	RemoveUnreachable({{ elementPath $.Model .ID }})
-{{ end }}
+	RemoveUnreachable("{{ elementPath $.Model .ID }}")
+{{- end }}
 {{- if .ViewSettings.RemoveUnrelated }}
 	RemoveUnrelated()
-{{ end }}
+{{- end }}
 {{- range .ElementViews }}
-	Add({{ elementPath $.Model .ID }}{{ if .X }}, func() {
+	Add("{{ elementPath $.Model .ID }}"{{ if .X }}, func() {
 		Coord({{ .X }}, {{ .Y }})
 	}{{ end }})
-{{ end }}
+{{- end }}
 {{- range .RelationshipViews }}
 	{{- if .Source }}
-		Link({{ elementPath $.Model .Source.ID }}, {{ elementPath $.Model .Destination.ID }}{{ if .Description }}, {{ printf "%q" .Description }}{{ end }}{{ if .Order }}, {{ printf "%q" .Order }}{{ end }}{{ if .Vertices }}, func() {
+		Link("{{ elementPath $.Model .Source.ID }}", "{{ elementPath $.Model .Destination.ID }}"{{ if .Description }}, {{ printf "%q" .Description }}{{ end }}{{ if .Order }}, {{ printf "%q" .Order }}{{ end }}{{ if .Vertices }}, func() {
 			{{- range .Vertices }}
 			Vertex({{ .X }}, {{ .Y }})
-			{{ end }}
+			{{- end }}
 		}{{ end }}{{ if .Routing }}, {{ .Routing.Name }}{{ end }}{{ if .Position }}, {{ .Position }}{{ end }})
 	{{- else }}
-		Link({{ elementPath $.Model .Destination.ID }}{{ if .Description }}, {{ printf "%q" .Description }}{{ end }}{{ if .Order }}, {{ printf "%q" .Order }}{{ end }}{{ if .Vertices }}, func() {
+		Link("{{ elementPath $.Model .Destination.ID }}"{{ if .Description }}, {{ printf "%q" .Description }}{{ end }}{{ if .Order }}, {{ printf "%q" .Order }}{{ end }}{{ if .Vertices }}, func() {
 			{{- range .Vertices }}
 			Vertex({{ .X }}, {{ .Y }})
-			{{ end }}
+			{{- end }}
 		}{{ end }}{{ if .Routing }}, {{ .Routing.Name }}{{ end }}{{ if .Position }}, {{ .Position }}{{ end }})
 	{{- end }}
-{{ end }}
+{{- end }}
 {{- range .AnimationSteps }}
-	AnimationStep({{ range .Elements }}{{ elementPath .GetElement.ID }}, {{ end }})
+	AnimationStep({{ range .Elements }}"{{ elementPath .GetElement.ID }}", {{ end }})
 {{- end }}`
 
 var systemLandscapeViewT = `SystemLandscapeView("{{.Key}}"{{ if .Description}}, {{ printf "%q" .Description }}{{ end }}, func() {
@@ -429,21 +558,21 @@ var systemLandscapeViewT = `SystemLandscapeView("{{.Key}}"{{ if .Description}}, 
 	{{- end }}
 })`
 
-var systemContextViewT = `SystemContextView({{ elementPath .SoftwareSystemID }}, "{{.Key}}"{{ if .Description}}, {{ printf "%q" .Description }}{{ end }}, func() {
+var systemContextViewT = `SystemContextView("{{ elementPath .SoftwareSystemID }}", "{{.Key}}"{{ if .Description}}, {{ printf "%q" .Description }}{{ end }}, func() {
 	{{ template "viewPropT" . }}
 	{{- if .EnterpriseBoundaryVisible }}
 	EnterpriseBoundaryVisible()
 	{{- end }}
 })`
 
-var containerViewT = `ContainerView({{ elementPath .SoftwareSystemID }}, "{{.Key}}"{{ if .Description}}, {{ printf "%q" .Description }}{{ end }}, func() {
+var containerViewT = `ContainerView("{{ elementPath .SoftwareSystemID }}", "{{.Key}}"{{ if .Description}}, {{ printf "%q" .Description }}{{ end }}, func() {
 	{{ template "viewPropT" . }}
 	{{- if .SystemBoundaryVisible }}
 	SystemBoundaryVisible()
 	{{- end }}
 })`
 
-var componentViewT = `ComponentView({{ elementPath .SoftwareSystemID }}, "{{.Key}}"{{ if .Description}}, {{ printf "%q" .Description }}{{ end }}, func() {
+var componentViewT = `ComponentView("{{ elementPath .SoftwareSystemID }}", "{{.Key}}"{{ if .Description}}, {{ printf "%q" .Description }}{{ end }}, func() {
 	{{ template "viewPropT" . }}
 	{{- if .ContainerBoundaryVisible }}
 	ContainerBoundaryVisible()
@@ -454,7 +583,7 @@ var filteredViewT = `FilteredView("{{.Key}}", func() {
 	{{- range .FilterTags }}
 	FilterTag({{ printf "%q" . }})
 	{{- end }}
-	{{-if .Exclude }}
+	{{- if .Exclude }}
 	Exclude()
 	{{- end }}
 })`
@@ -476,13 +605,13 @@ var styleT = `Style(func() {
 		{{- if .Icon }}
 		Icon({{ printf "%q" .Icon }})
 		{{- end }}
-		{{- if Background }}
+		{{- if .Background }}
 		Background({{ printf "%q" .Background }})
 		{{- end }}
-		{{- if Color }}
+		{{- if .Color }}
 		Color({{ printf "%q" .Color }})
 		{{- end }}
-		{{- if Stroke }}
+		{{- if .Stroke }}
 		Stroke({{ printf "%q" .Stroke }})
 		{{- end }}
 		{{- if .Width }}

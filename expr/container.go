@@ -18,6 +18,9 @@ type (
 	Containers []*Container
 )
 
+// ContainerTags lists the tags that are added to all containers.
+var ContainerTags = []string{"Element", "Container"}
+
 // EvalName returns the generic expression name used in error messages.
 func (c *Container) EvalName() string {
 	if c.Name == "" {
@@ -28,7 +31,7 @@ func (c *Container) EvalName() string {
 
 // Finalize adds the 'Container' tag ands finalizes relationships.
 func (c *Container) Finalize() {
-	c.PrefixTags("Element", "Container")
+	c.PrefixTags(ContainerTags...)
 	c.Element.Finalize()
 }
 

@@ -60,6 +60,18 @@ type (
 	}
 )
 
+// DeploymentNodeTags list the tags that are automatically added to all
+// deployment nodes.
+var DeploymentNodeTags = []string{"Element", "Deployment Node"}
+
+// InfrastructureNodeTags list the tags that are automatically added to all
+// infrastructure nodes.
+var InfrastructureNodeTags = []string{"Element", "Infrastructure Node"}
+
+// ContainerInstanceTags list the tags that are automatically added to all
+// container instances.
+var ContainerInstanceTags = []string{"Container Instance"}
+
 // EvalName returns the generic expression name used in error messages.
 func (d *DeploymentEnvironment) EvalName() string {
 	return fmt.Sprintf("deployment environment %q", d.Name)
@@ -70,7 +82,7 @@ func (d *DeploymentNode) EvalName() string { return fmt.Sprintf("deployment node
 
 // Finalize adds the 'Deployment Node' tag ands finalizes relationships.
 func (d *DeploymentNode) Finalize() {
-	d.PrefixTags("Element", "Deployment Node")
+	d.PrefixTags(DeploymentNodeTags...)
 	d.Element.Finalize()
 }
 
@@ -218,7 +230,7 @@ func (i *InfrastructureNode) EvalName() string {
 
 // Finalize adds the 'Infrastructure Node' tag ands finalizes relationships.
 func (i *InfrastructureNode) Finalize() {
-	i.PrefixTags("Element", "Infrastructure Node")
+	i.PrefixTags(InfrastructureNodeTags...)
 	i.Element.Finalize()
 }
 
@@ -233,7 +245,7 @@ func (ci *ContainerInstance) EvalName() string {
 
 // Finalize adds the "Container Instance" tag if not present.
 func (ci *ContainerInstance) Finalize() {
-	ci.PrefixTags("Container Instance")
+	ci.PrefixTags(ContainerInstanceTags...)
 	ci.Element.Finalize()
 }
 

@@ -16,6 +16,9 @@ type (
 	Components []*Component
 )
 
+// ComponentTags lists the tags that are added to all components.
+var ComponentTags = []string{"Element", "Component"}
+
 // EvalName returns the generic expression name used in error messages.
 func (c *Component) EvalName() string {
 	if c.Name == "" {
@@ -26,7 +29,7 @@ func (c *Component) EvalName() string {
 
 // Finalize adds the 'Component' tag ands finalizes relationships.
 func (c *Component) Finalize() {
-	c.PrefixTags("Element", "Component")
+	c.PrefixTags(ComponentTags...)
 	c.Element.Finalize()
 }
 
