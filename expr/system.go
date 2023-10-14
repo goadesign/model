@@ -18,6 +18,9 @@ type (
 	SoftwareSystems []*SoftwareSystem
 )
 
+// SoftwareSystemTags lists the tags that are added to all software systems.
+var SoftwareSystemTags = []string{"Element", "Software System"}
+
 // EvalName returns the generic expression name used in error messages.
 func (s *SoftwareSystem) EvalName() string {
 	if s.Name == "" {
@@ -28,7 +31,7 @@ func (s *SoftwareSystem) EvalName() string {
 
 // Finalize adds the 'SoftwareSystem' tag ands finalizes relationships.
 func (s *SoftwareSystem) Finalize() {
-	s.PrefixTags("Element", "Software System")
+	s.PrefixTags(SoftwareSystemTags...)
 	s.Element.Finalize()
 }
 

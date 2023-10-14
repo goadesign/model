@@ -145,7 +145,7 @@ func (f *_escFile) IsDir() bool {
 	return f.isDir
 }
 
-func (f *_escFile) Sys() interface{} {
+func (f *_escFile) Sys() any {
 	return f
 }
 

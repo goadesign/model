@@ -31,7 +31,7 @@ type (
 	}
 
 	// Layout is position info saved for one view (diagram)
-	Layout = map[string]interface{}
+	Layout = map[string]any
 
 	// Layouts is a map from view key to the view Layout
 	Layouts = map[string]Layout
@@ -81,7 +81,7 @@ func (s *Server) Serve(outDir string, devmode bool, port int) error {
 	http.HandleFunc("/data/save", func(w http.ResponseWriter, r *http.Request) {
 		id := r.URL.Query().Get("id")
 		if id == "" {
-			http.Error(w, "Param id is missing", http.StatusBadRequest)
+			handleError(w, fmt.Errorf("missing id"))
 			return
 		}
 
@@ -91,9 +91,7 @@ func (s *Server) Serve(outDir string, devmode bool, port int) error {
 		svgFile := path.Join(outDir, id+".svg")
 		f, err := os.Create(svgFile)
 		if err != nil {
-			msg := fmt.Sprintf("Saving failed, can't write to %s: %s!\n", svgFile, err)
-			fmt.Println(msg)
-			http.Error(w, msg, http.StatusInternalServerError)
+			handleError(w, err)
 			return
 		}
 		defer func() { _ = f.Close() }()
@@ -121,6 +119,12 @@ func (s *Server) SetDesign(d *mdl.Design) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	s.design = b
+}
+
+// handleError writes the given error to stderr and http.Error.
+func handleError(w http.ResponseWriter, err error) {
+	fmt.Fprintln(os.Stderr, err.Error())
+	http.Error(w, err.Error(), http.StatusInternalServerError)
 }
 
 // loadLayouts lists out directory and reads layout info from SVG files
@@ -164,7 +168,7 @@ func loadLayouts(dir string) ([]byte, error) {
 		end := bytes.Index(b, endMark)
 		b = b[begin:end]
 
-		var l Layout = make(map[string]interface{})
+		var l Layout = make(map[string]any)
 		err = json.Unmarshal(b, &l)
 		if err != nil {
 			return nil, err

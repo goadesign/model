@@ -85,6 +85,9 @@ func mergeTags(existing string, tags []string) string {
 		}
 	}
 	for _, tag := range tags {
+		if tag == "" {
+			continue
+		}
 		found := false
 		for _, o := range merged {
 			if tag == o {

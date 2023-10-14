@@ -84,7 +84,7 @@ const (
 //	       InteractsWith("Customer", "Sends invoices to", Synchronous)
 //	    })
 //	})
-func Uses(element interface{}, description string, args ...interface{}) {
+func Uses(element any, description string, args ...any) {
 	var src *expr.Element
 	switch e := eval.Current().(type) {
 	case *expr.Person:
@@ -142,7 +142,7 @@ func Uses(element interface{}, description string, args ...interface{}) {
 //	       InteractsWith(Employee, "Sends requests to", "email")
 //	    })
 //	})
-func InteractsWith(person interface{}, description string, args ...interface{}) {
+func InteractsWith(person any, description string, args ...any) {
 	src, ok := eval.Current().(*expr.Person)
 	if !ok {
 		eval.IncompatibleDSL()
@@ -205,7 +205,7 @@ func InteractsWith(person interface{}, description string, args ...interface{}) 
 //	       Delivers(Customer, "Sends requests to", "email")
 //	    })
 //	})
-func Delivers(person interface{}, description string, args ...interface{}) {
+func Delivers(person any, description string, args ...any) {
 	var src *expr.Element
 	switch e := eval.Current().(type) {
 	case *expr.SoftwareSystem:
@@ -258,7 +258,7 @@ func Description(desc string) {
 
 // uses adds a relationship between the given source and destination. The caller
 // must make sure that the relationship is valid.
-func uses(src *expr.Element, dest interface{}, desc string, args ...interface{}) error {
+func uses(src *expr.Element, dest any, desc string, args ...any) error {
 	var (
 		technology string
 		style      InteractionStyleKind

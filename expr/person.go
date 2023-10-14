@@ -15,6 +15,9 @@ type (
 	People []*Person
 )
 
+// PersonTags list the tags that are automatically added to all people.
+var PersonTags = []string{"Element", "Person"}
+
 // EvalName returns the generic expression name used in error messages.
 func (p *Person) EvalName() string {
 	if p.Name == "" {
@@ -25,7 +28,7 @@ func (p *Person) EvalName() string {
 
 // Finalize adds the 'Person' tag ands finalizes relationships.
 func (p *Person) Finalize() {
-	p.PrefixTags("Element", "Person")
+	p.PrefixTags(PersonTags...)
 	p.Element.Finalize()
 }
 

@@ -419,6 +419,56 @@ func (s *Styles) MarshalJSON() ([]byte, error) {
 	return json.Marshal(&ss)
 }
 
+// Name is the name of the paper size kind as it appears in the DSL.
+func (p PaperSizeKind) Name() string {
+	switch p {
+	case SizeA0Landscape:
+		return "SizeA0Landscape"
+	case SizeA0Portrait:
+		return "SizeA0Portrait"
+	case SizeA1Landscape:
+		return "SizeA1Landscape"
+	case SizeA1Portrait:
+		return "SizeA1Portrait"
+	case SizeA2Landscape:
+		return "SizeA2Landscape"
+	case SizeA2Portrait:
+		return "SizeA2Portrait"
+	case SizeA3Landscape:
+		return "SizeA3Landscape"
+	case SizeA3Portrait:
+		return "SizeA3Portrait"
+	case SizeA4Landscape:
+		return "SizeA4Landscape"
+	case SizeA4Portrait:
+		return "SizeA4Portrait"
+	case SizeA5Landscape:
+		return "SizeA5Landscape"
+	case SizeA5Portrait:
+		return "SizeA5Portrait"
+	case SizeA6Landscape:
+		return "SizeA6Landscape"
+	case SizeA6Portrait:
+		return "SizeA6Portrait"
+	case SizeLegalLandscape:
+		return "SizeLegalLandscape"
+	case SizeLegalPortrait:
+		return "SizeLegalPortrait"
+	case SizeLetterLandscape:
+		return "SizeLetterLandscape"
+	case SizeLetterPortrait:
+		return "SizeLetterPortrait"
+	case SizeSlide16X10:
+		return "SizeSlide16X10"
+	case SizeSlide16X9:
+		return "SizeSlide16X9"
+	case SizeSlide4X3:
+		return "SizeSlide4X3"
+	default:
+		return "SizeUndefined"
+	}
+}
+
 // MarshalJSON replaces the constant value with the proper string value.
 func (p PaperSizeKind) MarshalJSON() ([]byte, error) {
 	buf := bytes.NewBufferString(`"`)
@@ -523,6 +573,22 @@ func (p *PaperSizeKind) UnmarshalJSON(data []byte) error {
 		*p = SizeUndefined
 	}
 	return nil
+}
+
+// Name returns the name of the rank direction is specified in the DSL.
+func (r RankDirectionKind) Name() string {
+	switch r {
+	case RankTopBottom:
+		return "RankTopBottom"
+	case RankBottomTop:
+		return "RankBottomTop"
+	case RankLeftRight:
+		return "RankLeftRight"
+	case RankRightLeft:
+		return "RankRightLeft"
+	default:
+		return "RankUndefined"
+	}
 }
 
 // MarshalJSON replaces the constant value with the proper string value.

@@ -46,7 +46,9 @@ func main() {
 		}
 	}
 done:
-	fs.Parse(os.Args[idx:])
+	if err := fs.Parse(os.Args[idx:]); err != nil {
+		fail(err.Error())
+	}
 
 	pathOrDefault := func(p string) string {
 		if p == "" {
@@ -208,7 +210,7 @@ func put(path, wid, key, secret string, debug bool) error {
 	return c.Put(wid, local)
 }
 
-func fail(format string, args ...interface{}) {
+func fail(format string, args ...any) {
 	fmt.Fprintf(os.Stderr, format+"\n", args...)
 	os.Exit(1)
 }

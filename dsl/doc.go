@@ -34,7 +34,7 @@ general shape of the DSL is:
 	│   ├── Prop                            │   ├── AutoLayout
 	│   ├── Uses                            │   ├── AnimationStep
 	│   ├── Delivers                        │   ├── PaperSize
-	│   └─── Container                      │   └── EnterpriseBoundaryVisible
+	│   └── Container                       │   └── EnterpriseBoundaryVisible
 	│       ├── Tag                         ├── SystemContextView
 	│       ├── URL                         │   └──  ... (same as SystemLandsapeView)
 	│       ├── Prop                        ├── ContainerView

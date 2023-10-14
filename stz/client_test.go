@@ -23,7 +23,9 @@ func TestGet(t *testing.T) {
 		validateHeaders(t, req)
 		rw.Header().Add("Content-Type", "application/json")
 		rw.WriteHeader(http.StatusOK)
-		json.NewEncoder(rw).Encode(wkspc)
+		if err := json.NewEncoder(rw).Encode(wkspc); err != nil {
+			t.Fatalf("failed to encode response: %s", err)
+		}
 	}))
 	defer server.Close()
 

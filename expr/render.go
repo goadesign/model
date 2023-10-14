@@ -11,26 +11,27 @@ func addAllElements(view View) {
 	m := Root.Model
 	switch v := view.(type) {
 	case *LandscapeView:
-		v.AddElements(m.People.Elements()...)
-		v.AddElements(m.Systems.Elements()...)
+		v.AddElements(m.People.Elements()...)  // nolint: errcheck
+		v.AddElements(m.Systems.Elements()...) // nolint: errcheck
 	case *ContextView:
-		v.AddElements(m.People.Elements()...)
-		v.AddElements(m.Systems.Elements()...)
+		v.AddElements(m.People.Elements()...)  // nolint: errcheck
+		v.AddElements(m.Systems.Elements()...) // nolint: errcheck
 	case *ContainerView:
-		v.AddElements(m.People.Elements()...)
-		v.AddElements(m.Systems.Elements()...)
-		v.AddElements(Registry[v.SoftwareSystemID].(*SoftwareSystem).Containers.Elements()...)
-		removeElements(v.Props(), Registry[v.SoftwareSystemID].(*SoftwareSystem).Element)
+		v.AddElements(m.People.Elements()...)  // nolint: errcheck
+		v.AddElements(m.Systems.Elements()...) // nolint: errcheck
+		s := Registry[v.SoftwareSystemID].(*SoftwareSystem)
+		v.AddElements(s.Containers.Elements()...) // nolint: errcheck
+		removeElements(v.Props(), s.Element)      // nolint: errcheck
 	case *ComponentView:
-		v.AddElements(m.People.Elements()...)
-		v.AddElements(m.Systems.Elements()...)
+		v.AddElements(m.People.Elements()...)  // nolint: errcheck
+		v.AddElements(m.Systems.Elements()...) // nolint: errcheck
 		c := Registry[v.ContainerID].(*Container)
-		v.AddElements(c.System.Containers.Elements()...)
-		v.AddElements(c.Components.Elements()...)
+		v.AddElements(c.System.Containers.Elements()...) // nolint: errcheck
+		v.AddElements(c.Components.Elements()...)        // nolint: errcheck
 	case *DeploymentView:
 		for _, n := range m.DeploymentNodes {
 			if n.Environment == "" || n.Environment == v.Environment {
-				v.AddElements(n)
+				v.AddElements(n) // nolint: errcheck
 			}
 		}
 	default:
@@ -47,22 +48,22 @@ func addDefaultElements(view View) {
 		addAllElements(v)
 	case *ContextView:
 		s := Registry[v.SoftwareSystemID].(*SoftwareSystem)
-		v.AddElements(s)
+		v.AddElements(s) // nolint: errcheck
 		addNeighbors(s.Element, v)
 	case *ContainerView:
 		s := Registry[v.SoftwareSystemID].(*SoftwareSystem)
-		v.AddElements(s.Containers.Elements()...)
+		v.AddElements(s.Containers.Elements()...) // nolint: errcheck
 		for _, c := range s.Containers {
-			v.AddElements(relatedSoftwareSystems(c.Element).Elements()...)
-			v.AddElements(relatedPeople(c.Element).Elements()...)
+			v.AddElements(relatedSoftwareSystems(c.Element).Elements()...) // nolint: errcheck
+			v.AddElements(relatedPeople(c.Element).Elements()...)          // nolint: errcheck
 		}
 	case *ComponentView:
 		c := Registry[v.ContainerID].(*Container)
-		v.AddElements(c.Components.Elements()...)
+		v.AddElements(c.Components.Elements()...) // nolint: errcheck
 		for _, c := range c.Components {
-			v.AddElements(relatedContainers(c.Element).Elements()...)
-			v.AddElements(relatedSoftwareSystems(c.Element).Elements()...)
-			v.AddElements(relatedPeople(c.Element).Elements()...)
+			v.AddElements(relatedContainers(c.Element).Elements()...)      // nolint: errcheck
+			v.AddElements(relatedSoftwareSystems(c.Element).Elements()...) // nolint: errcheck
+			v.AddElements(relatedPeople(c.Element).Elements()...)          // nolint: errcheck
 		}
 	case *DeploymentView:
 		addAllElements(v)
@@ -146,23 +147,23 @@ func addMissingElementsAndRelationships(vp *ViewProps) {
 func addNeighbors(e *Element, view View) {
 	switch v := view.(type) {
 	case *LandscapeView:
-		v.AddElements(relatedPeople(e).Elements()...)
-		v.AddElements(relatedSoftwareSystems(e).Elements()...)
+		v.AddElements(relatedPeople(e).Elements()...)          // nolint: errcheck
+		v.AddElements(relatedSoftwareSystems(e).Elements()...) // nolint: errcheck
 	case *ContextView:
-		v.AddElements(relatedPeople(e).Elements()...)
-		v.AddElements(relatedSoftwareSystems(e).Elements()...)
+		v.AddElements(relatedPeople(e).Elements()...)          // nolint: errcheck
+		v.AddElements(relatedSoftwareSystems(e).Elements()...) // nolint: errcheck
 	case *ContainerView:
-		v.AddElements(relatedPeople(e).Elements()...)
-		v.AddElements(relatedSoftwareSystems(e).Elements()...)
-		v.AddElements(relatedContainers(e).Elements()...)
+		v.AddElements(relatedPeople(e).Elements()...)          // nolint: errcheck
+		v.AddElements(relatedSoftwareSystems(e).Elements()...) // nolint: errcheck
+		v.AddElements(relatedContainers(e).Elements()...)      // nolint: errcheck
 	case *ComponentView:
-		v.AddElements(relatedPeople(e).Elements()...)
-		v.AddElements(relatedSoftwareSystems(e).Elements()...)
-		v.AddElements(relatedContainers(e).Elements()...)
-		v.AddElements(relatedComponents(e).Elements()...)
+		v.AddElements(relatedPeople(e).Elements()...)          // nolint: errcheck
+		v.AddElements(relatedSoftwareSystems(e).Elements()...) // nolint: errcheck
+		v.AddElements(relatedContainers(e).Elements()...)      // nolint: errcheck
+		v.AddElements(relatedComponents(e).Elements()...)      // nolint: errcheck
 	case *DeploymentView:
-		v.AddElements(relatedInfrastructureNodes(e).Elements()...)
-		v.AddElements(relatedContainerInstances(e).Elements()...)
+		v.AddElements(relatedInfrastructureNodes(e).Elements()...) // nolint: errcheck
+		v.AddElements(relatedContainerInstances(e).Elements()...)  // nolint: errcheck
 	}
 
 }
@@ -173,12 +174,12 @@ func addInfluencers(cv *ContainerView) {
 	for _, s := range m.Systems {
 		for _, r := range s.Relationships {
 			if r.Destination.ID == cv.SoftwareSystemID {
-				cv.AddElements(s)
+				cv.AddElements(s) // nolint: errcheck
 			}
 		}
 		for _, r := range system.Relationships {
 			if r.Destination.ID == s.ID {
-				cv.AddElements(s)
+				cv.AddElements(s) // nolint: errcheck
 			}
 		}
 	}
@@ -186,12 +187,12 @@ func addInfluencers(cv *ContainerView) {
 	for _, p := range m.People {
 		for _, r := range p.Relationships {
 			if r.Destination.ID == cv.SoftwareSystemID {
-				cv.AddElements(p)
+				cv.AddElements(p) // nolint: errcheck
 			}
 		}
 		for _, r := range system.Relationships {
 			if r.Destination.ID == p.ID {
-				cv.AddElements(p)
+				cv.AddElements(p) // nolint: errcheck
 			}
 		}
 	}

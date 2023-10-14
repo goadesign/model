@@ -24,7 +24,7 @@ var Root = &Design{Model: &Model{}, Views: &Views{}}
 
 // Register design root with eval engine.
 func init() {
-	eval.Register(Root)
+	eval.Register(Root) // nolint: errcheck
 }
 
 // WalkSets iterates over the elements and views.

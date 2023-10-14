@@ -8,11 +8,11 @@ import (
 )
 
 // Registry captures all the elements, people and relationships.
-var Registry = make(map[string]interface{})
+var Registry = make(map[string]any)
 
 // Iterate iterates through all elements, people and relationships in the
 // registry in a consistent order.
-func Iterate(visitor func(elem interface{})) {
+func Iterate(visitor func(elem any)) {
 	keys := make([]string, len(Registry))
 	i := 0
 	for k := range Registry {
@@ -28,7 +28,7 @@ func Iterate(visitor func(elem interface{})) {
 // IterateRelationships iterates through all relationships in the registry in a
 // consistent order.
 func IterateRelationships(visitor func(r *Relationship)) {
-	Iterate(func(e interface{}) {
+	Iterate(func(e any) {
 		if r, ok := e.(*Relationship); ok {
 			visitor(r)
 		}
@@ -39,7 +39,7 @@ func IterateRelationships(visitor func(r *Relationship)) {
 // it with the global registery. The algorithm first compute a unique moniker
 // for the element or relatioship (based on names and parent scope ID) then
 // hashes and base36 encodes the result.
-func Identify(element interface{}) {
+func Identify(element any) {
 	switch e := element.(type) {
 	case *Person:
 		e.ID = idify(e.Name)
