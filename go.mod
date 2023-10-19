@@ -1,6 +1,6 @@
 module goa.design/model
 
-go 1.21
+go 1.21.3
 
 require (
 	github.com/fsnotify/fsnotify v1.6.0

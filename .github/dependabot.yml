@@ -1,7 +1,7 @@
 version: 2
 updates:
   - package-ecosystem: "npm"
-    directory: "/cmd/mdl/webapp"
+    directory: "webapp"
     schedule:
       interval: "weekly"
   - package-ecosystem: "gomod"

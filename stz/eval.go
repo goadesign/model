@@ -3,7 +3,7 @@ package stz
 import (
 	"goa.design/goa/v3/eval"
 	"goa.design/model/expr"
-	"goa.design/model/mdl"
+	"goa.design/model/model"
 )
 
 // RunDSL runs the DSL defined in a global variable and returns the corresponding
@@ -18,7 +18,7 @@ func RunDSL() (*Workspace, error) {
 // WorkspaceFromDesign returns a Structurizr workspace initialized from the
 // given design.
 func WorkspaceFromDesign(d *expr.Design) *Workspace {
-	design := mdl.ModelizeDesign(d)
+	design := model.ModelizeDesign(d)
 	v := design.Views
 
 	return &Workspace{

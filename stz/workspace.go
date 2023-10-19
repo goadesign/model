@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 
-	"goa.design/model/mdl"
+	"goa.design/model/model"
 )
 
 type (
@@ -32,7 +32,7 @@ type (
 		//  (e.g. "model-go/1.2.0").
 		LastModifiedAgent string `json:"lastModifiedAgent,omitempty"`
 		// Model is the software architecture model.
-		Model *mdl.Model `json:"model,omitempty"`
+		Model *model.Model `json:"model,omitempty"`
 		// Views contains the views if any.
 		Views *Views `json:"views,omitempty"`
 		// Documentation associated with software architecture model.

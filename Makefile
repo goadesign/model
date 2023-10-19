@@ -23,7 +23,7 @@ GO_FILES=$(shell find . -type f -name '*.go')
 DEPEND=\
 	golang.org/x/tools/cmd/goimports@latest \
 	github.com/golangci/golangci-lint/cmd/golangci-lint@latest \
-	github.com/mjibson/esc@latest
+	github.com/raphael/esc@latest
 
 all: lint check-generated test
 
@@ -34,8 +34,8 @@ depend:
 	@for package in $(DEPEND); do go install $$package; done
 
 gen:
-	goa gen goa.design/model/mdl/service/design -o mdl/service
-	go generate ./cmd/mdl/
+	goa gen goa.design/model/mdlsvc/design -o mdlsvc/
+	esc -o ./cmd/mdl/webapp.go -pkg main -prefix webapp/dist webapp/dist/
 
 lint:
 ifneq ($(GOOS),windows)

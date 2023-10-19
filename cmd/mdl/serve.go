@@ -15,12 +15,12 @@ import (
 	"goa.design/clue/log"
 	goahttp "goa.design/goa/v3/http"
 
-	modelsvc "goa.design/model/mdl/service"
-	geneditorsvc "goa.design/model/mdl/service/gen/editor"
-	genassetshttp "goa.design/model/mdl/service/gen/http/assets/server"
-	geneditorhttp "goa.design/model/mdl/service/gen/http/editor/server"
-	genmodulehttp "goa.design/model/mdl/service/gen/http/module/server"
-	genmodulesvc "goa.design/model/mdl/service/gen/module"
+	mdlsvc "goa.design/model/mdlsvc"
+	geneditorsvc "goa.design/model/mdlsvc/gen/editor"
+	genassetshttp "goa.design/model/mdlsvc/gen/http/assets/server"
+	geneditorhttp "goa.design/model/mdlsvc/gen/http/editor/server"
+	genmodulehttp "goa.design/model/mdlsvc/gen/http/module/server"
+	genmodulesvc "goa.design/model/mdlsvc/gen/module"
 )
 
 func serve(workspace, dir string, port int, devmode, debugf bool) error {
@@ -35,14 +35,14 @@ func serve(workspace, dir string, port int, devmode, debugf bool) error {
 		log.Debugf(ctx, "debug logs enabled")
 	}
 
-	svc, err := modelsvc.New(ctx, workspace, dir, debugf)
+	svc, err := mdlsvc.New(ctx, workspace, dir, debugf)
 	if err != nil {
 		return err
 	}
 	var fs http.FileSystem
 	if devmode {
 		// in devmode (go run), serve the webapp from filesystem
-		fs = http.FileSystem(http.Dir("./cmd/mdl/webapp/dist"))
+		fs = http.FileSystem(http.Dir("./webapp/dist"))
 		http.Handle("/", http.FileServer(fs))
 	} else {
 		// the TS/React webapp is embeded in the go executable using esc https://github.com/mjibson/esc

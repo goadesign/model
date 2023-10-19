@@ -1,6 +1,6 @@
 cmd/mdl/mdl
 cmd/stz/stz
-cmd/mdl/webapp/node_modules
+webapp/node_modules
 
 /gen
 /gen-*

@@ -4,14 +4,14 @@ import (
 	"bytes"
 	"encoding/json"
 
-	"goa.design/model/mdl"
+	"goa.design/model/model"
 )
 
 type (
 	// Configuration encapsulate Structurizr service specific view configuration information.
 	Configuration struct {
 		// Styles associated with views.
-		Styles *mdl.Styles `json:"styles,omitempty"`
+		Styles *model.Styles `json:"styles,omitempty"`
 		// Key of view that was saved most recently.
 		LastSavedView string `json:"lastSavedView,omitempty"`
 		// Key of view shown by default.

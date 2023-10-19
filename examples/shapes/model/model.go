@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	. "goa.design/model/dsl"
-	"goa.design/model/mdl"
+	"goa.design/model/model"
 )
 
 var shapes = []ShapeKind{
@@ -61,6 +61,6 @@ var _ = Design("Getting Started", "This is a model of my software system.", func
 })
 
 func shapeName(sh ShapeKind) string {
-	b, _ := mdl.ShapeKind(sh).MarshalJSON()
+	b, _ := model.ShapeKind(sh).MarshalJSON()
 	return string(b)
 }

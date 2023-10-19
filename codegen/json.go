@@ -38,7 +38,7 @@ func JSON(dir, pkg string, debug bool) ([]byte, error) {
 			codegen.SimpleImport("fmt"),
 			codegen.SimpleImport("encoding/json"),
 			codegen.SimpleImport("os"),
-			codegen.SimpleImport("goa.design/model/mdl"),
+			codegen.SimpleImport("goa.design/model/model"),
 			codegen.NewImport("_", pkg),
 		}
 		sections = []*codegen.SectionTemplate{
