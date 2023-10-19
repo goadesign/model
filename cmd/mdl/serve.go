@@ -1,194 +1,122 @@
 package main
 
 import (
-	"bytes"
-	"encoding/json"
+	"context"
 	"fmt"
-	"io"
 	"net/http"
 	"os"
-	"path"
-	"strings"
+	"os/signal"
 	"sync"
+	"syscall"
+	"time"
 
-	"goa.design/model/mdl"
+	"github.com/gorilla/websocket"
+	"goa.design/clue/debug"
+	"goa.design/clue/log"
+	goahttp "goa.design/goa/v3/http"
+
+	modelsvc "goa.design/model/mdl/service"
+	geneditorsvc "goa.design/model/mdl/service/gen/editor"
+	genassetshttp "goa.design/model/mdl/service/gen/http/assets/server"
+	geneditorhttp "goa.design/model/mdl/service/gen/http/editor/server"
+	genmodulehttp "goa.design/model/mdl/service/gen/http/module/server"
+	genmodulesvc "goa.design/model/mdl/service/gen/module"
 )
 
-type (
-
-	// Server implements a HTTP server with 4 endpoints:
-	//
-	//   * GET requests to "/" return the diagram editor single page app implemented in the "webapp" directory.
-	//   * GET requests to "/data/model.json" return the JSON representation of the architecture model.
-	//   * GET requests to "/data/layout.json" return the view element positions indexed by view id.
-	//   * POST requests to "/data/save?id=<ID>" saves the SVG representation for the view with the given id.
-	//     The request body must be a JSON representation of a SavedView data structure.
-	//
-	// Server is intended to provide the backend for the model single page app diagram editor.
-	Server struct {
-		design []byte
-		lock   sync.Mutex
+func serve(workspace, dir string, port int, devmode, debugf bool) error {
+	format := log.FormatJSON
+	if log.IsTerminal() {
+		format = log.FormatTerminal
+	}
+	ctx := log.Context(context.Background(), log.WithFormat(format))
+	ctx = log.With(ctx, log.KV{K: "svc", V: "mdl"})
+	if debugf {
+		ctx = log.Context(ctx, log.WithDebug())
+		log.Debugf(ctx, "debug logs enabled")
 	}
 
-	// Layout is position info saved for one view (diagram)
-	Layout = map[string]any
-
-	// Layouts is a map from view key to the view Layout
-	Layouts = map[string]Layout
-)
-
-// NewServer created a server that serves the given design.
-func NewServer(d *mdl.Design) *Server {
-	var s Server
-	s.SetDesign(d)
-	return &s
-}
-
-// Serve starts the HTTP server on localhost with the given port. outDir
-// indicates where the view data structures are located. If devmode is true then
-// the single page app is served directly from the source under the "webapp"
-// directory. Otherwise it is served from the code embedded in the Go executable.
-func (s *Server) Serve(outDir string, devmode bool, port int) error {
-
+	svc, err := modelsvc.New(ctx, workspace, dir, debugf)
+	if err != nil {
+		return err
+	}
+	var fs http.FileSystem
 	if devmode {
 		// in devmode (go run), serve the webapp from filesystem
-		fs := http.FileSystem(http.Dir("./cmd/mdl/webapp/dist"))
+		fs = http.FileSystem(http.Dir("./cmd/mdl/webapp/dist"))
 		http.Handle("/", http.FileServer(fs))
 	} else {
 		// the TS/React webapp is embeded in the go executable using esc https://github.com/mjibson/esc
 		// to update the webapp, run `make generate` in the root dir of the repo
-		http.Handle("/", http.FileServer(FS(false)))
+		fs = FS(false)
 	}
 
-	http.HandleFunc("/data/model.json", func(w http.ResponseWriter, _ *http.Request) {
-		s.lock.Lock()
-		defer s.lock.Unlock()
-		_, _ = w.Write(s.design)
-	})
+	mux := goahttp.NewMuxer()
 
-	http.HandleFunc("/data/layout.json", func(w http.ResponseWriter, _ *http.Request) {
-		s.lock.Lock()
-		defer s.lock.Unlock()
-
-		b, err := loadLayouts(outDir)
-		if err != nil {
-			fmt.Println(err)
-		} else {
-			_, _ = w.Write(b)
-		}
-	})
-
-	http.HandleFunc("/data/save", func(w http.ResponseWriter, r *http.Request) {
-		id := r.URL.Query().Get("id")
-		if id == "" {
-			handleError(w, fmt.Errorf("missing id"))
-			return
-		}
-
-		s.lock.Lock()
-		defer s.lock.Unlock()
-
-		svgFile := path.Join(outDir, id+".svg")
-		f, err := os.Create(svgFile)
-		if err != nil {
-			handleError(w, err)
-			return
-		}
-		defer func() { _ = f.Close() }()
-		_, _ = io.Copy(f, r.Body)
-
-		w.WriteHeader(http.StatusAccepted)
-	})
-
-	// start the server
-	fmt.Printf("Editor started. Open http://localhost:%d in your browser.\n", port)
-	return http.ListenAndServe(fmt.Sprintf("127.0.0.1:%d", port), nil)
-}
-
-// SetDesign updates the design served by s.
-//
-// Note: it would have been more efficient to use the raw bytes read from the
-// generated file instead of going through the unmarshal/marshal cycle however
-// this approach is safer, makes it clearer and easier to compose. Also it is
-// not expected that the model would need to be updated often.
-func (s *Server) SetDesign(d *mdl.Design) {
-	b, err := json.Marshal(d)
-	if err != nil {
-		panic("failed to serialize design: " + err.Error()) // bug
-	}
-	s.lock.Lock()
-	defer s.lock.Unlock()
-	s.design = b
-}
-
-// handleError writes the given error to stderr and http.Error.
-func handleError(w http.ResponseWriter, err error) {
-	fmt.Fprintln(os.Stderr, err.Error())
-	http.Error(w, err.Error(), http.StatusInternalServerError)
-}
-
-// loadLayouts lists out directory and reads layout info from SVG files
-// for backwards compatibility, fallback to layout.json
-func loadLayouts(dir string) ([]byte, error) {
-	beginMark := []byte("<script type=\"application/json\"><![CDATA[")
-	endMark := []byte("]]></script>")
-
-	// first, read the fallback layout.json, then merge individual layouts from SVGs
-	var layouts Layouts = make(map[string]Layout)
-	lj := path.Join(dir, "layout.json")
-	if fileExists(lj) {
-		b, err := os.ReadFile(lj)
-		if err != nil {
-			return nil, err
-		}
-		err = json.Unmarshal(b, &layouts)
-		if err != nil {
-			return nil, err
-		}
+	editorEndpoints := geneditorsvc.NewEndpoints(svc)
+	editorEndpoints.Use(debug.LogPayloads())
+	editorEndpoints.Use(log.Endpoint)
+	editorsvr := geneditorhttp.New(editorEndpoints, mux, goahttp.RequestDecoder, goahttp.ResponseEncoder, nil, nil)
+	geneditorhttp.Mount(mux, editorsvr)
+	for _, m := range editorsvr.Mounts {
+		log.Print(ctx, log.KV{K: "method", V: m.Method}, log.KV{K: "endpoint", V: m.Verb + " " + m.Pattern})
 	}
 
-	var svgFiles []string
-	files, err := os.ReadDir(dir)
-	if err != nil {
-		return nil, err
+	moduleEndpoints := genmodulesvc.NewEndpoints(svc)
+	moduleEndpoints.Use(debug.LogPayloads())
+	moduleEndpoints.Use(log.Endpoint)
+	modulesvr := genmodulehttp.New(moduleEndpoints, mux, goahttp.RequestDecoder, goahttp.ResponseEncoder, nil, nil, &websocket.Upgrader{}, nil)
+	genmodulehttp.Mount(mux, modulesvr)
+	for _, m := range modulesvr.Mounts {
+		log.Print(ctx, log.KV{K: "method", V: m.Method}, log.KV{K: "endpoint", V: m.Verb + " " + m.Pattern})
 	}
-	for _, f := range files {
-		if !f.IsDir() && strings.HasSuffix(f.Name(), ".svg") {
-			svgFiles = append(svgFiles, f.Name())
-		}
-	}
-	for _, file := range svgFiles {
-		b, err := os.ReadFile(path.Join(dir, file))
-		if err != nil {
-			return nil, err
-		}
 
-		// look for the first script block
-		begin := bytes.Index(b, beginMark) + len(beginMark)
-		end := bytes.Index(b, endMark)
-		b = b[begin:end]
+	assetssvr := genassetshttp.New(nil, mux, goahttp.RequestDecoder, goahttp.ResponseEncoder, nil, nil, fs)
+	genassetshttp.Mount(mux, assetssvr)
+	for _, m := range assetssvr.Mounts {
+		log.Print(ctx, log.KV{K: "method", V: m.Method}, log.KV{K: "endpoint", V: m.Verb + " " + m.Pattern})
+	}
 
-		var l Layout = make(map[string]any)
-		err = json.Unmarshal(b, &l)
-		if err != nil {
-			return nil, err
-		}
-		id := file[:len(file)-4]
-		if l["layout"] != nil {
-			layouts[id] = l["layout"].(Layout)
-		}
-	}
-	b, err := json.Marshal(layouts)
-	if err != nil {
-		return nil, err
-	}
-	return b, nil
-}
+	debug.MountDebugLogEnabler(debug.Adapt(mux))
+	handler := log.HTTP(ctx)(mux)
+	addr := fmt.Sprintf(":%d", port)
+	httpServer := &http.Server{Addr: addr, Handler: handler}
 
-func fileExists(filename string) bool {
-	info, err := os.Stat(filename)
-	if os.IsNotExist(err) {
-		return false
+	errc := make(chan error)
+	go func() {
+		c := make(chan os.Signal, 1)
+		signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
+		errc <- fmt.Errorf("%s", <-c)
+	}()
+	ctx, cancel := context.WithCancel(ctx)
+
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+
+		go func() {
+			log.Printf(ctx, "HTTP server listening on %s", addr)
+			errc <- httpServer.ListenAndServe()
+		}()
+
+		<-ctx.Done()
+		log.Printf(ctx, "shutting down HTTP server")
+
+		// Shutdown gracefully with a 30s timeout.
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		if err := httpServer.Shutdown(ctx); err != nil {
+			log.Errorf(ctx, err, "failed to shutdown HTTP server")
+		}
+	}()
+
+	// Cleanup
+	if err := <-errc; err != nil {
+		log.Errorf(ctx, err, "exiting")
 	}
-	return !info.IsDir()
+	cancel()
+	wg.Wait()
+	log.Printf(ctx, "exited")
+	return nil
 }

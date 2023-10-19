@@ -33,7 +33,8 @@ depend:
 	@go mod download
 	@for package in $(DEPEND); do go install $$package; done
 
-generate:
+gen:
+	goa gen goa.design/model/mdl/service/design -o mdl/service
 	go generate ./cmd/mdl/
 
 lint:
@@ -46,9 +47,9 @@ ifneq ($(GOOS),windows)
 	fi
 endif
 
-check-generated: generate
+check-generated: gen
 	@if ! git diff -s --exit-code cmd/mdl/webapp.go; then \
-  		echo 'cmd/mdl/webapp.go is different, run `make generate` before commit!'; \
+  		echo 'cmd/mdl/webapp.go is different, run `make gen` before commit!'; \
   	fi
 
 test:

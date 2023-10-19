@@ -1,19 +1,13 @@
 package main
 
-//go:generate esc -o webapp.go -pkg main -prefix webapp/dist webapp/dist/
-
 import (
-	"encoding/json"
 	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 
-	goacodegen "goa.design/goa/v3/codegen"
-
 	"goa.design/model/codegen"
-	"goa.design/model/mdl"
 	model "goa.design/model/pkg"
 )
 
@@ -23,10 +17,10 @@ func main() {
 		debug, help, h *bool
 
 		genset = flag.NewFlagSet("gen", flag.ExitOnError)
-		out    = genset.String("out", "design.json", "set path to generated JSON representation")
+		out    = genset.String("out", "design.json", "Set path to generated JSON representation")
 
 		svrset = flag.NewFlagSet("serve", flag.ExitOnError)
-		dir    = svrset.String("dir", goacodegen.Gendir, "set output directory used by editor to save SVG files")
+		dir    = svrset.String("dir", "gen", "Set output directory used by editor to save SVG files")
 		port   = svrset.Int("port", 8080, "set local HTTP port used to serve diagram editor")
 
 		devmode = os.Getenv("DEVMODE") == "1"
@@ -89,19 +83,19 @@ func main() {
 			fail(`missing PACKAGE argument, use "--help" for usage`)
 		}
 		var b []byte
-		b, err = codegen.JSON(pkg, *debug)
+		b, err = codegen.JSON("", pkg, *debug)
 		if err == nil {
 			err = os.WriteFile(*out, b, 0644)
 		}
 	case "serve":
 		if pkg == "" {
-			fail(`missing PACKAGE argument, use "--help" for usage`)
+			fail(`missing WORKSPACE argument, use "--help" for usage`)
 		}
 		*dir, _ = filepath.Abs(*dir)
 		if err := os.MkdirAll(*dir, 0777); err != nil {
 			fail(err.Error())
 		}
-		err = serve(*dir, pkg, *port, devmode, *debug)
+		err = serve(pkg, *dir, *port, devmode, *debug)
 	case "version":
 		fmt.Printf("%s %s\n", os.Args[0], model.Version())
 	case "", "help":
@@ -114,46 +108,14 @@ func main() {
 	}
 }
 
-func serve(out, pkg string, port int, devmode, debug bool) error {
-	// Retrieve initial design and create server.
-	b, err := codegen.JSON(pkg, debug)
-	if err != nil {
-		return err
-	}
-	var design mdl.Design
-	if err := json.Unmarshal(b, &design); err != nil {
-		return fmt.Errorf("failed to load design: %s", err.Error())
-	}
-	s := NewServer(&design)
-
-	// Update server whenever design changes on disk.
-	err = watch(pkg, func() {
-		b, err := codegen.JSON(pkg, debug)
-		if err != nil {
-			fmt.Println("error parsing DSL:\n" + err.Error())
-			return
-		}
-		design = mdl.Design{}
-		if err := json.Unmarshal(b, &design); err != nil {
-			fmt.Println("failed to load design: " + err.Error())
-			return
-		}
-		s.SetDesign(&design)
-	})
-	if err != nil {
-		return err
-	}
-
-	return s.Serve(out, devmode, port)
-}
-
 func printUsage(fss ...*flag.FlagSet) {
 	fmt.Fprintln(os.Stderr, "Usage:")
-	fmt.Fprintf(os.Stderr, "  %s serve PACKAGE [FLAGS].\n", os.Args[0])
-	fmt.Fprintf(os.Stderr, "    Start a HTTP server that serves a graphical editor for the design described in PACKAGE.\n")
+	fmt.Fprintf(os.Stderr, "  %s serve WORKSPACE [FLAGS].\n", os.Args[0])
+	fmt.Fprintf(os.Stderr, "    Start a HTTP server that serves a graphical editor for the designs located in WORKSPACE.\n")
+	fmt.Fprintf(os.Stderr, "    If WORKSPACE points to a Go package rather than a Go workspace then serve the corresponding design.\n")
 	fmt.Fprintf(os.Stderr, "  %s gen PACKAGE [FLAGS].\n", os.Args[0])
 	fmt.Fprintf(os.Stderr, "    Generate a JSON representation of the design described in PACKAGE.\n")
-	fmt.Fprintf(os.Stderr, "\nPACKAGE must be the import path to a Go package containing Model DSL.\n\n")
+	fmt.Fprintf(os.Stderr, "    PACKAGE must be the import path to a Go package containing Model DSL.\n\n")
 	fmt.Fprintf(os.Stderr, "FLAGS:\n")
 	for _, fs := range fss {
 		fs.PrintDefaults()

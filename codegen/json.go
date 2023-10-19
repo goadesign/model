@@ -13,11 +13,12 @@ import (
 // TmpDirPrefix is the prefix used to create temporary directories.
 const TmpDirPrefix = "mdl--"
 
-// JSON generates a JSON representation of the model described in pkg.
-// pkg must be a valid Go package import path.
-func JSON(pkg string, debug bool) ([]byte, error) {
+// JSON generates a JSON representation of the model described in pkg.  dir is
+// the directory in which to run the build system's query tool.  pkg must be a
+// valid Go package import path.
+func JSON(dir, pkg string, debug bool) ([]byte, error) {
 	// Validate package import path
-	if _, err := packages.Load(&packages.Config{Mode: packages.NeedName}, pkg); err != nil {
+	if _, err := packages.Load(&packages.Config{Dir: dir, Mode: packages.NeedName}, pkg); err != nil {
 		return nil, err
 	}
 
