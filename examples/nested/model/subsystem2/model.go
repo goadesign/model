@@ -16,7 +16,7 @@ var Subsystem2 = Design("Subsystem 2", "This is a model of subsystem 2.", func()
 
 		SystemContextView(System, "Subsystem 2 context", "System context diagram for Subsystem 2.", func() {
 			AddAll()
-			AutoLayout(RankTopBottom)
+			AutoLayout(ImplementationDagre, RankTopBottom)
 		})
 	})
 })

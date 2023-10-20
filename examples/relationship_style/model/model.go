@@ -28,7 +28,7 @@ var _ = Design("Getting Started", "This is a model of my software system.", func
 			Link("Person1", "The System", "Thick, red edge\nwith vertices", func() {
 				Vertices(300, 300, 300, 800)
 			})
-			AutoLayout(RankLeftRight)
+			AutoLayout(ImplementationDagre, RankLeftRight)
 		})
 		Styles(func() {
 			ElementStyle("Person", func() {
