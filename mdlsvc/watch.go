@@ -3,13 +3,11 @@ package mdlsvc
 import (
 	"context"
 	"fmt"
-	"os"
 	"path/filepath"
 	"strings"
 	"time"
 
 	"github.com/fsnotify/fsnotify"
-	"github.com/jaschaephraim/lrserver"
 	"golang.org/x/tools/go/packages"
 
 	"goa.design/clue/log"
@@ -19,8 +17,8 @@ import (
 // watch implements functionality to listen to changes in the model files
 // when notifications are received from the filesystem, the model is rebuild
 // and the editor page is refreshed via live reload server `lrserver`
-func watch(ctx context.Context, pkg string, reload func()) error {
-	pkgs, err := packages.Load(&packages.Config{Mode: packages.NeedFiles}, pkg+"//...")
+func watch(ctx context.Context, dir, pkg string, reload func()) error {
+	pkgs, err := packages.Load(&packages.Config{Mode: packages.NeedFiles, Dir: dir}, pkg+"//...")
 	if err != nil {
 		return err
 	}
@@ -41,15 +39,6 @@ func watch(ctx context.Context, pkg string, reload func()) error {
 		}
 	}
 
-	// Create live reload server and hookup to watcher
-	lr := lrserver.New(lrserver.DefaultName, lrserver.DefaultPort)
-	lr.SetStatusLog(nil)
-	go func() {
-		if err := lr.ListenAndServe(); err != nil {
-			fmt.Println(err)
-			os.Exit(1)
-		}
-	}()
 	go func() {
 		for {
 			select {
@@ -75,7 +64,6 @@ func watch(ctx context.Context, pkg string, reload func()) error {
 
 				log.Infof(ctx, ev.String())
 				reload()
-				lr.Reload(ev.Name)
 
 			case err := <-watcher.Errors:
 				log.Errorf(ctx, err, "Error watching files")

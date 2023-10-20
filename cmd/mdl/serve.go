@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"embed"
 	"fmt"
 	"net/http"
 	"os"
@@ -16,12 +17,17 @@ import (
 	goahttp "goa.design/goa/v3/http"
 
 	mdlsvc "goa.design/model/mdlsvc"
-	geneditorsvc "goa.design/model/mdlsvc/gen/editor"
+	geneditorsvc "goa.design/model/mdlsvc/gen/dsl_editor"
 	genassetshttp "goa.design/model/mdlsvc/gen/http/assets/server"
-	geneditorhttp "goa.design/model/mdlsvc/gen/http/editor/server"
-	genmodulehttp "goa.design/model/mdlsvc/gen/http/module/server"
-	genmodulesvc "goa.design/model/mdlsvc/gen/module"
+	geneditorhttp "goa.design/model/mdlsvc/gen/http/dsl_editor/server"
+	genpackageshttp "goa.design/model/mdlsvc/gen/http/packages/server"
+	gensvghttp "goa.design/model/mdlsvc/gen/http/svg/server"
+	genpackagesvc "goa.design/model/mdlsvc/gen/packages"
+	gensvgvc "goa.design/model/mdlsvc/gen/svg"
 )
+
+//go:embed webapp/dist
+var webapp embed.FS
 
 func serve(workspace, dir string, port int, devmode, debugf bool) error {
 	format := log.FormatJSON
@@ -45,9 +51,8 @@ func serve(workspace, dir string, port int, devmode, debugf bool) error {
 		fs = http.FileSystem(http.Dir("./webapp/dist"))
 		http.Handle("/", http.FileServer(fs))
 	} else {
-		// the TS/React webapp is embeded in the go executable using esc https://github.com/mjibson/esc
-		// to update the webapp, run `make generate` in the root dir of the repo
-		fs = FS(false)
+		// the TS/React webapp is embeded in the go executable using embed
+		fs = http.FS(webapp)
 	}
 
 	mux := goahttp.NewMuxer()
@@ -61,12 +66,21 @@ func serve(workspace, dir string, port int, devmode, debugf bool) error {
 		log.Print(ctx, log.KV{K: "method", V: m.Method}, log.KV{K: "endpoint", V: m.Verb + " " + m.Pattern})
 	}
 
-	moduleEndpoints := genmodulesvc.NewEndpoints(svc)
-	moduleEndpoints.Use(debug.LogPayloads())
-	moduleEndpoints.Use(log.Endpoint)
-	modulesvr := genmodulehttp.New(moduleEndpoints, mux, goahttp.RequestDecoder, goahttp.ResponseEncoder, nil, nil, &websocket.Upgrader{}, nil)
-	genmodulehttp.Mount(mux, modulesvr)
+	packagesEndpoints := genpackagesvc.NewEndpoints(svc)
+	packagesEndpoints.Use(debug.LogPayloads())
+	packagesEndpoints.Use(log.Endpoint)
+	modulesvr := genpackageshttp.New(packagesEndpoints, mux, goahttp.RequestDecoder, goahttp.ResponseEncoder, nil, nil, &websocket.Upgrader{}, nil)
+	genpackageshttp.Mount(mux, modulesvr)
 	for _, m := range modulesvr.Mounts {
+		log.Print(ctx, log.KV{K: "method", V: m.Method}, log.KV{K: "endpoint", V: m.Verb + " " + m.Pattern})
+	}
+
+	svgEndpoints := gensvgvc.NewEndpoints(svc)
+	svgEndpoints.Use(debug.LogPayloads())
+	svgEndpoints.Use(log.Endpoint)
+	svgsvr := gensvghttp.New(svgEndpoints, mux, goahttp.RequestDecoder, goahttp.ResponseEncoder, nil, nil)
+	gensvghttp.Mount(mux, svgsvr)
+	for _, m := range svgsvr.Mounts {
 		log.Print(ctx, log.KV{K: "method", V: m.Method}, log.KV{K: "endpoint", V: m.Verb + " " + m.Pattern})
 	}
 

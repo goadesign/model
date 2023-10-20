@@ -3,6 +3,8 @@ package mdlsvc
 import (
 	"context"
 	"sync"
+
+	genpackages "goa.design/model/mdlsvc/gen/packages"
 )
 
 type (
@@ -13,13 +15,13 @@ type (
 		workspace     string // Go workspace
 		debug         bool   // Whether to print debug output when generating
 		lock          sync.Mutex
-		subscriptions map[string]*subscription
+		subscriptions map[string]*subscription // subscriptions indexed by module
 	}
 
 	// subscription represents a client subscription to model updates.
 	subscription struct {
-		// Channel used to notify the client of model updates.
-		updates chan []byte
+		ch      chan []byte                         // Channel used to notify of model changes.
+		streams []genpackages.SubscribeServerStream // List of active client streams.
 	}
 )
 

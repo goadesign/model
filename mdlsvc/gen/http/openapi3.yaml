@@ -4,24 +4,73 @@ info:
     version: "1.0"
 servers:
     - url: http://localhost:80
-      description: Default server for Editor
+      description: Default server for Assets
 paths:
-    /api/editor/component:
-        put:
+    /api/diagrams:
+        post:
             tags:
-                - Editor
-            summary: UpsertComponent Editor
-            description: Create or update a component in the model
-            operationId: Editor#UpsertComponent
+                - SVG
+            summary: Save SVG
+            description: Save the SVG streamed in the request body
+            operationId: SVG#Save
             parameters:
-                - name: mod
+                - name: file
                   in: query
-                  description: Design Go module
+                  description: Diagram SVG filename
                   allowEmptyValue: true
                   required: true
                   schema:
                     type: string
-                    description: Design Go module
+                    description: Diagram SVG filename
+                    example: diagram.svg
+                    pattern: .*\.svg
+                  example: diagram.svg
+            responses:
+                "204":
+                    description: No Content response.
+    /api/diagrams/layout:
+        get:
+            tags:
+                - SVG
+            summary: Load SVG
+            description: Stream the model layout JSON saved in the SVG
+            operationId: SVG#Load
+            parameters:
+                - name: file
+                  in: query
+                  description: Diagram SVG filename
+                  allowEmptyValue: true
+                  required: true
+                  schema:
+                    type: string
+                    description: Diagram SVG filename
+                    example: diagram.svg
+                    pattern: .*\.svg
+                  example: diagram.svg
+            responses:
+                "200":
+                    description: OK response.
+                    content:
+                        application/json:
+                            schema:
+                                type: string
+                                format: binary
+    /api/dsl/component:
+        put:
+            tags:
+                - DSLEditor
+            summary: UpsertComponent DSLEditor
+            description: Create or update a component in the model
+            operationId: DSLEditor#UpsertComponent
+            parameters:
+                - name: package
+                  in: query
+                  description: Design Go package import path
+                  allowEmptyValue: true
+                  required: true
+                  schema:
+                    type: string
+                    description: Design Go package import path
                     example: goa.design/model/examples/basic/model
                     pattern: ^([a-zA-Z0-9]+(-[a-zA-Z0-9]+)*\.)+[a-zA-Z]{2,}/[a-zA-Z0-9_\-]+/(/([a-zA-Z0-9_\-]+))*$
                   example: goa.design/model/examples/basic/model
@@ -47,22 +96,22 @@ paths:
             responses:
                 "204":
                     description: No Content response.
-    /api/editor/container:
+    /api/dsl/container:
         put:
             tags:
-                - Editor
-            summary: UpsertContainer Editor
+                - DSLEditor
+            summary: UpsertContainer DSLEditor
             description: Create or update a container in the model
-            operationId: Editor#UpsertContainer
+            operationId: DSLEditor#UpsertContainer
             parameters:
-                - name: mod
+                - name: package
                   in: query
-                  description: Design Go module
+                  description: Design Go package import path
                   allowEmptyValue: true
                   required: true
                   schema:
                     type: string
-                    description: Design Go module
+                    description: Design Go package import path
                     example: goa.design/model/examples/basic/model
                     pattern: ^([a-zA-Z0-9]+(-[a-zA-Z0-9]+)*\.)+[a-zA-Z]{2,}/[a-zA-Z0-9_\-]+/(/([a-zA-Z0-9_\-]+))*$
                   example: goa.design/model/examples/basic/model
@@ -87,22 +136,22 @@ paths:
             responses:
                 "204":
                     description: No Content response.
-    /api/editor/person:
+    /api/dsl/person:
         put:
             tags:
-                - Editor
-            summary: UpsertPerson Editor
+                - DSLEditor
+            summary: UpsertPerson DSLEditor
             description: Create or update a person in the model
-            operationId: Editor#UpsertPerson
+            operationId: DSLEditor#UpsertPerson
             parameters:
-                - name: mod
+                - name: package
                   in: query
-                  description: Design Go module
+                  description: Design Go package import path
                   allowEmptyValue: true
                   required: true
                   schema:
                     type: string
-                    description: Design Go module
+                    description: Design Go package import path
                     example: goa.design/model/examples/basic/model
                     pattern: ^([a-zA-Z0-9]+(-[a-zA-Z0-9]+)*\.)+[a-zA-Z]{2,}/[a-zA-Z0-9_\-]+/(/([a-zA-Z0-9_\-]+))*$
                   example: goa.design/model/examples/basic/model
@@ -126,22 +175,22 @@ paths:
             responses:
                 "204":
                     description: No Content response.
-    /api/editor/person/{Name}:
+    /api/dsl/person/{Name}:
         delete:
             tags:
-                - Editor
-            summary: DeletePerson Editor
+                - DSLEditor
+            summary: DeletePerson DSLEditor
             description: Delete an existing person from the model
-            operationId: Editor#DeletePerson
+            operationId: DSLEditor#DeletePerson
             parameters:
-                - name: mod
+                - name: package
                   in: query
-                  description: Design Go module
+                  description: Design Go package import path
                   allowEmptyValue: true
                   required: true
                   schema:
                     type: string
-                    description: Design Go module
+                    description: Design Go package import path
                     example: goa.design/model/examples/basic/model
                     pattern: ^([a-zA-Z0-9]+(-[a-zA-Z0-9]+)*\.)+[a-zA-Z]{2,}/[a-zA-Z0-9_\-]+/(/([a-zA-Z0-9_\-]+))*$
                   example: goa.design/model/examples/basic/model
@@ -152,8 +201,8 @@ paths:
                   schema:
                     type: string
                     description: Name of person to delete
-                    example: Distinctio omnis occaecati ex sed sed.
-                  example: Rerum magnam.
+                    example: Quidem odit id odit sit quos quia.
+                  example: Rerum nostrum accusamus aspernatur.
             responses:
                 "204":
                     description: No Content response.
@@ -163,22 +212,22 @@ paths:
                         application/vnd.goa.error:
                             schema:
                                 $ref: '#/components/schemas/Error'
-    /api/editor/relationship:
+    /api/dsl/relationship:
         put:
             tags:
-                - Editor
-            summary: UpsertRelationship Editor
+                - DSLEditor
+            summary: UpsertRelationship DSLEditor
             description: Create or update a relationship in the model
-            operationId: Editor#UpsertRelationship
+            operationId: DSLEditor#UpsertRelationship
             parameters:
-                - name: mod
+                - name: package
                   in: query
-                  description: Design Go module
+                  description: Design Go package import path
                   allowEmptyValue: true
                   required: true
                   schema:
                     type: string
-                    description: Design Go module
+                    description: Design Go package import path
                     example: goa.design/model/examples/basic/model
                     pattern: ^([a-zA-Z0-9]+(-[a-zA-Z0-9]+)*\.)+[a-zA-Z]{2,}/[a-zA-Z0-9_\-]+/(/([a-zA-Z0-9_\-]+))*$
                   example: goa.design/model/examples/basic/model
@@ -191,7 +240,7 @@ paths:
                         example:
                             Description: Relationship description
                             DestinationPath: Software System/Container/Component
-                            InteractionStyle: Synchronous
+                            InteractionStyle: Asynchronous
                             SourcePath: Software System/Container/Component
                             Tags:
                                 - Tag1
@@ -201,22 +250,22 @@ paths:
             responses:
                 "204":
                     description: No Content response.
-    /api/editor/relationship/{SourcePath}/{DestinationPath}:
+    /api/dsl/relationship/{SourcePath}/{DestinationPath}:
         delete:
             tags:
-                - Editor
-            summary: DeleteRelationship Editor
+                - DSLEditor
+            summary: DeleteRelationship DSLEditor
             description: Delete an existing relationship from the model
-            operationId: Editor#DeleteRelationship
+            operationId: DSLEditor#DeleteRelationship
             parameters:
-                - name: mod
+                - name: package
                   in: query
-                  description: Design Go module
+                  description: Design Go package import path
                   allowEmptyValue: true
                   required: true
                   schema:
                     type: string
-                    description: Design Go module
+                    description: Design Go package import path
                     example: goa.design/model/examples/basic/model
                     pattern: ^([a-zA-Z0-9]+(-[a-zA-Z0-9]+)*\.)+[a-zA-Z]{2,}/[a-zA-Z0-9_\-]+/(/([a-zA-Z0-9_\-]+))*$
                   example: goa.design/model/examples/basic/model
@@ -265,22 +314,22 @@ paths:
                         application/vnd.goa.error:
                             schema:
                                 $ref: '#/components/schemas/Error'
-    /api/editor/system:
+    /api/dsl/system:
         put:
             tags:
-                - Editor
-            summary: UpsertSystem Editor
+                - DSLEditor
+            summary: UpsertSystem DSLEditor
             description: Create or update a software system in the model
-            operationId: Editor#UpsertSystem
+            operationId: DSLEditor#UpsertSystem
             parameters:
-                - name: mod
+                - name: package
                   in: query
-                  description: Design Go module
+                  description: Design Go package import path
                   allowEmptyValue: true
                   required: true
                   schema:
                     type: string
-                    description: Design Go module
+                    description: Design Go package import path
                     example: goa.design/model/examples/basic/model
                     pattern: ^([a-zA-Z0-9]+(-[a-zA-Z0-9]+)*\.)+[a-zA-Z]{2,}/[a-zA-Z0-9_\-]+/(/([a-zA-Z0-9_\-]+))*$
                   example: goa.design/model/examples/basic/model
@@ -304,22 +353,22 @@ paths:
             responses:
                 "204":
                     description: No Content response.
-    /api/editor/system/{Name}:
+    /api/dsl/system/{Name}:
         delete:
             tags:
-                - Editor
-            summary: DeleteSystem Editor
+                - DSLEditor
+            summary: DeleteSystem DSLEditor
             description: Delete an existing software system from the model
-            operationId: Editor#DeleteSystem
+            operationId: DSLEditor#DeleteSystem
             parameters:
-                - name: mod
+                - name: package
                   in: query
-                  description: Design Go module
+                  description: Design Go package import path
                   allowEmptyValue: true
                   required: true
                   schema:
                     type: string
-                    description: Design Go module
+                    description: Design Go package import path
                     example: goa.design/model/examples/basic/model
                     pattern: ^([a-zA-Z0-9]+(-[a-zA-Z0-9]+)*\.)+[a-zA-Z]{2,}/[a-zA-Z0-9_\-]+/(/([a-zA-Z0-9_\-]+))*$
                   example: goa.design/model/examples/basic/model
@@ -330,8 +379,8 @@ paths:
                   schema:
                     type: string
                     description: Name of software system to delete
-                    example: Animi enim vel eum ipsam.
-                  example: Ex et tempore beatae.
+                    example: Mollitia nesciunt fugiat.
+                  example: Molestias et in dignissimos consequatur dolorem voluptatem.
             responses:
                 "204":
                     description: No Content response.
@@ -341,22 +390,22 @@ paths:
                         application/vnd.goa.error:
                             schema:
                                 $ref: '#/components/schemas/Error'
-    /api/editor/system/{SystemName}/container/{ContainerName}/component/{Name}:
+    /api/dsl/system/{SystemName}/container/{ContainerName}/component/{Name}:
         delete:
             tags:
-                - Editor
-            summary: DeleteComponent Editor
+                - DSLEditor
+            summary: DeleteComponent DSLEditor
             description: Delete an existing component from the model
-            operationId: Editor#DeleteComponent
+            operationId: DSLEditor#DeleteComponent
             parameters:
-                - name: mod
+                - name: package
                   in: query
-                  description: Design Go module
+                  description: Design Go package import path
                   allowEmptyValue: true
                   required: true
                   schema:
                     type: string
-                    description: Design Go module
+                    description: Design Go package import path
                     example: goa.design/model/examples/basic/model
                     pattern: ^([a-zA-Z0-9]+(-[a-zA-Z0-9]+)*\.)+[a-zA-Z]{2,}/[a-zA-Z0-9_\-]+/(/([a-zA-Z0-9_\-]+))*$
                   example: goa.design/model/examples/basic/model
@@ -396,22 +445,22 @@ paths:
                         application/vnd.goa.error:
                             schema:
                                 $ref: '#/components/schemas/Error'
-    /api/editor/system/{SystemName}/container/{Name}:
+    /api/dsl/system/{SystemName}/container/{Name}:
         delete:
             tags:
-                - Editor
-            summary: DeleteContainer Editor
+                - DSLEditor
+            summary: DeleteContainer DSLEditor
             description: Delete an existing container from the model
-            operationId: Editor#DeleteContainer
+            operationId: DSLEditor#DeleteContainer
             parameters:
-                - name: mod
+                - name: package
                   in: query
-                  description: Design Go module
+                  description: Design Go package import path
                   allowEmptyValue: true
                   required: true
                   schema:
                     type: string
-                    description: Design Go module
+                    description: Design Go package import path
                     example: goa.design/model/examples/basic/model
                     pattern: ^([a-zA-Z0-9]+(-[a-zA-Z0-9]+)*\.)+[a-zA-Z]{2,}/[a-zA-Z0-9_\-]+/(/([a-zA-Z0-9_\-]+))*$
                   example: goa.design/model/examples/basic/model
@@ -422,8 +471,8 @@ paths:
                   schema:
                     type: string
                     description: Name of container software system
-                    example: Cupiditate voluptatibus.
-                  example: Maiores sunt aut velit deserunt delectus.
+                    example: Dolorem velit distinctio cupiditate et dolore.
+                  example: Consequatur commodi ab quam.
                 - name: Name
                   in: path
                   description: Name of container to delete
@@ -431,8 +480,8 @@ paths:
                   schema:
                     type: string
                     description: Name of container to delete
-                    example: Voluptas dolores eligendi aperiam vitae.
-                  example: Sit consequuntur in voluptatem nihil hic ad.
+                    example: Provident et repellat voluptatibus architecto tenetur reprehenderit.
+                  example: Quidem aut ipsa et.
             responses:
                 "204":
                     description: No Content response.
@@ -442,13 +491,13 @@ paths:
                         application/vnd.goa.error:
                             schema:
                                 $ref: '#/components/schemas/Error'
-    /api/modules:
+    /api/packages:
         get:
             tags:
-                - Module
-            summary: ListModules Module
-            description: List the model modules in the current Go workspace
-            operationId: Module#ListModules
+                - Packages
+            summary: ListPackages Packages
+            description: List the model packages in the current Go workspace
+            operationId: Packages#ListPackages
             responses:
                 "200":
                     description: OK response.
@@ -457,32 +506,32 @@ paths:
                             schema:
                                 type: array
                                 items:
-                                    $ref: '#/components/schemas/Module'
+                                    $ref: '#/components/schemas/Package'
                                 example:
-                                    - GoMod: goa.design/model/examples/basic/model
-                                    - GoMod: goa.design/model/examples/basic/model
-                                    - GoMod: goa.design/model/examples/basic/model
-                                    - GoMod: goa.design/model/examples/basic/model
+                                    - PackagePath: goa.design/model/examples/basic/model
+                                    - PackagePath: goa.design/model/examples/basic/model
+                                    - PackagePath: goa.design/model/examples/basic/model
+                                    - PackagePath: goa.design/model/examples/basic/model
                             example:
-                                - GoMod: goa.design/model/examples/basic/model
-                                - GoMod: goa.design/model/examples/basic/model
-                                - GoMod: goa.design/model/examples/basic/model
-    /api/modules/compile:
+                                - PackagePath: goa.design/model/examples/basic/model
+                                - PackagePath: goa.design/model/examples/basic/model
+                                - PackagePath: goa.design/model/examples/basic/model
+                                - PackagePath: goa.design/model/examples/basic/model
         post:
             tags:
-                - Module
-            summary: Compile Module
-            description: Stream the model DSL, save it, compile it and return the corresponding JSON
-            operationId: Module#Compile
+                - Packages
+            summary: Upload Packages
+            description: Upload the package content, compile it and return the corresponding JSON
+            operationId: Packages#Upload
             parameters:
-                - name: mod
+                - name: package
                   in: query
-                  description: Design Go module
+                  description: Design Go package import path
                   allowEmptyValue: true
                   required: true
                   schema:
                     type: string
-                    description: Design Go module
+                    description: Design Go package import path
                     example: goa.design/model/examples/basic/model
                     pattern: ^([a-zA-Z0-9]+(-[a-zA-Z0-9]+)*\.)+[a-zA-Z]{2,}/[a-zA-Z0-9_\-]+/(/([a-zA-Z0-9_\-]+))*$
                   example: goa.design/model/examples/basic/model
@@ -502,44 +551,22 @@ paths:
                         application/vnd.goa.error:
                             schema:
                                 $ref: '#/components/schemas/Error'
-    /api/modules/diagram:
-        post:
-            tags:
-                - Module
-            summary: WriteDiagram Module
-            description: Save the SVG streamed in the request body
-            operationId: Module#WriteDiagram
-            parameters:
-                - name: mod
-                  in: query
-                  description: Design Go module
-                  allowEmptyValue: true
-                  required: true
-                  schema:
-                    type: string
-                    description: Design Go module
-                    example: goa.design/model/examples/basic/model
-                    pattern: ^([a-zA-Z0-9]+(-[a-zA-Z0-9]+)*\.)+[a-zA-Z]{2,}/[a-zA-Z0-9_\-]+/(/([a-zA-Z0-9_\-]+))*$
-                  example: goa.design/model/examples/basic/model
-            responses:
-                "204":
-                    description: No Content response.
-    /api/modules/layout:
+    /api/packages/model:
         get:
             tags:
-                - Module
-            summary: GetLayout Module
-            description: Stream the model layout JSON saved in the SVG
-            operationId: Module#GetLayout
+                - Packages
+            summary: GetModel Packages
+            description: Stream the model JSON for the given package, see https://pkg.go.dev/goa.design/model/model#Model
+            operationId: Packages#GetModel
             parameters:
-                - name: mod
+                - name: package
                   in: query
-                  description: Design Go module
+                  description: Design Go package import path
                   allowEmptyValue: true
                   required: true
                   schema:
                     type: string
-                    description: Design Go module
+                    description: Design Go package import path
                     example: goa.design/model/examples/basic/model
                     pattern: ^([a-zA-Z0-9]+(-[a-zA-Z0-9]+)*\.)+[a-zA-Z]{2,}/[a-zA-Z0-9_\-]+/(/([a-zA-Z0-9_\-]+))*$
                   example: goa.design/model/examples/basic/model
@@ -551,49 +578,22 @@ paths:
                             schema:
                                 type: string
                                 format: binary
-    /api/modules/model:
+    /api/packages/subscribe:
         get:
             tags:
-                - Module
-            summary: GetModel Module
-            description: Stream the model JSON, see https://pkg.go.dev/goa.design/model/model#Model
-            operationId: Module#GetModel
+                - Packages
+            summary: Subscribe Packages
+            description: WebSocket endpoint for subscribing to updates to a package
+            operationId: Packages#Subscribe
             parameters:
-                - name: mod
+                - name: package
                   in: query
-                  description: Design Go module
+                  description: Design Go package import path
                   allowEmptyValue: true
                   required: true
                   schema:
                     type: string
-                    description: Design Go module
-                    example: goa.design/model/examples/basic/model
-                    pattern: ^([a-zA-Z0-9]+(-[a-zA-Z0-9]+)*\.)+[a-zA-Z]{2,}/[a-zA-Z0-9_\-]+/(/([a-zA-Z0-9_\-]+))*$
-                  example: goa.design/model/examples/basic/model
-            responses:
-                "200":
-                    description: OK response.
-                    content:
-                        application/json:
-                            schema:
-                                type: string
-                                format: binary
-    /api/modules/subscribe:
-        get:
-            tags:
-                - Module
-            summary: Subscribe Module
-            description: WebSocket endpoint for subscribing to updates to the model
-            operationId: Module#Subscribe
-            parameters:
-                - name: mod
-                  in: query
-                  description: Design Go module
-                  allowEmptyValue: true
-                  required: true
-                  schema:
-                    type: string
-                    description: Design Go module
+                    description: Design Go package import path
                     example: goa.design/model/examples/basic/model
                     pattern: ^([a-zA-Z0-9]+(-[a-zA-Z0-9]+)*\.)+[a-zA-Z]{2,}/[a-zA-Z0-9_\-]+/(/([a-zA-Z0-9_\-]+))*$
                   example: goa.design/model/examples/basic/model
@@ -625,7 +625,7 @@ components:
                 fault:
                     type: boolean
                     description: Is the error a server-side fault?
-                    example: false
+                    example: true
                 id:
                     type: string
                     description: ID is a unique identifier for this particular occurrence of the problem.
@@ -641,7 +641,7 @@ components:
                 temporary:
                     type: boolean
                     description: Is the error temporary?
-                    example: true
+                    example: false
                 timeout:
                     type: boolean
                     description: Is the error a timeout?
@@ -652,7 +652,7 @@ components:
                 id: 123abc
                 message: parameter 'p' must be an integer
                 name: bad_request
-                temporary: true
+                temporary: false
                 timeout: true
             required:
                 - name
@@ -661,18 +661,18 @@ components:
                 - temporary
                 - timeout
                 - fault
-        Module:
+        Package:
             type: object
             properties:
-                GoMod:
+                PackagePath:
                     type: string
-                    description: Design Go module
+                    description: Design Go package import path
                     example: goa.design/model/examples/basic/model
                     pattern: ^([a-zA-Z0-9]+(-[a-zA-Z0-9]+)*\.)+[a-zA-Z]{2,}/[a-zA-Z0-9_\-]+/(/([a-zA-Z0-9_\-]+))*$
             example:
-                GoMod: goa.design/model/examples/basic/model
+                PackagePath: goa.design/model/examples/basic/model
             required:
-                - GoMod
+                - PackagePath
         UpsertComponentRequestBody:
             type: object
             properties:
@@ -696,7 +696,7 @@ components:
                         key2: value2
                     additionalProperties:
                         type: string
-                        example: Consectetur exercitationem soluta quam quaerat quis.
+                        example: Ea laborum est dolores tempora ut.
                 SystemName:
                     type: string
                     description: Name of parent software system
@@ -705,7 +705,7 @@ components:
                     type: array
                     items:
                         type: string
-                        example: Dolores dolor.
+                        example: Sapiente perferendis rerum consequatur sunt.
                     description: Attached tags
                     example:
                         - Tag1
@@ -754,7 +754,7 @@ components:
                         key2: value2
                     additionalProperties:
                         type: string
-                        example: Occaecati est.
+                        example: Ut eum inventore maxime eius.
                 SystemName:
                     type: string
                     description: Name of parent software system
@@ -763,7 +763,7 @@ components:
                     type: array
                     items:
                         type: string
-                        example: Et vitae sapiente quisquam est ullam soluta.
+                        example: Excepturi ut eligendi animi sunt laudantium temporibus.
                     description: Attached tags
                     example:
                         - Tag1
@@ -806,7 +806,7 @@ components:
                     type: string
                     description: Indicates whether the relationship is synchronous or asynchronous
                     default: Synchronous
-                    example: Synchronous
+                    example: Asynchronous
                     enum:
                         - Synchronous
                         - Asynchronous
@@ -818,7 +818,7 @@ components:
                     type: array
                     items:
                         type: string
-                        example: Dolores dolorum et ipsam veritatis perferendis.
+                        example: Ex fugiat omnis tenetur error dolorem.
                     description: Attached tags
                     example:
                         - Tag1
@@ -872,12 +872,12 @@ components:
                         key2: value2
                     additionalProperties:
                         type: string
-                        example: Quos aut.
+                        example: Laudantium autem ab modi vitae.
                 Tags:
                     type: array
                     items:
                         type: string
-                        example: Expedita dolore nemo amet deserunt occaecati omnis.
+                        example: Quisquam magnam neque.
                     description: Attached tags
                     example:
                         - Tag1
@@ -900,6 +900,7 @@ components:
             required:
                 - Name
 tags:
-    - name: Editor
-    - name: Module
     - name: Assets
+    - name: DSLEditor
+    - name: Packages
+    - name: SVG

@@ -25,7 +25,7 @@ DEPEND=\
 	github.com/golangci/golangci-lint/cmd/golangci-lint@latest \
 	github.com/raphael/esc@latest
 
-all: lint check-generated test
+all: lint test
 
 ci: depend all
 
@@ -35,7 +35,6 @@ depend:
 
 gen:
 	goa gen goa.design/model/mdlsvc/design -o mdlsvc/
-	esc -o ./cmd/mdl/webapp.go -pkg main -prefix webapp/dist webapp/dist/
 
 lint:
 ifneq ($(GOOS),windows)
@@ -46,11 +45,6 @@ ifneq ($(GOOS),windows)
 		echo "^ - golangci-lint errors!" && echo && exit 1; \
 	fi
 endif
-
-check-generated: gen
-	@if ! git diff -s --exit-code cmd/mdl/webapp.go; then \
-  		echo 'cmd/mdl/webapp.go is different, run `make gen` before commit!'; \
-  	fi
 
 test:
 	go test ./...
