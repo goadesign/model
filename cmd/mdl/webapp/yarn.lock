@@ -1336,9 +1336,9 @@
   dependencies:
     "@types/node" "*"
 
-"@types/styled-components@^5.1.28":
-  version "5.1.28"
-  resolved "https://registry.yarnpkg.com/@types/styled-components/-/styled-components-5.1.28.tgz#3b86c4d373924ff6976de788843cab445d9ab15b"
+"@types/styled-components@^5.1.29":
+  version "5.1.29"
+  resolved "https://registry.yarnpkg.com/@types/styled-components/-/styled-components-5.1.29.tgz#a483d7829b972233455f1500930d6a7d30aa328e"
   dependencies:
     "@types/hoist-non-react-statics" "*"
     "@types/react" "*"

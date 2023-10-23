@@ -5,7 +5,7 @@
 	"version": "1.0.0",
 	"author": "Flexera, Dramba Victor",
 	"dependencies": {
-		"@types/styled-components": "^5.1.28",
+		"@types/styled-components": "^5.1.29",
 		"clean-webpack-plugin": "^4.0.0",
 		"copy-webpack-plugin": "^11.0.0",
 		"dagre": "^0.8.5",
