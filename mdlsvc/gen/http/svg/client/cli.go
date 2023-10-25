@@ -8,6 +8,9 @@
 package client
 
 import (
+	"encoding/json"
+	"fmt"
+
 	goa "goa.design/goa/v3/pkg"
 	svg "goa.design/model/mdlsvc/gen/svg"
 )
@@ -30,8 +33,19 @@ func BuildLoadPayload(sVGLoadFilename string) (*svg.Filename, error) {
 }
 
 // BuildSavePayload builds the payload for the SVG Save endpoint from CLI flags.
-func BuildSavePayload(sVGSaveFilename string) (*svg.Filename, error) {
+func BuildSavePayload(sVGSaveBody string, sVGSaveFilename string) (*svg.SavePayload, error) {
 	var err error
+	var body SaveRequestBody
+	{
+		err = json.Unmarshal([]byte(sVGSaveBody), &body)
+		if err != nil {
+			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"SVG\": \"\\u003csvg\\u003c/svg\\u003e\"\n   }'")
+		}
+		err = goa.MergeErrors(err, goa.ValidatePattern("body.SVG", body.SVG, "<svg.*</svg>$"))
+		if err != nil {
+			return nil, err
+		}
+	}
 	var filename string
 	{
 		filename = sVGSaveFilename
@@ -40,7 +54,9 @@ func BuildSavePayload(sVGSaveFilename string) (*svg.Filename, error) {
 			return nil, err
 		}
 	}
-	v := &svg.Filename{}
+	v := &svg.SavePayload{
+		SVG: svg.SVG(body.SVG),
+	}
 	v.Filename = filename
 
 	return v, nil

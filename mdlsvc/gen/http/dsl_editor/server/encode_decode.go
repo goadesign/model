@@ -15,7 +15,71 @@ import (
 
 	goahttp "goa.design/goa/v3/http"
 	goa "goa.design/goa/v3/pkg"
+	types "goa.design/model/mdlsvc/gen/types"
 )
+
+// EncodeUpdateDSLResponse returns an encoder for responses returned by the
+// DSLEditor UpdateDSL endpoint.
+func EncodeUpdateDSLResponse(encoder func(context.Context, http.ResponseWriter) goahttp.Encoder) func(context.Context, http.ResponseWriter, any) error {
+	return func(ctx context.Context, w http.ResponseWriter, v any) error {
+		w.WriteHeader(http.StatusNoContent)
+		return nil
+	}
+}
+
+// DecodeUpdateDSLRequest returns a decoder for requests sent to the DSLEditor
+// UpdateDSL endpoint.
+func DecodeUpdateDSLRequest(mux goahttp.Muxer, decoder func(*http.Request) goahttp.Decoder) func(*http.Request) (any, error) {
+	return func(r *http.Request) (any, error) {
+		var (
+			body UpdateDSLRequestBody
+			err  error
+		)
+		err = decoder(r).Decode(&body)
+		if err != nil {
+			if err == io.EOF {
+				return nil, goa.MissingPayloadError()
+			}
+			return nil, goa.DecodePayloadError(err.Error())
+		}
+		err = ValidateUpdateDSLRequestBody(&body)
+		if err != nil {
+			return nil, err
+		}
+		payload := NewUpdateDSLPackageFile(&body)
+
+		return payload, nil
+	}
+}
+
+// EncodeUpdateDSLError returns an encoder for errors returned by the UpdateDSL
+// DSLEditor endpoint.
+func EncodeUpdateDSLError(encoder func(context.Context, http.ResponseWriter) goahttp.Encoder, formatter func(ctx context.Context, err error) goahttp.Statuser) func(context.Context, http.ResponseWriter, error) error {
+	encodeError := goahttp.ErrorEncoder(encoder, formatter)
+	return func(ctx context.Context, w http.ResponseWriter, v error) error {
+		var en goa.GoaErrorNamer
+		if !errors.As(v, &en) {
+			return encodeError(ctx, w, v)
+		}
+		switch en.GoaErrorName() {
+		case "compilation_failed":
+			var res *goa.ServiceError
+			errors.As(v, &res)
+			enc := encoder(ctx, w)
+			var body any
+			if formatter != nil {
+				body = formatter(ctx, res)
+			} else {
+				body = NewUpdateDSLCompilationFailedResponseBody(res)
+			}
+			w.Header().Set("goa-error", res.GoaErrorName())
+			w.WriteHeader(http.StatusBadRequest)
+			return enc.Encode(body)
+		default:
+			return encodeError(ctx, w, v)
+		}
+	}
+}
 
 // EncodeUpsertSystemResponse returns an encoder for responses returned by the
 // DSLEditor UpsertSystem endpoint.
@@ -45,21 +109,38 @@ func DecodeUpsertSystemRequest(mux goahttp.Muxer, decoder func(*http.Request) go
 		if err != nil {
 			return nil, err
 		}
-
-		var (
-			packagePath string
-		)
-		packagePath = r.URL.Query().Get("package")
-		if packagePath == "" {
-			err = goa.MergeErrors(err, goa.MissingFieldError("PackagePath", "query string"))
-		}
-		err = goa.MergeErrors(err, goa.ValidatePattern("PackagePath", packagePath, "^([a-zA-Z0-9]+(-[a-zA-Z0-9]+)*\\.)+[a-zA-Z]{2,}/[a-zA-Z0-9_\\-]+/(/([a-zA-Z0-9_\\-]+))*$"))
-		if err != nil {
-			return nil, err
-		}
-		payload := NewUpsertSystemSystem(&body, packagePath)
+		payload := NewUpsertSystemSystem(&body)
 
 		return payload, nil
+	}
+}
+
+// EncodeUpsertSystemError returns an encoder for errors returned by the
+// UpsertSystem DSLEditor endpoint.
+func EncodeUpsertSystemError(encoder func(context.Context, http.ResponseWriter) goahttp.Encoder, formatter func(ctx context.Context, err error) goahttp.Statuser) func(context.Context, http.ResponseWriter, error) error {
+	encodeError := goahttp.ErrorEncoder(encoder, formatter)
+	return func(ctx context.Context, w http.ResponseWriter, v error) error {
+		var en goa.GoaErrorNamer
+		if !errors.As(v, &en) {
+			return encodeError(ctx, w, v)
+		}
+		switch en.GoaErrorName() {
+		case "compilation_failed":
+			var res *goa.ServiceError
+			errors.As(v, &res)
+			enc := encoder(ctx, w)
+			var body any
+			if formatter != nil {
+				body = formatter(ctx, res)
+			} else {
+				body = NewUpsertSystemCompilationFailedResponseBody(res)
+			}
+			w.Header().Set("goa-error", res.GoaErrorName())
+			w.WriteHeader(http.StatusBadRequest)
+			return enc.Encode(body)
+		default:
+			return encodeError(ctx, w, v)
+		}
 	}
 }
 
@@ -91,21 +172,38 @@ func DecodeUpsertPersonRequest(mux goahttp.Muxer, decoder func(*http.Request) go
 		if err != nil {
 			return nil, err
 		}
-
-		var (
-			packagePath string
-		)
-		packagePath = r.URL.Query().Get("package")
-		if packagePath == "" {
-			err = goa.MergeErrors(err, goa.MissingFieldError("PackagePath", "query string"))
-		}
-		err = goa.MergeErrors(err, goa.ValidatePattern("PackagePath", packagePath, "^([a-zA-Z0-9]+(-[a-zA-Z0-9]+)*\\.)+[a-zA-Z]{2,}/[a-zA-Z0-9_\\-]+/(/([a-zA-Z0-9_\\-]+))*$"))
-		if err != nil {
-			return nil, err
-		}
-		payload := NewUpsertPersonPerson(&body, packagePath)
+		payload := NewUpsertPersonPerson(&body)
 
 		return payload, nil
+	}
+}
+
+// EncodeUpsertPersonError returns an encoder for errors returned by the
+// UpsertPerson DSLEditor endpoint.
+func EncodeUpsertPersonError(encoder func(context.Context, http.ResponseWriter) goahttp.Encoder, formatter func(ctx context.Context, err error) goahttp.Statuser) func(context.Context, http.ResponseWriter, error) error {
+	encodeError := goahttp.ErrorEncoder(encoder, formatter)
+	return func(ctx context.Context, w http.ResponseWriter, v error) error {
+		var en goa.GoaErrorNamer
+		if !errors.As(v, &en) {
+			return encodeError(ctx, w, v)
+		}
+		switch en.GoaErrorName() {
+		case "compilation_failed":
+			var res *goa.ServiceError
+			errors.As(v, &res)
+			enc := encoder(ctx, w)
+			var body any
+			if formatter != nil {
+				body = formatter(ctx, res)
+			} else {
+				body = NewUpsertPersonCompilationFailedResponseBody(res)
+			}
+			w.Header().Set("goa-error", res.GoaErrorName())
+			w.WriteHeader(http.StatusBadRequest)
+			return enc.Encode(body)
+		default:
+			return encodeError(ctx, w, v)
+		}
 	}
 }
 
@@ -137,21 +235,38 @@ func DecodeUpsertContainerRequest(mux goahttp.Muxer, decoder func(*http.Request)
 		if err != nil {
 			return nil, err
 		}
-
-		var (
-			packagePath string
-		)
-		packagePath = r.URL.Query().Get("package")
-		if packagePath == "" {
-			err = goa.MergeErrors(err, goa.MissingFieldError("PackagePath", "query string"))
-		}
-		err = goa.MergeErrors(err, goa.ValidatePattern("PackagePath", packagePath, "^([a-zA-Z0-9]+(-[a-zA-Z0-9]+)*\\.)+[a-zA-Z]{2,}/[a-zA-Z0-9_\\-]+/(/([a-zA-Z0-9_\\-]+))*$"))
-		if err != nil {
-			return nil, err
-		}
-		payload := NewUpsertContainerContainer(&body, packagePath)
+		payload := NewUpsertContainerContainer(&body)
 
 		return payload, nil
+	}
+}
+
+// EncodeUpsertContainerError returns an encoder for errors returned by the
+// UpsertContainer DSLEditor endpoint.
+func EncodeUpsertContainerError(encoder func(context.Context, http.ResponseWriter) goahttp.Encoder, formatter func(ctx context.Context, err error) goahttp.Statuser) func(context.Context, http.ResponseWriter, error) error {
+	encodeError := goahttp.ErrorEncoder(encoder, formatter)
+	return func(ctx context.Context, w http.ResponseWriter, v error) error {
+		var en goa.GoaErrorNamer
+		if !errors.As(v, &en) {
+			return encodeError(ctx, w, v)
+		}
+		switch en.GoaErrorName() {
+		case "compilation_failed":
+			var res *goa.ServiceError
+			errors.As(v, &res)
+			enc := encoder(ctx, w)
+			var body any
+			if formatter != nil {
+				body = formatter(ctx, res)
+			} else {
+				body = NewUpsertContainerCompilationFailedResponseBody(res)
+			}
+			w.Header().Set("goa-error", res.GoaErrorName())
+			w.WriteHeader(http.StatusBadRequest)
+			return enc.Encode(body)
+		default:
+			return encodeError(ctx, w, v)
+		}
 	}
 }
 
@@ -183,21 +298,38 @@ func DecodeUpsertComponentRequest(mux goahttp.Muxer, decoder func(*http.Request)
 		if err != nil {
 			return nil, err
 		}
-
-		var (
-			packagePath string
-		)
-		packagePath = r.URL.Query().Get("package")
-		if packagePath == "" {
-			err = goa.MergeErrors(err, goa.MissingFieldError("PackagePath", "query string"))
-		}
-		err = goa.MergeErrors(err, goa.ValidatePattern("PackagePath", packagePath, "^([a-zA-Z0-9]+(-[a-zA-Z0-9]+)*\\.)+[a-zA-Z]{2,}/[a-zA-Z0-9_\\-]+/(/([a-zA-Z0-9_\\-]+))*$"))
-		if err != nil {
-			return nil, err
-		}
-		payload := NewUpsertComponentComponent(&body, packagePath)
+		payload := NewUpsertComponentComponent(&body)
 
 		return payload, nil
+	}
+}
+
+// EncodeUpsertComponentError returns an encoder for errors returned by the
+// UpsertComponent DSLEditor endpoint.
+func EncodeUpsertComponentError(encoder func(context.Context, http.ResponseWriter) goahttp.Encoder, formatter func(ctx context.Context, err error) goahttp.Statuser) func(context.Context, http.ResponseWriter, error) error {
+	encodeError := goahttp.ErrorEncoder(encoder, formatter)
+	return func(ctx context.Context, w http.ResponseWriter, v error) error {
+		var en goa.GoaErrorNamer
+		if !errors.As(v, &en) {
+			return encodeError(ctx, w, v)
+		}
+		switch en.GoaErrorName() {
+		case "compilation_failed":
+			var res *goa.ServiceError
+			errors.As(v, &res)
+			enc := encoder(ctx, w)
+			var body any
+			if formatter != nil {
+				body = formatter(ctx, res)
+			} else {
+				body = NewUpsertComponentCompilationFailedResponseBody(res)
+			}
+			w.Header().Set("goa-error", res.GoaErrorName())
+			w.WriteHeader(http.StatusBadRequest)
+			return enc.Encode(body)
+		default:
+			return encodeError(ctx, w, v)
+		}
 	}
 }
 
@@ -229,21 +361,38 @@ func DecodeUpsertRelationshipRequest(mux goahttp.Muxer, decoder func(*http.Reque
 		if err != nil {
 			return nil, err
 		}
-
-		var (
-			packagePath string
-		)
-		packagePath = r.URL.Query().Get("package")
-		if packagePath == "" {
-			err = goa.MergeErrors(err, goa.MissingFieldError("PackagePath", "query string"))
-		}
-		err = goa.MergeErrors(err, goa.ValidatePattern("PackagePath", packagePath, "^([a-zA-Z0-9]+(-[a-zA-Z0-9]+)*\\.)+[a-zA-Z]{2,}/[a-zA-Z0-9_\\-]+/(/([a-zA-Z0-9_\\-]+))*$"))
-		if err != nil {
-			return nil, err
-		}
-		payload := NewUpsertRelationshipRelationship(&body, packagePath)
+		payload := NewUpsertRelationshipRelationship(&body)
 
 		return payload, nil
+	}
+}
+
+// EncodeUpsertRelationshipError returns an encoder for errors returned by the
+// UpsertRelationship DSLEditor endpoint.
+func EncodeUpsertRelationshipError(encoder func(context.Context, http.ResponseWriter) goahttp.Encoder, formatter func(ctx context.Context, err error) goahttp.Statuser) func(context.Context, http.ResponseWriter, error) error {
+	encodeError := goahttp.ErrorEncoder(encoder, formatter)
+	return func(ctx context.Context, w http.ResponseWriter, v error) error {
+		var en goa.GoaErrorNamer
+		if !errors.As(v, &en) {
+			return encodeError(ctx, w, v)
+		}
+		switch en.GoaErrorName() {
+		case "compilation_failed":
+			var res *goa.ServiceError
+			errors.As(v, &res)
+			enc := encoder(ctx, w)
+			var body any
+			if formatter != nil {
+				body = formatter(ctx, res)
+			} else {
+				body = NewUpsertRelationshipCompilationFailedResponseBody(res)
+			}
+			w.Header().Set("goa-error", res.GoaErrorName())
+			w.WriteHeader(http.StatusBadRequest)
+			return enc.Encode(body)
+		default:
+			return encodeError(ctx, w, v)
+		}
 	}
 }
 
@@ -261,22 +410,28 @@ func EncodeDeleteSystemResponse(encoder func(context.Context, http.ResponseWrite
 func DecodeDeleteSystemRequest(mux goahttp.Muxer, decoder func(*http.Request) goahttp.Decoder) func(*http.Request) (any, error) {
 	return func(r *http.Request) (any, error) {
 		var (
-			name        string
-			packagePath string
-			err         error
-
-			params = mux.Vars(r)
+			body DeleteSystemRequestBody
+			err  error
 		)
-		name = params["Name"]
-		packagePath = r.URL.Query().Get("package")
-		if packagePath == "" {
-			err = goa.MergeErrors(err, goa.MissingFieldError("PackagePath", "query string"))
+		err = decoder(r).Decode(&body)
+		if err != nil {
+			if err == io.EOF {
+				return nil, goa.MissingPayloadError()
+			}
+			return nil, goa.DecodePayloadError(err.Error())
 		}
-		err = goa.MergeErrors(err, goa.ValidatePattern("PackagePath", packagePath, "^([a-zA-Z0-9]+(-[a-zA-Z0-9]+)*\\.)+[a-zA-Z]{2,}/[a-zA-Z0-9_\\-]+/(/([a-zA-Z0-9_\\-]+))*$"))
+		err = ValidateDeleteSystemRequestBody(&body)
 		if err != nil {
 			return nil, err
 		}
-		payload := NewDeleteSystemPayload(name, packagePath)
+
+		var (
+			systemName string
+
+			params = mux.Vars(r)
+		)
+		systemName = params["SystemName"]
+		payload := NewDeleteSystemPayload(&body, systemName)
 
 		return payload, nil
 	}
@@ -305,6 +460,19 @@ func EncodeDeleteSystemError(encoder func(context.Context, http.ResponseWriter) 
 			w.Header().Set("goa-error", res.GoaErrorName())
 			w.WriteHeader(http.StatusNotFound)
 			return enc.Encode(body)
+		case "compilation_failed":
+			var res *goa.ServiceError
+			errors.As(v, &res)
+			enc := encoder(ctx, w)
+			var body any
+			if formatter != nil {
+				body = formatter(ctx, res)
+			} else {
+				body = NewDeleteSystemCompilationFailedResponseBody(res)
+			}
+			w.Header().Set("goa-error", res.GoaErrorName())
+			w.WriteHeader(http.StatusBadRequest)
+			return enc.Encode(body)
 		default:
 			return encodeError(ctx, w, v)
 		}
@@ -325,22 +493,28 @@ func EncodeDeletePersonResponse(encoder func(context.Context, http.ResponseWrite
 func DecodeDeletePersonRequest(mux goahttp.Muxer, decoder func(*http.Request) goahttp.Decoder) func(*http.Request) (any, error) {
 	return func(r *http.Request) (any, error) {
 		var (
-			name        string
-			packagePath string
-			err         error
-
-			params = mux.Vars(r)
+			body DeletePersonRequestBody
+			err  error
 		)
-		name = params["Name"]
-		packagePath = r.URL.Query().Get("package")
-		if packagePath == "" {
-			err = goa.MergeErrors(err, goa.MissingFieldError("PackagePath", "query string"))
+		err = decoder(r).Decode(&body)
+		if err != nil {
+			if err == io.EOF {
+				return nil, goa.MissingPayloadError()
+			}
+			return nil, goa.DecodePayloadError(err.Error())
 		}
-		err = goa.MergeErrors(err, goa.ValidatePattern("PackagePath", packagePath, "^([a-zA-Z0-9]+(-[a-zA-Z0-9]+)*\\.)+[a-zA-Z]{2,}/[a-zA-Z0-9_\\-]+/(/([a-zA-Z0-9_\\-]+))*$"))
+		err = ValidateDeletePersonRequestBody(&body)
 		if err != nil {
 			return nil, err
 		}
-		payload := NewDeletePersonPayload(name, packagePath)
+
+		var (
+			personName string
+
+			params = mux.Vars(r)
+		)
+		personName = params["PersonName"]
+		payload := NewDeletePersonPayload(&body, personName)
 
 		return payload, nil
 	}
@@ -369,6 +543,19 @@ func EncodeDeletePersonError(encoder func(context.Context, http.ResponseWriter) 
 			w.Header().Set("goa-error", res.GoaErrorName())
 			w.WriteHeader(http.StatusNotFound)
 			return enc.Encode(body)
+		case "compilation_failed":
+			var res *goa.ServiceError
+			errors.As(v, &res)
+			enc := encoder(ctx, w)
+			var body any
+			if formatter != nil {
+				body = formatter(ctx, res)
+			} else {
+				body = NewDeletePersonCompilationFailedResponseBody(res)
+			}
+			w.Header().Set("goa-error", res.GoaErrorName())
+			w.WriteHeader(http.StatusBadRequest)
+			return enc.Encode(body)
 		default:
 			return encodeError(ctx, w, v)
 		}
@@ -389,24 +576,30 @@ func EncodeDeleteContainerResponse(encoder func(context.Context, http.ResponseWr
 func DecodeDeleteContainerRequest(mux goahttp.Muxer, decoder func(*http.Request) goahttp.Decoder) func(*http.Request) (any, error) {
 	return func(r *http.Request) (any, error) {
 		var (
-			systemName  string
-			name        string
-			packagePath string
-			err         error
+			body DeleteContainerRequestBody
+			err  error
+		)
+		err = decoder(r).Decode(&body)
+		if err != nil {
+			if err == io.EOF {
+				return nil, goa.MissingPayloadError()
+			}
+			return nil, goa.DecodePayloadError(err.Error())
+		}
+		err = ValidateDeleteContainerRequestBody(&body)
+		if err != nil {
+			return nil, err
+		}
+
+		var (
+			systemName    string
+			containerName string
 
 			params = mux.Vars(r)
 		)
 		systemName = params["SystemName"]
-		name = params["Name"]
-		packagePath = r.URL.Query().Get("package")
-		if packagePath == "" {
-			err = goa.MergeErrors(err, goa.MissingFieldError("PackagePath", "query string"))
-		}
-		err = goa.MergeErrors(err, goa.ValidatePattern("PackagePath", packagePath, "^([a-zA-Z0-9]+(-[a-zA-Z0-9]+)*\\.)+[a-zA-Z]{2,}/[a-zA-Z0-9_\\-]+/(/([a-zA-Z0-9_\\-]+))*$"))
-		if err != nil {
-			return nil, err
-		}
-		payload := NewDeleteContainerPayload(systemName, name, packagePath)
+		containerName = params["ContainerName"]
+		payload := NewDeleteContainerPayload(&body, systemName, containerName)
 
 		return payload, nil
 	}
@@ -435,6 +628,19 @@ func EncodeDeleteContainerError(encoder func(context.Context, http.ResponseWrite
 			w.Header().Set("goa-error", res.GoaErrorName())
 			w.WriteHeader(http.StatusNotFound)
 			return enc.Encode(body)
+		case "compilation_failed":
+			var res *goa.ServiceError
+			errors.As(v, &res)
+			enc := encoder(ctx, w)
+			var body any
+			if formatter != nil {
+				body = formatter(ctx, res)
+			} else {
+				body = NewDeleteContainerCompilationFailedResponseBody(res)
+			}
+			w.Header().Set("goa-error", res.GoaErrorName())
+			w.WriteHeader(http.StatusBadRequest)
+			return enc.Encode(body)
 		default:
 			return encodeError(ctx, w, v)
 		}
@@ -455,26 +661,32 @@ func EncodeDeleteComponentResponse(encoder func(context.Context, http.ResponseWr
 func DecodeDeleteComponentRequest(mux goahttp.Muxer, decoder func(*http.Request) goahttp.Decoder) func(*http.Request) (any, error) {
 	return func(r *http.Request) (any, error) {
 		var (
+			body DeleteComponentRequestBody
+			err  error
+		)
+		err = decoder(r).Decode(&body)
+		if err != nil {
+			if err == io.EOF {
+				return nil, goa.MissingPayloadError()
+			}
+			return nil, goa.DecodePayloadError(err.Error())
+		}
+		err = ValidateDeleteComponentRequestBody(&body)
+		if err != nil {
+			return nil, err
+		}
+
+		var (
 			systemName    string
 			containerName string
-			name          string
-			packagePath   string
-			err           error
+			componentName string
 
 			params = mux.Vars(r)
 		)
 		systemName = params["SystemName"]
 		containerName = params["ContainerName"]
-		name = params["Name"]
-		packagePath = r.URL.Query().Get("package")
-		if packagePath == "" {
-			err = goa.MergeErrors(err, goa.MissingFieldError("PackagePath", "query string"))
-		}
-		err = goa.MergeErrors(err, goa.ValidatePattern("PackagePath", packagePath, "^([a-zA-Z0-9]+(-[a-zA-Z0-9]+)*\\.)+[a-zA-Z]{2,}/[a-zA-Z0-9_\\-]+/(/([a-zA-Z0-9_\\-]+))*$"))
-		if err != nil {
-			return nil, err
-		}
-		payload := NewDeleteComponentPayload(systemName, containerName, name, packagePath)
+		componentName = params["ComponentName"]
+		payload := NewDeleteComponentPayload(&body, systemName, containerName, componentName)
 
 		return payload, nil
 	}
@@ -503,6 +715,19 @@ func EncodeDeleteComponentError(encoder func(context.Context, http.ResponseWrite
 			w.Header().Set("goa-error", res.GoaErrorName())
 			w.WriteHeader(http.StatusNotFound)
 			return enc.Encode(body)
+		case "compilation_failed":
+			var res *goa.ServiceError
+			errors.As(v, &res)
+			enc := encoder(ctx, w)
+			var body any
+			if formatter != nil {
+				body = formatter(ctx, res)
+			} else {
+				body = NewDeleteComponentCompilationFailedResponseBody(res)
+			}
+			w.Header().Set("goa-error", res.GoaErrorName())
+			w.WriteHeader(http.StatusBadRequest)
+			return enc.Encode(body)
 		default:
 			return encodeError(ctx, w, v)
 		}
@@ -523,24 +748,21 @@ func EncodeDeleteRelationshipResponse(encoder func(context.Context, http.Respons
 func DecodeDeleteRelationshipRequest(mux goahttp.Muxer, decoder func(*http.Request) goahttp.Decoder) func(*http.Request) (any, error) {
 	return func(r *http.Request) (any, error) {
 		var (
-			sourcePath      string
-			destinationPath string
-			packagePath     string
-			err             error
-
-			params = mux.Vars(r)
+			body DeleteRelationshipRequestBody
+			err  error
 		)
-		sourcePath = params["SourcePath"]
-		destinationPath = params["DestinationPath"]
-		packagePath = r.URL.Query().Get("package")
-		if packagePath == "" {
-			err = goa.MergeErrors(err, goa.MissingFieldError("PackagePath", "query string"))
+		err = decoder(r).Decode(&body)
+		if err != nil {
+			if err == io.EOF {
+				return nil, goa.MissingPayloadError()
+			}
+			return nil, goa.DecodePayloadError(err.Error())
 		}
-		err = goa.MergeErrors(err, goa.ValidatePattern("PackagePath", packagePath, "^([a-zA-Z0-9]+(-[a-zA-Z0-9]+)*\\.)+[a-zA-Z]{2,}/[a-zA-Z0-9_\\-]+/(/([a-zA-Z0-9_\\-]+))*$"))
+		err = ValidateDeleteRelationshipRequestBody(&body)
 		if err != nil {
 			return nil, err
 		}
-		payload := NewDeleteRelationshipPayload(sourcePath, destinationPath, packagePath)
+		payload := NewDeleteRelationshipPayload(&body)
 
 		return payload, nil
 	}
@@ -569,8 +791,33 @@ func EncodeDeleteRelationshipError(encoder func(context.Context, http.ResponseWr
 			w.Header().Set("goa-error", res.GoaErrorName())
 			w.WriteHeader(http.StatusNotFound)
 			return enc.Encode(body)
+		case "compilation_failed":
+			var res *goa.ServiceError
+			errors.As(v, &res)
+			enc := encoder(ctx, w)
+			var body any
+			if formatter != nil {
+				body = formatter(ctx, res)
+			} else {
+				body = NewDeleteRelationshipCompilationFailedResponseBody(res)
+			}
+			w.Header().Set("goa-error", res.GoaErrorName())
+			w.WriteHeader(http.StatusBadRequest)
+			return enc.Encode(body)
 		default:
 			return encodeError(ctx, w, v)
 		}
 	}
+}
+
+// unmarshalFileLocatorRequestBodyToTypesFileLocator builds a value of type
+// *types.FileLocator from a value of type *FileLocatorRequestBody.
+func unmarshalFileLocatorRequestBodyToTypesFileLocator(v *FileLocatorRequestBody) *types.FileLocator {
+	res := &types.FileLocator{
+		Filename:  *v.Filename,
+		Workspace: *v.Workspace,
+		Dir:       *v.Dir,
+	}
+
+	return res
 }

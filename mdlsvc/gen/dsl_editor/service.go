@@ -11,10 +11,14 @@ import (
 	"context"
 
 	goa "goa.design/goa/v3/pkg"
+	types "goa.design/model/mdlsvc/gen/types"
 )
 
 // Service is the DSLEditor service interface.
 type Service interface {
+	// Update the DSL for the given package, compile it and return the
+	// corresponding JSON if successful
+	UpdateDSL(context.Context, *types.PackageFile) (err error)
 	// Create or update a software system in the model
 	UpsertSystem(context.Context, *System) (err error)
 	// Create or update a person in the model
@@ -45,11 +49,13 @@ const ServiceName = "DSLEditor"
 // MethodNames lists the service method names as defined in the design. These
 // are the same values that are set in the endpoint request contexts under the
 // MethodKey key.
-var MethodNames = [10]string{"UpsertSystem", "UpsertPerson", "UpsertContainer", "UpsertComponent", "UpsertRelationship", "DeleteSystem", "DeletePerson", "DeleteContainer", "DeleteComponent", "DeleteRelationship"}
+var MethodNames = [11]string{"UpdateDSL", "UpsertSystem", "UpsertPerson", "UpsertContainer", "UpsertComponent", "UpsertRelationship", "DeleteSystem", "DeletePerson", "DeleteContainer", "DeleteComponent", "DeleteRelationship"}
 
 // Component is the payload type of the DSLEditor service UpsertComponent
 // method.
 type Component struct {
+	// Path to file containing component DSL
+	Locator *types.FileLocator
 	// Name of parent software system
 	SystemName string
 	// Name of parent container
@@ -66,13 +72,13 @@ type Component struct {
 	URL *string
 	// Set of arbitrary name-value properties (shown in diagram tooltips)
 	Properties map[string]string
-	// Design Go package import path
-	PackagePath string
 }
 
 // Container is the payload type of the DSLEditor service UpsertContainer
 // method.
 type Container struct {
+	// Path to file containing container DSL
+	Locator *types.FileLocator
 	// Name of parent software system
 	SystemName string
 	// Name of container
@@ -87,8 +93,6 @@ type Container struct {
 	URL *string
 	// Set of arbitrary name-value properties (shown in diagram tooltips)
 	Properties map[string]string
-	// Design Go package import path
-	PackagePath string
 }
 
 // DeleteComponentPayload is the payload type of the DSLEditor service
@@ -99,29 +103,41 @@ type DeleteComponentPayload struct {
 	// Name of component software system
 	ContainerName string
 	// Name of component to delete
-	Name string
-	// Design Go package import path
-	PackagePath string
+	ComponentName string
+	// Name of DSL file
+	Filename string
+	// Workspace identifier
+	Workspace string
+	// Path to directory containing a model package
+	Dir string
 }
 
 // DeleteContainerPayload is the payload type of the DSLEditor service
 // DeleteContainer method.
 type DeleteContainerPayload struct {
 	// Name of container software system
-	SystemName string
+	SystemName *string
 	// Name of container to delete
-	Name string
-	// Design Go package import path
-	PackagePath string
+	ContainerName string
+	// Name of DSL file
+	Filename string
+	// Workspace identifier
+	Workspace string
+	// Path to directory containing a model package
+	Dir string
 }
 
 // DeletePersonPayload is the payload type of the DSLEditor service
 // DeletePerson method.
 type DeletePersonPayload struct {
 	// Name of person to delete
-	Name string
-	// Design Go package import path
-	PackagePath string
+	PersonName string
+	// Name of DSL file
+	Filename string
+	// Workspace identifier
+	Workspace string
+	// Path to directory containing a model package
+	Dir string
 }
 
 // DeleteRelationshipPayload is the payload type of the DSLEditor service
@@ -132,21 +148,31 @@ type DeleteRelationshipPayload struct {
 	SourcePath string
 	// Path to destination element, see SourcePath for details.
 	DestinationPath string
-	// Design Go package import path
-	PackagePath string
+	// Name of DSL file
+	Filename string
+	// Workspace identifier
+	Workspace string
+	// Path to directory containing a model package
+	Dir string
 }
 
 // DeleteSystemPayload is the payload type of the DSLEditor service
 // DeleteSystem method.
 type DeleteSystemPayload struct {
 	// Name of software system to delete
-	Name string
-	// Design Go package import path
-	PackagePath string
+	SystemName string
+	// Name of DSL file
+	Filename string
+	// Workspace identifier
+	Workspace string
+	// Path to directory containing a model package
+	Dir string
 }
 
 // Person is the payload type of the DSLEditor service UpsertPerson method.
 type Person struct {
+	// Path to file containing person DSL
+	Locator *types.FileLocator
 	// Name of person
 	Name string
 	// Description of person
@@ -160,13 +186,13 @@ type Person struct {
 	Location string
 	// Set of arbitrary name-value properties (shown in diagram tooltips)
 	Properties map[string]string
-	// Design Go package import path
-	PackagePath string
 }
 
 // Relationship is the payload type of the DSLEditor service UpsertRelationship
 // method.
 type Relationship struct {
+	// Path to file containing relationship DSL
+	Locator *types.FileLocator
 	// Path to source element consisting of <software system name>[/<container
 	// name>[/<component name>]]
 	SourcePath string
@@ -182,12 +208,12 @@ type Relationship struct {
 	Tags []string
 	// Documentation URL
 	URL *string
-	// Design Go package import path
-	PackagePath string
 }
 
 // System is the payload type of the DSLEditor service UpsertSystem method.
 type System struct {
+	// Path to file containing system DSL
+	Locator *types.FileLocator
 	// Name of software system
 	Name string
 	// Description of system
@@ -201,8 +227,11 @@ type System struct {
 	Location string
 	// Set of arbitrary name-value properties (shown in diagram tooltips)
 	Properties map[string]string
-	// Design Go package import path
-	PackagePath string
+}
+
+// MakeCompilationFailed builds a goa.ServiceError from an error.
+func MakeCompilationFailed(err error) *goa.ServiceError {
+	return goa.NewServiceError(err, "compilation_failed", false, false, false)
 }
 
 // MakeNotFound builds a goa.ServiceError from an error.

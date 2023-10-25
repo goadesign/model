@@ -11,20 +11,22 @@ import (
 	"context"
 	"io"
 
-	goa "goa.design/goa/v3/pkg"
+	types "goa.design/model/mdlsvc/gen/types"
 )
 
 // Service is the Packages service interface.
 type Service interface {
-	// List the model packages in the current Go workspace
-	ListPackages(context.Context) (res []*Package, err error)
-	// WebSocket endpoint for subscribing to updates to a package
-	Subscribe(context.Context, *Package, SubscribeServerStream) (err error)
-	// Upload the package content, compile it and return the corresponding JSON
-	Upload(context.Context, *Package, io.ReadCloser) (res Model, err error)
-	// Stream the model JSON for the given package, see
+	// List the model packages in the given workspace
+	ListPackages(context.Context, *types.Workspace) (res []*types.Package, err error)
+	// Get the DSL files and their content for the given model package
+	ListPackageFiles(context.Context, *types.PackageLocator) (res []*types.PackageFile, err error)
+	// Send model JSON on initial subscription and when the model package changes
+	Subscribe(context.Context, *types.PackageLocator, SubscribeServerStream) (err error)
+	// Streams the model JSON for the given package, see
 	// https://pkg.go.dev/goa.design/model/model#Model
-	GetModel(context.Context, *Package) (body io.ReadCloser, err error)
+	GetModelJSON(context.Context, *types.PackageLocator) (body io.ReadCloser, err error)
+	// Streams the model layout JSON for the given package
+	GetLayout(context.Context, *types.PackageLocator) (body io.ReadCloser, err error)
 }
 
 // ServiceName is the name of the service as defined in the design. This is the
@@ -35,13 +37,13 @@ const ServiceName = "Packages"
 // MethodNames lists the service method names as defined in the design. These
 // are the same values that are set in the endpoint request contexts under the
 // MethodKey key.
-var MethodNames = [4]string{"ListPackages", "Subscribe", "Upload", "GetModel"}
+var MethodNames = [5]string{"ListPackages", "ListPackageFiles", "Subscribe", "GetModelJSON", "GetLayout"}
 
 // SubscribeServerStream is the interface a "Subscribe" endpoint server stream
 // must satisfy.
 type SubscribeServerStream interface {
-	// Send streams instances of "Model".
-	Send(Model) error
+	// Send streams instances of "ModelJSON".
+	Send(types.ModelJSON) error
 	// Close closes the stream.
 	Close() error
 }
@@ -49,20 +51,6 @@ type SubscribeServerStream interface {
 // SubscribeClientStream is the interface a "Subscribe" endpoint client stream
 // must satisfy.
 type SubscribeClientStream interface {
-	// Recv reads instances of "Model" from the stream.
-	Recv() (Model, error)
-}
-
-// Model is the result type of the Packages service Subscribe method.
-type Model string
-
-// Package is the payload type of the Packages service Subscribe method.
-type Package struct {
-	// Design Go package import path
-	PackagePath string
-}
-
-// MakeCompilationFailed builds a goa.ServiceError from an error.
-func MakeCompilationFailed(err error) *goa.ServiceError {
-	return goa.NewServiceError(err, "compilation_failed", false, false, false)
+	// Recv reads instances of "ModelJSON" from the stream.
+	Recv() (types.ModelJSON, error)
 }

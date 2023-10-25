@@ -12,38 +12,52 @@ import (
 	"io"
 
 	goa "goa.design/goa/v3/pkg"
+	types "goa.design/model/mdlsvc/gen/types"
 )
 
 // Client is the "Packages" service client.
 type Client struct {
-	ListPackagesEndpoint goa.Endpoint
-	SubscribeEndpoint    goa.Endpoint
-	UploadEndpoint       goa.Endpoint
-	GetModelEndpoint     goa.Endpoint
+	ListPackagesEndpoint     goa.Endpoint
+	ListPackageFilesEndpoint goa.Endpoint
+	SubscribeEndpoint        goa.Endpoint
+	GetModelJSONEndpoint     goa.Endpoint
+	GetLayoutEndpoint        goa.Endpoint
 }
 
 // NewClient initializes a "Packages" service client given the endpoints.
-func NewClient(listPackages, subscribe, upload, getModel goa.Endpoint) *Client {
+func NewClient(listPackages, listPackageFiles, subscribe, getModelJSON, getLayout goa.Endpoint) *Client {
 	return &Client{
-		ListPackagesEndpoint: listPackages,
-		SubscribeEndpoint:    subscribe,
-		UploadEndpoint:       upload,
-		GetModelEndpoint:     getModel,
+		ListPackagesEndpoint:     listPackages,
+		ListPackageFilesEndpoint: listPackageFiles,
+		SubscribeEndpoint:        subscribe,
+		GetModelJSONEndpoint:     getModelJSON,
+		GetLayoutEndpoint:        getLayout,
 	}
 }
 
 // ListPackages calls the "ListPackages" endpoint of the "Packages" service.
-func (c *Client) ListPackages(ctx context.Context) (res []*Package, err error) {
+func (c *Client) ListPackages(ctx context.Context, p *types.Workspace) (res []*types.Package, err error) {
 	var ires any
-	ires, err = c.ListPackagesEndpoint(ctx, nil)
+	ires, err = c.ListPackagesEndpoint(ctx, p)
 	if err != nil {
 		return
 	}
-	return ires.([]*Package), nil
+	return ires.([]*types.Package), nil
+}
+
+// ListPackageFiles calls the "ListPackageFiles" endpoint of the "Packages"
+// service.
+func (c *Client) ListPackageFiles(ctx context.Context, p *types.PackageLocator) (res []*types.PackageFile, err error) {
+	var ires any
+	ires, err = c.ListPackageFilesEndpoint(ctx, p)
+	if err != nil {
+		return
+	}
+	return ires.([]*types.PackageFile), nil
 }
 
 // Subscribe calls the "Subscribe" endpoint of the "Packages" service.
-func (c *Client) Subscribe(ctx context.Context, p *Package) (res SubscribeClientStream, err error) {
+func (c *Client) Subscribe(ctx context.Context, p *types.PackageLocator) (res SubscribeClientStream, err error) {
 	var ires any
 	ires, err = c.SubscribeEndpoint(ctx, p)
 	if err != nil {
@@ -52,26 +66,24 @@ func (c *Client) Subscribe(ctx context.Context, p *Package) (res SubscribeClient
 	return ires.(SubscribeClientStream), nil
 }
 
-// Upload calls the "Upload" endpoint of the "Packages" service.
-// Upload may return the following errors:
-//   - "compilation_failed" (type *goa.ServiceError): Compilation failed
-//   - error: internal error
-func (c *Client) Upload(ctx context.Context, p *Package, req io.ReadCloser) (res Model, err error) {
+// GetModelJSON calls the "GetModelJSON" endpoint of the "Packages" service.
+func (c *Client) GetModelJSON(ctx context.Context, p *types.PackageLocator) (resp io.ReadCloser, err error) {
 	var ires any
-	ires, err = c.UploadEndpoint(ctx, &UploadRequestData{Payload: p, Body: req})
+	ires, err = c.GetModelJSONEndpoint(ctx, p)
 	if err != nil {
 		return
 	}
-	return ires.(Model), nil
+	o := ires.(*GetModelJSONResponseData)
+	return o.Body, nil
 }
 
-// GetModel calls the "GetModel" endpoint of the "Packages" service.
-func (c *Client) GetModel(ctx context.Context, p *Package) (resp io.ReadCloser, err error) {
+// GetLayout calls the "GetLayout" endpoint of the "Packages" service.
+func (c *Client) GetLayout(ctx context.Context, p *types.PackageLocator) (resp io.ReadCloser, err error) {
 	var ires any
-	ires, err = c.GetModelEndpoint(ctx, p)
+	ires, err = c.GetLayoutEndpoint(ctx, p)
 	if err != nil {
 		return
 	}
-	o := ires.(*GetModelResponseData)
+	o := ires.(*GetLayoutResponseData)
 	return o.Body, nil
 }

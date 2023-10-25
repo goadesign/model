@@ -15,7 +15,7 @@ import (
 
 	"github.com/gorilla/websocket"
 	goahttp "goa.design/goa/v3/http"
-	packages "goa.design/model/mdlsvc/gen/packages"
+	types "goa.design/model/mdlsvc/gen/types"
 )
 
 // ConnConfigurer holds the websocket connection configurer functions for the
@@ -51,9 +51,9 @@ func NewConnConfigurer(fn goahttp.ConnConfigureFunc) *ConnConfigurer {
 	}
 }
 
-// Send streams instances of "packages.Model" to the "Subscribe" endpoint
+// Send streams instances of "types.ModelJSON" to the "Subscribe" endpoint
 // websocket connection.
-func (s *SubscribeServerStream) Send(v packages.Model) error {
+func (s *SubscribeServerStream) Send(v types.ModelJSON) error {
 	var err error
 	// Upgrade the HTTP connection to a websocket connection only once. Connection
 	// upgrade is done here so that authorization logic in the endpoint is executed

@@ -9,18 +9,23 @@ package server
 
 import (
 	"context"
+	"io"
 	"net/http"
 
 	goahttp "goa.design/goa/v3/http"
 	goa "goa.design/goa/v3/pkg"
+	svg "goa.design/model/mdlsvc/gen/svg"
 )
 
 // EncodeLoadResponse returns an encoder for responses returned by the SVG Load
 // endpoint.
 func EncodeLoadResponse(encoder func(context.Context, http.ResponseWriter) goahttp.Encoder) func(context.Context, http.ResponseWriter, any) error {
 	return func(ctx context.Context, w http.ResponseWriter, v any) error {
+		res, _ := v.(svg.SVG)
+		enc := encoder(ctx, w)
+		body := res
 		w.WriteHeader(http.StatusOK)
-		return nil
+		return enc.Encode(body)
 	}
 }
 
@@ -60,8 +65,23 @@ func EncodeSaveResponse(encoder func(context.Context, http.ResponseWriter) goaht
 func DecodeSaveRequest(mux goahttp.Muxer, decoder func(*http.Request) goahttp.Decoder) func(*http.Request) (any, error) {
 	return func(r *http.Request) (any, error) {
 		var (
+			body SaveRequestBody
+			err  error
+		)
+		err = decoder(r).Decode(&body)
+		if err != nil {
+			if err == io.EOF {
+				return nil, goa.MissingPayloadError()
+			}
+			return nil, goa.DecodePayloadError(err.Error())
+		}
+		err = ValidateSaveRequestBody(&body)
+		if err != nil {
+			return nil, err
+		}
+
+		var (
 			filename string
-			err      error
 		)
 		filename = r.URL.Query().Get("file")
 		if filename == "" {
@@ -71,7 +91,7 @@ func DecodeSaveRequest(mux goahttp.Muxer, decoder func(*http.Request) goahttp.De
 		if err != nil {
 			return nil, err
 		}
-		payload := NewSaveFilename(filename)
+		payload := NewSavePayload(&body, filename)
 
 		return payload, nil
 	}

@@ -8,60 +8,152 @@
 package client
 
 import (
+	"unicode/utf8"
+
 	goa "goa.design/goa/v3/pkg"
-	packages "goa.design/model/mdlsvc/gen/packages"
+	types "goa.design/model/mdlsvc/gen/types"
 )
+
+// BuildListPackagesPayload builds the payload for the Packages ListPackages
+// endpoint from CLI flags.
+func BuildListPackagesPayload(packagesListPackagesWorkspace string) (*types.Workspace, error) {
+	var err error
+	var workspace string
+	{
+		workspace = packagesListPackagesWorkspace
+		if utf8.RuneCountInString(workspace) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("Workspace", workspace, utf8.RuneCountInString(workspace), 1, true))
+		}
+		if err != nil {
+			return nil, err
+		}
+	}
+	v := &types.Workspace{}
+	v.Workspace = workspace
+
+	return v, nil
+}
+
+// BuildListPackageFilesPayload builds the payload for the Packages
+// ListPackageFiles endpoint from CLI flags.
+func BuildListPackageFilesPayload(packagesListPackageFilesWorkspace string, packagesListPackageFilesDir string) (*types.PackageLocator, error) {
+	var err error
+	var workspace string
+	{
+		workspace = packagesListPackageFilesWorkspace
+		if utf8.RuneCountInString(workspace) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("Workspace", workspace, utf8.RuneCountInString(workspace), 1, true))
+		}
+		if err != nil {
+			return nil, err
+		}
+	}
+	var dir string
+	{
+		dir = packagesListPackageFilesDir
+		if utf8.RuneCountInString(dir) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("Dir", dir, utf8.RuneCountInString(dir), 1, true))
+		}
+		if err != nil {
+			return nil, err
+		}
+	}
+	v := &types.PackageLocator{}
+	v.Workspace = workspace
+	v.Dir = dir
+
+	return v, nil
+}
 
 // BuildSubscribePayload builds the payload for the Packages Subscribe endpoint
 // from CLI flags.
-func BuildSubscribePayload(packagesSubscribePackagePath string) (*packages.Package, error) {
+func BuildSubscribePayload(packagesSubscribeWorkspace string, packagesSubscribeDir string) (*types.PackageLocator, error) {
 	var err error
-	var packagePath string
+	var workspace string
 	{
-		packagePath = packagesSubscribePackagePath
-		err = goa.MergeErrors(err, goa.ValidatePattern("PackagePath", packagePath, "^([a-zA-Z0-9]+(-[a-zA-Z0-9]+)*\\.)+[a-zA-Z]{2,}/[a-zA-Z0-9_\\-]+/(/([a-zA-Z0-9_\\-]+))*$"))
+		workspace = packagesSubscribeWorkspace
+		if utf8.RuneCountInString(workspace) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("Workspace", workspace, utf8.RuneCountInString(workspace), 1, true))
+		}
 		if err != nil {
 			return nil, err
 		}
 	}
-	v := &packages.Package{}
-	v.PackagePath = packagePath
-
-	return v, nil
-}
-
-// BuildUploadPayload builds the payload for the Packages Upload endpoint from
-// CLI flags.
-func BuildUploadPayload(packagesUploadPackagePath string) (*packages.Package, error) {
-	var err error
-	var packagePath string
+	var dir string
 	{
-		packagePath = packagesUploadPackagePath
-		err = goa.MergeErrors(err, goa.ValidatePattern("PackagePath", packagePath, "^([a-zA-Z0-9]+(-[a-zA-Z0-9]+)*\\.)+[a-zA-Z]{2,}/[a-zA-Z0-9_\\-]+/(/([a-zA-Z0-9_\\-]+))*$"))
+		dir = packagesSubscribeDir
+		if utf8.RuneCountInString(dir) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("Dir", dir, utf8.RuneCountInString(dir), 1, true))
+		}
 		if err != nil {
 			return nil, err
 		}
 	}
-	v := &packages.Package{}
-	v.PackagePath = packagePath
+	v := &types.PackageLocator{}
+	v.Workspace = workspace
+	v.Dir = dir
 
 	return v, nil
 }
 
-// BuildGetModelPayload builds the payload for the Packages GetModel endpoint
+// BuildGetModelJSONPayload builds the payload for the Packages GetModelJSON
+// endpoint from CLI flags.
+func BuildGetModelJSONPayload(packagesGetModelJSONWorkspace string, packagesGetModelJSONDir string) (*types.PackageLocator, error) {
+	var err error
+	var workspace string
+	{
+		workspace = packagesGetModelJSONWorkspace
+		if utf8.RuneCountInString(workspace) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("Workspace", workspace, utf8.RuneCountInString(workspace), 1, true))
+		}
+		if err != nil {
+			return nil, err
+		}
+	}
+	var dir string
+	{
+		dir = packagesGetModelJSONDir
+		if utf8.RuneCountInString(dir) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("Dir", dir, utf8.RuneCountInString(dir), 1, true))
+		}
+		if err != nil {
+			return nil, err
+		}
+	}
+	v := &types.PackageLocator{}
+	v.Workspace = workspace
+	v.Dir = dir
+
+	return v, nil
+}
+
+// BuildGetLayoutPayload builds the payload for the Packages GetLayout endpoint
 // from CLI flags.
-func BuildGetModelPayload(packagesGetModelPackagePath string) (*packages.Package, error) {
+func BuildGetLayoutPayload(packagesGetLayoutWorkspace string, packagesGetLayoutDir string) (*types.PackageLocator, error) {
 	var err error
-	var packagePath string
+	var workspace string
 	{
-		packagePath = packagesGetModelPackagePath
-		err = goa.MergeErrors(err, goa.ValidatePattern("PackagePath", packagePath, "^([a-zA-Z0-9]+(-[a-zA-Z0-9]+)*\\.)+[a-zA-Z]{2,}/[a-zA-Z0-9_\\-]+/(/([a-zA-Z0-9_\\-]+))*$"))
+		workspace = packagesGetLayoutWorkspace
+		if utf8.RuneCountInString(workspace) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("Workspace", workspace, utf8.RuneCountInString(workspace), 1, true))
+		}
 		if err != nil {
 			return nil, err
 		}
 	}
-	v := &packages.Package{}
-	v.PackagePath = packagePath
+	var dir string
+	{
+		dir = packagesGetLayoutDir
+		if utf8.RuneCountInString(dir) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("Dir", dir, utf8.RuneCountInString(dir), 1, true))
+		}
+		if err != nil {
+			return nil, err
+		}
+	}
+	v := &types.PackageLocator{}
+	v.Workspace = workspace
+	v.Dir = dir
 
 	return v, nil
 }

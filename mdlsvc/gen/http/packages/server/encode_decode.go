@@ -9,23 +9,91 @@ package server
 
 import (
 	"context"
-	"errors"
 	"net/http"
+	"unicode/utf8"
 
 	goahttp "goa.design/goa/v3/http"
 	goa "goa.design/goa/v3/pkg"
-	packages "goa.design/model/mdlsvc/gen/packages"
+	types "goa.design/model/mdlsvc/gen/types"
 )
 
 // EncodeListPackagesResponse returns an encoder for responses returned by the
 // Packages ListPackages endpoint.
 func EncodeListPackagesResponse(encoder func(context.Context, http.ResponseWriter) goahttp.Encoder) func(context.Context, http.ResponseWriter, any) error {
 	return func(ctx context.Context, w http.ResponseWriter, v any) error {
-		res, _ := v.([]*packages.Package)
+		res, _ := v.([]*types.Package)
 		enc := encoder(ctx, w)
 		body := NewListPackagesResponseBody(res)
 		w.WriteHeader(http.StatusOK)
 		return enc.Encode(body)
+	}
+}
+
+// DecodeListPackagesRequest returns a decoder for requests sent to the
+// Packages ListPackages endpoint.
+func DecodeListPackagesRequest(mux goahttp.Muxer, decoder func(*http.Request) goahttp.Decoder) func(*http.Request) (any, error) {
+	return func(r *http.Request) (any, error) {
+		var (
+			workspace string
+			err       error
+		)
+		workspace = r.URL.Query().Get("work")
+		if workspace == "" {
+			err = goa.MergeErrors(err, goa.MissingFieldError("Workspace", "query string"))
+		}
+		if utf8.RuneCountInString(workspace) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("Workspace", workspace, utf8.RuneCountInString(workspace), 1, true))
+		}
+		if err != nil {
+			return nil, err
+		}
+		payload := NewListPackagesWorkspace(workspace)
+
+		return payload, nil
+	}
+}
+
+// EncodeListPackageFilesResponse returns an encoder for responses returned by
+// the Packages ListPackageFiles endpoint.
+func EncodeListPackageFilesResponse(encoder func(context.Context, http.ResponseWriter) goahttp.Encoder) func(context.Context, http.ResponseWriter, any) error {
+	return func(ctx context.Context, w http.ResponseWriter, v any) error {
+		res, _ := v.([]*types.PackageFile)
+		enc := encoder(ctx, w)
+		body := NewListPackageFilesResponseBody(res)
+		w.WriteHeader(http.StatusOK)
+		return enc.Encode(body)
+	}
+}
+
+// DecodeListPackageFilesRequest returns a decoder for requests sent to the
+// Packages ListPackageFiles endpoint.
+func DecodeListPackageFilesRequest(mux goahttp.Muxer, decoder func(*http.Request) goahttp.Decoder) func(*http.Request) (any, error) {
+	return func(r *http.Request) (any, error) {
+		var (
+			workspace string
+			dir       string
+			err       error
+		)
+		workspace = r.URL.Query().Get("work")
+		if workspace == "" {
+			err = goa.MergeErrors(err, goa.MissingFieldError("Workspace", "query string"))
+		}
+		if utf8.RuneCountInString(workspace) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("Workspace", workspace, utf8.RuneCountInString(workspace), 1, true))
+		}
+		dir = r.URL.Query().Get("dir")
+		if dir == "" {
+			err = goa.MergeErrors(err, goa.MissingFieldError("Dir", "query string"))
+		}
+		if utf8.RuneCountInString(dir) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("Dir", dir, utf8.RuneCountInString(dir), 1, true))
+		}
+		if err != nil {
+			return nil, err
+		}
+		payload := NewListPackageFilesPackageLocator(workspace, dir)
+
+		return payload, nil
 	}
 }
 
@@ -34,122 +102,146 @@ func EncodeListPackagesResponse(encoder func(context.Context, http.ResponseWrite
 func DecodeSubscribeRequest(mux goahttp.Muxer, decoder func(*http.Request) goahttp.Decoder) func(*http.Request) (any, error) {
 	return func(r *http.Request) (any, error) {
 		var (
-			packagePath string
-			err         error
+			workspace string
+			dir       string
+			err       error
 		)
-		packagePath = r.URL.Query().Get("package")
-		if packagePath == "" {
-			err = goa.MergeErrors(err, goa.MissingFieldError("PackagePath", "query string"))
+		workspace = r.URL.Query().Get("work")
+		if workspace == "" {
+			err = goa.MergeErrors(err, goa.MissingFieldError("Workspace", "query string"))
 		}
-		err = goa.MergeErrors(err, goa.ValidatePattern("PackagePath", packagePath, "^([a-zA-Z0-9]+(-[a-zA-Z0-9]+)*\\.)+[a-zA-Z]{2,}/[a-zA-Z0-9_\\-]+/(/([a-zA-Z0-9_\\-]+))*$"))
+		if utf8.RuneCountInString(workspace) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("Workspace", workspace, utf8.RuneCountInString(workspace), 1, true))
+		}
+		dir = r.URL.Query().Get("dir")
+		if dir == "" {
+			err = goa.MergeErrors(err, goa.MissingFieldError("Dir", "query string"))
+		}
+		if utf8.RuneCountInString(dir) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("Dir", dir, utf8.RuneCountInString(dir), 1, true))
+		}
 		if err != nil {
 			return nil, err
 		}
-		payload := NewSubscribePackage(packagePath)
+		payload := NewSubscribePackageLocator(workspace, dir)
 
 		return payload, nil
 	}
 }
 
-// EncodeUploadResponse returns an encoder for responses returned by the
-// Packages Upload endpoint.
-func EncodeUploadResponse(encoder func(context.Context, http.ResponseWriter) goahttp.Encoder) func(context.Context, http.ResponseWriter, any) error {
-	return func(ctx context.Context, w http.ResponseWriter, v any) error {
-		res, _ := v.(packages.Model)
-		enc := encoder(ctx, w)
-		body := res
-		w.WriteHeader(http.StatusOK)
-		return enc.Encode(body)
-	}
-}
-
-// DecodeUploadRequest returns a decoder for requests sent to the Packages
-// Upload endpoint.
-func DecodeUploadRequest(mux goahttp.Muxer, decoder func(*http.Request) goahttp.Decoder) func(*http.Request) (any, error) {
-	return func(r *http.Request) (any, error) {
-		var (
-			packagePath string
-			err         error
-		)
-		packagePath = r.URL.Query().Get("package")
-		if packagePath == "" {
-			err = goa.MergeErrors(err, goa.MissingFieldError("PackagePath", "query string"))
-		}
-		err = goa.MergeErrors(err, goa.ValidatePattern("PackagePath", packagePath, "^([a-zA-Z0-9]+(-[a-zA-Z0-9]+)*\\.)+[a-zA-Z]{2,}/[a-zA-Z0-9_\\-]+/(/([a-zA-Z0-9_\\-]+))*$"))
-		if err != nil {
-			return nil, err
-		}
-		payload := NewUploadPackage(packagePath)
-
-		return payload, nil
-	}
-}
-
-// EncodeUploadError returns an encoder for errors returned by the Upload
-// Packages endpoint.
-func EncodeUploadError(encoder func(context.Context, http.ResponseWriter) goahttp.Encoder, formatter func(ctx context.Context, err error) goahttp.Statuser) func(context.Context, http.ResponseWriter, error) error {
-	encodeError := goahttp.ErrorEncoder(encoder, formatter)
-	return func(ctx context.Context, w http.ResponseWriter, v error) error {
-		var en goa.GoaErrorNamer
-		if !errors.As(v, &en) {
-			return encodeError(ctx, w, v)
-		}
-		switch en.GoaErrorName() {
-		case "compilation_failed":
-			var res *goa.ServiceError
-			errors.As(v, &res)
-			enc := encoder(ctx, w)
-			var body any
-			if formatter != nil {
-				body = formatter(ctx, res)
-			} else {
-				body = NewUploadCompilationFailedResponseBody(res)
-			}
-			w.Header().Set("goa-error", res.GoaErrorName())
-			w.WriteHeader(http.StatusBadRequest)
-			return enc.Encode(body)
-		default:
-			return encodeError(ctx, w, v)
-		}
-	}
-}
-
-// EncodeGetModelResponse returns an encoder for responses returned by the
-// Packages GetModel endpoint.
-func EncodeGetModelResponse(encoder func(context.Context, http.ResponseWriter) goahttp.Encoder) func(context.Context, http.ResponseWriter, any) error {
+// EncodeGetModelJSONResponse returns an encoder for responses returned by the
+// Packages GetModelJSON endpoint.
+func EncodeGetModelJSONResponse(encoder func(context.Context, http.ResponseWriter) goahttp.Encoder) func(context.Context, http.ResponseWriter, any) error {
 	return func(ctx context.Context, w http.ResponseWriter, v any) error {
 		w.WriteHeader(http.StatusOK)
 		return nil
 	}
 }
 
-// DecodeGetModelRequest returns a decoder for requests sent to the Packages
-// GetModel endpoint.
-func DecodeGetModelRequest(mux goahttp.Muxer, decoder func(*http.Request) goahttp.Decoder) func(*http.Request) (any, error) {
+// DecodeGetModelJSONRequest returns a decoder for requests sent to the
+// Packages GetModelJSON endpoint.
+func DecodeGetModelJSONRequest(mux goahttp.Muxer, decoder func(*http.Request) goahttp.Decoder) func(*http.Request) (any, error) {
 	return func(r *http.Request) (any, error) {
 		var (
-			packagePath string
-			err         error
+			workspace string
+			dir       string
+			err       error
 		)
-		packagePath = r.URL.Query().Get("package")
-		if packagePath == "" {
-			err = goa.MergeErrors(err, goa.MissingFieldError("PackagePath", "query string"))
+		workspace = r.URL.Query().Get("work")
+		if workspace == "" {
+			err = goa.MergeErrors(err, goa.MissingFieldError("Workspace", "query string"))
 		}
-		err = goa.MergeErrors(err, goa.ValidatePattern("PackagePath", packagePath, "^([a-zA-Z0-9]+(-[a-zA-Z0-9]+)*\\.)+[a-zA-Z]{2,}/[a-zA-Z0-9_\\-]+/(/([a-zA-Z0-9_\\-]+))*$"))
+		if utf8.RuneCountInString(workspace) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("Workspace", workspace, utf8.RuneCountInString(workspace), 1, true))
+		}
+		dir = r.URL.Query().Get("dir")
+		if dir == "" {
+			err = goa.MergeErrors(err, goa.MissingFieldError("Dir", "query string"))
+		}
+		if utf8.RuneCountInString(dir) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("Dir", dir, utf8.RuneCountInString(dir), 1, true))
+		}
 		if err != nil {
 			return nil, err
 		}
-		payload := NewGetModelPackage(packagePath)
+		payload := NewGetModelJSONPackageLocator(workspace, dir)
 
 		return payload, nil
 	}
 }
 
-// marshalPackagesPackageToPackageResponse builds a value of type
-// *PackageResponse from a value of type *packages.Package.
-func marshalPackagesPackageToPackageResponse(v *packages.Package) *PackageResponse {
+// EncodeGetLayoutResponse returns an encoder for responses returned by the
+// Packages GetLayout endpoint.
+func EncodeGetLayoutResponse(encoder func(context.Context, http.ResponseWriter) goahttp.Encoder) func(context.Context, http.ResponseWriter, any) error {
+	return func(ctx context.Context, w http.ResponseWriter, v any) error {
+		w.WriteHeader(http.StatusOK)
+		return nil
+	}
+}
+
+// DecodeGetLayoutRequest returns a decoder for requests sent to the Packages
+// GetLayout endpoint.
+func DecodeGetLayoutRequest(mux goahttp.Muxer, decoder func(*http.Request) goahttp.Decoder) func(*http.Request) (any, error) {
+	return func(r *http.Request) (any, error) {
+		var (
+			workspace string
+			dir       string
+			err       error
+		)
+		workspace = r.URL.Query().Get("work")
+		if workspace == "" {
+			err = goa.MergeErrors(err, goa.MissingFieldError("Workspace", "query string"))
+		}
+		if utf8.RuneCountInString(workspace) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("Workspace", workspace, utf8.RuneCountInString(workspace), 1, true))
+		}
+		dir = r.URL.Query().Get("dir")
+		if dir == "" {
+			err = goa.MergeErrors(err, goa.MissingFieldError("Dir", "query string"))
+		}
+		if utf8.RuneCountInString(dir) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("Dir", dir, utf8.RuneCountInString(dir), 1, true))
+		}
+		if err != nil {
+			return nil, err
+		}
+		payload := NewGetLayoutPackageLocator(workspace, dir)
+
+		return payload, nil
+	}
+}
+
+// marshalTypesPackageToPackageResponse builds a value of type *PackageResponse
+// from a value of type *types.Package.
+func marshalTypesPackageToPackageResponse(v *types.Package) *PackageResponse {
 	res := &PackageResponse{
-		PackagePath: v.PackagePath,
+		ImportPath: v.ImportPath,
+		Dir:        v.Dir,
+	}
+
+	return res
+}
+
+// marshalTypesPackageFileToPackageFileResponse builds a value of type
+// *PackageFileResponse from a value of type *types.PackageFile.
+func marshalTypesPackageFileToPackageFileResponse(v *types.PackageFile) *PackageFileResponse {
+	res := &PackageFileResponse{
+		Content: v.Content,
+	}
+	if v.Locator != nil {
+		res.Locator = marshalTypesFileLocatorToFileLocatorResponse(v.Locator)
+	}
+
+	return res
+}
+
+// marshalTypesFileLocatorToFileLocatorResponse builds a value of type
+// *FileLocatorResponse from a value of type *types.FileLocator.
+func marshalTypesFileLocatorToFileLocatorResponse(v *types.FileLocator) *FileLocatorResponse {
+	res := &FileLocatorResponse{
+		Filename:  v.Filename,
+		Workspace: v.Workspace,
+		Dir:       v.Dir,
 	}
 
 	return res

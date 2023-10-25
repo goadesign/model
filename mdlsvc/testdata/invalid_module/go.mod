@@ -1,0 +1,1 @@
+some invalid go module

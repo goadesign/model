@@ -24,29 +24,23 @@ import (
 //
 //	command (subcommand1|subcommand2|...)
 func UsageCommands() string {
-	return `dsl-editor (upsert-system|upsert-person|upsert-container|upsert-component|upsert-relationship|delete-system|delete-person|delete-container|delete-component|delete-relationship)
-packages (list-packages|subscribe|upload|get-model)
+	return `dsl-editor (update-dsl|upsert-system|upsert-person|upsert-container|upsert-component|upsert-relationship|delete-system|delete-person|delete-container|delete-component|delete-relationship)
+packages (list-packages|list-package-files|subscribe|get-model-json|get-layout)
 svg (load|save)
 `
 }
 
 // UsageExamples produces an example of a valid invocation of the CLI tool.
 func UsageExamples() string {
-	return os.Args[0] + ` dsl-editor upsert-system --body '{
-      "Description": "System description",
-      "Location": "External",
-      "Name": "System",
-      "Properties": {
-         "key1": "value1",
-         "key2": "value2"
-      },
-      "Tags": [
-         "Tag1",
-         "Tag2"
-      ],
-      "URL": "https://system.com"
-   }' --package-path "goa.design/model/examples/basic/model"` + "\n" +
-		os.Args[0] + ` packages list-packages` + "\n" +
+	return os.Args[0] + ` dsl-editor update-dsl --body '{
+      "Content": "import . \"goa.design/model/dsl\"\n\nvar _ = Design(func() {})",
+      "Locator": {
+         "Dir": "src/repo/model",
+         "Filename": "model.go",
+         "Workspace": "my-workspace"
+      }
+   }'` + "\n" +
+		os.Args[0] + ` packages list-packages --workspace "my-workspace"` + "\n" +
 		os.Args[0] + ` svg load --filename "diagram.svg"` + "\n" +
 		""
 }
@@ -65,63 +59,66 @@ func ParseEndpoint(
 	var (
 		dSLEditorFlags = flag.NewFlagSet("dsl-editor", flag.ContinueOnError)
 
-		dSLEditorUpsertSystemFlags           = flag.NewFlagSet("upsert-system", flag.ExitOnError)
-		dSLEditorUpsertSystemBodyFlag        = dSLEditorUpsertSystemFlags.String("body", "REQUIRED", "")
-		dSLEditorUpsertSystemPackagePathFlag = dSLEditorUpsertSystemFlags.String("package-path", "REQUIRED", "")
+		dSLEditorUpdateDSLFlags    = flag.NewFlagSet("update-dsl", flag.ExitOnError)
+		dSLEditorUpdateDSLBodyFlag = dSLEditorUpdateDSLFlags.String("body", "REQUIRED", "")
 
-		dSLEditorUpsertPersonFlags           = flag.NewFlagSet("upsert-person", flag.ExitOnError)
-		dSLEditorUpsertPersonBodyFlag        = dSLEditorUpsertPersonFlags.String("body", "REQUIRED", "")
-		dSLEditorUpsertPersonPackagePathFlag = dSLEditorUpsertPersonFlags.String("package-path", "REQUIRED", "")
+		dSLEditorUpsertSystemFlags    = flag.NewFlagSet("upsert-system", flag.ExitOnError)
+		dSLEditorUpsertSystemBodyFlag = dSLEditorUpsertSystemFlags.String("body", "REQUIRED", "")
 
-		dSLEditorUpsertContainerFlags           = flag.NewFlagSet("upsert-container", flag.ExitOnError)
-		dSLEditorUpsertContainerBodyFlag        = dSLEditorUpsertContainerFlags.String("body", "REQUIRED", "")
-		dSLEditorUpsertContainerPackagePathFlag = dSLEditorUpsertContainerFlags.String("package-path", "REQUIRED", "")
+		dSLEditorUpsertPersonFlags    = flag.NewFlagSet("upsert-person", flag.ExitOnError)
+		dSLEditorUpsertPersonBodyFlag = dSLEditorUpsertPersonFlags.String("body", "REQUIRED", "")
 
-		dSLEditorUpsertComponentFlags           = flag.NewFlagSet("upsert-component", flag.ExitOnError)
-		dSLEditorUpsertComponentBodyFlag        = dSLEditorUpsertComponentFlags.String("body", "REQUIRED", "")
-		dSLEditorUpsertComponentPackagePathFlag = dSLEditorUpsertComponentFlags.String("package-path", "REQUIRED", "")
+		dSLEditorUpsertContainerFlags    = flag.NewFlagSet("upsert-container", flag.ExitOnError)
+		dSLEditorUpsertContainerBodyFlag = dSLEditorUpsertContainerFlags.String("body", "REQUIRED", "")
 
-		dSLEditorUpsertRelationshipFlags           = flag.NewFlagSet("upsert-relationship", flag.ExitOnError)
-		dSLEditorUpsertRelationshipBodyFlag        = dSLEditorUpsertRelationshipFlags.String("body", "REQUIRED", "")
-		dSLEditorUpsertRelationshipPackagePathFlag = dSLEditorUpsertRelationshipFlags.String("package-path", "REQUIRED", "")
+		dSLEditorUpsertComponentFlags    = flag.NewFlagSet("upsert-component", flag.ExitOnError)
+		dSLEditorUpsertComponentBodyFlag = dSLEditorUpsertComponentFlags.String("body", "REQUIRED", "")
 
-		dSLEditorDeleteSystemFlags           = flag.NewFlagSet("delete-system", flag.ExitOnError)
-		dSLEditorDeleteSystemNameFlag        = dSLEditorDeleteSystemFlags.String("name", "REQUIRED", "Name of software system to delete")
-		dSLEditorDeleteSystemPackagePathFlag = dSLEditorDeleteSystemFlags.String("package-path", "REQUIRED", "")
+		dSLEditorUpsertRelationshipFlags    = flag.NewFlagSet("upsert-relationship", flag.ExitOnError)
+		dSLEditorUpsertRelationshipBodyFlag = dSLEditorUpsertRelationshipFlags.String("body", "REQUIRED", "")
 
-		dSLEditorDeletePersonFlags           = flag.NewFlagSet("delete-person", flag.ExitOnError)
-		dSLEditorDeletePersonNameFlag        = dSLEditorDeletePersonFlags.String("name", "REQUIRED", "Name of person to delete")
-		dSLEditorDeletePersonPackagePathFlag = dSLEditorDeletePersonFlags.String("package-path", "REQUIRED", "")
+		dSLEditorDeleteSystemFlags          = flag.NewFlagSet("delete-system", flag.ExitOnError)
+		dSLEditorDeleteSystemBodyFlag       = dSLEditorDeleteSystemFlags.String("body", "REQUIRED", "")
+		dSLEditorDeleteSystemSystemNameFlag = dSLEditorDeleteSystemFlags.String("system-name", "REQUIRED", "Name of software system to delete")
 
-		dSLEditorDeleteContainerFlags           = flag.NewFlagSet("delete-container", flag.ExitOnError)
-		dSLEditorDeleteContainerSystemNameFlag  = dSLEditorDeleteContainerFlags.String("system-name", "REQUIRED", "Name of container software system")
-		dSLEditorDeleteContainerNameFlag        = dSLEditorDeleteContainerFlags.String("name", "REQUIRED", "Name of container to delete")
-		dSLEditorDeleteContainerPackagePathFlag = dSLEditorDeleteContainerFlags.String("package-path", "REQUIRED", "")
+		dSLEditorDeletePersonFlags          = flag.NewFlagSet("delete-person", flag.ExitOnError)
+		dSLEditorDeletePersonBodyFlag       = dSLEditorDeletePersonFlags.String("body", "REQUIRED", "")
+		dSLEditorDeletePersonPersonNameFlag = dSLEditorDeletePersonFlags.String("person-name", "REQUIRED", "Name of person to delete")
+
+		dSLEditorDeleteContainerFlags             = flag.NewFlagSet("delete-container", flag.ExitOnError)
+		dSLEditorDeleteContainerBodyFlag          = dSLEditorDeleteContainerFlags.String("body", "REQUIRED", "")
+		dSLEditorDeleteContainerSystemNameFlag    = dSLEditorDeleteContainerFlags.String("system-name", "REQUIRED", "Name of container software system")
+		dSLEditorDeleteContainerContainerNameFlag = dSLEditorDeleteContainerFlags.String("container-name", "REQUIRED", "Name of container to delete")
 
 		dSLEditorDeleteComponentFlags             = flag.NewFlagSet("delete-component", flag.ExitOnError)
+		dSLEditorDeleteComponentBodyFlag          = dSLEditorDeleteComponentFlags.String("body", "REQUIRED", "")
 		dSLEditorDeleteComponentSystemNameFlag    = dSLEditorDeleteComponentFlags.String("system-name", "REQUIRED", "Name of component software system")
 		dSLEditorDeleteComponentContainerNameFlag = dSLEditorDeleteComponentFlags.String("container-name", "REQUIRED", "Name of component software system")
-		dSLEditorDeleteComponentNameFlag          = dSLEditorDeleteComponentFlags.String("name", "REQUIRED", "Name of component to delete")
-		dSLEditorDeleteComponentPackagePathFlag   = dSLEditorDeleteComponentFlags.String("package-path", "REQUIRED", "")
+		dSLEditorDeleteComponentComponentNameFlag = dSLEditorDeleteComponentFlags.String("component-name", "REQUIRED", "Name of component to delete")
 
-		dSLEditorDeleteRelationshipFlags               = flag.NewFlagSet("delete-relationship", flag.ExitOnError)
-		dSLEditorDeleteRelationshipSourcePathFlag      = dSLEditorDeleteRelationshipFlags.String("source-path", "REQUIRED", "Path to source element consisting of <software system name>[/<container name>[/<component name>]]")
-		dSLEditorDeleteRelationshipDestinationPathFlag = dSLEditorDeleteRelationshipFlags.String("destination-path", "REQUIRED", "Path to destination element, see SourcePath for details.")
-		dSLEditorDeleteRelationshipPackagePathFlag     = dSLEditorDeleteRelationshipFlags.String("package-path", "REQUIRED", "")
+		dSLEditorDeleteRelationshipFlags    = flag.NewFlagSet("delete-relationship", flag.ExitOnError)
+		dSLEditorDeleteRelationshipBodyFlag = dSLEditorDeleteRelationshipFlags.String("body", "REQUIRED", "")
 
 		packagesFlags = flag.NewFlagSet("packages", flag.ContinueOnError)
 
-		packagesListPackagesFlags = flag.NewFlagSet("list-packages", flag.ExitOnError)
+		packagesListPackagesFlags         = flag.NewFlagSet("list-packages", flag.ExitOnError)
+		packagesListPackagesWorkspaceFlag = packagesListPackagesFlags.String("workspace", "REQUIRED", "")
 
-		packagesSubscribeFlags           = flag.NewFlagSet("subscribe", flag.ExitOnError)
-		packagesSubscribePackagePathFlag = packagesSubscribeFlags.String("package-path", "REQUIRED", "")
+		packagesListPackageFilesFlags         = flag.NewFlagSet("list-package-files", flag.ExitOnError)
+		packagesListPackageFilesWorkspaceFlag = packagesListPackageFilesFlags.String("workspace", "REQUIRED", "")
+		packagesListPackageFilesDirFlag       = packagesListPackageFilesFlags.String("dir", "REQUIRED", "")
 
-		packagesUploadFlags           = flag.NewFlagSet("upload", flag.ExitOnError)
-		packagesUploadPackagePathFlag = packagesUploadFlags.String("package-path", "REQUIRED", "")
-		packagesUploadStreamFlag      = packagesUploadFlags.String("stream", "REQUIRED", "path to file containing the streamed request body")
+		packagesSubscribeFlags         = flag.NewFlagSet("subscribe", flag.ExitOnError)
+		packagesSubscribeWorkspaceFlag = packagesSubscribeFlags.String("workspace", "REQUIRED", "")
+		packagesSubscribeDirFlag       = packagesSubscribeFlags.String("dir", "REQUIRED", "")
 
-		packagesGetModelFlags           = flag.NewFlagSet("get-model", flag.ExitOnError)
-		packagesGetModelPackagePathFlag = packagesGetModelFlags.String("package-path", "REQUIRED", "")
+		packagesGetModelJSONFlags         = flag.NewFlagSet("get-model-json", flag.ExitOnError)
+		packagesGetModelJSONWorkspaceFlag = packagesGetModelJSONFlags.String("workspace", "REQUIRED", "")
+		packagesGetModelJSONDirFlag       = packagesGetModelJSONFlags.String("dir", "REQUIRED", "")
+
+		packagesGetLayoutFlags         = flag.NewFlagSet("get-layout", flag.ExitOnError)
+		packagesGetLayoutWorkspaceFlag = packagesGetLayoutFlags.String("workspace", "REQUIRED", "")
+		packagesGetLayoutDirFlag       = packagesGetLayoutFlags.String("dir", "REQUIRED", "")
 
 		sVGFlags = flag.NewFlagSet("svg", flag.ContinueOnError)
 
@@ -129,10 +126,11 @@ func ParseEndpoint(
 		sVGLoadFilenameFlag = sVGLoadFlags.String("filename", "REQUIRED", "")
 
 		sVGSaveFlags        = flag.NewFlagSet("save", flag.ExitOnError)
+		sVGSaveBodyFlag     = sVGSaveFlags.String("body", "REQUIRED", "")
 		sVGSaveFilenameFlag = sVGSaveFlags.String("filename", "REQUIRED", "")
-		sVGSaveStreamFlag   = sVGSaveFlags.String("stream", "REQUIRED", "path to file containing the streamed request body")
 	)
 	dSLEditorFlags.Usage = dSLEditorUsage
+	dSLEditorUpdateDSLFlags.Usage = dSLEditorUpdateDSLUsage
 	dSLEditorUpsertSystemFlags.Usage = dSLEditorUpsertSystemUsage
 	dSLEditorUpsertPersonFlags.Usage = dSLEditorUpsertPersonUsage
 	dSLEditorUpsertContainerFlags.Usage = dSLEditorUpsertContainerUsage
@@ -146,9 +144,10 @@ func ParseEndpoint(
 
 	packagesFlags.Usage = packagesUsage
 	packagesListPackagesFlags.Usage = packagesListPackagesUsage
+	packagesListPackageFilesFlags.Usage = packagesListPackageFilesUsage
 	packagesSubscribeFlags.Usage = packagesSubscribeUsage
-	packagesUploadFlags.Usage = packagesUploadUsage
-	packagesGetModelFlags.Usage = packagesGetModelUsage
+	packagesGetModelJSONFlags.Usage = packagesGetModelJSONUsage
+	packagesGetLayoutFlags.Usage = packagesGetLayoutUsage
 
 	sVGFlags.Usage = sVGUsage
 	sVGLoadFlags.Usage = sVGLoadUsage
@@ -192,6 +191,9 @@ func ParseEndpoint(
 		switch svcn {
 		case "dsl-editor":
 			switch epn {
+			case "update-dsl":
+				epf = dSLEditorUpdateDSLFlags
+
 			case "upsert-system":
 				epf = dSLEditorUpsertSystemFlags
 
@@ -229,14 +231,17 @@ func ParseEndpoint(
 			case "list-packages":
 				epf = packagesListPackagesFlags
 
+			case "list-package-files":
+				epf = packagesListPackageFilesFlags
+
 			case "subscribe":
 				epf = packagesSubscribeFlags
 
-			case "upload":
-				epf = packagesUploadFlags
+			case "get-model-json":
+				epf = packagesGetModelJSONFlags
 
-			case "get-model":
-				epf = packagesGetModelFlags
+			case "get-layout":
+				epf = packagesGetLayoutFlags
 
 			}
 
@@ -273,55 +278,58 @@ func ParseEndpoint(
 		case "dsl-editor":
 			c := dsleditorc.NewClient(scheme, host, doer, enc, dec, restore)
 			switch epn {
+			case "update-dsl":
+				endpoint = c.UpdateDSL()
+				data, err = dsleditorc.BuildUpdateDSLPayload(*dSLEditorUpdateDSLBodyFlag)
 			case "upsert-system":
 				endpoint = c.UpsertSystem()
-				data, err = dsleditorc.BuildUpsertSystemPayload(*dSLEditorUpsertSystemBodyFlag, *dSLEditorUpsertSystemPackagePathFlag)
+				data, err = dsleditorc.BuildUpsertSystemPayload(*dSLEditorUpsertSystemBodyFlag)
 			case "upsert-person":
 				endpoint = c.UpsertPerson()
-				data, err = dsleditorc.BuildUpsertPersonPayload(*dSLEditorUpsertPersonBodyFlag, *dSLEditorUpsertPersonPackagePathFlag)
+				data, err = dsleditorc.BuildUpsertPersonPayload(*dSLEditorUpsertPersonBodyFlag)
 			case "upsert-container":
 				endpoint = c.UpsertContainer()
-				data, err = dsleditorc.BuildUpsertContainerPayload(*dSLEditorUpsertContainerBodyFlag, *dSLEditorUpsertContainerPackagePathFlag)
+				data, err = dsleditorc.BuildUpsertContainerPayload(*dSLEditorUpsertContainerBodyFlag)
 			case "upsert-component":
 				endpoint = c.UpsertComponent()
-				data, err = dsleditorc.BuildUpsertComponentPayload(*dSLEditorUpsertComponentBodyFlag, *dSLEditorUpsertComponentPackagePathFlag)
+				data, err = dsleditorc.BuildUpsertComponentPayload(*dSLEditorUpsertComponentBodyFlag)
 			case "upsert-relationship":
 				endpoint = c.UpsertRelationship()
-				data, err = dsleditorc.BuildUpsertRelationshipPayload(*dSLEditorUpsertRelationshipBodyFlag, *dSLEditorUpsertRelationshipPackagePathFlag)
+				data, err = dsleditorc.BuildUpsertRelationshipPayload(*dSLEditorUpsertRelationshipBodyFlag)
 			case "delete-system":
 				endpoint = c.DeleteSystem()
-				data, err = dsleditorc.BuildDeleteSystemPayload(*dSLEditorDeleteSystemNameFlag, *dSLEditorDeleteSystemPackagePathFlag)
+				data, err = dsleditorc.BuildDeleteSystemPayload(*dSLEditorDeleteSystemBodyFlag, *dSLEditorDeleteSystemSystemNameFlag)
 			case "delete-person":
 				endpoint = c.DeletePerson()
-				data, err = dsleditorc.BuildDeletePersonPayload(*dSLEditorDeletePersonNameFlag, *dSLEditorDeletePersonPackagePathFlag)
+				data, err = dsleditorc.BuildDeletePersonPayload(*dSLEditorDeletePersonBodyFlag, *dSLEditorDeletePersonPersonNameFlag)
 			case "delete-container":
 				endpoint = c.DeleteContainer()
-				data, err = dsleditorc.BuildDeleteContainerPayload(*dSLEditorDeleteContainerSystemNameFlag, *dSLEditorDeleteContainerNameFlag, *dSLEditorDeleteContainerPackagePathFlag)
+				data, err = dsleditorc.BuildDeleteContainerPayload(*dSLEditorDeleteContainerBodyFlag, *dSLEditorDeleteContainerSystemNameFlag, *dSLEditorDeleteContainerContainerNameFlag)
 			case "delete-component":
 				endpoint = c.DeleteComponent()
-				data, err = dsleditorc.BuildDeleteComponentPayload(*dSLEditorDeleteComponentSystemNameFlag, *dSLEditorDeleteComponentContainerNameFlag, *dSLEditorDeleteComponentNameFlag, *dSLEditorDeleteComponentPackagePathFlag)
+				data, err = dsleditorc.BuildDeleteComponentPayload(*dSLEditorDeleteComponentBodyFlag, *dSLEditorDeleteComponentSystemNameFlag, *dSLEditorDeleteComponentContainerNameFlag, *dSLEditorDeleteComponentComponentNameFlag)
 			case "delete-relationship":
 				endpoint = c.DeleteRelationship()
-				data, err = dsleditorc.BuildDeleteRelationshipPayload(*dSLEditorDeleteRelationshipSourcePathFlag, *dSLEditorDeleteRelationshipDestinationPathFlag, *dSLEditorDeleteRelationshipPackagePathFlag)
+				data, err = dsleditorc.BuildDeleteRelationshipPayload(*dSLEditorDeleteRelationshipBodyFlag)
 			}
 		case "packages":
 			c := packagesc.NewClient(scheme, host, doer, enc, dec, restore, dialer, packagesConfigurer)
 			switch epn {
 			case "list-packages":
 				endpoint = c.ListPackages()
-				data = nil
+				data, err = packagesc.BuildListPackagesPayload(*packagesListPackagesWorkspaceFlag)
+			case "list-package-files":
+				endpoint = c.ListPackageFiles()
+				data, err = packagesc.BuildListPackageFilesPayload(*packagesListPackageFilesWorkspaceFlag, *packagesListPackageFilesDirFlag)
 			case "subscribe":
 				endpoint = c.Subscribe()
-				data, err = packagesc.BuildSubscribePayload(*packagesSubscribePackagePathFlag)
-			case "upload":
-				endpoint = c.Upload()
-				data, err = packagesc.BuildUploadPayload(*packagesUploadPackagePathFlag)
-				if err == nil {
-					data, err = packagesc.BuildUploadStreamPayload(data, *packagesUploadStreamFlag)
-				}
-			case "get-model":
-				endpoint = c.GetModel()
-				data, err = packagesc.BuildGetModelPayload(*packagesGetModelPackagePathFlag)
+				data, err = packagesc.BuildSubscribePayload(*packagesSubscribeWorkspaceFlag, *packagesSubscribeDirFlag)
+			case "get-model-json":
+				endpoint = c.GetModelJSON()
+				data, err = packagesc.BuildGetModelJSONPayload(*packagesGetModelJSONWorkspaceFlag, *packagesGetModelJSONDirFlag)
+			case "get-layout":
+				endpoint = c.GetLayout()
+				data, err = packagesc.BuildGetLayoutPayload(*packagesGetLayoutWorkspaceFlag, *packagesGetLayoutDirFlag)
 			}
 		case "svg":
 			c := svgc.NewClient(scheme, host, doer, enc, dec, restore)
@@ -331,10 +339,7 @@ func ParseEndpoint(
 				data, err = svgc.BuildLoadPayload(*sVGLoadFilenameFlag)
 			case "save":
 				endpoint = c.Save()
-				data, err = svgc.BuildSavePayload(*sVGSaveFilenameFlag)
-				if err == nil {
-					data, err = svgc.BuildSaveStreamPayload(data, *sVGSaveStreamFlag)
-				}
+				data, err = svgc.BuildSavePayload(*sVGSaveBodyFlag, *sVGSaveFilenameFlag)
 			}
 		}
 	}
@@ -353,6 +358,7 @@ Usage:
     %[1]s [globalflags] dsl-editor COMMAND [flags]
 
 COMMAND:
+    update-dsl: Update the DSL for the given package, compile it and return the corresponding JSON if successful
     upsert-system: Create or update a software system in the model
     upsert-person: Create or update a person in the model
     upsert-container: Create or update a container in the model
@@ -368,17 +374,39 @@ Additional help:
     %[1]s dsl-editor COMMAND --help
 `, os.Args[0])
 }
+func dSLEditorUpdateDSLUsage() {
+	fmt.Fprintf(os.Stderr, `%[1]s [flags] dsl-editor update-dsl -body JSON
+
+Update the DSL for the given package, compile it and return the corresponding JSON if successful
+    -body JSON: 
+
+Example:
+    %[1]s dsl-editor update-dsl --body '{
+      "Content": "import . \"goa.design/model/dsl\"\n\nvar _ = Design(func() {})",
+      "Locator": {
+         "Dir": "src/repo/model",
+         "Filename": "model.go",
+         "Workspace": "my-workspace"
+      }
+   }'
+`, os.Args[0])
+}
+
 func dSLEditorUpsertSystemUsage() {
-	fmt.Fprintf(os.Stderr, `%[1]s [flags] dsl-editor upsert-system -body JSON -package-path STRING
+	fmt.Fprintf(os.Stderr, `%[1]s [flags] dsl-editor upsert-system -body JSON
 
 Create or update a software system in the model
     -body JSON: 
-    -package-path STRING: 
 
 Example:
     %[1]s dsl-editor upsert-system --body '{
       "Description": "System description",
       "Location": "External",
+      "Locator": {
+         "Dir": "src/repo/model",
+         "Filename": "model.go",
+         "Workspace": "my-workspace"
+      },
       "Name": "System",
       "Properties": {
          "key1": "value1",
@@ -389,21 +417,25 @@ Example:
          "Tag2"
       ],
       "URL": "https://system.com"
-   }' --package-path "goa.design/model/examples/basic/model"
+   }'
 `, os.Args[0])
 }
 
 func dSLEditorUpsertPersonUsage() {
-	fmt.Fprintf(os.Stderr, `%[1]s [flags] dsl-editor upsert-person -body JSON -package-path STRING
+	fmt.Fprintf(os.Stderr, `%[1]s [flags] dsl-editor upsert-person -body JSON
 
 Create or update a person in the model
     -body JSON: 
-    -package-path STRING: 
 
 Example:
     %[1]s dsl-editor upsert-person --body '{
       "Description": "Person description",
-      "Location": "Internal",
+      "Location": "External",
+      "Locator": {
+         "Dir": "src/repo/model",
+         "Filename": "model.go",
+         "Workspace": "my-workspace"
+      },
       "Name": "Person",
       "Properties": {
          "key1": "value1",
@@ -414,20 +446,24 @@ Example:
          "Tag2"
       ],
       "URL": "https://person.com"
-   }' --package-path "goa.design/model/examples/basic/model"
+   }'
 `, os.Args[0])
 }
 
 func dSLEditorUpsertContainerUsage() {
-	fmt.Fprintf(os.Stderr, `%[1]s [flags] dsl-editor upsert-container -body JSON -package-path STRING
+	fmt.Fprintf(os.Stderr, `%[1]s [flags] dsl-editor upsert-container -body JSON
 
 Create or update a container in the model
     -body JSON: 
-    -package-path STRING: 
 
 Example:
     %[1]s dsl-editor upsert-container --body '{
       "Description": "Container description",
+      "Locator": {
+         "Dir": "src/repo/model",
+         "Filename": "model.go",
+         "Workspace": "my-workspace"
+      },
       "Name": "Container",
       "Properties": {
          "key1": "value1",
@@ -440,21 +476,25 @@ Example:
       ],
       "Technology": "Technology",
       "URL": "https://container.com"
-   }' --package-path "goa.design/model/examples/basic/model"
+   }'
 `, os.Args[0])
 }
 
 func dSLEditorUpsertComponentUsage() {
-	fmt.Fprintf(os.Stderr, `%[1]s [flags] dsl-editor upsert-component -body JSON -package-path STRING
+	fmt.Fprintf(os.Stderr, `%[1]s [flags] dsl-editor upsert-component -body JSON
 
 Create or update a component in the model
     -body JSON: 
-    -package-path STRING: 
 
 Example:
     %[1]s dsl-editor upsert-component --body '{
       "ContainerName": "My Container",
       "Description": "Component description",
+      "Locator": {
+         "Dir": "src/repo/model",
+         "Filename": "model.go",
+         "Workspace": "my-workspace"
+      },
       "Name": "Component",
       "Properties": {
          "key1": "value1",
@@ -467,22 +507,26 @@ Example:
       ],
       "Technology": "Technology",
       "URL": "https://component.com"
-   }' --package-path "goa.design/model/examples/basic/model"
+   }'
 `, os.Args[0])
 }
 
 func dSLEditorUpsertRelationshipUsage() {
-	fmt.Fprintf(os.Stderr, `%[1]s [flags] dsl-editor upsert-relationship -body JSON -package-path STRING
+	fmt.Fprintf(os.Stderr, `%[1]s [flags] dsl-editor upsert-relationship -body JSON
 
 Create or update a relationship in the model
     -body JSON: 
-    -package-path STRING: 
 
 Example:
     %[1]s dsl-editor upsert-relationship --body '{
       "Description": "Relationship description",
       "DestinationPath": "Software System/Container/Component",
-      "InteractionStyle": "Asynchronous",
+      "InteractionStyle": "Synchronous",
+      "Locator": {
+         "Dir": "src/repo/model",
+         "Filename": "model.go",
+         "Workspace": "my-workspace"
+      },
       "SourcePath": "Software System/Container/Component",
       "Tags": [
          "Tag1",
@@ -490,71 +534,91 @@ Example:
       ],
       "Technology": "Technology",
       "URL": "https://relationship.com"
-   }' --package-path "goa.design/model/examples/basic/model"
+   }'
 `, os.Args[0])
 }
 
 func dSLEditorDeleteSystemUsage() {
-	fmt.Fprintf(os.Stderr, `%[1]s [flags] dsl-editor delete-system -name STRING -package-path STRING
+	fmt.Fprintf(os.Stderr, `%[1]s [flags] dsl-editor delete-system -body JSON -system-name STRING
 
 Delete an existing software system from the model
-    -name STRING: Name of software system to delete
-    -package-path STRING: 
+    -body JSON: 
+    -system-name STRING: Name of software system to delete
 
 Example:
-    %[1]s dsl-editor delete-system --name "Illo dolore aut." --package-path "goa.design/model/examples/basic/model"
+    %[1]s dsl-editor delete-system --body '{
+      "Dir": "src/repo/model",
+      "Filename": "model.go",
+      "Workspace": "my-workspace"
+   }' --system-name "Maxime sapiente eum dolorem eum."
 `, os.Args[0])
 }
 
 func dSLEditorDeletePersonUsage() {
-	fmt.Fprintf(os.Stderr, `%[1]s [flags] dsl-editor delete-person -name STRING -package-path STRING
+	fmt.Fprintf(os.Stderr, `%[1]s [flags] dsl-editor delete-person -body JSON -person-name STRING
 
 Delete an existing person from the model
-    -name STRING: Name of person to delete
-    -package-path STRING: 
+    -body JSON: 
+    -person-name STRING: Name of person to delete
 
 Example:
-    %[1]s dsl-editor delete-person --name "Voluptate sint voluptate non et." --package-path "goa.design/model/examples/basic/model"
+    %[1]s dsl-editor delete-person --body '{
+      "Dir": "src/repo/model",
+      "Filename": "model.go",
+      "Workspace": "my-workspace"
+   }' --person-name "Tempora non est magnam dicta."
 `, os.Args[0])
 }
 
 func dSLEditorDeleteContainerUsage() {
-	fmt.Fprintf(os.Stderr, `%[1]s [flags] dsl-editor delete-container -system-name STRING -name STRING -package-path STRING
+	fmt.Fprintf(os.Stderr, `%[1]s [flags] dsl-editor delete-container -body JSON -system-name STRING -container-name STRING
 
 Delete an existing container from the model
+    -body JSON: 
     -system-name STRING: Name of container software system
-    -name STRING: Name of container to delete
-    -package-path STRING: 
+    -container-name STRING: Name of container to delete
 
 Example:
-    %[1]s dsl-editor delete-container --system-name "Ut dolor non quos molestiae velit suscipit." --name "Id tempora." --package-path "goa.design/model/examples/basic/model"
+    %[1]s dsl-editor delete-container --body '{
+      "Dir": "src/repo/model",
+      "Filename": "model.go",
+      "Workspace": "my-workspace"
+   }' --system-name "Velit minus impedit molestias." --container-name "Velit quod totam vel laudantium impedit voluptatem."
 `, os.Args[0])
 }
 
 func dSLEditorDeleteComponentUsage() {
-	fmt.Fprintf(os.Stderr, `%[1]s [flags] dsl-editor delete-component -system-name STRING -container-name STRING -name STRING -package-path STRING
+	fmt.Fprintf(os.Stderr, `%[1]s [flags] dsl-editor delete-component -body JSON -system-name STRING -container-name STRING -component-name STRING
 
 Delete an existing component from the model
+    -body JSON: 
     -system-name STRING: Name of component software system
     -container-name STRING: Name of component software system
-    -name STRING: Name of component to delete
-    -package-path STRING: 
+    -component-name STRING: Name of component to delete
 
 Example:
-    %[1]s dsl-editor delete-component --system-name "My System" --container-name "My Container" --name "My Component" --package-path "goa.design/model/examples/basic/model"
+    %[1]s dsl-editor delete-component --body '{
+      "Dir": "src/repo/model",
+      "Filename": "model.go",
+      "Workspace": "my-workspace"
+   }' --system-name "My System" --container-name "My Container" --component-name "My Component"
 `, os.Args[0])
 }
 
 func dSLEditorDeleteRelationshipUsage() {
-	fmt.Fprintf(os.Stderr, `%[1]s [flags] dsl-editor delete-relationship -source-path STRING -destination-path STRING -package-path STRING
+	fmt.Fprintf(os.Stderr, `%[1]s [flags] dsl-editor delete-relationship -body JSON
 
 Delete an existing relationship from the model
-    -source-path STRING: Path to source element consisting of <software system name>[/<container name>[/<component name>]]
-    -destination-path STRING: Path to destination element, see SourcePath for details.
-    -package-path STRING: 
+    -body JSON: 
 
 Example:
-    %[1]s dsl-editor delete-relationship --source-path "Software System/Container/Component" --destination-path "Software System/Container/Component" --package-path "goa.design/model/examples/basic/model"
+    %[1]s dsl-editor delete-relationship --body '{
+      "DestinationPath": "Software System/Container/Component",
+      "Dir": "src/repo/model",
+      "Filename": "model.go",
+      "SourcePath": "Software System/Container/Component",
+      "Workspace": "my-workspace"
+   }'
 `, os.Args[0])
 }
 
@@ -565,56 +629,72 @@ Usage:
     %[1]s [globalflags] packages COMMAND [flags]
 
 COMMAND:
-    list-packages: List the model packages in the current Go workspace
-    subscribe: WebSocket endpoint for subscribing to updates to a package
-    upload: Upload the package content, compile it and return the corresponding JSON
-    get-model: Stream the model JSON for the given package, see https://pkg.go.dev/goa.design/model/model#Model
+    list-packages: List the model packages in the given workspace
+    list-package-files: Get the DSL files and their content for the given model package
+    subscribe: Send model JSON on initial subscription and when the model package changes
+    get-model-json: Streams the model JSON for the given package, see https://pkg.go.dev/goa.design/model/model#Model
+    get-layout: Streams the model layout JSON for the given package
 
 Additional help:
     %[1]s packages COMMAND --help
 `, os.Args[0])
 }
 func packagesListPackagesUsage() {
-	fmt.Fprintf(os.Stderr, `%[1]s [flags] packages list-packages
+	fmt.Fprintf(os.Stderr, `%[1]s [flags] packages list-packages -workspace STRING
 
-List the model packages in the current Go workspace
+List the model packages in the given workspace
+    -workspace STRING: 
 
 Example:
-    %[1]s packages list-packages
+    %[1]s packages list-packages --workspace "my-workspace"
+`, os.Args[0])
+}
+
+func packagesListPackageFilesUsage() {
+	fmt.Fprintf(os.Stderr, `%[1]s [flags] packages list-package-files -workspace STRING -dir STRING
+
+Get the DSL files and their content for the given model package
+    -workspace STRING: 
+    -dir STRING: 
+
+Example:
+    %[1]s packages list-package-files --workspace "my-workspace" --dir "src/repo/model"
 `, os.Args[0])
 }
 
 func packagesSubscribeUsage() {
-	fmt.Fprintf(os.Stderr, `%[1]s [flags] packages subscribe -package-path STRING
+	fmt.Fprintf(os.Stderr, `%[1]s [flags] packages subscribe -workspace STRING -dir STRING
 
-WebSocket endpoint for subscribing to updates to a package
-    -package-path STRING: 
+Send model JSON on initial subscription and when the model package changes
+    -workspace STRING: 
+    -dir STRING: 
 
 Example:
-    %[1]s packages subscribe --package-path "goa.design/model/examples/basic/model"
+    %[1]s packages subscribe --workspace "my-workspace" --dir "src/repo/model"
 `, os.Args[0])
 }
 
-func packagesUploadUsage() {
-	fmt.Fprintf(os.Stderr, `%[1]s [flags] packages upload -package-path STRING -stream STRING
+func packagesGetModelJSONUsage() {
+	fmt.Fprintf(os.Stderr, `%[1]s [flags] packages get-model-json -workspace STRING -dir STRING
 
-Upload the package content, compile it and return the corresponding JSON
-    -package-path STRING: 
-    -stream STRING: path to file containing the streamed request body
+Streams the model JSON for the given package, see https://pkg.go.dev/goa.design/model/model#Model
+    -workspace STRING: 
+    -dir STRING: 
 
 Example:
-    %[1]s packages upload --package-path "goa.design/model/examples/basic/model" --stream "goa.png"
+    %[1]s packages get-model-json --workspace "my-workspace" --dir "src/repo/model"
 `, os.Args[0])
 }
 
-func packagesGetModelUsage() {
-	fmt.Fprintf(os.Stderr, `%[1]s [flags] packages get-model -package-path STRING
+func packagesGetLayoutUsage() {
+	fmt.Fprintf(os.Stderr, `%[1]s [flags] packages get-layout -workspace STRING -dir STRING
 
-Stream the model JSON for the given package, see https://pkg.go.dev/goa.design/model/model#Model
-    -package-path STRING: 
+Streams the model layout JSON for the given package
+    -workspace STRING: 
+    -dir STRING: 
 
 Example:
-    %[1]s packages get-model --package-path "goa.design/model/examples/basic/model"
+    %[1]s packages get-layout --workspace "my-workspace" --dir "src/repo/model"
 `, os.Args[0])
 }
 
@@ -644,13 +724,15 @@ Example:
 }
 
 func sVGSaveUsage() {
-	fmt.Fprintf(os.Stderr, `%[1]s [flags] svg save -filename STRING -stream STRING
+	fmt.Fprintf(os.Stderr, `%[1]s [flags] svg save -body JSON -filename STRING
 
 Save the SVG streamed in the request body
+    -body JSON: 
     -filename STRING: 
-    -stream STRING: path to file containing the streamed request body
 
 Example:
-    %[1]s svg save --filename "diagram.svg" --stream "goa.png"
+    %[1]s svg save --body '{
+      "SVG": "\u003csvg\u003c/svg\u003e"
+   }' --filename "diagram.svg"
 `, os.Args[0])
 }

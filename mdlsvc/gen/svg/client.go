@@ -9,7 +9,6 @@ package svg
 
 import (
 	"context"
-	"io"
 
 	goa "goa.design/goa/v3/pkg"
 )
@@ -29,18 +28,17 @@ func NewClient(load, save goa.Endpoint) *Client {
 }
 
 // Load calls the "Load" endpoint of the "SVG" service.
-func (c *Client) Load(ctx context.Context, p *Filename) (resp io.ReadCloser, err error) {
+func (c *Client) Load(ctx context.Context, p *Filename) (res SVG, err error) {
 	var ires any
 	ires, err = c.LoadEndpoint(ctx, p)
 	if err != nil {
 		return
 	}
-	o := ires.(*LoadResponseData)
-	return o.Body, nil
+	return ires.(SVG), nil
 }
 
 // Save calls the "Save" endpoint of the "SVG" service.
-func (c *Client) Save(ctx context.Context, p *Filename, req io.ReadCloser) (err error) {
-	_, err = c.SaveEndpoint(ctx, &SaveRequestData{Payload: p, Body: req})
+func (c *Client) Save(ctx context.Context, p *SavePayload) (err error) {
+	_, err = c.SaveEndpoint(ctx, p)
 	return
 }

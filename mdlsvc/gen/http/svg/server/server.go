@@ -8,9 +8,7 @@
 package server
 
 import (
-	"bufio"
 	"context"
-	"io"
 	"net/http"
 
 	goahttp "goa.design/goa/v3/http"
@@ -128,25 +126,8 @@ func NewLoadHandler(
 			}
 			return
 		}
-		o := res.(*svg.LoadResponseData)
-		defer o.Body.Close()
-		// handle immediate read error like a returned error
-		buf := bufio.NewReader(o.Body)
-		if _, err := buf.Peek(1); err != nil && err != io.EOF {
-			if err := encodeError(ctx, w, err); err != nil {
-				errhandler(ctx, w, err)
-			}
-			return
-		}
 		if err := encodeResponse(ctx, w, res); err != nil {
 			errhandler(ctx, w, err)
-			return
-		}
-		if _, err := io.Copy(w, buf); err != nil {
-			if f, ok := w.(http.Flusher); ok {
-				f.Flush()
-			}
-			panic(http.ErrAbortHandler) // too late to write an error
 		}
 	})
 }
@@ -189,8 +170,7 @@ func NewSaveHandler(
 			}
 			return
 		}
-		data := &svg.SaveRequestData{Payload: payload.(*svg.Filename), Body: r.Body}
-		res, err := endpoint(ctx, data)
+		res, err := endpoint(ctx, payload)
 		if err != nil {
 			if err := encodeError(ctx, w, err); err != nil {
 				errhandler(ctx, w, err)

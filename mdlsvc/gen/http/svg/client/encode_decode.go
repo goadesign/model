@@ -13,9 +13,9 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"os"
 
 	goahttp "goa.design/goa/v3/http"
+	goa "goa.design/goa/v3/pkg"
 	svg "goa.design/model/mdlsvc/gen/svg"
 )
 
@@ -63,10 +63,25 @@ func DecodeLoadResponse(decoder func(*http.Response) goahttp.Decoder, restoreBod
 			defer func() {
 				resp.Body = io.NopCloser(bytes.NewBuffer(b))
 			}()
+		} else {
+			defer resp.Body.Close()
 		}
 		switch resp.StatusCode {
 		case http.StatusOK:
-			return nil, nil
+			var (
+				body string
+				err  error
+			)
+			err = decoder(resp).Decode(&body)
+			if err != nil {
+				return nil, goahttp.ErrDecodingError("SVG", "Load", err)
+			}
+			err = goa.MergeErrors(err, goa.ValidatePattern("body", body, "<svg.*</svg>$"))
+			if err != nil {
+				return nil, goahttp.ErrValidationError("SVG", "Load", err)
+			}
+			res := NewLoadSVGOK(body)
+			return res, nil
 		default:
 			body, _ := io.ReadAll(resp.Body)
 			return nil, goahttp.ErrInvalidResponse("SVG", "Load", resp.StatusCode, string(body))
@@ -77,16 +92,8 @@ func DecodeLoadResponse(decoder func(*http.Response) goahttp.Decoder, restoreBod
 // BuildSaveRequest instantiates a HTTP request object with method and path set
 // to call the "SVG" service "Save" endpoint
 func (c *Client) BuildSaveRequest(ctx context.Context, v any) (*http.Request, error) {
-	var (
-		body io.Reader
-	)
-	rd, ok := v.(*svg.SaveRequestData)
-	if !ok {
-		return nil, goahttp.ErrInvalidType("SVG", "Save", "svg.SaveRequestData", v)
-	}
-	body = rd.Body
 	u := &url.URL{Scheme: c.scheme, Host: c.host, Path: SaveSVGPath()}
-	req, err := http.NewRequest("POST", u.String(), body)
+	req, err := http.NewRequest("POST", u.String(), nil)
 	if err != nil {
 		return nil, goahttp.ErrInvalidURL("SVG", "Save", u.String(), err)
 	}
@@ -101,14 +108,17 @@ func (c *Client) BuildSaveRequest(ctx context.Context, v any) (*http.Request, er
 // server.
 func EncodeSaveRequest(encoder func(*http.Request) goahttp.Encoder) func(*http.Request, any) error {
 	return func(req *http.Request, v any) error {
-		data, ok := v.(*svg.SaveRequestData)
+		p, ok := v.(*svg.SavePayload)
 		if !ok {
-			return goahttp.ErrInvalidType("SVG", "Save", "*svg.SaveRequestData", v)
+			return goahttp.ErrInvalidType("SVG", "Save", "*svg.SavePayload", v)
 		}
-		p := data.Payload
 		values := req.URL.Query()
 		values.Add("file", p.Filename)
 		req.URL.RawQuery = values.Encode()
+		body := NewSaveRequestBody(p)
+		if err := encoder(req).Encode(&body); err != nil {
+			return goahttp.ErrEncodingError("SVG", "Save", err)
+		}
 		return nil
 	}
 }
@@ -138,17 +148,4 @@ func DecodeSaveResponse(decoder func(*http.Response) goahttp.Decoder, restoreBod
 			return nil, goahttp.ErrInvalidResponse("SVG", "Save", resp.StatusCode, string(body))
 		}
 	}
-}
-
-// // BuildSaveStreamPayload creates a streaming endpoint request payload from the
-// method payload and the path to the file to be streamed
-func BuildSaveStreamPayload(payload any, fpath string) (*svg.SaveRequestData, error) {
-	f, err := os.Open(fpath)
-	if err != nil {
-		return nil, err
-	}
-	return &svg.SaveRequestData{
-		Payload: payload.(*svg.Filename),
-		Body:    f,
-	}, nil
 }

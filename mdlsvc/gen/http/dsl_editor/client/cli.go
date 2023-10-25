@@ -10,32 +10,67 @@ package client
 import (
 	"encoding/json"
 	"fmt"
+	"unicode/utf8"
 
 	goa "goa.design/goa/v3/pkg"
 	dsleditor "goa.design/model/mdlsvc/gen/dsl_editor"
+	types "goa.design/model/mdlsvc/gen/types"
 )
 
-// BuildUpsertSystemPayload builds the payload for the DSLEditor UpsertSystem
+// BuildUpdateDSLPayload builds the payload for the DSLEditor UpdateDSL
 // endpoint from CLI flags.
-func BuildUpsertSystemPayload(dSLEditorUpsertSystemBody string, dSLEditorUpsertSystemPackagePath string) (*dsleditor.System, error) {
+func BuildUpdateDSLPayload(dSLEditorUpdateDSLBody string) (*types.PackageFile, error) {
 	var err error
-	var body UpsertSystemRequestBody
+	var body UpdateDSLRequestBody
 	{
-		err = json.Unmarshal([]byte(dSLEditorUpsertSystemBody), &body)
+		err = json.Unmarshal([]byte(dSLEditorUpdateDSLBody), &body)
 		if err != nil {
-			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Description\": \"System description\",\n      \"Location\": \"External\",\n      \"Name\": \"System\",\n      \"Properties\": {\n         \"key1\": \"value1\",\n         \"key2\": \"value2\"\n      },\n      \"Tags\": [\n         \"Tag1\",\n         \"Tag2\"\n      ],\n      \"URL\": \"https://system.com\"\n   }'")
+			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Content\": \"import . \\\"goa.design/model/dsl\\\"\\n\\nvar _ = Design(func() {})\",\n      \"Locator\": {\n         \"Dir\": \"src/repo/model\",\n         \"Filename\": \"model.go\",\n         \"Workspace\": \"my-workspace\"\n      }\n   }'")
 		}
-		if !(body.Location == "Internal" || body.Location == "External") {
-			err = goa.MergeErrors(err, goa.InvalidEnumValueError("body.Location", body.Location, []any{"Internal", "External"}))
+		if body.Locator == nil {
+			err = goa.MergeErrors(err, goa.MissingFieldError("Locator", "body"))
+		}
+		if body.Locator != nil {
+			if err2 := ValidateFileLocatorRequestBody(body.Locator); err2 != nil {
+				err = goa.MergeErrors(err, err2)
+			}
+		}
+		err = goa.MergeErrors(err, goa.ValidatePattern("body.Content", body.Content, "import . \"goa.design/model/dsl\""))
+		if utf8.RuneCountInString(body.Content) < 58 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Content", body.Content, utf8.RuneCountInString(body.Content), 58, true))
 		}
 		if err != nil {
 			return nil, err
 		}
 	}
-	var packagePath string
+	v := &types.PackageFile{
+		Content: body.Content,
+	}
+	if body.Locator != nil {
+		v.Locator = marshalFileLocatorRequestBodyToTypesFileLocator(body.Locator)
+	}
+
+	return v, nil
+}
+
+// BuildUpsertSystemPayload builds the payload for the DSLEditor UpsertSystem
+// endpoint from CLI flags.
+func BuildUpsertSystemPayload(dSLEditorUpsertSystemBody string) (*dsleditor.System, error) {
+	var err error
+	var body UpsertSystemRequestBody
 	{
-		packagePath = dSLEditorUpsertSystemPackagePath
-		err = goa.MergeErrors(err, goa.ValidatePattern("PackagePath", packagePath, "^([a-zA-Z0-9]+(-[a-zA-Z0-9]+)*\\.)+[a-zA-Z]{2,}/[a-zA-Z0-9_\\-]+/(/([a-zA-Z0-9_\\-]+))*$"))
+		err = json.Unmarshal([]byte(dSLEditorUpsertSystemBody), &body)
+		if err != nil {
+			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Description\": \"System description\",\n      \"Location\": \"External\",\n      \"Locator\": {\n         \"Dir\": \"src/repo/model\",\n         \"Filename\": \"model.go\",\n         \"Workspace\": \"my-workspace\"\n      },\n      \"Name\": \"System\",\n      \"Properties\": {\n         \"key1\": \"value1\",\n         \"key2\": \"value2\"\n      },\n      \"Tags\": [\n         \"Tag1\",\n         \"Tag2\"\n      ],\n      \"URL\": \"https://system.com\"\n   }'")
+		}
+		if body.Locator != nil {
+			if err2 := ValidateFileLocatorRequestBody(body.Locator); err2 != nil {
+				err = goa.MergeErrors(err, err2)
+			}
+		}
+		if !(body.Location == "Internal" || body.Location == "External") {
+			err = goa.MergeErrors(err, goa.InvalidEnumValueError("body.Location", body.Location, []any{"Internal", "External"}))
+		}
 		if err != nil {
 			return nil, err
 		}
@@ -46,6 +81,9 @@ func BuildUpsertSystemPayload(dSLEditorUpsertSystemBody string, dSLEditorUpsertS
 		URL:         body.URL,
 		Location:    body.Location,
 	}
+	if body.Locator != nil {
+		v.Locator = marshalFileLocatorRequestBodyToTypesFileLocator(body.Locator)
+	}
 	if body.Tags != nil {
 		v.Tags = make([]string, len(body.Tags))
 		for i, val := range body.Tags {
@@ -66,32 +104,28 @@ func BuildUpsertSystemPayload(dSLEditorUpsertSystemBody string, dSLEditorUpsertS
 			v.Properties[tk] = tv
 		}
 	}
-	v.PackagePath = packagePath
 
 	return v, nil
 }
 
 // BuildUpsertPersonPayload builds the payload for the DSLEditor UpsertPerson
 // endpoint from CLI flags.
-func BuildUpsertPersonPayload(dSLEditorUpsertPersonBody string, dSLEditorUpsertPersonPackagePath string) (*dsleditor.Person, error) {
+func BuildUpsertPersonPayload(dSLEditorUpsertPersonBody string) (*dsleditor.Person, error) {
 	var err error
 	var body UpsertPersonRequestBody
 	{
 		err = json.Unmarshal([]byte(dSLEditorUpsertPersonBody), &body)
 		if err != nil {
-			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Description\": \"Person description\",\n      \"Location\": \"Internal\",\n      \"Name\": \"Person\",\n      \"Properties\": {\n         \"key1\": \"value1\",\n         \"key2\": \"value2\"\n      },\n      \"Tags\": [\n         \"Tag1\",\n         \"Tag2\"\n      ],\n      \"URL\": \"https://person.com\"\n   }'")
+			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Description\": \"Person description\",\n      \"Location\": \"External\",\n      \"Locator\": {\n         \"Dir\": \"src/repo/model\",\n         \"Filename\": \"model.go\",\n         \"Workspace\": \"my-workspace\"\n      },\n      \"Name\": \"Person\",\n      \"Properties\": {\n         \"key1\": \"value1\",\n         \"key2\": \"value2\"\n      },\n      \"Tags\": [\n         \"Tag1\",\n         \"Tag2\"\n      ],\n      \"URL\": \"https://person.com\"\n   }'")
+		}
+		if body.Locator != nil {
+			if err2 := ValidateFileLocatorRequestBody(body.Locator); err2 != nil {
+				err = goa.MergeErrors(err, err2)
+			}
 		}
 		if !(body.Location == "Internal" || body.Location == "External") {
 			err = goa.MergeErrors(err, goa.InvalidEnumValueError("body.Location", body.Location, []any{"Internal", "External"}))
 		}
-		if err != nil {
-			return nil, err
-		}
-	}
-	var packagePath string
-	{
-		packagePath = dSLEditorUpsertPersonPackagePath
-		err = goa.MergeErrors(err, goa.ValidatePattern("PackagePath", packagePath, "^([a-zA-Z0-9]+(-[a-zA-Z0-9]+)*\\.)+[a-zA-Z]{2,}/[a-zA-Z0-9_\\-]+/(/([a-zA-Z0-9_\\-]+))*$"))
 		if err != nil {
 			return nil, err
 		}
@@ -102,6 +136,9 @@ func BuildUpsertPersonPayload(dSLEditorUpsertPersonBody string, dSLEditorUpsertP
 		URL:         body.URL,
 		Location:    body.Location,
 	}
+	if body.Locator != nil {
+		v.Locator = marshalFileLocatorRequestBodyToTypesFileLocator(body.Locator)
+	}
 	if body.Tags != nil {
 		v.Tags = make([]string, len(body.Tags))
 		for i, val := range body.Tags {
@@ -122,26 +159,25 @@ func BuildUpsertPersonPayload(dSLEditorUpsertPersonBody string, dSLEditorUpsertP
 			v.Properties[tk] = tv
 		}
 	}
-	v.PackagePath = packagePath
 
 	return v, nil
 }
 
 // BuildUpsertContainerPayload builds the payload for the DSLEditor
 // UpsertContainer endpoint from CLI flags.
-func BuildUpsertContainerPayload(dSLEditorUpsertContainerBody string, dSLEditorUpsertContainerPackagePath string) (*dsleditor.Container, error) {
+func BuildUpsertContainerPayload(dSLEditorUpsertContainerBody string) (*dsleditor.Container, error) {
 	var err error
 	var body UpsertContainerRequestBody
 	{
 		err = json.Unmarshal([]byte(dSLEditorUpsertContainerBody), &body)
 		if err != nil {
-			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Description\": \"Container description\",\n      \"Name\": \"Container\",\n      \"Properties\": {\n         \"key1\": \"value1\",\n         \"key2\": \"value2\"\n      },\n      \"SystemName\": \"My System\",\n      \"Tags\": [\n         \"Tag1\",\n         \"Tag2\"\n      ],\n      \"Technology\": \"Technology\",\n      \"URL\": \"https://container.com\"\n   }'")
+			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Description\": \"Container description\",\n      \"Locator\": {\n         \"Dir\": \"src/repo/model\",\n         \"Filename\": \"model.go\",\n         \"Workspace\": \"my-workspace\"\n      },\n      \"Name\": \"Container\",\n      \"Properties\": {\n         \"key1\": \"value1\",\n         \"key2\": \"value2\"\n      },\n      \"SystemName\": \"My System\",\n      \"Tags\": [\n         \"Tag1\",\n         \"Tag2\"\n      ],\n      \"Technology\": \"Technology\",\n      \"URL\": \"https://container.com\"\n   }'")
 		}
-	}
-	var packagePath string
-	{
-		packagePath = dSLEditorUpsertContainerPackagePath
-		err = goa.MergeErrors(err, goa.ValidatePattern("PackagePath", packagePath, "^([a-zA-Z0-9]+(-[a-zA-Z0-9]+)*\\.)+[a-zA-Z]{2,}/[a-zA-Z0-9_\\-]+/(/([a-zA-Z0-9_\\-]+))*$"))
+		if body.Locator != nil {
+			if err2 := ValidateFileLocatorRequestBody(body.Locator); err2 != nil {
+				err = goa.MergeErrors(err, err2)
+			}
+		}
 		if err != nil {
 			return nil, err
 		}
@@ -153,6 +189,9 @@ func BuildUpsertContainerPayload(dSLEditorUpsertContainerBody string, dSLEditorU
 		Technology:  body.Technology,
 		URL:         body.URL,
 	}
+	if body.Locator != nil {
+		v.Locator = marshalFileLocatorRequestBodyToTypesFileLocator(body.Locator)
+	}
 	if body.Tags != nil {
 		v.Tags = make([]string, len(body.Tags))
 		for i, val := range body.Tags {
@@ -167,26 +206,25 @@ func BuildUpsertContainerPayload(dSLEditorUpsertContainerBody string, dSLEditorU
 			v.Properties[tk] = tv
 		}
 	}
-	v.PackagePath = packagePath
 
 	return v, nil
 }
 
 // BuildUpsertComponentPayload builds the payload for the DSLEditor
 // UpsertComponent endpoint from CLI flags.
-func BuildUpsertComponentPayload(dSLEditorUpsertComponentBody string, dSLEditorUpsertComponentPackagePath string) (*dsleditor.Component, error) {
+func BuildUpsertComponentPayload(dSLEditorUpsertComponentBody string) (*dsleditor.Component, error) {
 	var err error
 	var body UpsertComponentRequestBody
 	{
 		err = json.Unmarshal([]byte(dSLEditorUpsertComponentBody), &body)
 		if err != nil {
-			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"ContainerName\": \"My Container\",\n      \"Description\": \"Component description\",\n      \"Name\": \"Component\",\n      \"Properties\": {\n         \"key1\": \"value1\",\n         \"key2\": \"value2\"\n      },\n      \"SystemName\": \"My System\",\n      \"Tags\": [\n         \"Tag1\",\n         \"Tag2\"\n      ],\n      \"Technology\": \"Technology\",\n      \"URL\": \"https://component.com\"\n   }'")
+			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"ContainerName\": \"My Container\",\n      \"Description\": \"Component description\",\n      \"Locator\": {\n         \"Dir\": \"src/repo/model\",\n         \"Filename\": \"model.go\",\n         \"Workspace\": \"my-workspace\"\n      },\n      \"Name\": \"Component\",\n      \"Properties\": {\n         \"key1\": \"value1\",\n         \"key2\": \"value2\"\n      },\n      \"SystemName\": \"My System\",\n      \"Tags\": [\n         \"Tag1\",\n         \"Tag2\"\n      ],\n      \"Technology\": \"Technology\",\n      \"URL\": \"https://component.com\"\n   }'")
 		}
-	}
-	var packagePath string
-	{
-		packagePath = dSLEditorUpsertComponentPackagePath
-		err = goa.MergeErrors(err, goa.ValidatePattern("PackagePath", packagePath, "^([a-zA-Z0-9]+(-[a-zA-Z0-9]+)*\\.)+[a-zA-Z]{2,}/[a-zA-Z0-9_\\-]+/(/([a-zA-Z0-9_\\-]+))*$"))
+		if body.Locator != nil {
+			if err2 := ValidateFileLocatorRequestBody(body.Locator); err2 != nil {
+				err = goa.MergeErrors(err, err2)
+			}
+		}
 		if err != nil {
 			return nil, err
 		}
@@ -199,6 +237,9 @@ func BuildUpsertComponentPayload(dSLEditorUpsertComponentBody string, dSLEditorU
 		Technology:    body.Technology,
 		URL:           body.URL,
 	}
+	if body.Locator != nil {
+		v.Locator = marshalFileLocatorRequestBodyToTypesFileLocator(body.Locator)
+	}
 	if body.Tags != nil {
 		v.Tags = make([]string, len(body.Tags))
 		for i, val := range body.Tags {
@@ -213,20 +254,24 @@ func BuildUpsertComponentPayload(dSLEditorUpsertComponentBody string, dSLEditorU
 			v.Properties[tk] = tv
 		}
 	}
-	v.PackagePath = packagePath
 
 	return v, nil
 }
 
 // BuildUpsertRelationshipPayload builds the payload for the DSLEditor
 // UpsertRelationship endpoint from CLI flags.
-func BuildUpsertRelationshipPayload(dSLEditorUpsertRelationshipBody string, dSLEditorUpsertRelationshipPackagePath string) (*dsleditor.Relationship, error) {
+func BuildUpsertRelationshipPayload(dSLEditorUpsertRelationshipBody string) (*dsleditor.Relationship, error) {
 	var err error
 	var body UpsertRelationshipRequestBody
 	{
 		err = json.Unmarshal([]byte(dSLEditorUpsertRelationshipBody), &body)
 		if err != nil {
-			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Description\": \"Relationship description\",\n      \"DestinationPath\": \"Software System/Container/Component\",\n      \"InteractionStyle\": \"Asynchronous\",\n      \"SourcePath\": \"Software System/Container/Component\",\n      \"Tags\": [\n         \"Tag1\",\n         \"Tag2\"\n      ],\n      \"Technology\": \"Technology\",\n      \"URL\": \"https://relationship.com\"\n   }'")
+			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Description\": \"Relationship description\",\n      \"DestinationPath\": \"Software System/Container/Component\",\n      \"InteractionStyle\": \"Synchronous\",\n      \"Locator\": {\n         \"Dir\": \"src/repo/model\",\n         \"Filename\": \"model.go\",\n         \"Workspace\": \"my-workspace\"\n      },\n      \"SourcePath\": \"Software System/Container/Component\",\n      \"Tags\": [\n         \"Tag1\",\n         \"Tag2\"\n      ],\n      \"Technology\": \"Technology\",\n      \"URL\": \"https://relationship.com\"\n   }'")
+		}
+		if body.Locator != nil {
+			if err2 := ValidateFileLocatorRequestBody(body.Locator); err2 != nil {
+				err = goa.MergeErrors(err, err2)
+			}
 		}
 		if !(body.InteractionStyle == "Synchronous" || body.InteractionStyle == "Asynchronous") {
 			err = goa.MergeErrors(err, goa.InvalidEnumValueError("body.InteractionStyle", body.InteractionStyle, []any{"Synchronous", "Asynchronous"}))
@@ -238,14 +283,6 @@ func BuildUpsertRelationshipPayload(dSLEditorUpsertRelationshipBody string, dSLE
 			return nil, err
 		}
 	}
-	var packagePath string
-	{
-		packagePath = dSLEditorUpsertRelationshipPackagePath
-		err = goa.MergeErrors(err, goa.ValidatePattern("PackagePath", packagePath, "^([a-zA-Z0-9]+(-[a-zA-Z0-9]+)*\\.)+[a-zA-Z]{2,}/[a-zA-Z0-9_\\-]+/(/([a-zA-Z0-9_\\-]+))*$"))
-		if err != nil {
-			return nil, err
-		}
-	}
 	v := &dsleditor.Relationship{
 		SourcePath:       body.SourcePath,
 		DestinationPath:  body.DestinationPath,
@@ -253,6 +290,9 @@ func BuildUpsertRelationshipPayload(dSLEditorUpsertRelationshipBody string, dSLE
 		Technology:       body.Technology,
 		InteractionStyle: body.InteractionStyle,
 		URL:              body.URL,
+	}
+	if body.Locator != nil {
+		v.Locator = marshalFileLocatorRequestBodyToTypesFileLocator(body.Locator)
 	}
 	{
 		var zero string
@@ -266,89 +306,141 @@ func BuildUpsertRelationshipPayload(dSLEditorUpsertRelationshipBody string, dSLE
 			v.Tags[i] = val
 		}
 	}
-	v.PackagePath = packagePath
 
 	return v, nil
 }
 
 // BuildDeleteSystemPayload builds the payload for the DSLEditor DeleteSystem
 // endpoint from CLI flags.
-func BuildDeleteSystemPayload(dSLEditorDeleteSystemName string, dSLEditorDeleteSystemPackagePath string) (*dsleditor.DeleteSystemPayload, error) {
+func BuildDeleteSystemPayload(dSLEditorDeleteSystemBody string, dSLEditorDeleteSystemSystemName string) (*dsleditor.DeleteSystemPayload, error) {
 	var err error
-	var name string
+	var body DeleteSystemRequestBody
 	{
-		name = dSLEditorDeleteSystemName
-	}
-	var packagePath string
-	{
-		packagePath = dSLEditorDeleteSystemPackagePath
-		err = goa.MergeErrors(err, goa.ValidatePattern("PackagePath", packagePath, "^([a-zA-Z0-9]+(-[a-zA-Z0-9]+)*\\.)+[a-zA-Z]{2,}/[a-zA-Z0-9_\\-]+/(/([a-zA-Z0-9_\\-]+))*$"))
+		err = json.Unmarshal([]byte(dSLEditorDeleteSystemBody), &body)
+		if err != nil {
+			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Dir\": \"src/repo/model\",\n      \"Filename\": \"model.go\",\n      \"Workspace\": \"my-workspace\"\n   }'")
+		}
+		err = goa.MergeErrors(err, goa.ValidatePattern("body.Filename", body.Filename, "\\.go$"))
+		if utf8.RuneCountInString(body.Workspace) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Workspace", body.Workspace, utf8.RuneCountInString(body.Workspace), 1, true))
+		}
+		if utf8.RuneCountInString(body.Dir) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Dir", body.Dir, utf8.RuneCountInString(body.Dir), 1, true))
+		}
 		if err != nil {
 			return nil, err
 		}
 	}
-	v := &dsleditor.DeleteSystemPayload{}
-	v.Name = name
-	v.PackagePath = packagePath
+	var systemName string
+	{
+		systemName = dSLEditorDeleteSystemSystemName
+	}
+	v := &dsleditor.DeleteSystemPayload{
+		Filename:  body.Filename,
+		Workspace: body.Workspace,
+		Dir:       body.Dir,
+	}
+	v.SystemName = systemName
 
 	return v, nil
 }
 
 // BuildDeletePersonPayload builds the payload for the DSLEditor DeletePerson
 // endpoint from CLI flags.
-func BuildDeletePersonPayload(dSLEditorDeletePersonName string, dSLEditorDeletePersonPackagePath string) (*dsleditor.DeletePersonPayload, error) {
+func BuildDeletePersonPayload(dSLEditorDeletePersonBody string, dSLEditorDeletePersonPersonName string) (*dsleditor.DeletePersonPayload, error) {
 	var err error
-	var name string
+	var body DeletePersonRequestBody
 	{
-		name = dSLEditorDeletePersonName
-	}
-	var packagePath string
-	{
-		packagePath = dSLEditorDeletePersonPackagePath
-		err = goa.MergeErrors(err, goa.ValidatePattern("PackagePath", packagePath, "^([a-zA-Z0-9]+(-[a-zA-Z0-9]+)*\\.)+[a-zA-Z]{2,}/[a-zA-Z0-9_\\-]+/(/([a-zA-Z0-9_\\-]+))*$"))
+		err = json.Unmarshal([]byte(dSLEditorDeletePersonBody), &body)
+		if err != nil {
+			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Dir\": \"src/repo/model\",\n      \"Filename\": \"model.go\",\n      \"Workspace\": \"my-workspace\"\n   }'")
+		}
+		err = goa.MergeErrors(err, goa.ValidatePattern("body.Filename", body.Filename, "\\.go$"))
+		if utf8.RuneCountInString(body.Workspace) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Workspace", body.Workspace, utf8.RuneCountInString(body.Workspace), 1, true))
+		}
+		if utf8.RuneCountInString(body.Dir) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Dir", body.Dir, utf8.RuneCountInString(body.Dir), 1, true))
+		}
 		if err != nil {
 			return nil, err
 		}
 	}
-	v := &dsleditor.DeletePersonPayload{}
-	v.Name = name
-	v.PackagePath = packagePath
+	var personName string
+	{
+		personName = dSLEditorDeletePersonPersonName
+	}
+	v := &dsleditor.DeletePersonPayload{
+		Filename:  body.Filename,
+		Workspace: body.Workspace,
+		Dir:       body.Dir,
+	}
+	v.PersonName = personName
 
 	return v, nil
 }
 
 // BuildDeleteContainerPayload builds the payload for the DSLEditor
 // DeleteContainer endpoint from CLI flags.
-func BuildDeleteContainerPayload(dSLEditorDeleteContainerSystemName string, dSLEditorDeleteContainerName string, dSLEditorDeleteContainerPackagePath string) (*dsleditor.DeleteContainerPayload, error) {
+func BuildDeleteContainerPayload(dSLEditorDeleteContainerBody string, dSLEditorDeleteContainerSystemName string, dSLEditorDeleteContainerContainerName string) (*dsleditor.DeleteContainerPayload, error) {
 	var err error
-	var systemName string
+	var body DeleteContainerRequestBody
 	{
-		systemName = dSLEditorDeleteContainerSystemName
-	}
-	var name string
-	{
-		name = dSLEditorDeleteContainerName
-	}
-	var packagePath string
-	{
-		packagePath = dSLEditorDeleteContainerPackagePath
-		err = goa.MergeErrors(err, goa.ValidatePattern("PackagePath", packagePath, "^([a-zA-Z0-9]+(-[a-zA-Z0-9]+)*\\.)+[a-zA-Z]{2,}/[a-zA-Z0-9_\\-]+/(/([a-zA-Z0-9_\\-]+))*$"))
+		err = json.Unmarshal([]byte(dSLEditorDeleteContainerBody), &body)
+		if err != nil {
+			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Dir\": \"src/repo/model\",\n      \"Filename\": \"model.go\",\n      \"Workspace\": \"my-workspace\"\n   }'")
+		}
+		err = goa.MergeErrors(err, goa.ValidatePattern("body.Filename", body.Filename, "\\.go$"))
+		if utf8.RuneCountInString(body.Workspace) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Workspace", body.Workspace, utf8.RuneCountInString(body.Workspace), 1, true))
+		}
+		if utf8.RuneCountInString(body.Dir) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Dir", body.Dir, utf8.RuneCountInString(body.Dir), 1, true))
+		}
 		if err != nil {
 			return nil, err
 		}
 	}
-	v := &dsleditor.DeleteContainerPayload{}
-	v.SystemName = systemName
-	v.Name = name
-	v.PackagePath = packagePath
+	var systemName string
+	{
+		systemName = dSLEditorDeleteContainerSystemName
+	}
+	var containerName string
+	{
+		containerName = dSLEditorDeleteContainerContainerName
+	}
+	v := &dsleditor.DeleteContainerPayload{
+		Filename:  body.Filename,
+		Workspace: body.Workspace,
+		Dir:       body.Dir,
+	}
+	v.SystemName = &systemName
+	v.ContainerName = containerName
 
 	return v, nil
 }
 
 // BuildDeleteComponentPayload builds the payload for the DSLEditor
 // DeleteComponent endpoint from CLI flags.
-func BuildDeleteComponentPayload(dSLEditorDeleteComponentSystemName string, dSLEditorDeleteComponentContainerName string, dSLEditorDeleteComponentName string, dSLEditorDeleteComponentPackagePath string) (*dsleditor.DeleteComponentPayload, error) {
+func BuildDeleteComponentPayload(dSLEditorDeleteComponentBody string, dSLEditorDeleteComponentSystemName string, dSLEditorDeleteComponentContainerName string, dSLEditorDeleteComponentComponentName string) (*dsleditor.DeleteComponentPayload, error) {
 	var err error
+	var body DeleteComponentRequestBody
+	{
+		err = json.Unmarshal([]byte(dSLEditorDeleteComponentBody), &body)
+		if err != nil {
+			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Dir\": \"src/repo/model\",\n      \"Filename\": \"model.go\",\n      \"Workspace\": \"my-workspace\"\n   }'")
+		}
+		err = goa.MergeErrors(err, goa.ValidatePattern("body.Filename", body.Filename, "\\.go$"))
+		if utf8.RuneCountInString(body.Workspace) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Workspace", body.Workspace, utf8.RuneCountInString(body.Workspace), 1, true))
+		}
+		if utf8.RuneCountInString(body.Dir) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Dir", body.Dir, utf8.RuneCountInString(body.Dir), 1, true))
+		}
+		if err != nil {
+			return nil, err
+		}
+	}
 	var systemName string
 	{
 		systemName = dSLEditorDeleteComponentSystemName
@@ -357,51 +449,50 @@ func BuildDeleteComponentPayload(dSLEditorDeleteComponentSystemName string, dSLE
 	{
 		containerName = dSLEditorDeleteComponentContainerName
 	}
-	var name string
+	var componentName string
 	{
-		name = dSLEditorDeleteComponentName
+		componentName = dSLEditorDeleteComponentComponentName
 	}
-	var packagePath string
-	{
-		packagePath = dSLEditorDeleteComponentPackagePath
-		err = goa.MergeErrors(err, goa.ValidatePattern("PackagePath", packagePath, "^([a-zA-Z0-9]+(-[a-zA-Z0-9]+)*\\.)+[a-zA-Z]{2,}/[a-zA-Z0-9_\\-]+/(/([a-zA-Z0-9_\\-]+))*$"))
-		if err != nil {
-			return nil, err
-		}
+	v := &dsleditor.DeleteComponentPayload{
+		Filename:  body.Filename,
+		Workspace: body.Workspace,
+		Dir:       body.Dir,
 	}
-	v := &dsleditor.DeleteComponentPayload{}
 	v.SystemName = systemName
 	v.ContainerName = containerName
-	v.Name = name
-	v.PackagePath = packagePath
+	v.ComponentName = componentName
 
 	return v, nil
 }
 
 // BuildDeleteRelationshipPayload builds the payload for the DSLEditor
 // DeleteRelationship endpoint from CLI flags.
-func BuildDeleteRelationshipPayload(dSLEditorDeleteRelationshipSourcePath string, dSLEditorDeleteRelationshipDestinationPath string, dSLEditorDeleteRelationshipPackagePath string) (*dsleditor.DeleteRelationshipPayload, error) {
+func BuildDeleteRelationshipPayload(dSLEditorDeleteRelationshipBody string) (*dsleditor.DeleteRelationshipPayload, error) {
 	var err error
-	var sourcePath string
+	var body DeleteRelationshipRequestBody
 	{
-		sourcePath = dSLEditorDeleteRelationshipSourcePath
-	}
-	var destinationPath string
-	{
-		destinationPath = dSLEditorDeleteRelationshipDestinationPath
-	}
-	var packagePath string
-	{
-		packagePath = dSLEditorDeleteRelationshipPackagePath
-		err = goa.MergeErrors(err, goa.ValidatePattern("PackagePath", packagePath, "^([a-zA-Z0-9]+(-[a-zA-Z0-9]+)*\\.)+[a-zA-Z]{2,}/[a-zA-Z0-9_\\-]+/(/([a-zA-Z0-9_\\-]+))*$"))
+		err = json.Unmarshal([]byte(dSLEditorDeleteRelationshipBody), &body)
+		if err != nil {
+			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"DestinationPath\": \"Software System/Container/Component\",\n      \"Dir\": \"src/repo/model\",\n      \"Filename\": \"model.go\",\n      \"SourcePath\": \"Software System/Container/Component\",\n      \"Workspace\": \"my-workspace\"\n   }'")
+		}
+		err = goa.MergeErrors(err, goa.ValidatePattern("body.Filename", body.Filename, "\\.go$"))
+		if utf8.RuneCountInString(body.Workspace) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Workspace", body.Workspace, utf8.RuneCountInString(body.Workspace), 1, true))
+		}
+		if utf8.RuneCountInString(body.Dir) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Dir", body.Dir, utf8.RuneCountInString(body.Dir), 1, true))
+		}
 		if err != nil {
 			return nil, err
 		}
 	}
-	v := &dsleditor.DeleteRelationshipPayload{}
-	v.SourcePath = sourcePath
-	v.DestinationPath = destinationPath
-	v.PackagePath = packagePath
+	v := &dsleditor.DeleteRelationshipPayload{
+		SourcePath:      body.SourcePath,
+		DestinationPath: body.DestinationPath,
+		Filename:        body.Filename,
+		Workspace:       body.Workspace,
+		Dir:             body.Dir,
+	}
 
 	return v, nil
 }

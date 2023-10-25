@@ -6,3 +6,31 @@
 // $ goa gen goa.design/model/mdlsvc/design -o mdlsvc/
 
 package client
+
+import (
+	svg "goa.design/model/mdlsvc/gen/svg"
+)
+
+// SaveRequestBody is the type of the "SVG" service "Save" endpoint HTTP
+// request body.
+type SaveRequestBody struct {
+	// Diagram SVG
+	SVG string `form:"SVG" json:"SVG" xml:"SVG"`
+}
+
+// NewSaveRequestBody builds the HTTP request body from the payload of the
+// "Save" endpoint of the "SVG" service.
+func NewSaveRequestBody(p *svg.SavePayload) *SaveRequestBody {
+	body := &SaveRequestBody{
+		SVG: string(p.SVG),
+	}
+	return body
+}
+
+// NewLoadSVGOK builds a "SVG" service "Load" endpoint result from a HTTP "OK"
+// response.
+func NewLoadSVGOK(body string) svg.SVG {
+	v := svg.SVG(body)
+
+	return v
+}

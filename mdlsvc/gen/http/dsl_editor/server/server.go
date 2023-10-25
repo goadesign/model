@@ -19,6 +19,7 @@ import (
 // Server lists the DSLEditor service endpoint HTTP handlers.
 type Server struct {
 	Mounts             []*MountPoint
+	UpdateDSL          http.Handler
 	UpsertSystem       http.Handler
 	UpsertPerson       http.Handler
 	UpsertContainer    http.Handler
@@ -58,17 +59,19 @@ func New(
 ) *Server {
 	return &Server{
 		Mounts: []*MountPoint{
+			{"UpdateDSL", "POST", "/api/dsl"},
 			{"UpsertSystem", "PUT", "/api/dsl/system"},
 			{"UpsertPerson", "PUT", "/api/dsl/person"},
 			{"UpsertContainer", "PUT", "/api/dsl/container"},
 			{"UpsertComponent", "PUT", "/api/dsl/component"},
 			{"UpsertRelationship", "PUT", "/api/dsl/relationship"},
-			{"DeleteSystem", "DELETE", "/api/dsl/system/{Name}"},
-			{"DeletePerson", "DELETE", "/api/dsl/person/{Name}"},
-			{"DeleteContainer", "DELETE", "/api/dsl/system/{SystemName}/container/{Name}"},
-			{"DeleteComponent", "DELETE", "/api/dsl/system/{SystemName}/container/{ContainerName}/component/{Name}"},
-			{"DeleteRelationship", "DELETE", "/api/dsl/relationship/{SourcePath}/{DestinationPath}"},
+			{"DeleteSystem", "DELETE", "/api/dsl/system/{SystemName}"},
+			{"DeletePerson", "DELETE", "/api/dsl/person/{PersonName}"},
+			{"DeleteContainer", "DELETE", "/api/dsl/system/{SystemName}/container/{ContainerName}"},
+			{"DeleteComponent", "DELETE", "/api/dsl/system/{SystemName}/container/{ContainerName}/component/{ComponentName}"},
+			{"DeleteRelationship", "DELETE", "/api/dsl/relationship"},
 		},
+		UpdateDSL:          NewUpdateDSLHandler(e.UpdateDSL, mux, decoder, encoder, errhandler, formatter),
 		UpsertSystem:       NewUpsertSystemHandler(e.UpsertSystem, mux, decoder, encoder, errhandler, formatter),
 		UpsertPerson:       NewUpsertPersonHandler(e.UpsertPerson, mux, decoder, encoder, errhandler, formatter),
 		UpsertContainer:    NewUpsertContainerHandler(e.UpsertContainer, mux, decoder, encoder, errhandler, formatter),
@@ -87,6 +90,7 @@ func (s *Server) Service() string { return "DSLEditor" }
 
 // Use wraps the server handlers with the given middleware.
 func (s *Server) Use(m func(http.Handler) http.Handler) {
+	s.UpdateDSL = m(s.UpdateDSL)
 	s.UpsertSystem = m(s.UpsertSystem)
 	s.UpsertPerson = m(s.UpsertPerson)
 	s.UpsertContainer = m(s.UpsertContainer)
@@ -104,6 +108,7 @@ func (s *Server) MethodNames() []string { return dsleditor.MethodNames[:] }
 
 // Mount configures the mux to serve the DSLEditor endpoints.
 func Mount(mux goahttp.Muxer, h *Server) {
+	MountUpdateDSLHandler(mux, h.UpdateDSL)
 	MountUpsertSystemHandler(mux, h.UpsertSystem)
 	MountUpsertPersonHandler(mux, h.UpsertPerson)
 	MountUpsertContainerHandler(mux, h.UpsertContainer)
@@ -119,6 +124,57 @@ func Mount(mux goahttp.Muxer, h *Server) {
 // Mount configures the mux to serve the DSLEditor endpoints.
 func (s *Server) Mount(mux goahttp.Muxer) {
 	Mount(mux, s)
+}
+
+// MountUpdateDSLHandler configures the mux to serve the "DSLEditor" service
+// "UpdateDSL" endpoint.
+func MountUpdateDSLHandler(mux goahttp.Muxer, h http.Handler) {
+	f, ok := h.(http.HandlerFunc)
+	if !ok {
+		f = func(w http.ResponseWriter, r *http.Request) {
+			h.ServeHTTP(w, r)
+		}
+	}
+	mux.Handle("POST", "/api/dsl", f)
+}
+
+// NewUpdateDSLHandler creates a HTTP handler which loads the HTTP request and
+// calls the "DSLEditor" service "UpdateDSL" endpoint.
+func NewUpdateDSLHandler(
+	endpoint goa.Endpoint,
+	mux goahttp.Muxer,
+	decoder func(*http.Request) goahttp.Decoder,
+	encoder func(context.Context, http.ResponseWriter) goahttp.Encoder,
+	errhandler func(context.Context, http.ResponseWriter, error),
+	formatter func(ctx context.Context, err error) goahttp.Statuser,
+) http.Handler {
+	var (
+		decodeRequest  = DecodeUpdateDSLRequest(mux, decoder)
+		encodeResponse = EncodeUpdateDSLResponse(encoder)
+		encodeError    = EncodeUpdateDSLError(encoder, formatter)
+	)
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := context.WithValue(r.Context(), goahttp.AcceptTypeKey, r.Header.Get("Accept"))
+		ctx = context.WithValue(ctx, goa.MethodKey, "UpdateDSL")
+		ctx = context.WithValue(ctx, goa.ServiceKey, "DSLEditor")
+		payload, err := decodeRequest(r)
+		if err != nil {
+			if err := encodeError(ctx, w, err); err != nil {
+				errhandler(ctx, w, err)
+			}
+			return
+		}
+		res, err := endpoint(ctx, payload)
+		if err != nil {
+			if err := encodeError(ctx, w, err); err != nil {
+				errhandler(ctx, w, err)
+			}
+			return
+		}
+		if err := encodeResponse(ctx, w, res); err != nil {
+			errhandler(ctx, w, err)
+		}
+	})
 }
 
 // MountUpsertSystemHandler configures the mux to serve the "DSLEditor" service
@@ -146,7 +202,7 @@ func NewUpsertSystemHandler(
 	var (
 		decodeRequest  = DecodeUpsertSystemRequest(mux, decoder)
 		encodeResponse = EncodeUpsertSystemResponse(encoder)
-		encodeError    = goahttp.ErrorEncoder(encoder, formatter)
+		encodeError    = EncodeUpsertSystemError(encoder, formatter)
 	)
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := context.WithValue(r.Context(), goahttp.AcceptTypeKey, r.Header.Get("Accept"))
@@ -197,7 +253,7 @@ func NewUpsertPersonHandler(
 	var (
 		decodeRequest  = DecodeUpsertPersonRequest(mux, decoder)
 		encodeResponse = EncodeUpsertPersonResponse(encoder)
-		encodeError    = goahttp.ErrorEncoder(encoder, formatter)
+		encodeError    = EncodeUpsertPersonError(encoder, formatter)
 	)
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := context.WithValue(r.Context(), goahttp.AcceptTypeKey, r.Header.Get("Accept"))
@@ -248,7 +304,7 @@ func NewUpsertContainerHandler(
 	var (
 		decodeRequest  = DecodeUpsertContainerRequest(mux, decoder)
 		encodeResponse = EncodeUpsertContainerResponse(encoder)
-		encodeError    = goahttp.ErrorEncoder(encoder, formatter)
+		encodeError    = EncodeUpsertContainerError(encoder, formatter)
 	)
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := context.WithValue(r.Context(), goahttp.AcceptTypeKey, r.Header.Get("Accept"))
@@ -299,7 +355,7 @@ func NewUpsertComponentHandler(
 	var (
 		decodeRequest  = DecodeUpsertComponentRequest(mux, decoder)
 		encodeResponse = EncodeUpsertComponentResponse(encoder)
-		encodeError    = goahttp.ErrorEncoder(encoder, formatter)
+		encodeError    = EncodeUpsertComponentError(encoder, formatter)
 	)
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := context.WithValue(r.Context(), goahttp.AcceptTypeKey, r.Header.Get("Accept"))
@@ -350,7 +406,7 @@ func NewUpsertRelationshipHandler(
 	var (
 		decodeRequest  = DecodeUpsertRelationshipRequest(mux, decoder)
 		encodeResponse = EncodeUpsertRelationshipResponse(encoder)
-		encodeError    = goahttp.ErrorEncoder(encoder, formatter)
+		encodeError    = EncodeUpsertRelationshipError(encoder, formatter)
 	)
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := context.WithValue(r.Context(), goahttp.AcceptTypeKey, r.Header.Get("Accept"))
@@ -385,7 +441,7 @@ func MountDeleteSystemHandler(mux goahttp.Muxer, h http.Handler) {
 			h.ServeHTTP(w, r)
 		}
 	}
-	mux.Handle("DELETE", "/api/dsl/system/{Name}", f)
+	mux.Handle("DELETE", "/api/dsl/system/{SystemName}", f)
 }
 
 // NewDeleteSystemHandler creates a HTTP handler which loads the HTTP request
@@ -436,7 +492,7 @@ func MountDeletePersonHandler(mux goahttp.Muxer, h http.Handler) {
 			h.ServeHTTP(w, r)
 		}
 	}
-	mux.Handle("DELETE", "/api/dsl/person/{Name}", f)
+	mux.Handle("DELETE", "/api/dsl/person/{PersonName}", f)
 }
 
 // NewDeletePersonHandler creates a HTTP handler which loads the HTTP request
@@ -487,7 +543,7 @@ func MountDeleteContainerHandler(mux goahttp.Muxer, h http.Handler) {
 			h.ServeHTTP(w, r)
 		}
 	}
-	mux.Handle("DELETE", "/api/dsl/system/{SystemName}/container/{Name}", f)
+	mux.Handle("DELETE", "/api/dsl/system/{SystemName}/container/{ContainerName}", f)
 }
 
 // NewDeleteContainerHandler creates a HTTP handler which loads the HTTP
@@ -538,7 +594,7 @@ func MountDeleteComponentHandler(mux goahttp.Muxer, h http.Handler) {
 			h.ServeHTTP(w, r)
 		}
 	}
-	mux.Handle("DELETE", "/api/dsl/system/{SystemName}/container/{ContainerName}/component/{Name}", f)
+	mux.Handle("DELETE", "/api/dsl/system/{SystemName}/container/{ContainerName}/component/{ComponentName}", f)
 }
 
 // NewDeleteComponentHandler creates a HTTP handler which loads the HTTP
@@ -589,7 +645,7 @@ func MountDeleteRelationshipHandler(mux goahttp.Muxer, h http.Handler) {
 			h.ServeHTTP(w, r)
 		}
 	}
-	mux.Handle("DELETE", "/api/dsl/relationship/{SourcePath}/{DestinationPath}", f)
+	mux.Handle("DELETE", "/api/dsl/relationship", f)
 }
 
 // NewDeleteRelationshipHandler creates a HTTP handler which loads the HTTP

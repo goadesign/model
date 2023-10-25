@@ -9,7 +9,6 @@ package svg
 
 import (
 	"context"
-	"io"
 
 	goa "goa.design/goa/v3/pkg"
 )
@@ -18,22 +17,6 @@ import (
 type Endpoints struct {
 	Load goa.Endpoint
 	Save goa.Endpoint
-}
-
-// LoadResponseData holds both the result and the HTTP response body reader of
-// the "Load" method.
-type LoadResponseData struct {
-	// Body streams the HTTP response body.
-	Body io.ReadCloser
-}
-
-// SaveRequestData holds both the payload and the HTTP request body reader of
-// the "Save" method.
-type SaveRequestData struct {
-	// Payload is the method payload.
-	Payload *Filename
-	// Body streams the HTTP request body.
-	Body io.ReadCloser
 }
 
 // NewEndpoints wraps the methods of the "SVG" service with endpoints.
@@ -55,11 +38,7 @@ func (e *Endpoints) Use(m func(goa.Endpoint) goa.Endpoint) {
 func NewLoadEndpoint(s Service) goa.Endpoint {
 	return func(ctx context.Context, req any) (any, error) {
 		p := req.(*Filename)
-		body, err := s.Load(ctx, p)
-		if err != nil {
-			return nil, err
-		}
-		return &LoadResponseData{Body: body}, nil
+		return s.Load(ctx, p)
 	}
 }
 
@@ -67,7 +46,7 @@ func NewLoadEndpoint(s Service) goa.Endpoint {
 // service "SVG".
 func NewSaveEndpoint(s Service) goa.Endpoint {
 	return func(ctx context.Context, req any) (any, error) {
-		ep := req.(*SaveRequestData)
-		return nil, s.Save(ctx, ep.Payload, ep.Body)
+		p := req.(*SavePayload)
+		return nil, s.Save(ctx, p)
 	}
 }

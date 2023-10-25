@@ -14,20 +14,17 @@ import (
 const TmpDirPrefix = "mdl--"
 
 // JSON generates a JSON representation of the model described in pkg.  dir is
-// the directory in which to run the build system's query tool.  pkg must be a
-// valid Go package import path.
+// the directory in which to run the Go build system's query tool to load the
+// package.  pkg must be a valid Go package import path.
 func JSON(dir, pkg string, debug bool) ([]byte, error) {
 	// Validate package import path
-	if _, err := packages.Load(&packages.Config{Dir: dir, Mode: packages.NeedName}, pkg); err != nil {
+	cfg := &packages.Config{Dir: dir, Mode: packages.NeedName}
+	if _, err := packages.Load(cfg, pkg); err != nil {
 		return nil, err
 	}
 
 	// Write program that generates JSON
-	cwd, err := os.Getwd()
-	if err != nil {
-		cwd = "."
-	}
-	tmpDir, err := os.MkdirTemp(cwd, TmpDirPrefix)
+	tmpDir, err := os.MkdirTemp(dir, TmpDirPrefix)
 	if err != nil {
 		return nil, err
 	}

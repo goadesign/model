@@ -8,82 +8,108 @@
 package server
 
 import (
-	goa "goa.design/goa/v3/pkg"
-	packages "goa.design/model/mdlsvc/gen/packages"
+	types "goa.design/model/mdlsvc/gen/types"
 )
 
 // ListPackagesResponseBody is the type of the "Packages" service
 // "ListPackages" endpoint HTTP response body.
 type ListPackagesResponseBody []*PackageResponse
 
-// UploadCompilationFailedResponseBody is the type of the "Packages" service
-// "Upload" endpoint HTTP response body for the "compilation_failed" error.
-type UploadCompilationFailedResponseBody struct {
-	// Name is the name of this class of errors.
-	Name string `form:"name" json:"name" xml:"name"`
-	// ID is a unique identifier for this particular occurrence of the problem.
-	ID string `form:"id" json:"id" xml:"id"`
-	// Message is a human-readable explanation specific to this occurrence of the
-	// problem.
-	Message string `form:"message" json:"message" xml:"message"`
-	// Is the error temporary?
-	Temporary bool `form:"temporary" json:"temporary" xml:"temporary"`
-	// Is the error a timeout?
-	Timeout bool `form:"timeout" json:"timeout" xml:"timeout"`
-	// Is the error a server-side fault?
-	Fault bool `form:"fault" json:"fault" xml:"fault"`
-}
+// ListPackageFilesResponseBody is the type of the "Packages" service
+// "ListPackageFiles" endpoint HTTP response body.
+type ListPackageFilesResponseBody []*PackageFileResponse
 
 // PackageResponse is used to define fields on response body types.
 type PackageResponse struct {
 	// Design Go package import path
-	PackagePath string `form:"PackagePath" json:"PackagePath" xml:"PackagePath"`
+	ImportPath string `form:"ImportPath" json:"ImportPath" xml:"ImportPath"`
+	// Path to directory containing a model package
+	Dir string `form:"Dir" json:"Dir" xml:"Dir"`
+}
+
+// PackageFileResponse is used to define fields on response body types.
+type PackageFileResponse struct {
+	// Path to file containing DSL code
+	Locator *FileLocatorResponse `form:"Locator" json:"Locator" xml:"Locator"`
+	// DSL code
+	Content string `form:"Content" json:"Content" xml:"Content"`
+}
+
+// FileLocatorResponse is used to define fields on response body types.
+type FileLocatorResponse struct {
+	// Name of DSL file
+	Filename string `form:"Filename" json:"Filename" xml:"Filename"`
+	// Workspace identifier
+	Workspace string `form:"Workspace" json:"Workspace" xml:"Workspace"`
+	// Path to directory containing a model package
+	Dir string `form:"Dir" json:"Dir" xml:"Dir"`
 }
 
 // NewListPackagesResponseBody builds the HTTP response body from the result of
 // the "ListPackages" endpoint of the "Packages" service.
-func NewListPackagesResponseBody(res []*packages.Package) ListPackagesResponseBody {
+func NewListPackagesResponseBody(res []*types.Package) ListPackagesResponseBody {
 	body := make([]*PackageResponse, len(res))
 	for i, val := range res {
-		body[i] = marshalPackagesPackageToPackageResponse(val)
+		body[i] = marshalTypesPackageToPackageResponse(val)
 	}
 	return body
 }
 
-// NewUploadCompilationFailedResponseBody builds the HTTP response body from
-// the result of the "Upload" endpoint of the "Packages" service.
-func NewUploadCompilationFailedResponseBody(res *goa.ServiceError) *UploadCompilationFailedResponseBody {
-	body := &UploadCompilationFailedResponseBody{
-		Name:      res.Name,
-		ID:        res.ID,
-		Message:   res.Message,
-		Temporary: res.Temporary,
-		Timeout:   res.Timeout,
-		Fault:     res.Fault,
+// NewListPackageFilesResponseBody builds the HTTP response body from the
+// result of the "ListPackageFiles" endpoint of the "Packages" service.
+func NewListPackageFilesResponseBody(res []*types.PackageFile) ListPackageFilesResponseBody {
+	body := make([]*PackageFileResponse, len(res))
+	for i, val := range res {
+		body[i] = marshalTypesPackageFileToPackageFileResponse(val)
 	}
 	return body
 }
 
-// NewSubscribePackage builds a Packages service Subscribe endpoint payload.
-func NewSubscribePackage(packagePath string) *packages.Package {
-	v := &packages.Package{}
-	v.PackagePath = packagePath
+// NewListPackagesWorkspace builds a Packages service ListPackages endpoint
+// payload.
+func NewListPackagesWorkspace(workspace string) *types.Workspace {
+	v := &types.Workspace{}
+	v.Workspace = workspace
 
 	return v
 }
 
-// NewUploadPackage builds a Packages service Upload endpoint payload.
-func NewUploadPackage(packagePath string) *packages.Package {
-	v := &packages.Package{}
-	v.PackagePath = packagePath
+// NewListPackageFilesPackageLocator builds a Packages service ListPackageFiles
+// endpoint payload.
+func NewListPackageFilesPackageLocator(workspace string, dir string) *types.PackageLocator {
+	v := &types.PackageLocator{}
+	v.Workspace = workspace
+	v.Dir = dir
 
 	return v
 }
 
-// NewGetModelPackage builds a Packages service GetModel endpoint payload.
-func NewGetModelPackage(packagePath string) *packages.Package {
-	v := &packages.Package{}
-	v.PackagePath = packagePath
+// NewSubscribePackageLocator builds a Packages service Subscribe endpoint
+// payload.
+func NewSubscribePackageLocator(workspace string, dir string) *types.PackageLocator {
+	v := &types.PackageLocator{}
+	v.Workspace = workspace
+	v.Dir = dir
+
+	return v
+}
+
+// NewGetModelJSONPackageLocator builds a Packages service GetModelJSON
+// endpoint payload.
+func NewGetModelJSONPackageLocator(workspace string, dir string) *types.PackageLocator {
+	v := &types.PackageLocator{}
+	v.Workspace = workspace
+	v.Dir = dir
+
+	return v
+}
+
+// NewGetLayoutPackageLocator builds a Packages service GetLayout endpoint
+// payload.
+func NewGetLayoutPackageLocator(workspace string, dir string) *types.PackageLocator {
+	v := &types.PackageLocator{}
+	v.Workspace = workspace
+	v.Dir = dir
 
 	return v
 }

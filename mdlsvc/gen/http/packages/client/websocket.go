@@ -13,7 +13,7 @@ import (
 	"github.com/gorilla/websocket"
 	goahttp "goa.design/goa/v3/http"
 	goa "goa.design/goa/v3/pkg"
-	packages "goa.design/model/mdlsvc/gen/packages"
+	types "goa.design/model/mdlsvc/gen/types"
 )
 
 // ConnConfigurer holds the websocket connection configurer functions for the
@@ -37,11 +37,11 @@ func NewConnConfigurer(fn goahttp.ConnConfigureFunc) *ConnConfigurer {
 	}
 }
 
-// Recv reads instances of "packages.Model" from the "Subscribe" endpoint
+// Recv reads instances of "types.ModelJSON" from the "Subscribe" endpoint
 // websocket connection.
-func (s *SubscribeClientStream) Recv() (packages.Model, error) {
+func (s *SubscribeClientStream) Recv() (types.ModelJSON, error) {
 	var (
-		rv   packages.Model
+		rv   types.ModelJSON
 		body string
 		err  error
 	)
@@ -57,6 +57,6 @@ func (s *SubscribeClientStream) Recv() (packages.Model, error) {
 	if err != nil {
 		return rv, err
 	}
-	res := NewSubscribeModelSwitchingProtocols(body)
+	res := NewSubscribeModelJSONSwitchingProtocols(body)
 	return res, nil
 }

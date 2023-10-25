@@ -8,8 +8,16 @@
 package server
 
 import (
+	goa "goa.design/goa/v3/pkg"
 	svg "goa.design/model/mdlsvc/gen/svg"
 )
+
+// SaveRequestBody is the type of the "SVG" service "Save" endpoint HTTP
+// request body.
+type SaveRequestBody struct {
+	// Diagram SVG
+	SVG *string `form:"SVG,omitempty" json:"SVG,omitempty" xml:"SVG,omitempty"`
+}
 
 // NewLoadFilename builds a SVG service Load endpoint payload.
 func NewLoadFilename(filename string) *svg.Filename {
@@ -19,10 +27,23 @@ func NewLoadFilename(filename string) *svg.Filename {
 	return v
 }
 
-// NewSaveFilename builds a SVG service Save endpoint payload.
-func NewSaveFilename(filename string) *svg.Filename {
-	v := &svg.Filename{}
+// NewSavePayload builds a SVG service Save endpoint payload.
+func NewSavePayload(body *SaveRequestBody, filename string) *svg.SavePayload {
+	v := &svg.SavePayload{
+		SVG: svg.SVG(*body.SVG),
+	}
 	v.Filename = filename
 
 	return v
+}
+
+// ValidateSaveRequestBody runs the validations defined on SaveRequestBody
+func ValidateSaveRequestBody(body *SaveRequestBody) (err error) {
+	if body.SVG == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("SVG", "body"))
+	}
+	if body.SVG != nil {
+		err = goa.MergeErrors(err, goa.ValidatePattern("body.SVG", *body.SVG, "<svg.*</svg>$"))
+	}
+	return
 }

@@ -17,6 +17,10 @@ import (
 
 // Client lists the DSLEditor service endpoint HTTP clients.
 type Client struct {
+	// UpdateDSL Doer is the HTTP client used to make requests to the UpdateDSL
+	// endpoint.
+	UpdateDSLDoer goahttp.Doer
+
 	// UpsertSystem Doer is the HTTP client used to make requests to the
 	// UpsertSystem endpoint.
 	UpsertSystemDoer goahttp.Doer
@@ -77,6 +81,7 @@ func NewClient(
 	restoreBody bool,
 ) *Client {
 	return &Client{
+		UpdateDSLDoer:          doer,
 		UpsertSystemDoer:       doer,
 		UpsertPersonDoer:       doer,
 		UpsertContainerDoer:    doer,
@@ -92,6 +97,30 @@ func NewClient(
 		host:                   host,
 		decoder:                dec,
 		encoder:                enc,
+	}
+}
+
+// UpdateDSL returns an endpoint that makes HTTP requests to the DSLEditor
+// service UpdateDSL server.
+func (c *Client) UpdateDSL() goa.Endpoint {
+	var (
+		encodeRequest  = EncodeUpdateDSLRequest(c.encoder)
+		decodeResponse = DecodeUpdateDSLResponse(c.decoder, c.RestoreResponseBody)
+	)
+	return func(ctx context.Context, v any) (any, error) {
+		req, err := c.BuildUpdateDSLRequest(ctx, v)
+		if err != nil {
+			return nil, err
+		}
+		err = encodeRequest(req, v)
+		if err != nil {
+			return nil, err
+		}
+		resp, err := c.UpdateDSLDoer.Do(req)
+		if err != nil {
+			return nil, goahttp.ErrRequestError("DSLEditor", "UpdateDSL", err)
+		}
+		return decodeResponse(resp)
 	}
 }
 

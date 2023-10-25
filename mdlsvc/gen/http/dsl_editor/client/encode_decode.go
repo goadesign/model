@@ -16,7 +16,83 @@ import (
 
 	goahttp "goa.design/goa/v3/http"
 	dsleditor "goa.design/model/mdlsvc/gen/dsl_editor"
+	types "goa.design/model/mdlsvc/gen/types"
 )
+
+// BuildUpdateDSLRequest instantiates a HTTP request object with method and
+// path set to call the "DSLEditor" service "UpdateDSL" endpoint
+func (c *Client) BuildUpdateDSLRequest(ctx context.Context, v any) (*http.Request, error) {
+	u := &url.URL{Scheme: c.scheme, Host: c.host, Path: UpdateDSLDSLEditorPath()}
+	req, err := http.NewRequest("POST", u.String(), nil)
+	if err != nil {
+		return nil, goahttp.ErrInvalidURL("DSLEditor", "UpdateDSL", u.String(), err)
+	}
+	if ctx != nil {
+		req = req.WithContext(ctx)
+	}
+
+	return req, nil
+}
+
+// EncodeUpdateDSLRequest returns an encoder for requests sent to the DSLEditor
+// UpdateDSL server.
+func EncodeUpdateDSLRequest(encoder func(*http.Request) goahttp.Encoder) func(*http.Request, any) error {
+	return func(req *http.Request, v any) error {
+		p, ok := v.(*types.PackageFile)
+		if !ok {
+			return goahttp.ErrInvalidType("DSLEditor", "UpdateDSL", "*types.PackageFile", v)
+		}
+		body := NewUpdateDSLRequestBody(p)
+		if err := encoder(req).Encode(&body); err != nil {
+			return goahttp.ErrEncodingError("DSLEditor", "UpdateDSL", err)
+		}
+		return nil
+	}
+}
+
+// DecodeUpdateDSLResponse returns a decoder for responses returned by the
+// DSLEditor UpdateDSL endpoint. restoreBody controls whether the response body
+// should be restored after having been read.
+// DecodeUpdateDSLResponse may return the following errors:
+//   - "compilation_failed" (type *goa.ServiceError): http.StatusBadRequest
+//   - error: internal error
+func DecodeUpdateDSLResponse(decoder func(*http.Response) goahttp.Decoder, restoreBody bool) func(*http.Response) (any, error) {
+	return func(resp *http.Response) (any, error) {
+		if restoreBody {
+			b, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return nil, err
+			}
+			resp.Body = io.NopCloser(bytes.NewBuffer(b))
+			defer func() {
+				resp.Body = io.NopCloser(bytes.NewBuffer(b))
+			}()
+		} else {
+			defer resp.Body.Close()
+		}
+		switch resp.StatusCode {
+		case http.StatusNoContent:
+			return nil, nil
+		case http.StatusBadRequest:
+			var (
+				body UpdateDSLCompilationFailedResponseBody
+				err  error
+			)
+			err = decoder(resp).Decode(&body)
+			if err != nil {
+				return nil, goahttp.ErrDecodingError("DSLEditor", "UpdateDSL", err)
+			}
+			err = ValidateUpdateDSLCompilationFailedResponseBody(&body)
+			if err != nil {
+				return nil, goahttp.ErrValidationError("DSLEditor", "UpdateDSL", err)
+			}
+			return nil, NewUpdateDSLCompilationFailed(&body)
+		default:
+			body, _ := io.ReadAll(resp.Body)
+			return nil, goahttp.ErrInvalidResponse("DSLEditor", "UpdateDSL", resp.StatusCode, string(body))
+		}
+	}
+}
 
 // BuildUpsertSystemRequest instantiates a HTTP request object with method and
 // path set to call the "DSLEditor" service "UpsertSystem" endpoint
@@ -41,9 +117,6 @@ func EncodeUpsertSystemRequest(encoder func(*http.Request) goahttp.Encoder) func
 		if !ok {
 			return goahttp.ErrInvalidType("DSLEditor", "UpsertSystem", "*dsleditor.System", v)
 		}
-		values := req.URL.Query()
-		values.Add("package", p.PackagePath)
-		req.URL.RawQuery = values.Encode()
 		body := NewUpsertSystemRequestBody(p)
 		if err := encoder(req).Encode(&body); err != nil {
 			return goahttp.ErrEncodingError("DSLEditor", "UpsertSystem", err)
@@ -55,6 +128,9 @@ func EncodeUpsertSystemRequest(encoder func(*http.Request) goahttp.Encoder) func
 // DecodeUpsertSystemResponse returns a decoder for responses returned by the
 // DSLEditor UpsertSystem endpoint. restoreBody controls whether the response
 // body should be restored after having been read.
+// DecodeUpsertSystemResponse may return the following errors:
+//   - "compilation_failed" (type *goa.ServiceError): http.StatusBadRequest
+//   - error: internal error
 func DecodeUpsertSystemResponse(decoder func(*http.Response) goahttp.Decoder, restoreBody bool) func(*http.Response) (any, error) {
 	return func(resp *http.Response) (any, error) {
 		if restoreBody {
@@ -72,6 +148,20 @@ func DecodeUpsertSystemResponse(decoder func(*http.Response) goahttp.Decoder, re
 		switch resp.StatusCode {
 		case http.StatusNoContent:
 			return nil, nil
+		case http.StatusBadRequest:
+			var (
+				body UpsertSystemCompilationFailedResponseBody
+				err  error
+			)
+			err = decoder(resp).Decode(&body)
+			if err != nil {
+				return nil, goahttp.ErrDecodingError("DSLEditor", "UpsertSystem", err)
+			}
+			err = ValidateUpsertSystemCompilationFailedResponseBody(&body)
+			if err != nil {
+				return nil, goahttp.ErrValidationError("DSLEditor", "UpsertSystem", err)
+			}
+			return nil, NewUpsertSystemCompilationFailed(&body)
 		default:
 			body, _ := io.ReadAll(resp.Body)
 			return nil, goahttp.ErrInvalidResponse("DSLEditor", "UpsertSystem", resp.StatusCode, string(body))
@@ -102,9 +192,6 @@ func EncodeUpsertPersonRequest(encoder func(*http.Request) goahttp.Encoder) func
 		if !ok {
 			return goahttp.ErrInvalidType("DSLEditor", "UpsertPerson", "*dsleditor.Person", v)
 		}
-		values := req.URL.Query()
-		values.Add("package", p.PackagePath)
-		req.URL.RawQuery = values.Encode()
 		body := NewUpsertPersonRequestBody(p)
 		if err := encoder(req).Encode(&body); err != nil {
 			return goahttp.ErrEncodingError("DSLEditor", "UpsertPerson", err)
@@ -116,6 +203,9 @@ func EncodeUpsertPersonRequest(encoder func(*http.Request) goahttp.Encoder) func
 // DecodeUpsertPersonResponse returns a decoder for responses returned by the
 // DSLEditor UpsertPerson endpoint. restoreBody controls whether the response
 // body should be restored after having been read.
+// DecodeUpsertPersonResponse may return the following errors:
+//   - "compilation_failed" (type *goa.ServiceError): http.StatusBadRequest
+//   - error: internal error
 func DecodeUpsertPersonResponse(decoder func(*http.Response) goahttp.Decoder, restoreBody bool) func(*http.Response) (any, error) {
 	return func(resp *http.Response) (any, error) {
 		if restoreBody {
@@ -133,6 +223,20 @@ func DecodeUpsertPersonResponse(decoder func(*http.Response) goahttp.Decoder, re
 		switch resp.StatusCode {
 		case http.StatusNoContent:
 			return nil, nil
+		case http.StatusBadRequest:
+			var (
+				body UpsertPersonCompilationFailedResponseBody
+				err  error
+			)
+			err = decoder(resp).Decode(&body)
+			if err != nil {
+				return nil, goahttp.ErrDecodingError("DSLEditor", "UpsertPerson", err)
+			}
+			err = ValidateUpsertPersonCompilationFailedResponseBody(&body)
+			if err != nil {
+				return nil, goahttp.ErrValidationError("DSLEditor", "UpsertPerson", err)
+			}
+			return nil, NewUpsertPersonCompilationFailed(&body)
 		default:
 			body, _ := io.ReadAll(resp.Body)
 			return nil, goahttp.ErrInvalidResponse("DSLEditor", "UpsertPerson", resp.StatusCode, string(body))
@@ -163,9 +267,6 @@ func EncodeUpsertContainerRequest(encoder func(*http.Request) goahttp.Encoder) f
 		if !ok {
 			return goahttp.ErrInvalidType("DSLEditor", "UpsertContainer", "*dsleditor.Container", v)
 		}
-		values := req.URL.Query()
-		values.Add("package", p.PackagePath)
-		req.URL.RawQuery = values.Encode()
 		body := NewUpsertContainerRequestBody(p)
 		if err := encoder(req).Encode(&body); err != nil {
 			return goahttp.ErrEncodingError("DSLEditor", "UpsertContainer", err)
@@ -177,6 +278,9 @@ func EncodeUpsertContainerRequest(encoder func(*http.Request) goahttp.Encoder) f
 // DecodeUpsertContainerResponse returns a decoder for responses returned by
 // the DSLEditor UpsertContainer endpoint. restoreBody controls whether the
 // response body should be restored after having been read.
+// DecodeUpsertContainerResponse may return the following errors:
+//   - "compilation_failed" (type *goa.ServiceError): http.StatusBadRequest
+//   - error: internal error
 func DecodeUpsertContainerResponse(decoder func(*http.Response) goahttp.Decoder, restoreBody bool) func(*http.Response) (any, error) {
 	return func(resp *http.Response) (any, error) {
 		if restoreBody {
@@ -194,6 +298,20 @@ func DecodeUpsertContainerResponse(decoder func(*http.Response) goahttp.Decoder,
 		switch resp.StatusCode {
 		case http.StatusNoContent:
 			return nil, nil
+		case http.StatusBadRequest:
+			var (
+				body UpsertContainerCompilationFailedResponseBody
+				err  error
+			)
+			err = decoder(resp).Decode(&body)
+			if err != nil {
+				return nil, goahttp.ErrDecodingError("DSLEditor", "UpsertContainer", err)
+			}
+			err = ValidateUpsertContainerCompilationFailedResponseBody(&body)
+			if err != nil {
+				return nil, goahttp.ErrValidationError("DSLEditor", "UpsertContainer", err)
+			}
+			return nil, NewUpsertContainerCompilationFailed(&body)
 		default:
 			body, _ := io.ReadAll(resp.Body)
 			return nil, goahttp.ErrInvalidResponse("DSLEditor", "UpsertContainer", resp.StatusCode, string(body))
@@ -224,9 +342,6 @@ func EncodeUpsertComponentRequest(encoder func(*http.Request) goahttp.Encoder) f
 		if !ok {
 			return goahttp.ErrInvalidType("DSLEditor", "UpsertComponent", "*dsleditor.Component", v)
 		}
-		values := req.URL.Query()
-		values.Add("package", p.PackagePath)
-		req.URL.RawQuery = values.Encode()
 		body := NewUpsertComponentRequestBody(p)
 		if err := encoder(req).Encode(&body); err != nil {
 			return goahttp.ErrEncodingError("DSLEditor", "UpsertComponent", err)
@@ -238,6 +353,9 @@ func EncodeUpsertComponentRequest(encoder func(*http.Request) goahttp.Encoder) f
 // DecodeUpsertComponentResponse returns a decoder for responses returned by
 // the DSLEditor UpsertComponent endpoint. restoreBody controls whether the
 // response body should be restored after having been read.
+// DecodeUpsertComponentResponse may return the following errors:
+//   - "compilation_failed" (type *goa.ServiceError): http.StatusBadRequest
+//   - error: internal error
 func DecodeUpsertComponentResponse(decoder func(*http.Response) goahttp.Decoder, restoreBody bool) func(*http.Response) (any, error) {
 	return func(resp *http.Response) (any, error) {
 		if restoreBody {
@@ -255,6 +373,20 @@ func DecodeUpsertComponentResponse(decoder func(*http.Response) goahttp.Decoder,
 		switch resp.StatusCode {
 		case http.StatusNoContent:
 			return nil, nil
+		case http.StatusBadRequest:
+			var (
+				body UpsertComponentCompilationFailedResponseBody
+				err  error
+			)
+			err = decoder(resp).Decode(&body)
+			if err != nil {
+				return nil, goahttp.ErrDecodingError("DSLEditor", "UpsertComponent", err)
+			}
+			err = ValidateUpsertComponentCompilationFailedResponseBody(&body)
+			if err != nil {
+				return nil, goahttp.ErrValidationError("DSLEditor", "UpsertComponent", err)
+			}
+			return nil, NewUpsertComponentCompilationFailed(&body)
 		default:
 			body, _ := io.ReadAll(resp.Body)
 			return nil, goahttp.ErrInvalidResponse("DSLEditor", "UpsertComponent", resp.StatusCode, string(body))
@@ -286,9 +418,6 @@ func EncodeUpsertRelationshipRequest(encoder func(*http.Request) goahttp.Encoder
 		if !ok {
 			return goahttp.ErrInvalidType("DSLEditor", "UpsertRelationship", "*dsleditor.Relationship", v)
 		}
-		values := req.URL.Query()
-		values.Add("package", p.PackagePath)
-		req.URL.RawQuery = values.Encode()
 		body := NewUpsertRelationshipRequestBody(p)
 		if err := encoder(req).Encode(&body); err != nil {
 			return goahttp.ErrEncodingError("DSLEditor", "UpsertRelationship", err)
@@ -300,6 +429,9 @@ func EncodeUpsertRelationshipRequest(encoder func(*http.Request) goahttp.Encoder
 // DecodeUpsertRelationshipResponse returns a decoder for responses returned by
 // the DSLEditor UpsertRelationship endpoint. restoreBody controls whether the
 // response body should be restored after having been read.
+// DecodeUpsertRelationshipResponse may return the following errors:
+//   - "compilation_failed" (type *goa.ServiceError): http.StatusBadRequest
+//   - error: internal error
 func DecodeUpsertRelationshipResponse(decoder func(*http.Response) goahttp.Decoder, restoreBody bool) func(*http.Response) (any, error) {
 	return func(resp *http.Response) (any, error) {
 		if restoreBody {
@@ -317,6 +449,20 @@ func DecodeUpsertRelationshipResponse(decoder func(*http.Response) goahttp.Decod
 		switch resp.StatusCode {
 		case http.StatusNoContent:
 			return nil, nil
+		case http.StatusBadRequest:
+			var (
+				body UpsertRelationshipCompilationFailedResponseBody
+				err  error
+			)
+			err = decoder(resp).Decode(&body)
+			if err != nil {
+				return nil, goahttp.ErrDecodingError("DSLEditor", "UpsertRelationship", err)
+			}
+			err = ValidateUpsertRelationshipCompilationFailedResponseBody(&body)
+			if err != nil {
+				return nil, goahttp.ErrValidationError("DSLEditor", "UpsertRelationship", err)
+			}
+			return nil, NewUpsertRelationshipCompilationFailed(&body)
 		default:
 			body, _ := io.ReadAll(resp.Body)
 			return nil, goahttp.ErrInvalidResponse("DSLEditor", "UpsertRelationship", resp.StatusCode, string(body))
@@ -328,16 +474,16 @@ func DecodeUpsertRelationshipResponse(decoder func(*http.Response) goahttp.Decod
 // path set to call the "DSLEditor" service "DeleteSystem" endpoint
 func (c *Client) BuildDeleteSystemRequest(ctx context.Context, v any) (*http.Request, error) {
 	var (
-		name string
+		systemName string
 	)
 	{
 		p, ok := v.(*dsleditor.DeleteSystemPayload)
 		if !ok {
 			return nil, goahttp.ErrInvalidType("DSLEditor", "DeleteSystem", "*dsleditor.DeleteSystemPayload", v)
 		}
-		name = p.Name
+		systemName = p.SystemName
 	}
-	u := &url.URL{Scheme: c.scheme, Host: c.host, Path: DeleteSystemDSLEditorPath(name)}
+	u := &url.URL{Scheme: c.scheme, Host: c.host, Path: DeleteSystemDSLEditorPath(systemName)}
 	req, err := http.NewRequest("DELETE", u.String(), nil)
 	if err != nil {
 		return nil, goahttp.ErrInvalidURL("DSLEditor", "DeleteSystem", u.String(), err)
@@ -357,9 +503,10 @@ func EncodeDeleteSystemRequest(encoder func(*http.Request) goahttp.Encoder) func
 		if !ok {
 			return goahttp.ErrInvalidType("DSLEditor", "DeleteSystem", "*dsleditor.DeleteSystemPayload", v)
 		}
-		values := req.URL.Query()
-		values.Add("package", p.PackagePath)
-		req.URL.RawQuery = values.Encode()
+		body := NewDeleteSystemRequestBody(p)
+		if err := encoder(req).Encode(&body); err != nil {
+			return goahttp.ErrEncodingError("DSLEditor", "DeleteSystem", err)
+		}
 		return nil
 	}
 }
@@ -369,6 +516,7 @@ func EncodeDeleteSystemRequest(encoder func(*http.Request) goahttp.Encoder) func
 // body should be restored after having been read.
 // DecodeDeleteSystemResponse may return the following errors:
 //   - "NotFound" (type *goa.ServiceError): http.StatusNotFound
+//   - "compilation_failed" (type *goa.ServiceError): http.StatusBadRequest
 //   - error: internal error
 func DecodeDeleteSystemResponse(decoder func(*http.Response) goahttp.Decoder, restoreBody bool) func(*http.Response) (any, error) {
 	return func(resp *http.Response) (any, error) {
@@ -401,6 +549,20 @@ func DecodeDeleteSystemResponse(decoder func(*http.Response) goahttp.Decoder, re
 				return nil, goahttp.ErrValidationError("DSLEditor", "DeleteSystem", err)
 			}
 			return nil, NewDeleteSystemNotFound(&body)
+		case http.StatusBadRequest:
+			var (
+				body DeleteSystemCompilationFailedResponseBody
+				err  error
+			)
+			err = decoder(resp).Decode(&body)
+			if err != nil {
+				return nil, goahttp.ErrDecodingError("DSLEditor", "DeleteSystem", err)
+			}
+			err = ValidateDeleteSystemCompilationFailedResponseBody(&body)
+			if err != nil {
+				return nil, goahttp.ErrValidationError("DSLEditor", "DeleteSystem", err)
+			}
+			return nil, NewDeleteSystemCompilationFailed(&body)
 		default:
 			body, _ := io.ReadAll(resp.Body)
 			return nil, goahttp.ErrInvalidResponse("DSLEditor", "DeleteSystem", resp.StatusCode, string(body))
@@ -412,16 +574,16 @@ func DecodeDeleteSystemResponse(decoder func(*http.Response) goahttp.Decoder, re
 // path set to call the "DSLEditor" service "DeletePerson" endpoint
 func (c *Client) BuildDeletePersonRequest(ctx context.Context, v any) (*http.Request, error) {
 	var (
-		name string
+		personName string
 	)
 	{
 		p, ok := v.(*dsleditor.DeletePersonPayload)
 		if !ok {
 			return nil, goahttp.ErrInvalidType("DSLEditor", "DeletePerson", "*dsleditor.DeletePersonPayload", v)
 		}
-		name = p.Name
+		personName = p.PersonName
 	}
-	u := &url.URL{Scheme: c.scheme, Host: c.host, Path: DeletePersonDSLEditorPath(name)}
+	u := &url.URL{Scheme: c.scheme, Host: c.host, Path: DeletePersonDSLEditorPath(personName)}
 	req, err := http.NewRequest("DELETE", u.String(), nil)
 	if err != nil {
 		return nil, goahttp.ErrInvalidURL("DSLEditor", "DeletePerson", u.String(), err)
@@ -441,9 +603,10 @@ func EncodeDeletePersonRequest(encoder func(*http.Request) goahttp.Encoder) func
 		if !ok {
 			return goahttp.ErrInvalidType("DSLEditor", "DeletePerson", "*dsleditor.DeletePersonPayload", v)
 		}
-		values := req.URL.Query()
-		values.Add("package", p.PackagePath)
-		req.URL.RawQuery = values.Encode()
+		body := NewDeletePersonRequestBody(p)
+		if err := encoder(req).Encode(&body); err != nil {
+			return goahttp.ErrEncodingError("DSLEditor", "DeletePerson", err)
+		}
 		return nil
 	}
 }
@@ -453,6 +616,7 @@ func EncodeDeletePersonRequest(encoder func(*http.Request) goahttp.Encoder) func
 // body should be restored after having been read.
 // DecodeDeletePersonResponse may return the following errors:
 //   - "NotFound" (type *goa.ServiceError): http.StatusNotFound
+//   - "compilation_failed" (type *goa.ServiceError): http.StatusBadRequest
 //   - error: internal error
 func DecodeDeletePersonResponse(decoder func(*http.Response) goahttp.Decoder, restoreBody bool) func(*http.Response) (any, error) {
 	return func(resp *http.Response) (any, error) {
@@ -485,6 +649,20 @@ func DecodeDeletePersonResponse(decoder func(*http.Response) goahttp.Decoder, re
 				return nil, goahttp.ErrValidationError("DSLEditor", "DeletePerson", err)
 			}
 			return nil, NewDeletePersonNotFound(&body)
+		case http.StatusBadRequest:
+			var (
+				body DeletePersonCompilationFailedResponseBody
+				err  error
+			)
+			err = decoder(resp).Decode(&body)
+			if err != nil {
+				return nil, goahttp.ErrDecodingError("DSLEditor", "DeletePerson", err)
+			}
+			err = ValidateDeletePersonCompilationFailedResponseBody(&body)
+			if err != nil {
+				return nil, goahttp.ErrValidationError("DSLEditor", "DeletePerson", err)
+			}
+			return nil, NewDeletePersonCompilationFailed(&body)
 		default:
 			body, _ := io.ReadAll(resp.Body)
 			return nil, goahttp.ErrInvalidResponse("DSLEditor", "DeletePerson", resp.StatusCode, string(body))
@@ -496,18 +674,20 @@ func DecodeDeletePersonResponse(decoder func(*http.Response) goahttp.Decoder, re
 // and path set to call the "DSLEditor" service "DeleteContainer" endpoint
 func (c *Client) BuildDeleteContainerRequest(ctx context.Context, v any) (*http.Request, error) {
 	var (
-		systemName string
-		name       string
+		systemName    string
+		containerName string
 	)
 	{
 		p, ok := v.(*dsleditor.DeleteContainerPayload)
 		if !ok {
 			return nil, goahttp.ErrInvalidType("DSLEditor", "DeleteContainer", "*dsleditor.DeleteContainerPayload", v)
 		}
-		systemName = p.SystemName
-		name = p.Name
+		if p.SystemName != nil {
+			systemName = *p.SystemName
+		}
+		containerName = p.ContainerName
 	}
-	u := &url.URL{Scheme: c.scheme, Host: c.host, Path: DeleteContainerDSLEditorPath(systemName, name)}
+	u := &url.URL{Scheme: c.scheme, Host: c.host, Path: DeleteContainerDSLEditorPath(systemName, containerName)}
 	req, err := http.NewRequest("DELETE", u.String(), nil)
 	if err != nil {
 		return nil, goahttp.ErrInvalidURL("DSLEditor", "DeleteContainer", u.String(), err)
@@ -527,9 +707,10 @@ func EncodeDeleteContainerRequest(encoder func(*http.Request) goahttp.Encoder) f
 		if !ok {
 			return goahttp.ErrInvalidType("DSLEditor", "DeleteContainer", "*dsleditor.DeleteContainerPayload", v)
 		}
-		values := req.URL.Query()
-		values.Add("package", p.PackagePath)
-		req.URL.RawQuery = values.Encode()
+		body := NewDeleteContainerRequestBody(p)
+		if err := encoder(req).Encode(&body); err != nil {
+			return goahttp.ErrEncodingError("DSLEditor", "DeleteContainer", err)
+		}
 		return nil
 	}
 }
@@ -539,6 +720,7 @@ func EncodeDeleteContainerRequest(encoder func(*http.Request) goahttp.Encoder) f
 // response body should be restored after having been read.
 // DecodeDeleteContainerResponse may return the following errors:
 //   - "NotFound" (type *goa.ServiceError): http.StatusNotFound
+//   - "compilation_failed" (type *goa.ServiceError): http.StatusBadRequest
 //   - error: internal error
 func DecodeDeleteContainerResponse(decoder func(*http.Response) goahttp.Decoder, restoreBody bool) func(*http.Response) (any, error) {
 	return func(resp *http.Response) (any, error) {
@@ -571,6 +753,20 @@ func DecodeDeleteContainerResponse(decoder func(*http.Response) goahttp.Decoder,
 				return nil, goahttp.ErrValidationError("DSLEditor", "DeleteContainer", err)
 			}
 			return nil, NewDeleteContainerNotFound(&body)
+		case http.StatusBadRequest:
+			var (
+				body DeleteContainerCompilationFailedResponseBody
+				err  error
+			)
+			err = decoder(resp).Decode(&body)
+			if err != nil {
+				return nil, goahttp.ErrDecodingError("DSLEditor", "DeleteContainer", err)
+			}
+			err = ValidateDeleteContainerCompilationFailedResponseBody(&body)
+			if err != nil {
+				return nil, goahttp.ErrValidationError("DSLEditor", "DeleteContainer", err)
+			}
+			return nil, NewDeleteContainerCompilationFailed(&body)
 		default:
 			body, _ := io.ReadAll(resp.Body)
 			return nil, goahttp.ErrInvalidResponse("DSLEditor", "DeleteContainer", resp.StatusCode, string(body))
@@ -584,7 +780,7 @@ func (c *Client) BuildDeleteComponentRequest(ctx context.Context, v any) (*http.
 	var (
 		systemName    string
 		containerName string
-		name          string
+		componentName string
 	)
 	{
 		p, ok := v.(*dsleditor.DeleteComponentPayload)
@@ -593,9 +789,9 @@ func (c *Client) BuildDeleteComponentRequest(ctx context.Context, v any) (*http.
 		}
 		systemName = p.SystemName
 		containerName = p.ContainerName
-		name = p.Name
+		componentName = p.ComponentName
 	}
-	u := &url.URL{Scheme: c.scheme, Host: c.host, Path: DeleteComponentDSLEditorPath(systemName, containerName, name)}
+	u := &url.URL{Scheme: c.scheme, Host: c.host, Path: DeleteComponentDSLEditorPath(systemName, containerName, componentName)}
 	req, err := http.NewRequest("DELETE", u.String(), nil)
 	if err != nil {
 		return nil, goahttp.ErrInvalidURL("DSLEditor", "DeleteComponent", u.String(), err)
@@ -615,9 +811,10 @@ func EncodeDeleteComponentRequest(encoder func(*http.Request) goahttp.Encoder) f
 		if !ok {
 			return goahttp.ErrInvalidType("DSLEditor", "DeleteComponent", "*dsleditor.DeleteComponentPayload", v)
 		}
-		values := req.URL.Query()
-		values.Add("package", p.PackagePath)
-		req.URL.RawQuery = values.Encode()
+		body := NewDeleteComponentRequestBody(p)
+		if err := encoder(req).Encode(&body); err != nil {
+			return goahttp.ErrEncodingError("DSLEditor", "DeleteComponent", err)
+		}
 		return nil
 	}
 }
@@ -627,6 +824,7 @@ func EncodeDeleteComponentRequest(encoder func(*http.Request) goahttp.Encoder) f
 // response body should be restored after having been read.
 // DecodeDeleteComponentResponse may return the following errors:
 //   - "NotFound" (type *goa.ServiceError): http.StatusNotFound
+//   - "compilation_failed" (type *goa.ServiceError): http.StatusBadRequest
 //   - error: internal error
 func DecodeDeleteComponentResponse(decoder func(*http.Response) goahttp.Decoder, restoreBody bool) func(*http.Response) (any, error) {
 	return func(resp *http.Response) (any, error) {
@@ -659,6 +857,20 @@ func DecodeDeleteComponentResponse(decoder func(*http.Response) goahttp.Decoder,
 				return nil, goahttp.ErrValidationError("DSLEditor", "DeleteComponent", err)
 			}
 			return nil, NewDeleteComponentNotFound(&body)
+		case http.StatusBadRequest:
+			var (
+				body DeleteComponentCompilationFailedResponseBody
+				err  error
+			)
+			err = decoder(resp).Decode(&body)
+			if err != nil {
+				return nil, goahttp.ErrDecodingError("DSLEditor", "DeleteComponent", err)
+			}
+			err = ValidateDeleteComponentCompilationFailedResponseBody(&body)
+			if err != nil {
+				return nil, goahttp.ErrValidationError("DSLEditor", "DeleteComponent", err)
+			}
+			return nil, NewDeleteComponentCompilationFailed(&body)
 		default:
 			body, _ := io.ReadAll(resp.Body)
 			return nil, goahttp.ErrInvalidResponse("DSLEditor", "DeleteComponent", resp.StatusCode, string(body))
@@ -670,19 +882,7 @@ func DecodeDeleteComponentResponse(decoder func(*http.Response) goahttp.Decoder,
 // method and path set to call the "DSLEditor" service "DeleteRelationship"
 // endpoint
 func (c *Client) BuildDeleteRelationshipRequest(ctx context.Context, v any) (*http.Request, error) {
-	var (
-		sourcePath      string
-		destinationPath string
-	)
-	{
-		p, ok := v.(*dsleditor.DeleteRelationshipPayload)
-		if !ok {
-			return nil, goahttp.ErrInvalidType("DSLEditor", "DeleteRelationship", "*dsleditor.DeleteRelationshipPayload", v)
-		}
-		sourcePath = p.SourcePath
-		destinationPath = p.DestinationPath
-	}
-	u := &url.URL{Scheme: c.scheme, Host: c.host, Path: DeleteRelationshipDSLEditorPath(sourcePath, destinationPath)}
+	u := &url.URL{Scheme: c.scheme, Host: c.host, Path: DeleteRelationshipDSLEditorPath()}
 	req, err := http.NewRequest("DELETE", u.String(), nil)
 	if err != nil {
 		return nil, goahttp.ErrInvalidURL("DSLEditor", "DeleteRelationship", u.String(), err)
@@ -702,9 +902,10 @@ func EncodeDeleteRelationshipRequest(encoder func(*http.Request) goahttp.Encoder
 		if !ok {
 			return goahttp.ErrInvalidType("DSLEditor", "DeleteRelationship", "*dsleditor.DeleteRelationshipPayload", v)
 		}
-		values := req.URL.Query()
-		values.Add("package", p.PackagePath)
-		req.URL.RawQuery = values.Encode()
+		body := NewDeleteRelationshipRequestBody(p)
+		if err := encoder(req).Encode(&body); err != nil {
+			return goahttp.ErrEncodingError("DSLEditor", "DeleteRelationship", err)
+		}
 		return nil
 	}
 }
@@ -714,6 +915,7 @@ func EncodeDeleteRelationshipRequest(encoder func(*http.Request) goahttp.Encoder
 // response body should be restored after having been read.
 // DecodeDeleteRelationshipResponse may return the following errors:
 //   - "NotFound" (type *goa.ServiceError): http.StatusNotFound
+//   - "compilation_failed" (type *goa.ServiceError): http.StatusBadRequest
 //   - error: internal error
 func DecodeDeleteRelationshipResponse(decoder func(*http.Response) goahttp.Decoder, restoreBody bool) func(*http.Response) (any, error) {
 	return func(resp *http.Response) (any, error) {
@@ -746,9 +948,47 @@ func DecodeDeleteRelationshipResponse(decoder func(*http.Response) goahttp.Decod
 				return nil, goahttp.ErrValidationError("DSLEditor", "DeleteRelationship", err)
 			}
 			return nil, NewDeleteRelationshipNotFound(&body)
+		case http.StatusBadRequest:
+			var (
+				body DeleteRelationshipCompilationFailedResponseBody
+				err  error
+			)
+			err = decoder(resp).Decode(&body)
+			if err != nil {
+				return nil, goahttp.ErrDecodingError("DSLEditor", "DeleteRelationship", err)
+			}
+			err = ValidateDeleteRelationshipCompilationFailedResponseBody(&body)
+			if err != nil {
+				return nil, goahttp.ErrValidationError("DSLEditor", "DeleteRelationship", err)
+			}
+			return nil, NewDeleteRelationshipCompilationFailed(&body)
 		default:
 			body, _ := io.ReadAll(resp.Body)
 			return nil, goahttp.ErrInvalidResponse("DSLEditor", "DeleteRelationship", resp.StatusCode, string(body))
 		}
 	}
+}
+
+// marshalTypesFileLocatorToFileLocatorRequestBody builds a value of type
+// *FileLocatorRequestBody from a value of type *types.FileLocator.
+func marshalTypesFileLocatorToFileLocatorRequestBody(v *types.FileLocator) *FileLocatorRequestBody {
+	res := &FileLocatorRequestBody{
+		Filename:  v.Filename,
+		Workspace: v.Workspace,
+		Dir:       v.Dir,
+	}
+
+	return res
+}
+
+// marshalFileLocatorRequestBodyToTypesFileLocator builds a value of type
+// *types.FileLocator from a value of type *FileLocatorRequestBody.
+func marshalFileLocatorRequestBodyToTypesFileLocator(v *FileLocatorRequestBody) *types.FileLocator {
+	res := &types.FileLocator{
+		Filename:  v.Filename,
+		Workspace: v.Workspace,
+		Dir:       v.Dir,
+	}
+
+	return res
 }

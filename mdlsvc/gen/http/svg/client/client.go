@@ -13,7 +13,6 @@ import (
 
 	goahttp "goa.design/goa/v3/http"
 	goa "goa.design/goa/v3/pkg"
-	svg "goa.design/model/mdlsvc/gen/svg"
 )
 
 // Client lists the SVG service endpoint HTTP clients.
@@ -74,12 +73,7 @@ func (c *Client) Load() goa.Endpoint {
 		if err != nil {
 			return nil, goahttp.ErrRequestError("SVG", "Load", err)
 		}
-		_, err = decodeResponse(resp)
-		if err != nil {
-			resp.Body.Close()
-			return nil, err
-		}
-		return &svg.LoadResponseData{Body: resp.Body}, nil
+		return decodeResponse(resp)
 	}
 }
 

@@ -11,10 +11,12 @@ import (
 	"context"
 
 	goa "goa.design/goa/v3/pkg"
+	types "goa.design/model/mdlsvc/gen/types"
 )
 
 // Endpoints wraps the "DSLEditor" service endpoints.
 type Endpoints struct {
+	UpdateDSL          goa.Endpoint
 	UpsertSystem       goa.Endpoint
 	UpsertPerson       goa.Endpoint
 	UpsertContainer    goa.Endpoint
@@ -30,6 +32,7 @@ type Endpoints struct {
 // NewEndpoints wraps the methods of the "DSLEditor" service with endpoints.
 func NewEndpoints(s Service) *Endpoints {
 	return &Endpoints{
+		UpdateDSL:          NewUpdateDSLEndpoint(s),
 		UpsertSystem:       NewUpsertSystemEndpoint(s),
 		UpsertPerson:       NewUpsertPersonEndpoint(s),
 		UpsertContainer:    NewUpsertContainerEndpoint(s),
@@ -45,6 +48,7 @@ func NewEndpoints(s Service) *Endpoints {
 
 // Use applies the given middleware to all the "DSLEditor" service endpoints.
 func (e *Endpoints) Use(m func(goa.Endpoint) goa.Endpoint) {
+	e.UpdateDSL = m(e.UpdateDSL)
 	e.UpsertSystem = m(e.UpsertSystem)
 	e.UpsertPerson = m(e.UpsertPerson)
 	e.UpsertContainer = m(e.UpsertContainer)
@@ -55,6 +59,15 @@ func (e *Endpoints) Use(m func(goa.Endpoint) goa.Endpoint) {
 	e.DeleteContainer = m(e.DeleteContainer)
 	e.DeleteComponent = m(e.DeleteComponent)
 	e.DeleteRelationship = m(e.DeleteRelationship)
+}
+
+// NewUpdateDSLEndpoint returns an endpoint function that calls the method
+// "UpdateDSL" of service "DSLEditor".
+func NewUpdateDSLEndpoint(s Service) goa.Endpoint {
+	return func(ctx context.Context, req any) (any, error) {
+		p := req.(*types.PackageFile)
+		return nil, s.UpdateDSL(ctx, p)
+	}
 }
 
 // NewUpsertSystemEndpoint returns an endpoint function that calls the method

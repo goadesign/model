@@ -2,11 +2,24 @@ package mdlsvc
 
 import (
 	"context"
+	"os"
+	"path/filepath"
 
 	geneditor "goa.design/model/mdlsvc/gen/dsl_editor"
+	gentypes "goa.design/model/mdlsvc/gen/types"
 )
 
-// UpsertSystem implements UpsertSystem.
+// Update the DSL for the given package, compile it and return the
+// corresponding JSON if successful
+func (svc *Service) UpdateDSL(ctx context.Context, p *gentypes.PackageFile) error {
+	err := os.WriteFile(filepath.Join(p.Locator.Dir, p.Locator.Filename), []byte(p.Content), 0644)
+	if err != nil {
+		return logAndReturn(ctx, err, "failed to write file %s", p.Locator.Filename)
+	}
+	return nil
+}
+
+// UpsertSystem updates the DSL for the given system or adds the DSL if it does not exist.
 func (svc *Service) UpsertSystem(ctx context.Context, p *geneditor.System) error {
 	panic("not implemented")
 }

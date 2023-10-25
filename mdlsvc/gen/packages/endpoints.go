@@ -12,37 +12,37 @@ import (
 	"io"
 
 	goa "goa.design/goa/v3/pkg"
+	types "goa.design/model/mdlsvc/gen/types"
 )
 
 // Endpoints wraps the "Packages" service endpoints.
 type Endpoints struct {
-	ListPackages goa.Endpoint
-	Subscribe    goa.Endpoint
-	Upload       goa.Endpoint
-	GetModel     goa.Endpoint
+	ListPackages     goa.Endpoint
+	ListPackageFiles goa.Endpoint
+	Subscribe        goa.Endpoint
+	GetModelJSON     goa.Endpoint
+	GetLayout        goa.Endpoint
 }
 
 // SubscribeEndpointInput holds both the payload and the server stream of the
 // "Subscribe" method.
 type SubscribeEndpointInput struct {
 	// Payload is the method payload.
-	Payload *Package
+	Payload *types.PackageLocator
 	// Stream is the server stream used by the "Subscribe" method to send data.
 	Stream SubscribeServerStream
 }
 
-// UploadRequestData holds both the payload and the HTTP request body reader of
-// the "Upload" method.
-type UploadRequestData struct {
-	// Payload is the method payload.
-	Payload *Package
-	// Body streams the HTTP request body.
+// GetModelJSONResponseData holds both the result and the HTTP response body
+// reader of the "GetModelJSON" method.
+type GetModelJSONResponseData struct {
+	// Body streams the HTTP response body.
 	Body io.ReadCloser
 }
 
-// GetModelResponseData holds both the result and the HTTP response body reader
-// of the "GetModel" method.
-type GetModelResponseData struct {
+// GetLayoutResponseData holds both the result and the HTTP response body
+// reader of the "GetLayout" method.
+type GetLayoutResponseData struct {
 	// Body streams the HTTP response body.
 	Body io.ReadCloser
 }
@@ -50,26 +50,38 @@ type GetModelResponseData struct {
 // NewEndpoints wraps the methods of the "Packages" service with endpoints.
 func NewEndpoints(s Service) *Endpoints {
 	return &Endpoints{
-		ListPackages: NewListPackagesEndpoint(s),
-		Subscribe:    NewSubscribeEndpoint(s),
-		Upload:       NewUploadEndpoint(s),
-		GetModel:     NewGetModelEndpoint(s),
+		ListPackages:     NewListPackagesEndpoint(s),
+		ListPackageFiles: NewListPackageFilesEndpoint(s),
+		Subscribe:        NewSubscribeEndpoint(s),
+		GetModelJSON:     NewGetModelJSONEndpoint(s),
+		GetLayout:        NewGetLayoutEndpoint(s),
 	}
 }
 
 // Use applies the given middleware to all the "Packages" service endpoints.
 func (e *Endpoints) Use(m func(goa.Endpoint) goa.Endpoint) {
 	e.ListPackages = m(e.ListPackages)
+	e.ListPackageFiles = m(e.ListPackageFiles)
 	e.Subscribe = m(e.Subscribe)
-	e.Upload = m(e.Upload)
-	e.GetModel = m(e.GetModel)
+	e.GetModelJSON = m(e.GetModelJSON)
+	e.GetLayout = m(e.GetLayout)
 }
 
 // NewListPackagesEndpoint returns an endpoint function that calls the method
 // "ListPackages" of service "Packages".
 func NewListPackagesEndpoint(s Service) goa.Endpoint {
 	return func(ctx context.Context, req any) (any, error) {
-		return s.ListPackages(ctx)
+		p := req.(*types.Workspace)
+		return s.ListPackages(ctx, p)
+	}
+}
+
+// NewListPackageFilesEndpoint returns an endpoint function that calls the
+// method "ListPackageFiles" of service "Packages".
+func NewListPackageFilesEndpoint(s Service) goa.Endpoint {
+	return func(ctx context.Context, req any) (any, error) {
+		p := req.(*types.PackageLocator)
+		return s.ListPackageFiles(ctx, p)
 	}
 }
 
@@ -82,24 +94,28 @@ func NewSubscribeEndpoint(s Service) goa.Endpoint {
 	}
 }
 
-// NewUploadEndpoint returns an endpoint function that calls the method
-// "Upload" of service "Packages".
-func NewUploadEndpoint(s Service) goa.Endpoint {
+// NewGetModelJSONEndpoint returns an endpoint function that calls the method
+// "GetModelJSON" of service "Packages".
+func NewGetModelJSONEndpoint(s Service) goa.Endpoint {
 	return func(ctx context.Context, req any) (any, error) {
-		ep := req.(*UploadRequestData)
-		return s.Upload(ctx, ep.Payload, ep.Body)
-	}
-}
-
-// NewGetModelEndpoint returns an endpoint function that calls the method
-// "GetModel" of service "Packages".
-func NewGetModelEndpoint(s Service) goa.Endpoint {
-	return func(ctx context.Context, req any) (any, error) {
-		p := req.(*Package)
-		body, err := s.GetModel(ctx, p)
+		p := req.(*types.PackageLocator)
+		body, err := s.GetModelJSON(ctx, p)
 		if err != nil {
 			return nil, err
 		}
-		return &GetModelResponseData{Body: body}, nil
+		return &GetModelJSONResponseData{Body: body}, nil
+	}
+}
+
+// NewGetLayoutEndpoint returns an endpoint function that calls the method
+// "GetLayout" of service "Packages".
+func NewGetLayoutEndpoint(s Service) goa.Endpoint {
+	return func(ctx context.Context, req any) (any, error) {
+		p := req.(*types.PackageLocator)
+		body, err := s.GetLayout(ctx, p)
+		if err != nil {
+			return nil, err
+		}
+		return &GetLayoutResponseData{Body: body}, nil
 	}
 }

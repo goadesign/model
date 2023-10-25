@@ -9,15 +9,14 @@ package svg
 
 import (
 	"context"
-	"io"
 )
 
 // Service is the SVG service interface.
 type Service interface {
 	// Stream the model layout JSON saved in the SVG
-	Load(context.Context, *Filename) (body io.ReadCloser, err error)
+	Load(context.Context, *Filename) (res SVG, err error)
 	// Save the SVG streamed in the request body
-	Save(context.Context, *Filename, io.ReadCloser) (err error)
+	Save(context.Context, *SavePayload) (err error)
 }
 
 // ServiceName is the name of the service as defined in the design. This is the
@@ -32,6 +31,17 @@ var MethodNames = [2]string{"Load", "Save"}
 
 // Filename is the payload type of the SVG service Load method.
 type Filename struct {
+	// Diagram SVG filename
+	Filename string
+}
+
+// SVG is the result type of the SVG service Load method.
+type SVG string
+
+// SavePayload is the payload type of the SVG service Save method.
+type SavePayload struct {
+	// Diagram SVG
+	SVG SVG
 	// Diagram SVG filename
 	Filename string
 }

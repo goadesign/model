@@ -11,10 +11,12 @@ import (
 	"context"
 
 	goa "goa.design/goa/v3/pkg"
+	types "goa.design/model/mdlsvc/gen/types"
 )
 
 // Client is the "DSLEditor" service client.
 type Client struct {
+	UpdateDSLEndpoint          goa.Endpoint
 	UpsertSystemEndpoint       goa.Endpoint
 	UpsertPersonEndpoint       goa.Endpoint
 	UpsertContainerEndpoint    goa.Endpoint
@@ -28,8 +30,9 @@ type Client struct {
 }
 
 // NewClient initializes a "DSLEditor" service client given the endpoints.
-func NewClient(upsertSystem, upsertPerson, upsertContainer, upsertComponent, upsertRelationship, deleteSystem, deletePerson, deleteContainer, deleteComponent, deleteRelationship goa.Endpoint) *Client {
+func NewClient(updateDSL, upsertSystem, upsertPerson, upsertContainer, upsertComponent, upsertRelationship, deleteSystem, deletePerson, deleteContainer, deleteComponent, deleteRelationship goa.Endpoint) *Client {
 	return &Client{
+		UpdateDSLEndpoint:          updateDSL,
 		UpsertSystemEndpoint:       upsertSystem,
 		UpsertPersonEndpoint:       upsertPerson,
 		UpsertContainerEndpoint:    upsertContainer,
@@ -43,13 +46,28 @@ func NewClient(upsertSystem, upsertPerson, upsertContainer, upsertComponent, ups
 	}
 }
 
+// UpdateDSL calls the "UpdateDSL" endpoint of the "DSLEditor" service.
+// UpdateDSL may return the following errors:
+//   - "compilation_failed" (type *goa.ServiceError): Compilation failed
+//   - error: internal error
+func (c *Client) UpdateDSL(ctx context.Context, p *types.PackageFile) (err error) {
+	_, err = c.UpdateDSLEndpoint(ctx, p)
+	return
+}
+
 // UpsertSystem calls the "UpsertSystem" endpoint of the "DSLEditor" service.
+// UpsertSystem may return the following errors:
+//   - "compilation_failed" (type *goa.ServiceError): Compilation failed
+//   - error: internal error
 func (c *Client) UpsertSystem(ctx context.Context, p *System) (err error) {
 	_, err = c.UpsertSystemEndpoint(ctx, p)
 	return
 }
 
 // UpsertPerson calls the "UpsertPerson" endpoint of the "DSLEditor" service.
+// UpsertPerson may return the following errors:
+//   - "compilation_failed" (type *goa.ServiceError): Compilation failed
+//   - error: internal error
 func (c *Client) UpsertPerson(ctx context.Context, p *Person) (err error) {
 	_, err = c.UpsertPersonEndpoint(ctx, p)
 	return
@@ -57,6 +75,9 @@ func (c *Client) UpsertPerson(ctx context.Context, p *Person) (err error) {
 
 // UpsertContainer calls the "UpsertContainer" endpoint of the "DSLEditor"
 // service.
+// UpsertContainer may return the following errors:
+//   - "compilation_failed" (type *goa.ServiceError): Compilation failed
+//   - error: internal error
 func (c *Client) UpsertContainer(ctx context.Context, p *Container) (err error) {
 	_, err = c.UpsertContainerEndpoint(ctx, p)
 	return
@@ -64,6 +85,9 @@ func (c *Client) UpsertContainer(ctx context.Context, p *Container) (err error) 
 
 // UpsertComponent calls the "UpsertComponent" endpoint of the "DSLEditor"
 // service.
+// UpsertComponent may return the following errors:
+//   - "compilation_failed" (type *goa.ServiceError): Compilation failed
+//   - error: internal error
 func (c *Client) UpsertComponent(ctx context.Context, p *Component) (err error) {
 	_, err = c.UpsertComponentEndpoint(ctx, p)
 	return
@@ -71,6 +95,9 @@ func (c *Client) UpsertComponent(ctx context.Context, p *Component) (err error) 
 
 // UpsertRelationship calls the "UpsertRelationship" endpoint of the
 // "DSLEditor" service.
+// UpsertRelationship may return the following errors:
+//   - "compilation_failed" (type *goa.ServiceError): Compilation failed
+//   - error: internal error
 func (c *Client) UpsertRelationship(ctx context.Context, p *Relationship) (err error) {
 	_, err = c.UpsertRelationshipEndpoint(ctx, p)
 	return
@@ -79,6 +106,7 @@ func (c *Client) UpsertRelationship(ctx context.Context, p *Relationship) (err e
 // DeleteSystem calls the "DeleteSystem" endpoint of the "DSLEditor" service.
 // DeleteSystem may return the following errors:
 //   - "NotFound" (type *goa.ServiceError): Software system not found
+//   - "compilation_failed" (type *goa.ServiceError): Compilation failed
 //   - error: internal error
 func (c *Client) DeleteSystem(ctx context.Context, p *DeleteSystemPayload) (err error) {
 	_, err = c.DeleteSystemEndpoint(ctx, p)
@@ -88,6 +116,7 @@ func (c *Client) DeleteSystem(ctx context.Context, p *DeleteSystemPayload) (err 
 // DeletePerson calls the "DeletePerson" endpoint of the "DSLEditor" service.
 // DeletePerson may return the following errors:
 //   - "NotFound" (type *goa.ServiceError): Person not found
+//   - "compilation_failed" (type *goa.ServiceError): Compilation failed
 //   - error: internal error
 func (c *Client) DeletePerson(ctx context.Context, p *DeletePersonPayload) (err error) {
 	_, err = c.DeletePersonEndpoint(ctx, p)
@@ -98,6 +127,7 @@ func (c *Client) DeletePerson(ctx context.Context, p *DeletePersonPayload) (err 
 // service.
 // DeleteContainer may return the following errors:
 //   - "NotFound" (type *goa.ServiceError): Container not found
+//   - "compilation_failed" (type *goa.ServiceError): Compilation failed
 //   - error: internal error
 func (c *Client) DeleteContainer(ctx context.Context, p *DeleteContainerPayload) (err error) {
 	_, err = c.DeleteContainerEndpoint(ctx, p)
@@ -108,6 +138,7 @@ func (c *Client) DeleteContainer(ctx context.Context, p *DeleteContainerPayload)
 // service.
 // DeleteComponent may return the following errors:
 //   - "NotFound" (type *goa.ServiceError): Component not found
+//   - "compilation_failed" (type *goa.ServiceError): Compilation failed
 //   - error: internal error
 func (c *Client) DeleteComponent(ctx context.Context, p *DeleteComponentPayload) (err error) {
 	_, err = c.DeleteComponentEndpoint(ctx, p)
@@ -118,6 +149,7 @@ func (c *Client) DeleteComponent(ctx context.Context, p *DeleteComponentPayload)
 // "DSLEditor" service.
 // DeleteRelationship may return the following errors:
 //   - "NotFound" (type *goa.ServiceError): Relationship not found
+//   - "compilation_failed" (type *goa.ServiceError): Compilation failed
 //   - error: internal error
 func (c *Client) DeleteRelationship(ctx context.Context, p *DeleteRelationshipPayload) (err error) {
 	_, err = c.DeleteRelationshipEndpoint(ctx, p)

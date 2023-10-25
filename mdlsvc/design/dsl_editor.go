@@ -3,9 +3,18 @@ package design
 import . "goa.design/goa/v3/dsl"
 
 var _ = Service("DSLEditor", func() {
+	Error("compilation_failed", ErrorResult, "Compilation failed")
 	HTTP(func() {
 		Path("/api/dsl")
-		Param("PackagePath:package")
+		Response("compilation_failed", StatusBadRequest)
+	})
+	Method("UpdateDSL", func() {
+		Description("Update the DSL for the given package, compile it and return the corresponding JSON if successful")
+		Payload(PackageFile)
+		HTTP(func() {
+			POST("/")
+			Response(StatusNoContent)
+		})
 	})
 	Method("UpsertSystem", func() {
 		Description("Create or update a software system in the model")
@@ -50,13 +59,13 @@ var _ = Service("DSLEditor", func() {
 	Method("DeleteSystem", func() {
 		Description("Delete an existing software system from the model")
 		Payload(func() {
-			Extend(GoPackage)
-			Attribute("Name", String, "Name of software system to delete")
-			Required("PackagePath", "Name")
+			Extend(FileLocator)
+			Attribute("SystemName", String, "Name of software system to delete")
+			Required("SystemName")
 		})
 		Error("NotFound", ErrorResult, "Software system not found")
 		HTTP(func() {
-			DELETE("/system/{Name}")
+			DELETE("/system/{SystemName}")
 			Response(StatusNoContent)
 			Response("NotFound", StatusNotFound)
 		})
@@ -64,13 +73,13 @@ var _ = Service("DSLEditor", func() {
 	Method("DeletePerson", func() {
 		Description("Delete an existing person from the model")
 		Payload(func() {
-			Extend(GoPackage)
-			Attribute("Name", String, "Name of person to delete")
-			Required("PackagePath", "Name")
+			Extend(FileLocator)
+			Attribute("PersonName", String, "Name of person to delete")
+			Required("PersonName")
 		})
 		Error("NotFound", ErrorResult, "Person not found")
 		HTTP(func() {
-			DELETE("/person/{Name}")
+			DELETE("/person/{PersonName}")
 			Response(StatusNoContent)
 			Response("NotFound", StatusNotFound)
 		})
@@ -78,14 +87,14 @@ var _ = Service("DSLEditor", func() {
 	Method("DeleteContainer", func() {
 		Description("Delete an existing container from the model")
 		Payload(func() {
-			Extend(GoPackage)
+			Extend(FileLocator)
 			Attribute("SystemName", String, "Name of container software system")
-			Attribute("Name", String, "Name of container to delete")
-			Required("PackagePath", "SystemName", "Name")
+			Attribute("ContainerName", String, "Name of container to delete")
+			Required("ContainerName")
 		})
 		Error("NotFound", ErrorResult, "Container not found")
 		HTTP(func() {
-			DELETE("/system/{SystemName}/container/{Name}")
+			DELETE("/system/{SystemName}/container/{ContainerName}")
 			Response(StatusNoContent)
 			Response("NotFound", StatusNotFound)
 		})
@@ -93,21 +102,21 @@ var _ = Service("DSLEditor", func() {
 	Method("DeleteComponent", func() {
 		Description("Delete an existing component from the model")
 		Payload(func() {
-			Extend(GoPackage)
+			Extend(FileLocator)
 			Attribute("SystemName", String, "Name of component software system", func() {
 				Example("My System")
 			})
 			Attribute("ContainerName", String, "Name of component software system", func() {
 				Example("My Container")
 			})
-			Attribute("Name", String, "Name of component to delete", func() {
+			Attribute("ComponentName", String, "Name of component to delete", func() {
 				Example("My Component")
 			})
-			Required("PackagePath", "SystemName", "ContainerName", "Name")
+			Required("SystemName", "ContainerName", "ComponentName")
 		})
 		Error("NotFound", ErrorResult, "Component not found")
 		HTTP(func() {
-			DELETE("/system/{SystemName}/container/{ContainerName}/component/{Name}")
+			DELETE("/system/{SystemName}/container/{ContainerName}/component/{ComponentName}")
 			Response(StatusNoContent)
 			Response("NotFound", StatusNotFound)
 		})
@@ -115,7 +124,7 @@ var _ = Service("DSLEditor", func() {
 	Method("DeleteRelationship", func() {
 		Description("Delete an existing relationship from the model")
 		Payload(func() {
-			Extend(GoPackage)
+			Extend(FileLocator)
 			Attribute("SourcePath", String, "Path to source element consisting of <software system name>[/<container name>[/<component name>]]", func() {
 				Example("Software System", func() {
 					Value("Software System")
@@ -138,11 +147,11 @@ var _ = Service("DSLEditor", func() {
 					Value("Software System/Container/Component")
 				})
 			})
-			Required("PackagePath", "SourcePath", "DestinationPath")
+			Required("SourcePath", "DestinationPath")
 		})
 		Error("NotFound", ErrorResult, "Relationship not found")
 		HTTP(func() {
-			DELETE("/relationship/{SourcePath}/{DestinationPath}")
+			DELETE("/relationship")
 			Response(StatusNoContent)
 			Response("NotFound", StatusNotFound)
 		})
@@ -150,7 +159,7 @@ var _ = Service("DSLEditor", func() {
 })
 
 var System = Type("System", func() {
-	Extend(GoPackage)
+	Attribute("Locator", FileLocator, "Path to file containing system DSL")
 	Attribute("Name", String, "Name of software system", func() {
 		Example("System")
 	})
@@ -170,11 +179,11 @@ var System = Type("System", func() {
 	Attribute("Properties", MapOf(String, String), "Set of arbitrary name-value properties (shown in diagram tooltips)", func() {
 		Example(map[string]string{"key1": "value1", "key2": "value2"})
 	})
-	Required("PackagePath", "Name")
+	Required("Name")
 })
 
 var Person = Type("Person", func() {
-	Extend(GoPackage)
+	Attribute("Locator", FileLocator, "Path to file containing person DSL")
 	Attribute("Name", String, "Name of person", func() {
 		Example("Person")
 	})
@@ -194,11 +203,11 @@ var Person = Type("Person", func() {
 	Attribute("Properties", MapOf(String, String), "Set of arbitrary name-value properties (shown in diagram tooltips)", func() {
 		Example(map[string]string{"key1": "value1", "key2": "value2"})
 	})
-	Required("PackagePath", "Name")
+	Required("Name")
 })
 
 var Container = Type("Container", func() {
-	Extend(GoPackage)
+	Attribute("Locator", FileLocator, "Path to file containing container DSL")
 	Attribute("SystemName", String, "Name of parent software system", func() {
 		Example("My System")
 	})
@@ -220,11 +229,11 @@ var Container = Type("Container", func() {
 	Attribute("Properties", MapOf(String, String), "Set of arbitrary name-value properties (shown in diagram tooltips)", func() {
 		Example(map[string]string{"key1": "value1", "key2": "value2"})
 	})
-	Required("PackagePath", "SystemName", "Name")
+	Required("SystemName", "Name")
 })
 
 var Component = Type("Component", func() {
-	Extend(GoPackage)
+	Attribute("Locator", FileLocator, "Path to file containing component DSL")
 	Attribute("SystemName", String, "Name of parent software system", func() {
 		Example("My System")
 	})
@@ -249,11 +258,11 @@ var Component = Type("Component", func() {
 	Attribute("Properties", MapOf(String, String), "Set of arbitrary name-value properties (shown in diagram tooltips)", func() {
 		Example(map[string]string{"key1": "value1", "key2": "value2"})
 	})
-	Required("PackagePath", "SystemName", "ContainerName", "Name")
+	Required("SystemName", "ContainerName", "Name")
 })
 
 var Relationship = Type("Relationship", func() {
-	Extend(GoPackage)
+	Attribute("Locator", FileLocator, "Path to file containing relationship DSL")
 	Attribute("SourcePath", String, "Path to source element consisting of <software system name>[/<container name>[/<component name>]]", func() {
 		Example("Software System", func() {
 			Value("Software System")
@@ -293,5 +302,5 @@ var Relationship = Type("Relationship", func() {
 		Format(FormatURI)
 		Example("https://relationship.com")
 	})
-	Required("PackagePath", "SourcePath", "DestinationPath")
+	Required("SourcePath", "DestinationPath")
 })

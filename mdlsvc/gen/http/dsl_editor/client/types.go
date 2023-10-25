@@ -8,13 +8,27 @@
 package client
 
 import (
+	"unicode/utf8"
+
 	goa "goa.design/goa/v3/pkg"
 	dsleditor "goa.design/model/mdlsvc/gen/dsl_editor"
+	types "goa.design/model/mdlsvc/gen/types"
 )
+
+// UpdateDSLRequestBody is the type of the "DSLEditor" service "UpdateDSL"
+// endpoint HTTP request body.
+type UpdateDSLRequestBody struct {
+	// Path to file containing DSL code
+	Locator *FileLocatorRequestBody `form:"Locator" json:"Locator" xml:"Locator"`
+	// DSL code
+	Content string `form:"Content" json:"Content" xml:"Content"`
+}
 
 // UpsertSystemRequestBody is the type of the "DSLEditor" service
 // "UpsertSystem" endpoint HTTP request body.
 type UpsertSystemRequestBody struct {
+	// Path to file containing system DSL
+	Locator *FileLocatorRequestBody `form:"Locator,omitempty" json:"Locator,omitempty" xml:"Locator,omitempty"`
 	// Name of software system
 	Name string `form:"Name" json:"Name" xml:"Name"`
 	// Description of system
@@ -33,6 +47,8 @@ type UpsertSystemRequestBody struct {
 // UpsertPersonRequestBody is the type of the "DSLEditor" service
 // "UpsertPerson" endpoint HTTP request body.
 type UpsertPersonRequestBody struct {
+	// Path to file containing person DSL
+	Locator *FileLocatorRequestBody `form:"Locator,omitempty" json:"Locator,omitempty" xml:"Locator,omitempty"`
 	// Name of person
 	Name string `form:"Name" json:"Name" xml:"Name"`
 	// Description of person
@@ -51,6 +67,8 @@ type UpsertPersonRequestBody struct {
 // UpsertContainerRequestBody is the type of the "DSLEditor" service
 // "UpsertContainer" endpoint HTTP request body.
 type UpsertContainerRequestBody struct {
+	// Path to file containing container DSL
+	Locator *FileLocatorRequestBody `form:"Locator,omitempty" json:"Locator,omitempty" xml:"Locator,omitempty"`
 	// Name of parent software system
 	SystemName string `form:"SystemName" json:"SystemName" xml:"SystemName"`
 	// Name of container
@@ -70,6 +88,8 @@ type UpsertContainerRequestBody struct {
 // UpsertComponentRequestBody is the type of the "DSLEditor" service
 // "UpsertComponent" endpoint HTTP request body.
 type UpsertComponentRequestBody struct {
+	// Path to file containing component DSL
+	Locator *FileLocatorRequestBody `form:"Locator,omitempty" json:"Locator,omitempty" xml:"Locator,omitempty"`
 	// Name of parent software system
 	SystemName string `form:"SystemName" json:"SystemName" xml:"SystemName"`
 	// Name of parent container
@@ -91,6 +111,8 @@ type UpsertComponentRequestBody struct {
 // UpsertRelationshipRequestBody is the type of the "DSLEditor" service
 // "UpsertRelationship" endpoint HTTP request body.
 type UpsertRelationshipRequestBody struct {
+	// Path to file containing relationship DSL
+	Locator *FileLocatorRequestBody `form:"Locator,omitempty" json:"Locator,omitempty" xml:"Locator,omitempty"`
 	// Path to source element consisting of <software system name>[/<container
 	// name>[/<component name>]]
 	SourcePath string `form:"SourcePath" json:"SourcePath" xml:"SourcePath"`
@@ -108,9 +130,202 @@ type UpsertRelationshipRequestBody struct {
 	URL *string `form:"URL,omitempty" json:"URL,omitempty" xml:"URL,omitempty"`
 }
 
+// DeleteSystemRequestBody is the type of the "DSLEditor" service
+// "DeleteSystem" endpoint HTTP request body.
+type DeleteSystemRequestBody struct {
+	// Name of DSL file
+	Filename string `form:"Filename" json:"Filename" xml:"Filename"`
+	// Workspace identifier
+	Workspace string `form:"Workspace" json:"Workspace" xml:"Workspace"`
+	// Path to directory containing a model package
+	Dir string `form:"Dir" json:"Dir" xml:"Dir"`
+}
+
+// DeletePersonRequestBody is the type of the "DSLEditor" service
+// "DeletePerson" endpoint HTTP request body.
+type DeletePersonRequestBody struct {
+	// Name of DSL file
+	Filename string `form:"Filename" json:"Filename" xml:"Filename"`
+	// Workspace identifier
+	Workspace string `form:"Workspace" json:"Workspace" xml:"Workspace"`
+	// Path to directory containing a model package
+	Dir string `form:"Dir" json:"Dir" xml:"Dir"`
+}
+
+// DeleteContainerRequestBody is the type of the "DSLEditor" service
+// "DeleteContainer" endpoint HTTP request body.
+type DeleteContainerRequestBody struct {
+	// Name of DSL file
+	Filename string `form:"Filename" json:"Filename" xml:"Filename"`
+	// Workspace identifier
+	Workspace string `form:"Workspace" json:"Workspace" xml:"Workspace"`
+	// Path to directory containing a model package
+	Dir string `form:"Dir" json:"Dir" xml:"Dir"`
+}
+
+// DeleteComponentRequestBody is the type of the "DSLEditor" service
+// "DeleteComponent" endpoint HTTP request body.
+type DeleteComponentRequestBody struct {
+	// Name of DSL file
+	Filename string `form:"Filename" json:"Filename" xml:"Filename"`
+	// Workspace identifier
+	Workspace string `form:"Workspace" json:"Workspace" xml:"Workspace"`
+	// Path to directory containing a model package
+	Dir string `form:"Dir" json:"Dir" xml:"Dir"`
+}
+
+// DeleteRelationshipRequestBody is the type of the "DSLEditor" service
+// "DeleteRelationship" endpoint HTTP request body.
+type DeleteRelationshipRequestBody struct {
+	// Path to source element consisting of <software system name>[/<container
+	// name>[/<component name>]]
+	SourcePath string `form:"SourcePath" json:"SourcePath" xml:"SourcePath"`
+	// Path to destination element, see SourcePath for details.
+	DestinationPath string `form:"DestinationPath" json:"DestinationPath" xml:"DestinationPath"`
+	// Name of DSL file
+	Filename string `form:"Filename" json:"Filename" xml:"Filename"`
+	// Workspace identifier
+	Workspace string `form:"Workspace" json:"Workspace" xml:"Workspace"`
+	// Path to directory containing a model package
+	Dir string `form:"Dir" json:"Dir" xml:"Dir"`
+}
+
+// UpdateDSLCompilationFailedResponseBody is the type of the "DSLEditor"
+// service "UpdateDSL" endpoint HTTP response body for the "compilation_failed"
+// error.
+type UpdateDSLCompilationFailedResponseBody struct {
+	// Name is the name of this class of errors.
+	Name *string `form:"name,omitempty" json:"name,omitempty" xml:"name,omitempty"`
+	// ID is a unique identifier for this particular occurrence of the problem.
+	ID *string `form:"id,omitempty" json:"id,omitempty" xml:"id,omitempty"`
+	// Message is a human-readable explanation specific to this occurrence of the
+	// problem.
+	Message *string `form:"message,omitempty" json:"message,omitempty" xml:"message,omitempty"`
+	// Is the error temporary?
+	Temporary *bool `form:"temporary,omitempty" json:"temporary,omitempty" xml:"temporary,omitempty"`
+	// Is the error a timeout?
+	Timeout *bool `form:"timeout,omitempty" json:"timeout,omitempty" xml:"timeout,omitempty"`
+	// Is the error a server-side fault?
+	Fault *bool `form:"fault,omitempty" json:"fault,omitempty" xml:"fault,omitempty"`
+}
+
+// UpsertSystemCompilationFailedResponseBody is the type of the "DSLEditor"
+// service "UpsertSystem" endpoint HTTP response body for the
+// "compilation_failed" error.
+type UpsertSystemCompilationFailedResponseBody struct {
+	// Name is the name of this class of errors.
+	Name *string `form:"name,omitempty" json:"name,omitempty" xml:"name,omitempty"`
+	// ID is a unique identifier for this particular occurrence of the problem.
+	ID *string `form:"id,omitempty" json:"id,omitempty" xml:"id,omitempty"`
+	// Message is a human-readable explanation specific to this occurrence of the
+	// problem.
+	Message *string `form:"message,omitempty" json:"message,omitempty" xml:"message,omitempty"`
+	// Is the error temporary?
+	Temporary *bool `form:"temporary,omitempty" json:"temporary,omitempty" xml:"temporary,omitempty"`
+	// Is the error a timeout?
+	Timeout *bool `form:"timeout,omitempty" json:"timeout,omitempty" xml:"timeout,omitempty"`
+	// Is the error a server-side fault?
+	Fault *bool `form:"fault,omitempty" json:"fault,omitempty" xml:"fault,omitempty"`
+}
+
+// UpsertPersonCompilationFailedResponseBody is the type of the "DSLEditor"
+// service "UpsertPerson" endpoint HTTP response body for the
+// "compilation_failed" error.
+type UpsertPersonCompilationFailedResponseBody struct {
+	// Name is the name of this class of errors.
+	Name *string `form:"name,omitempty" json:"name,omitempty" xml:"name,omitempty"`
+	// ID is a unique identifier for this particular occurrence of the problem.
+	ID *string `form:"id,omitempty" json:"id,omitempty" xml:"id,omitempty"`
+	// Message is a human-readable explanation specific to this occurrence of the
+	// problem.
+	Message *string `form:"message,omitempty" json:"message,omitempty" xml:"message,omitempty"`
+	// Is the error temporary?
+	Temporary *bool `form:"temporary,omitempty" json:"temporary,omitempty" xml:"temporary,omitempty"`
+	// Is the error a timeout?
+	Timeout *bool `form:"timeout,omitempty" json:"timeout,omitempty" xml:"timeout,omitempty"`
+	// Is the error a server-side fault?
+	Fault *bool `form:"fault,omitempty" json:"fault,omitempty" xml:"fault,omitempty"`
+}
+
+// UpsertContainerCompilationFailedResponseBody is the type of the "DSLEditor"
+// service "UpsertContainer" endpoint HTTP response body for the
+// "compilation_failed" error.
+type UpsertContainerCompilationFailedResponseBody struct {
+	// Name is the name of this class of errors.
+	Name *string `form:"name,omitempty" json:"name,omitempty" xml:"name,omitempty"`
+	// ID is a unique identifier for this particular occurrence of the problem.
+	ID *string `form:"id,omitempty" json:"id,omitempty" xml:"id,omitempty"`
+	// Message is a human-readable explanation specific to this occurrence of the
+	// problem.
+	Message *string `form:"message,omitempty" json:"message,omitempty" xml:"message,omitempty"`
+	// Is the error temporary?
+	Temporary *bool `form:"temporary,omitempty" json:"temporary,omitempty" xml:"temporary,omitempty"`
+	// Is the error a timeout?
+	Timeout *bool `form:"timeout,omitempty" json:"timeout,omitempty" xml:"timeout,omitempty"`
+	// Is the error a server-side fault?
+	Fault *bool `form:"fault,omitempty" json:"fault,omitempty" xml:"fault,omitempty"`
+}
+
+// UpsertComponentCompilationFailedResponseBody is the type of the "DSLEditor"
+// service "UpsertComponent" endpoint HTTP response body for the
+// "compilation_failed" error.
+type UpsertComponentCompilationFailedResponseBody struct {
+	// Name is the name of this class of errors.
+	Name *string `form:"name,omitempty" json:"name,omitempty" xml:"name,omitempty"`
+	// ID is a unique identifier for this particular occurrence of the problem.
+	ID *string `form:"id,omitempty" json:"id,omitempty" xml:"id,omitempty"`
+	// Message is a human-readable explanation specific to this occurrence of the
+	// problem.
+	Message *string `form:"message,omitempty" json:"message,omitempty" xml:"message,omitempty"`
+	// Is the error temporary?
+	Temporary *bool `form:"temporary,omitempty" json:"temporary,omitempty" xml:"temporary,omitempty"`
+	// Is the error a timeout?
+	Timeout *bool `form:"timeout,omitempty" json:"timeout,omitempty" xml:"timeout,omitempty"`
+	// Is the error a server-side fault?
+	Fault *bool `form:"fault,omitempty" json:"fault,omitempty" xml:"fault,omitempty"`
+}
+
+// UpsertRelationshipCompilationFailedResponseBody is the type of the
+// "DSLEditor" service "UpsertRelationship" endpoint HTTP response body for the
+// "compilation_failed" error.
+type UpsertRelationshipCompilationFailedResponseBody struct {
+	// Name is the name of this class of errors.
+	Name *string `form:"name,omitempty" json:"name,omitempty" xml:"name,omitempty"`
+	// ID is a unique identifier for this particular occurrence of the problem.
+	ID *string `form:"id,omitempty" json:"id,omitempty" xml:"id,omitempty"`
+	// Message is a human-readable explanation specific to this occurrence of the
+	// problem.
+	Message *string `form:"message,omitempty" json:"message,omitempty" xml:"message,omitempty"`
+	// Is the error temporary?
+	Temporary *bool `form:"temporary,omitempty" json:"temporary,omitempty" xml:"temporary,omitempty"`
+	// Is the error a timeout?
+	Timeout *bool `form:"timeout,omitempty" json:"timeout,omitempty" xml:"timeout,omitempty"`
+	// Is the error a server-side fault?
+	Fault *bool `form:"fault,omitempty" json:"fault,omitempty" xml:"fault,omitempty"`
+}
+
 // DeleteSystemNotFoundResponseBody is the type of the "DSLEditor" service
 // "DeleteSystem" endpoint HTTP response body for the "NotFound" error.
 type DeleteSystemNotFoundResponseBody struct {
+	// Name is the name of this class of errors.
+	Name *string `form:"name,omitempty" json:"name,omitempty" xml:"name,omitempty"`
+	// ID is a unique identifier for this particular occurrence of the problem.
+	ID *string `form:"id,omitempty" json:"id,omitempty" xml:"id,omitempty"`
+	// Message is a human-readable explanation specific to this occurrence of the
+	// problem.
+	Message *string `form:"message,omitempty" json:"message,omitempty" xml:"message,omitempty"`
+	// Is the error temporary?
+	Temporary *bool `form:"temporary,omitempty" json:"temporary,omitempty" xml:"temporary,omitempty"`
+	// Is the error a timeout?
+	Timeout *bool `form:"timeout,omitempty" json:"timeout,omitempty" xml:"timeout,omitempty"`
+	// Is the error a server-side fault?
+	Fault *bool `form:"fault,omitempty" json:"fault,omitempty" xml:"fault,omitempty"`
+}
+
+// DeleteSystemCompilationFailedResponseBody is the type of the "DSLEditor"
+// service "DeleteSystem" endpoint HTTP response body for the
+// "compilation_failed" error.
+type DeleteSystemCompilationFailedResponseBody struct {
 	// Name is the name of this class of errors.
 	Name *string `form:"name,omitempty" json:"name,omitempty" xml:"name,omitempty"`
 	// ID is a unique identifier for this particular occurrence of the problem.
@@ -144,6 +359,25 @@ type DeletePersonNotFoundResponseBody struct {
 	Fault *bool `form:"fault,omitempty" json:"fault,omitempty" xml:"fault,omitempty"`
 }
 
+// DeletePersonCompilationFailedResponseBody is the type of the "DSLEditor"
+// service "DeletePerson" endpoint HTTP response body for the
+// "compilation_failed" error.
+type DeletePersonCompilationFailedResponseBody struct {
+	// Name is the name of this class of errors.
+	Name *string `form:"name,omitempty" json:"name,omitempty" xml:"name,omitempty"`
+	// ID is a unique identifier for this particular occurrence of the problem.
+	ID *string `form:"id,omitempty" json:"id,omitempty" xml:"id,omitempty"`
+	// Message is a human-readable explanation specific to this occurrence of the
+	// problem.
+	Message *string `form:"message,omitempty" json:"message,omitempty" xml:"message,omitempty"`
+	// Is the error temporary?
+	Temporary *bool `form:"temporary,omitempty" json:"temporary,omitempty" xml:"temporary,omitempty"`
+	// Is the error a timeout?
+	Timeout *bool `form:"timeout,omitempty" json:"timeout,omitempty" xml:"timeout,omitempty"`
+	// Is the error a server-side fault?
+	Fault *bool `form:"fault,omitempty" json:"fault,omitempty" xml:"fault,omitempty"`
+}
+
 // DeleteContainerNotFoundResponseBody is the type of the "DSLEditor" service
 // "DeleteContainer" endpoint HTTP response body for the "NotFound" error.
 type DeleteContainerNotFoundResponseBody struct {
@@ -162,9 +396,47 @@ type DeleteContainerNotFoundResponseBody struct {
 	Fault *bool `form:"fault,omitempty" json:"fault,omitempty" xml:"fault,omitempty"`
 }
 
+// DeleteContainerCompilationFailedResponseBody is the type of the "DSLEditor"
+// service "DeleteContainer" endpoint HTTP response body for the
+// "compilation_failed" error.
+type DeleteContainerCompilationFailedResponseBody struct {
+	// Name is the name of this class of errors.
+	Name *string `form:"name,omitempty" json:"name,omitempty" xml:"name,omitempty"`
+	// ID is a unique identifier for this particular occurrence of the problem.
+	ID *string `form:"id,omitempty" json:"id,omitempty" xml:"id,omitempty"`
+	// Message is a human-readable explanation specific to this occurrence of the
+	// problem.
+	Message *string `form:"message,omitempty" json:"message,omitempty" xml:"message,omitempty"`
+	// Is the error temporary?
+	Temporary *bool `form:"temporary,omitempty" json:"temporary,omitempty" xml:"temporary,omitempty"`
+	// Is the error a timeout?
+	Timeout *bool `form:"timeout,omitempty" json:"timeout,omitempty" xml:"timeout,omitempty"`
+	// Is the error a server-side fault?
+	Fault *bool `form:"fault,omitempty" json:"fault,omitempty" xml:"fault,omitempty"`
+}
+
 // DeleteComponentNotFoundResponseBody is the type of the "DSLEditor" service
 // "DeleteComponent" endpoint HTTP response body for the "NotFound" error.
 type DeleteComponentNotFoundResponseBody struct {
+	// Name is the name of this class of errors.
+	Name *string `form:"name,omitempty" json:"name,omitempty" xml:"name,omitempty"`
+	// ID is a unique identifier for this particular occurrence of the problem.
+	ID *string `form:"id,omitempty" json:"id,omitempty" xml:"id,omitempty"`
+	// Message is a human-readable explanation specific to this occurrence of the
+	// problem.
+	Message *string `form:"message,omitempty" json:"message,omitempty" xml:"message,omitempty"`
+	// Is the error temporary?
+	Temporary *bool `form:"temporary,omitempty" json:"temporary,omitempty" xml:"temporary,omitempty"`
+	// Is the error a timeout?
+	Timeout *bool `form:"timeout,omitempty" json:"timeout,omitempty" xml:"timeout,omitempty"`
+	// Is the error a server-side fault?
+	Fault *bool `form:"fault,omitempty" json:"fault,omitempty" xml:"fault,omitempty"`
+}
+
+// DeleteComponentCompilationFailedResponseBody is the type of the "DSLEditor"
+// service "DeleteComponent" endpoint HTTP response body for the
+// "compilation_failed" error.
+type DeleteComponentCompilationFailedResponseBody struct {
 	// Name is the name of this class of errors.
 	Name *string `form:"name,omitempty" json:"name,omitempty" xml:"name,omitempty"`
 	// ID is a unique identifier for this particular occurrence of the problem.
@@ -199,6 +471,47 @@ type DeleteRelationshipNotFoundResponseBody struct {
 	Fault *bool `form:"fault,omitempty" json:"fault,omitempty" xml:"fault,omitempty"`
 }
 
+// DeleteRelationshipCompilationFailedResponseBody is the type of the
+// "DSLEditor" service "DeleteRelationship" endpoint HTTP response body for the
+// "compilation_failed" error.
+type DeleteRelationshipCompilationFailedResponseBody struct {
+	// Name is the name of this class of errors.
+	Name *string `form:"name,omitempty" json:"name,omitempty" xml:"name,omitempty"`
+	// ID is a unique identifier for this particular occurrence of the problem.
+	ID *string `form:"id,omitempty" json:"id,omitempty" xml:"id,omitempty"`
+	// Message is a human-readable explanation specific to this occurrence of the
+	// problem.
+	Message *string `form:"message,omitempty" json:"message,omitempty" xml:"message,omitempty"`
+	// Is the error temporary?
+	Temporary *bool `form:"temporary,omitempty" json:"temporary,omitempty" xml:"temporary,omitempty"`
+	// Is the error a timeout?
+	Timeout *bool `form:"timeout,omitempty" json:"timeout,omitempty" xml:"timeout,omitempty"`
+	// Is the error a server-side fault?
+	Fault *bool `form:"fault,omitempty" json:"fault,omitempty" xml:"fault,omitempty"`
+}
+
+// FileLocatorRequestBody is used to define fields on request body types.
+type FileLocatorRequestBody struct {
+	// Name of DSL file
+	Filename string `form:"Filename" json:"Filename" xml:"Filename"`
+	// Workspace identifier
+	Workspace string `form:"Workspace" json:"Workspace" xml:"Workspace"`
+	// Path to directory containing a model package
+	Dir string `form:"Dir" json:"Dir" xml:"Dir"`
+}
+
+// NewUpdateDSLRequestBody builds the HTTP request body from the payload of the
+// "UpdateDSL" endpoint of the "DSLEditor" service.
+func NewUpdateDSLRequestBody(p *types.PackageFile) *UpdateDSLRequestBody {
+	body := &UpdateDSLRequestBody{
+		Content: p.Content,
+	}
+	if p.Locator != nil {
+		body.Locator = marshalTypesFileLocatorToFileLocatorRequestBody(p.Locator)
+	}
+	return body
+}
+
 // NewUpsertSystemRequestBody builds the HTTP request body from the payload of
 // the "UpsertSystem" endpoint of the "DSLEditor" service.
 func NewUpsertSystemRequestBody(p *dsleditor.System) *UpsertSystemRequestBody {
@@ -207,6 +520,9 @@ func NewUpsertSystemRequestBody(p *dsleditor.System) *UpsertSystemRequestBody {
 		Description: p.Description,
 		URL:         p.URL,
 		Location:    p.Location,
+	}
+	if p.Locator != nil {
+		body.Locator = marshalTypesFileLocatorToFileLocatorRequestBody(p.Locator)
 	}
 	if p.Tags != nil {
 		body.Tags = make([]string, len(p.Tags))
@@ -239,6 +555,9 @@ func NewUpsertPersonRequestBody(p *dsleditor.Person) *UpsertPersonRequestBody {
 		Description: p.Description,
 		URL:         p.URL,
 		Location:    p.Location,
+	}
+	if p.Locator != nil {
+		body.Locator = marshalTypesFileLocatorToFileLocatorRequestBody(p.Locator)
 	}
 	if p.Tags != nil {
 		body.Tags = make([]string, len(p.Tags))
@@ -273,6 +592,9 @@ func NewUpsertContainerRequestBody(p *dsleditor.Container) *UpsertContainerReque
 		Technology:  p.Technology,
 		URL:         p.URL,
 	}
+	if p.Locator != nil {
+		body.Locator = marshalTypesFileLocatorToFileLocatorRequestBody(p.Locator)
+	}
 	if p.Tags != nil {
 		body.Tags = make([]string, len(p.Tags))
 		for i, val := range p.Tags {
@@ -300,6 +622,9 @@ func NewUpsertComponentRequestBody(p *dsleditor.Component) *UpsertComponentReque
 		Description:   p.Description,
 		Technology:    p.Technology,
 		URL:           p.URL,
+	}
+	if p.Locator != nil {
+		body.Locator = marshalTypesFileLocatorToFileLocatorRequestBody(p.Locator)
 	}
 	if p.Tags != nil {
 		body.Tags = make([]string, len(p.Tags))
@@ -329,6 +654,9 @@ func NewUpsertRelationshipRequestBody(p *dsleditor.Relationship) *UpsertRelation
 		InteractionStyle: p.InteractionStyle,
 		URL:              p.URL,
 	}
+	if p.Locator != nil {
+		body.Locator = marshalTypesFileLocatorToFileLocatorRequestBody(p.Locator)
+	}
 	{
 		var zero string
 		if body.InteractionStyle == zero {
@@ -344,9 +672,171 @@ func NewUpsertRelationshipRequestBody(p *dsleditor.Relationship) *UpsertRelation
 	return body
 }
 
+// NewDeleteSystemRequestBody builds the HTTP request body from the payload of
+// the "DeleteSystem" endpoint of the "DSLEditor" service.
+func NewDeleteSystemRequestBody(p *dsleditor.DeleteSystemPayload) *DeleteSystemRequestBody {
+	body := &DeleteSystemRequestBody{
+		Filename:  p.Filename,
+		Workspace: p.Workspace,
+		Dir:       p.Dir,
+	}
+	return body
+}
+
+// NewDeletePersonRequestBody builds the HTTP request body from the payload of
+// the "DeletePerson" endpoint of the "DSLEditor" service.
+func NewDeletePersonRequestBody(p *dsleditor.DeletePersonPayload) *DeletePersonRequestBody {
+	body := &DeletePersonRequestBody{
+		Filename:  p.Filename,
+		Workspace: p.Workspace,
+		Dir:       p.Dir,
+	}
+	return body
+}
+
+// NewDeleteContainerRequestBody builds the HTTP request body from the payload
+// of the "DeleteContainer" endpoint of the "DSLEditor" service.
+func NewDeleteContainerRequestBody(p *dsleditor.DeleteContainerPayload) *DeleteContainerRequestBody {
+	body := &DeleteContainerRequestBody{
+		Filename:  p.Filename,
+		Workspace: p.Workspace,
+		Dir:       p.Dir,
+	}
+	return body
+}
+
+// NewDeleteComponentRequestBody builds the HTTP request body from the payload
+// of the "DeleteComponent" endpoint of the "DSLEditor" service.
+func NewDeleteComponentRequestBody(p *dsleditor.DeleteComponentPayload) *DeleteComponentRequestBody {
+	body := &DeleteComponentRequestBody{
+		Filename:  p.Filename,
+		Workspace: p.Workspace,
+		Dir:       p.Dir,
+	}
+	return body
+}
+
+// NewDeleteRelationshipRequestBody builds the HTTP request body from the
+// payload of the "DeleteRelationship" endpoint of the "DSLEditor" service.
+func NewDeleteRelationshipRequestBody(p *dsleditor.DeleteRelationshipPayload) *DeleteRelationshipRequestBody {
+	body := &DeleteRelationshipRequestBody{
+		SourcePath:      p.SourcePath,
+		DestinationPath: p.DestinationPath,
+		Filename:        p.Filename,
+		Workspace:       p.Workspace,
+		Dir:             p.Dir,
+	}
+	return body
+}
+
+// NewUpdateDSLCompilationFailed builds a DSLEditor service UpdateDSL endpoint
+// compilation_failed error.
+func NewUpdateDSLCompilationFailed(body *UpdateDSLCompilationFailedResponseBody) *goa.ServiceError {
+	v := &goa.ServiceError{
+		Name:      *body.Name,
+		ID:        *body.ID,
+		Message:   *body.Message,
+		Temporary: *body.Temporary,
+		Timeout:   *body.Timeout,
+		Fault:     *body.Fault,
+	}
+
+	return v
+}
+
+// NewUpsertSystemCompilationFailed builds a DSLEditor service UpsertSystem
+// endpoint compilation_failed error.
+func NewUpsertSystemCompilationFailed(body *UpsertSystemCompilationFailedResponseBody) *goa.ServiceError {
+	v := &goa.ServiceError{
+		Name:      *body.Name,
+		ID:        *body.ID,
+		Message:   *body.Message,
+		Temporary: *body.Temporary,
+		Timeout:   *body.Timeout,
+		Fault:     *body.Fault,
+	}
+
+	return v
+}
+
+// NewUpsertPersonCompilationFailed builds a DSLEditor service UpsertPerson
+// endpoint compilation_failed error.
+func NewUpsertPersonCompilationFailed(body *UpsertPersonCompilationFailedResponseBody) *goa.ServiceError {
+	v := &goa.ServiceError{
+		Name:      *body.Name,
+		ID:        *body.ID,
+		Message:   *body.Message,
+		Temporary: *body.Temporary,
+		Timeout:   *body.Timeout,
+		Fault:     *body.Fault,
+	}
+
+	return v
+}
+
+// NewUpsertContainerCompilationFailed builds a DSLEditor service
+// UpsertContainer endpoint compilation_failed error.
+func NewUpsertContainerCompilationFailed(body *UpsertContainerCompilationFailedResponseBody) *goa.ServiceError {
+	v := &goa.ServiceError{
+		Name:      *body.Name,
+		ID:        *body.ID,
+		Message:   *body.Message,
+		Temporary: *body.Temporary,
+		Timeout:   *body.Timeout,
+		Fault:     *body.Fault,
+	}
+
+	return v
+}
+
+// NewUpsertComponentCompilationFailed builds a DSLEditor service
+// UpsertComponent endpoint compilation_failed error.
+func NewUpsertComponentCompilationFailed(body *UpsertComponentCompilationFailedResponseBody) *goa.ServiceError {
+	v := &goa.ServiceError{
+		Name:      *body.Name,
+		ID:        *body.ID,
+		Message:   *body.Message,
+		Temporary: *body.Temporary,
+		Timeout:   *body.Timeout,
+		Fault:     *body.Fault,
+	}
+
+	return v
+}
+
+// NewUpsertRelationshipCompilationFailed builds a DSLEditor service
+// UpsertRelationship endpoint compilation_failed error.
+func NewUpsertRelationshipCompilationFailed(body *UpsertRelationshipCompilationFailedResponseBody) *goa.ServiceError {
+	v := &goa.ServiceError{
+		Name:      *body.Name,
+		ID:        *body.ID,
+		Message:   *body.Message,
+		Temporary: *body.Temporary,
+		Timeout:   *body.Timeout,
+		Fault:     *body.Fault,
+	}
+
+	return v
+}
+
 // NewDeleteSystemNotFound builds a DSLEditor service DeleteSystem endpoint
 // NotFound error.
 func NewDeleteSystemNotFound(body *DeleteSystemNotFoundResponseBody) *goa.ServiceError {
+	v := &goa.ServiceError{
+		Name:      *body.Name,
+		ID:        *body.ID,
+		Message:   *body.Message,
+		Temporary: *body.Temporary,
+		Timeout:   *body.Timeout,
+		Fault:     *body.Fault,
+	}
+
+	return v
+}
+
+// NewDeleteSystemCompilationFailed builds a DSLEditor service DeleteSystem
+// endpoint compilation_failed error.
+func NewDeleteSystemCompilationFailed(body *DeleteSystemCompilationFailedResponseBody) *goa.ServiceError {
 	v := &goa.ServiceError{
 		Name:      *body.Name,
 		ID:        *body.ID,
@@ -374,9 +864,39 @@ func NewDeletePersonNotFound(body *DeletePersonNotFoundResponseBody) *goa.Servic
 	return v
 }
 
+// NewDeletePersonCompilationFailed builds a DSLEditor service DeletePerson
+// endpoint compilation_failed error.
+func NewDeletePersonCompilationFailed(body *DeletePersonCompilationFailedResponseBody) *goa.ServiceError {
+	v := &goa.ServiceError{
+		Name:      *body.Name,
+		ID:        *body.ID,
+		Message:   *body.Message,
+		Temporary: *body.Temporary,
+		Timeout:   *body.Timeout,
+		Fault:     *body.Fault,
+	}
+
+	return v
+}
+
 // NewDeleteContainerNotFound builds a DSLEditor service DeleteContainer
 // endpoint NotFound error.
 func NewDeleteContainerNotFound(body *DeleteContainerNotFoundResponseBody) *goa.ServiceError {
+	v := &goa.ServiceError{
+		Name:      *body.Name,
+		ID:        *body.ID,
+		Message:   *body.Message,
+		Temporary: *body.Temporary,
+		Timeout:   *body.Timeout,
+		Fault:     *body.Fault,
+	}
+
+	return v
+}
+
+// NewDeleteContainerCompilationFailed builds a DSLEditor service
+// DeleteContainer endpoint compilation_failed error.
+func NewDeleteContainerCompilationFailed(body *DeleteContainerCompilationFailedResponseBody) *goa.ServiceError {
 	v := &goa.ServiceError{
 		Name:      *body.Name,
 		ID:        *body.ID,
@@ -404,6 +924,21 @@ func NewDeleteComponentNotFound(body *DeleteComponentNotFoundResponseBody) *goa.
 	return v
 }
 
+// NewDeleteComponentCompilationFailed builds a DSLEditor service
+// DeleteComponent endpoint compilation_failed error.
+func NewDeleteComponentCompilationFailed(body *DeleteComponentCompilationFailedResponseBody) *goa.ServiceError {
+	v := &goa.ServiceError{
+		Name:      *body.Name,
+		ID:        *body.ID,
+		Message:   *body.Message,
+		Temporary: *body.Temporary,
+		Timeout:   *body.Timeout,
+		Fault:     *body.Fault,
+	}
+
+	return v
+}
+
 // NewDeleteRelationshipNotFound builds a DSLEditor service DeleteRelationship
 // endpoint NotFound error.
 func NewDeleteRelationshipNotFound(body *DeleteRelationshipNotFoundResponseBody) *goa.ServiceError {
@@ -419,9 +954,192 @@ func NewDeleteRelationshipNotFound(body *DeleteRelationshipNotFoundResponseBody)
 	return v
 }
 
+// NewDeleteRelationshipCompilationFailed builds a DSLEditor service
+// DeleteRelationship endpoint compilation_failed error.
+func NewDeleteRelationshipCompilationFailed(body *DeleteRelationshipCompilationFailedResponseBody) *goa.ServiceError {
+	v := &goa.ServiceError{
+		Name:      *body.Name,
+		ID:        *body.ID,
+		Message:   *body.Message,
+		Temporary: *body.Temporary,
+		Timeout:   *body.Timeout,
+		Fault:     *body.Fault,
+	}
+
+	return v
+}
+
+// ValidateUpdateDSLCompilationFailedResponseBody runs the validations defined
+// on UpdateDSL_compilation_failed_Response_Body
+func ValidateUpdateDSLCompilationFailedResponseBody(body *UpdateDSLCompilationFailedResponseBody) (err error) {
+	if body.Name == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("name", "body"))
+	}
+	if body.ID == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("id", "body"))
+	}
+	if body.Message == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("message", "body"))
+	}
+	if body.Temporary == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("temporary", "body"))
+	}
+	if body.Timeout == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("timeout", "body"))
+	}
+	if body.Fault == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("fault", "body"))
+	}
+	return
+}
+
+// ValidateUpsertSystemCompilationFailedResponseBody runs the validations
+// defined on UpsertSystem_compilation_failed_Response_Body
+func ValidateUpsertSystemCompilationFailedResponseBody(body *UpsertSystemCompilationFailedResponseBody) (err error) {
+	if body.Name == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("name", "body"))
+	}
+	if body.ID == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("id", "body"))
+	}
+	if body.Message == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("message", "body"))
+	}
+	if body.Temporary == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("temporary", "body"))
+	}
+	if body.Timeout == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("timeout", "body"))
+	}
+	if body.Fault == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("fault", "body"))
+	}
+	return
+}
+
+// ValidateUpsertPersonCompilationFailedResponseBody runs the validations
+// defined on UpsertPerson_compilation_failed_Response_Body
+func ValidateUpsertPersonCompilationFailedResponseBody(body *UpsertPersonCompilationFailedResponseBody) (err error) {
+	if body.Name == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("name", "body"))
+	}
+	if body.ID == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("id", "body"))
+	}
+	if body.Message == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("message", "body"))
+	}
+	if body.Temporary == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("temporary", "body"))
+	}
+	if body.Timeout == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("timeout", "body"))
+	}
+	if body.Fault == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("fault", "body"))
+	}
+	return
+}
+
+// ValidateUpsertContainerCompilationFailedResponseBody runs the validations
+// defined on UpsertContainer_compilation_failed_Response_Body
+func ValidateUpsertContainerCompilationFailedResponseBody(body *UpsertContainerCompilationFailedResponseBody) (err error) {
+	if body.Name == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("name", "body"))
+	}
+	if body.ID == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("id", "body"))
+	}
+	if body.Message == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("message", "body"))
+	}
+	if body.Temporary == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("temporary", "body"))
+	}
+	if body.Timeout == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("timeout", "body"))
+	}
+	if body.Fault == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("fault", "body"))
+	}
+	return
+}
+
+// ValidateUpsertComponentCompilationFailedResponseBody runs the validations
+// defined on UpsertComponent_compilation_failed_Response_Body
+func ValidateUpsertComponentCompilationFailedResponseBody(body *UpsertComponentCompilationFailedResponseBody) (err error) {
+	if body.Name == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("name", "body"))
+	}
+	if body.ID == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("id", "body"))
+	}
+	if body.Message == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("message", "body"))
+	}
+	if body.Temporary == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("temporary", "body"))
+	}
+	if body.Timeout == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("timeout", "body"))
+	}
+	if body.Fault == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("fault", "body"))
+	}
+	return
+}
+
+// ValidateUpsertRelationshipCompilationFailedResponseBody runs the validations
+// defined on UpsertRelationship_compilation_failed_Response_Body
+func ValidateUpsertRelationshipCompilationFailedResponseBody(body *UpsertRelationshipCompilationFailedResponseBody) (err error) {
+	if body.Name == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("name", "body"))
+	}
+	if body.ID == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("id", "body"))
+	}
+	if body.Message == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("message", "body"))
+	}
+	if body.Temporary == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("temporary", "body"))
+	}
+	if body.Timeout == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("timeout", "body"))
+	}
+	if body.Fault == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("fault", "body"))
+	}
+	return
+}
+
 // ValidateDeleteSystemNotFoundResponseBody runs the validations defined on
 // DeleteSystem_NotFound_Response_Body
 func ValidateDeleteSystemNotFoundResponseBody(body *DeleteSystemNotFoundResponseBody) (err error) {
+	if body.Name == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("name", "body"))
+	}
+	if body.ID == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("id", "body"))
+	}
+	if body.Message == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("message", "body"))
+	}
+	if body.Temporary == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("temporary", "body"))
+	}
+	if body.Timeout == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("timeout", "body"))
+	}
+	if body.Fault == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("fault", "body"))
+	}
+	return
+}
+
+// ValidateDeleteSystemCompilationFailedResponseBody runs the validations
+// defined on DeleteSystem_compilation_failed_Response_Body
+func ValidateDeleteSystemCompilationFailedResponseBody(body *DeleteSystemCompilationFailedResponseBody) (err error) {
 	if body.Name == nil {
 		err = goa.MergeErrors(err, goa.MissingFieldError("name", "body"))
 	}
@@ -467,9 +1185,57 @@ func ValidateDeletePersonNotFoundResponseBody(body *DeletePersonNotFoundResponse
 	return
 }
 
+// ValidateDeletePersonCompilationFailedResponseBody runs the validations
+// defined on DeletePerson_compilation_failed_Response_Body
+func ValidateDeletePersonCompilationFailedResponseBody(body *DeletePersonCompilationFailedResponseBody) (err error) {
+	if body.Name == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("name", "body"))
+	}
+	if body.ID == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("id", "body"))
+	}
+	if body.Message == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("message", "body"))
+	}
+	if body.Temporary == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("temporary", "body"))
+	}
+	if body.Timeout == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("timeout", "body"))
+	}
+	if body.Fault == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("fault", "body"))
+	}
+	return
+}
+
 // ValidateDeleteContainerNotFoundResponseBody runs the validations defined on
 // DeleteContainer_NotFound_Response_Body
 func ValidateDeleteContainerNotFoundResponseBody(body *DeleteContainerNotFoundResponseBody) (err error) {
+	if body.Name == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("name", "body"))
+	}
+	if body.ID == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("id", "body"))
+	}
+	if body.Message == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("message", "body"))
+	}
+	if body.Temporary == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("temporary", "body"))
+	}
+	if body.Timeout == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("timeout", "body"))
+	}
+	if body.Fault == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("fault", "body"))
+	}
+	return
+}
+
+// ValidateDeleteContainerCompilationFailedResponseBody runs the validations
+// defined on DeleteContainer_compilation_failed_Response_Body
+func ValidateDeleteContainerCompilationFailedResponseBody(body *DeleteContainerCompilationFailedResponseBody) (err error) {
 	if body.Name == nil {
 		err = goa.MergeErrors(err, goa.MissingFieldError("name", "body"))
 	}
@@ -515,6 +1281,30 @@ func ValidateDeleteComponentNotFoundResponseBody(body *DeleteComponentNotFoundRe
 	return
 }
 
+// ValidateDeleteComponentCompilationFailedResponseBody runs the validations
+// defined on DeleteComponent_compilation_failed_Response_Body
+func ValidateDeleteComponentCompilationFailedResponseBody(body *DeleteComponentCompilationFailedResponseBody) (err error) {
+	if body.Name == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("name", "body"))
+	}
+	if body.ID == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("id", "body"))
+	}
+	if body.Message == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("message", "body"))
+	}
+	if body.Temporary == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("temporary", "body"))
+	}
+	if body.Timeout == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("timeout", "body"))
+	}
+	if body.Fault == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("fault", "body"))
+	}
+	return
+}
+
 // ValidateDeleteRelationshipNotFoundResponseBody runs the validations defined
 // on DeleteRelationship_NotFound_Response_Body
 func ValidateDeleteRelationshipNotFoundResponseBody(body *DeleteRelationshipNotFoundResponseBody) (err error) {
@@ -535,6 +1325,43 @@ func ValidateDeleteRelationshipNotFoundResponseBody(body *DeleteRelationshipNotF
 	}
 	if body.Fault == nil {
 		err = goa.MergeErrors(err, goa.MissingFieldError("fault", "body"))
+	}
+	return
+}
+
+// ValidateDeleteRelationshipCompilationFailedResponseBody runs the validations
+// defined on DeleteRelationship_compilation_failed_Response_Body
+func ValidateDeleteRelationshipCompilationFailedResponseBody(body *DeleteRelationshipCompilationFailedResponseBody) (err error) {
+	if body.Name == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("name", "body"))
+	}
+	if body.ID == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("id", "body"))
+	}
+	if body.Message == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("message", "body"))
+	}
+	if body.Temporary == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("temporary", "body"))
+	}
+	if body.Timeout == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("timeout", "body"))
+	}
+	if body.Fault == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("fault", "body"))
+	}
+	return
+}
+
+// ValidateFileLocatorRequestBody runs the validations defined on
+// FileLocatorRequestBody
+func ValidateFileLocatorRequestBody(body *FileLocatorRequestBody) (err error) {
+	err = goa.MergeErrors(err, goa.ValidatePattern("body.Filename", body.Filename, "\\.go$"))
+	if utf8.RuneCountInString(body.Workspace) < 1 {
+		err = goa.MergeErrors(err, goa.InvalidLengthError("body.Workspace", body.Workspace, utf8.RuneCountInString(body.Workspace), 1, true))
+	}
+	if utf8.RuneCountInString(body.Dir) < 1 {
+		err = goa.MergeErrors(err, goa.InvalidLengthError("body.Dir", body.Dir, utf8.RuneCountInString(body.Dir), 1, true))
 	}
 	return
 }

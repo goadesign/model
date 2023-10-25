@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"path/filepath"
 	"strings"
 
 	"goa.design/model/codegen"
@@ -20,7 +19,6 @@ func main() {
 		out    = genset.String("out", "design.json", "Set path to generated JSON representation")
 
 		svrset = flag.NewFlagSet("serve", flag.ExitOnError)
-		dir    = svrset.String("dir", "gen", "Set output directory used by editor to save SVG files")
 		port   = svrset.Int("port", 8080, "set local HTTP port used to serve diagram editor")
 
 		devmode = os.Getenv("DEVMODE") == "1"
@@ -89,13 +87,9 @@ func main() {
 		}
 	case "serve":
 		if pkg == "" {
-			fail(`missing WORKSPACE argument, use "--help" for usage`)
+			fail(`missing MODEL_DIR argument, use "--help" for usage`)
 		}
-		*dir, _ = filepath.Abs(*dir)
-		if err := os.MkdirAll(*dir, 0777); err != nil {
-			fail(err.Error())
-		}
-		err = serve(pkg, *dir, *port, devmode, *debug)
+		err = serve(pkg, *port, devmode, *debug)
 	case "version":
 		fmt.Printf("%s %s\n", os.Args[0], model.Version())
 	case "", "help":
@@ -110,9 +104,8 @@ func main() {
 
 func printUsage(fss ...*flag.FlagSet) {
 	fmt.Fprintln(os.Stderr, "Usage:")
-	fmt.Fprintf(os.Stderr, "  %s serve WORKSPACE [FLAGS].\n", os.Args[0])
-	fmt.Fprintf(os.Stderr, "    Start a HTTP server that serves a graphical editor for the designs located in WORKSPACE.\n")
-	fmt.Fprintf(os.Stderr, "    If WORKSPACE points to a Go package rather than a Go workspace then serve the corresponding design.\n")
+	fmt.Fprintf(os.Stderr, "  %s serve MODEL_DIR [FLAGS].\n", os.Args[0])
+	fmt.Fprintf(os.Stderr, "    Start a HTTP server that serves a graphical editor for the models located in MODEL_DIR.\n")
 	fmt.Fprintf(os.Stderr, "  %s gen PACKAGE [FLAGS].\n", os.Args[0])
 	fmt.Fprintf(os.Stderr, "    Generate a JSON representation of the design described in PACKAGE.\n")
 	fmt.Fprintf(os.Stderr, "    PACKAGE must be the import path to a Go package containing Model DSL.\n\n")

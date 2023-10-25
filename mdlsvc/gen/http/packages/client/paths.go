@@ -12,17 +12,22 @@ func ListPackagesPackagesPath() string {
 	return "/api/packages"
 }
 
+// ListPackageFilesPackagesPath returns the URL path to the Packages service ListPackageFiles HTTP endpoint.
+func ListPackageFilesPackagesPath() string {
+	return "/api/packages/files"
+}
+
 // SubscribePackagesPath returns the URL path to the Packages service Subscribe HTTP endpoint.
 func SubscribePackagesPath() string {
 	return "/api/packages/subscribe"
 }
 
-// UploadPackagesPath returns the URL path to the Packages service Upload HTTP endpoint.
-func UploadPackagesPath() string {
-	return "/api/packages"
+// GetModelJSONPackagesPath returns the URL path to the Packages service GetModelJSON HTTP endpoint.
+func GetModelJSONPackagesPath() string {
+	return "/api/packages/model"
 }
 
-// GetModelPackagesPath returns the URL path to the Packages service GetModel HTTP endpoint.
-func GetModelPackagesPath() string {
-	return "/api/packages/model"
+// GetLayoutPackagesPath returns the URL path to the Packages service GetLayout HTTP endpoint.
+func GetLayoutPackagesPath() string {
+	return "/api/packages/layout"
 }

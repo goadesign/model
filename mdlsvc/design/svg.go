@@ -9,19 +9,22 @@ var _ = Service("SVG", func() {
 	Method("Load", func() {
 		Description("Stream the model layout JSON saved in the SVG")
 		Payload(Filename)
+		Result(SVG)
 		HTTP(func() {
 			GET("/layout")
 			Param("Filename:file")
-			SkipResponseBodyEncodeDecode()
 		})
 	})
 	Method("Save", func() {
 		Description("Save the SVG streamed in the request body")
-		Payload(Filename)
+		Payload(func() {
+			Extend(Filename)
+			Attribute("SVG", SVG, "Diagram SVG")
+			Required("Filename", "SVG")
+		})
 		HTTP(func() {
 			POST("/")
 			Param("Filename:file")
-			SkipRequestBodyEncodeDecode()
 			Response(StatusNoContent)
 		})
 	})
@@ -33,4 +36,9 @@ var Filename = Type("Filename", func() {
 		Example("diagram.svg")
 	})
 	Required("Filename")
+})
+
+var SVG = Type("SVG", String, func() {
+	Description("Scalable Vector Graphics XML")
+	Pattern(`<svg.*</svg>$`)
 })

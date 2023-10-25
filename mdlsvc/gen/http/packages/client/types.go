@@ -8,111 +8,144 @@
 package client
 
 import (
+	"unicode/utf8"
+
 	goa "goa.design/goa/v3/pkg"
-	packages "goa.design/model/mdlsvc/gen/packages"
+	types "goa.design/model/mdlsvc/gen/types"
 )
 
 // ListPackagesResponseBody is the type of the "Packages" service
 // "ListPackages" endpoint HTTP response body.
 type ListPackagesResponseBody []*PackageResponse
 
-// UploadCompilationFailedResponseBody is the type of the "Packages" service
-// "Upload" endpoint HTTP response body for the "compilation_failed" error.
-type UploadCompilationFailedResponseBody struct {
-	// Name is the name of this class of errors.
-	Name *string `form:"name,omitempty" json:"name,omitempty" xml:"name,omitempty"`
-	// ID is a unique identifier for this particular occurrence of the problem.
-	ID *string `form:"id,omitempty" json:"id,omitempty" xml:"id,omitempty"`
-	// Message is a human-readable explanation specific to this occurrence of the
-	// problem.
-	Message *string `form:"message,omitempty" json:"message,omitempty" xml:"message,omitempty"`
-	// Is the error temporary?
-	Temporary *bool `form:"temporary,omitempty" json:"temporary,omitempty" xml:"temporary,omitempty"`
-	// Is the error a timeout?
-	Timeout *bool `form:"timeout,omitempty" json:"timeout,omitempty" xml:"timeout,omitempty"`
-	// Is the error a server-side fault?
-	Fault *bool `form:"fault,omitempty" json:"fault,omitempty" xml:"fault,omitempty"`
-}
+// ListPackageFilesResponseBody is the type of the "Packages" service
+// "ListPackageFiles" endpoint HTTP response body.
+type ListPackageFilesResponseBody []*PackageFileResponse
 
 // PackageResponse is used to define fields on response body types.
 type PackageResponse struct {
 	// Design Go package import path
-	PackagePath *string `form:"PackagePath,omitempty" json:"PackagePath,omitempty" xml:"PackagePath,omitempty"`
+	ImportPath *string `form:"ImportPath,omitempty" json:"ImportPath,omitempty" xml:"ImportPath,omitempty"`
+	// Path to directory containing a model package
+	Dir *string `form:"Dir,omitempty" json:"Dir,omitempty" xml:"Dir,omitempty"`
 }
 
-// NewListPackagesPackageOK builds a "Packages" service "ListPackages" endpoint
-// result from a HTTP "OK" response.
-func NewListPackagesPackageOK(body []*PackageResponse) []*packages.Package {
-	v := make([]*packages.Package, len(body))
+// PackageFileResponse is used to define fields on response body types.
+type PackageFileResponse struct {
+	// Path to file containing DSL code
+	Locator *FileLocatorResponse `form:"Locator,omitempty" json:"Locator,omitempty" xml:"Locator,omitempty"`
+	// DSL code
+	Content *string `form:"Content,omitempty" json:"Content,omitempty" xml:"Content,omitempty"`
+}
+
+// FileLocatorResponse is used to define fields on response body types.
+type FileLocatorResponse struct {
+	// Name of DSL file
+	Filename *string `form:"Filename,omitempty" json:"Filename,omitempty" xml:"Filename,omitempty"`
+	// Workspace identifier
+	Workspace *string `form:"Workspace,omitempty" json:"Workspace,omitempty" xml:"Workspace,omitempty"`
+	// Path to directory containing a model package
+	Dir *string `form:"Dir,omitempty" json:"Dir,omitempty" xml:"Dir,omitempty"`
+}
+
+// NewListPackagesTypesPackageOK builds a "Packages" service "ListPackages"
+// endpoint result from a HTTP "OK" response.
+func NewListPackagesTypesPackageOK(body []*PackageResponse) []*types.Package {
+	v := make([]*types.Package, len(body))
 	for i, val := range body {
-		v[i] = unmarshalPackageResponseToPackagesPackage(val)
+		v[i] = unmarshalPackageResponseToTypesPackage(val)
 	}
 
 	return v
 }
 
-// NewSubscribeModelSwitchingProtocols builds a "Packages" service "Subscribe"
-// endpoint result from a HTTP "SwitchingProtocols" response.
-func NewSubscribeModelSwitchingProtocols(body string) packages.Model {
-	v := packages.Model(body)
-
-	return v
-}
-
-// NewUploadModelOK builds a "Packages" service "Upload" endpoint result from a
-// HTTP "OK" response.
-func NewUploadModelOK(body string) packages.Model {
-	v := packages.Model(body)
-
-	return v
-}
-
-// NewUploadCompilationFailed builds a Packages service Upload endpoint
-// compilation_failed error.
-func NewUploadCompilationFailed(body *UploadCompilationFailedResponseBody) *goa.ServiceError {
-	v := &goa.ServiceError{
-		Name:      *body.Name,
-		ID:        *body.ID,
-		Message:   *body.Message,
-		Temporary: *body.Temporary,
-		Timeout:   *body.Timeout,
-		Fault:     *body.Fault,
+// NewListPackageFilesTypesPackageFileOK builds a "Packages" service
+// "ListPackageFiles" endpoint result from a HTTP "OK" response.
+func NewListPackageFilesTypesPackageFileOK(body []*PackageFileResponse) []*types.PackageFile {
+	v := make([]*types.PackageFile, len(body))
+	for i, val := range body {
+		v[i] = unmarshalPackageFileResponseToTypesPackageFile(val)
 	}
 
 	return v
 }
 
-// ValidateUploadCompilationFailedResponseBody runs the validations defined on
-// Upload_compilation_failed_Response_Body
-func ValidateUploadCompilationFailedResponseBody(body *UploadCompilationFailedResponseBody) (err error) {
-	if body.Name == nil {
-		err = goa.MergeErrors(err, goa.MissingFieldError("name", "body"))
-	}
-	if body.ID == nil {
-		err = goa.MergeErrors(err, goa.MissingFieldError("id", "body"))
-	}
-	if body.Message == nil {
-		err = goa.MergeErrors(err, goa.MissingFieldError("message", "body"))
-	}
-	if body.Temporary == nil {
-		err = goa.MergeErrors(err, goa.MissingFieldError("temporary", "body"))
-	}
-	if body.Timeout == nil {
-		err = goa.MergeErrors(err, goa.MissingFieldError("timeout", "body"))
-	}
-	if body.Fault == nil {
-		err = goa.MergeErrors(err, goa.MissingFieldError("fault", "body"))
-	}
-	return
+// NewSubscribeModelJSONSwitchingProtocols builds a "Packages" service
+// "Subscribe" endpoint result from a HTTP "SwitchingProtocols" response.
+func NewSubscribeModelJSONSwitchingProtocols(body string) types.ModelJSON {
+	v := types.ModelJSON(body)
+
+	return v
 }
 
 // ValidatePackageResponse runs the validations defined on PackageResponse
 func ValidatePackageResponse(body *PackageResponse) (err error) {
-	if body.PackagePath == nil {
-		err = goa.MergeErrors(err, goa.MissingFieldError("PackagePath", "body"))
+	if body.ImportPath == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("ImportPath", "body"))
 	}
-	if body.PackagePath != nil {
-		err = goa.MergeErrors(err, goa.ValidatePattern("body.PackagePath", *body.PackagePath, "^([a-zA-Z0-9]+(-[a-zA-Z0-9]+)*\\.)+[a-zA-Z]{2,}/[a-zA-Z0-9_\\-]+/(/([a-zA-Z0-9_\\-]+))*$"))
+	if body.Dir == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Dir", "body"))
+	}
+	if body.ImportPath != nil {
+		err = goa.MergeErrors(err, goa.ValidatePattern("body.ImportPath", *body.ImportPath, "^([a-zA-Z0-9]+(-[a-zA-Z0-9]+)*\\.)+[a-zA-Z]{2,}/[a-zA-Z0-9_\\-]+/(/([a-zA-Z0-9_\\-]+))*$"))
+	}
+	if body.Dir != nil {
+		if utf8.RuneCountInString(*body.Dir) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Dir", *body.Dir, utf8.RuneCountInString(*body.Dir), 1, true))
+		}
+	}
+	return
+}
+
+// ValidatePackageFileResponse runs the validations defined on
+// PackageFileResponse
+func ValidatePackageFileResponse(body *PackageFileResponse) (err error) {
+	if body.Locator == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Locator", "body"))
+	}
+	if body.Content == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Content", "body"))
+	}
+	if body.Locator != nil {
+		if err2 := ValidateFileLocatorResponse(body.Locator); err2 != nil {
+			err = goa.MergeErrors(err, err2)
+		}
+	}
+	if body.Content != nil {
+		err = goa.MergeErrors(err, goa.ValidatePattern("body.Content", *body.Content, "import . \"goa.design/model/dsl\""))
+	}
+	if body.Content != nil {
+		if utf8.RuneCountInString(*body.Content) < 58 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Content", *body.Content, utf8.RuneCountInString(*body.Content), 58, true))
+		}
+	}
+	return
+}
+
+// ValidateFileLocatorResponse runs the validations defined on
+// FileLocatorResponse
+func ValidateFileLocatorResponse(body *FileLocatorResponse) (err error) {
+	if body.Filename == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Filename", "body"))
+	}
+	if body.Workspace == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Workspace", "body"))
+	}
+	if body.Dir == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Dir", "body"))
+	}
+	if body.Filename != nil {
+		err = goa.MergeErrors(err, goa.ValidatePattern("body.Filename", *body.Filename, "\\.go$"))
+	}
+	if body.Workspace != nil {
+		if utf8.RuneCountInString(*body.Workspace) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Workspace", *body.Workspace, utf8.RuneCountInString(*body.Workspace), 1, true))
+		}
+	}
+	if body.Dir != nil {
+		if utf8.RuneCountInString(*body.Dir) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Dir", *body.Dir, utf8.RuneCountInString(*body.Dir), 1, true))
+		}
 	}
 	return
 }

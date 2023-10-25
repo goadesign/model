@@ -24,16 +24,21 @@ type Client struct {
 	// ListPackages endpoint.
 	ListPackagesDoer goahttp.Doer
 
+	// ListPackageFiles Doer is the HTTP client used to make requests to the
+	// ListPackageFiles endpoint.
+	ListPackageFilesDoer goahttp.Doer
+
 	// Subscribe Doer is the HTTP client used to make requests to the Subscribe
 	// endpoint.
 	SubscribeDoer goahttp.Doer
 
-	// Upload Doer is the HTTP client used to make requests to the Upload endpoint.
-	UploadDoer goahttp.Doer
+	// GetModelJSON Doer is the HTTP client used to make requests to the
+	// GetModelJSON endpoint.
+	GetModelJSONDoer goahttp.Doer
 
-	// GetModel Doer is the HTTP client used to make requests to the GetModel
+	// GetLayout Doer is the HTTP client used to make requests to the GetLayout
 	// endpoint.
-	GetModelDoer goahttp.Doer
+	GetLayoutDoer goahttp.Doer
 
 	// RestoreResponseBody controls whether the response bodies are reset after
 	// decoding so they can be read again.
@@ -62,17 +67,18 @@ func NewClient(
 		cfn = &ConnConfigurer{}
 	}
 	return &Client{
-		ListPackagesDoer:    doer,
-		SubscribeDoer:       doer,
-		UploadDoer:          doer,
-		GetModelDoer:        doer,
-		RestoreResponseBody: restoreBody,
-		scheme:              scheme,
-		host:                host,
-		decoder:             dec,
-		encoder:             enc,
-		dialer:              dialer,
-		configurer:          cfn,
+		ListPackagesDoer:     doer,
+		ListPackageFilesDoer: doer,
+		SubscribeDoer:        doer,
+		GetModelJSONDoer:     doer,
+		GetLayoutDoer:        doer,
+		RestoreResponseBody:  restoreBody,
+		scheme:               scheme,
+		host:                 host,
+		decoder:              dec,
+		encoder:              enc,
+		dialer:               dialer,
+		configurer:           cfn,
 	}
 }
 
@@ -80,6 +86,7 @@ func NewClient(
 // service ListPackages server.
 func (c *Client) ListPackages() goa.Endpoint {
 	var (
+		encodeRequest  = EncodeListPackagesRequest(c.encoder)
 		decodeResponse = DecodeListPackagesResponse(c.decoder, c.RestoreResponseBody)
 	)
 	return func(ctx context.Context, v any) (any, error) {
@@ -87,9 +94,37 @@ func (c *Client) ListPackages() goa.Endpoint {
 		if err != nil {
 			return nil, err
 		}
+		err = encodeRequest(req, v)
+		if err != nil {
+			return nil, err
+		}
 		resp, err := c.ListPackagesDoer.Do(req)
 		if err != nil {
 			return nil, goahttp.ErrRequestError("Packages", "ListPackages", err)
+		}
+		return decodeResponse(resp)
+	}
+}
+
+// ListPackageFiles returns an endpoint that makes HTTP requests to the
+// Packages service ListPackageFiles server.
+func (c *Client) ListPackageFiles() goa.Endpoint {
+	var (
+		encodeRequest  = EncodeListPackageFilesRequest(c.encoder)
+		decodeResponse = DecodeListPackageFilesResponse(c.decoder, c.RestoreResponseBody)
+	)
+	return func(ctx context.Context, v any) (any, error) {
+		req, err := c.BuildListPackageFilesRequest(ctx, v)
+		if err != nil {
+			return nil, err
+		}
+		err = encodeRequest(req, v)
+		if err != nil {
+			return nil, err
+		}
+		resp, err := c.ListPackageFilesDoer.Do(req)
+		if err != nil {
+			return nil, goahttp.ErrRequestError("Packages", "ListPackageFiles", err)
 		}
 		return decodeResponse(resp)
 	}
@@ -137,15 +172,15 @@ func (c *Client) Subscribe() goa.Endpoint {
 	}
 }
 
-// Upload returns an endpoint that makes HTTP requests to the Packages service
-// Upload server.
-func (c *Client) Upload() goa.Endpoint {
+// GetModelJSON returns an endpoint that makes HTTP requests to the Packages
+// service GetModelJSON server.
+func (c *Client) GetModelJSON() goa.Endpoint {
 	var (
-		encodeRequest  = EncodeUploadRequest(c.encoder)
-		decodeResponse = DecodeUploadResponse(c.decoder, c.RestoreResponseBody)
+		encodeRequest  = EncodeGetModelJSONRequest(c.encoder)
+		decodeResponse = DecodeGetModelJSONResponse(c.decoder, c.RestoreResponseBody)
 	)
 	return func(ctx context.Context, v any) (any, error) {
-		req, err := c.BuildUploadRequest(ctx, v)
+		req, err := c.BuildGetModelJSONRequest(ctx, v)
 		if err != nil {
 			return nil, err
 		}
@@ -153,39 +188,44 @@ func (c *Client) Upload() goa.Endpoint {
 		if err != nil {
 			return nil, err
 		}
-		resp, err := c.UploadDoer.Do(req)
+		resp, err := c.GetModelJSONDoer.Do(req)
 		if err != nil {
-			return nil, goahttp.ErrRequestError("Packages", "Upload", err)
-		}
-		return decodeResponse(resp)
-	}
-}
-
-// GetModel returns an endpoint that makes HTTP requests to the Packages
-// service GetModel server.
-func (c *Client) GetModel() goa.Endpoint {
-	var (
-		encodeRequest  = EncodeGetModelRequest(c.encoder)
-		decodeResponse = DecodeGetModelResponse(c.decoder, c.RestoreResponseBody)
-	)
-	return func(ctx context.Context, v any) (any, error) {
-		req, err := c.BuildGetModelRequest(ctx, v)
-		if err != nil {
-			return nil, err
-		}
-		err = encodeRequest(req, v)
-		if err != nil {
-			return nil, err
-		}
-		resp, err := c.GetModelDoer.Do(req)
-		if err != nil {
-			return nil, goahttp.ErrRequestError("Packages", "GetModel", err)
+			return nil, goahttp.ErrRequestError("Packages", "GetModelJSON", err)
 		}
 		_, err = decodeResponse(resp)
 		if err != nil {
 			resp.Body.Close()
 			return nil, err
 		}
-		return &packages.GetModelResponseData{Body: resp.Body}, nil
+		return &packages.GetModelJSONResponseData{Body: resp.Body}, nil
+	}
+}
+
+// GetLayout returns an endpoint that makes HTTP requests to the Packages
+// service GetLayout server.
+func (c *Client) GetLayout() goa.Endpoint {
+	var (
+		encodeRequest  = EncodeGetLayoutRequest(c.encoder)
+		decodeResponse = DecodeGetLayoutResponse(c.decoder, c.RestoreResponseBody)
+	)
+	return func(ctx context.Context, v any) (any, error) {
+		req, err := c.BuildGetLayoutRequest(ctx, v)
+		if err != nil {
+			return nil, err
+		}
+		err = encodeRequest(req, v)
+		if err != nil {
+			return nil, err
+		}
+		resp, err := c.GetLayoutDoer.Do(req)
+		if err != nil {
+			return nil, goahttp.ErrRequestError("Packages", "GetLayout", err)
+		}
+		_, err = decodeResponse(resp)
+		if err != nil {
+			resp.Body.Close()
+			return nil, err
+		}
+		return &packages.GetLayoutResponseData{Body: resp.Body}, nil
 	}
 }

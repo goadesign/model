@@ -29,7 +29,7 @@ import (
 //go:embed webapp/dist
 var webapp embed.FS
 
-func serve(workspace, dir string, port int, devmode, debugf bool) error {
+func serve(dir string, port int, devmode, debugf bool) error {
 	format := log.FormatJSON
 	if log.IsTerminal() {
 		format = log.FormatTerminal
@@ -41,7 +41,7 @@ func serve(workspace, dir string, port int, devmode, debugf bool) error {
 		log.Debugf(ctx, "debug logs enabled")
 	}
 
-	svc, err := mdlsvc.New(ctx, workspace, dir, debugf)
+	svc, err := mdlsvc.New(ctx, dir, debugf)
 	if err != nil {
 		return err
 	}

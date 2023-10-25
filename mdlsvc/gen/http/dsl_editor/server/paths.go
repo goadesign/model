@@ -11,6 +11,11 @@ import (
 	"fmt"
 )
 
+// UpdateDSLDSLEditorPath returns the URL path to the DSLEditor service UpdateDSL HTTP endpoint.
+func UpdateDSLDSLEditorPath() string {
+	return "/api/dsl"
+}
+
 // UpsertSystemDSLEditorPath returns the URL path to the DSLEditor service UpsertSystem HTTP endpoint.
 func UpsertSystemDSLEditorPath() string {
 	return "/api/dsl/system"
@@ -37,26 +42,26 @@ func UpsertRelationshipDSLEditorPath() string {
 }
 
 // DeleteSystemDSLEditorPath returns the URL path to the DSLEditor service DeleteSystem HTTP endpoint.
-func DeleteSystemDSLEditorPath(name string) string {
-	return fmt.Sprintf("/api/dsl/system/%v", name)
+func DeleteSystemDSLEditorPath(systemName string) string {
+	return fmt.Sprintf("/api/dsl/system/%v", systemName)
 }
 
 // DeletePersonDSLEditorPath returns the URL path to the DSLEditor service DeletePerson HTTP endpoint.
-func DeletePersonDSLEditorPath(name string) string {
-	return fmt.Sprintf("/api/dsl/person/%v", name)
+func DeletePersonDSLEditorPath(personName string) string {
+	return fmt.Sprintf("/api/dsl/person/%v", personName)
 }
 
 // DeleteContainerDSLEditorPath returns the URL path to the DSLEditor service DeleteContainer HTTP endpoint.
-func DeleteContainerDSLEditorPath(systemName string, name string) string {
-	return fmt.Sprintf("/api/dsl/system/%v/container/%v", systemName, name)
+func DeleteContainerDSLEditorPath(systemName string, containerName string) string {
+	return fmt.Sprintf("/api/dsl/system/%v/container/%v", systemName, containerName)
 }
 
 // DeleteComponentDSLEditorPath returns the URL path to the DSLEditor service DeleteComponent HTTP endpoint.
-func DeleteComponentDSLEditorPath(systemName string, containerName string, name string) string {
-	return fmt.Sprintf("/api/dsl/system/%v/container/%v/component/%v", systemName, containerName, name)
+func DeleteComponentDSLEditorPath(systemName string, containerName string, componentName string) string {
+	return fmt.Sprintf("/api/dsl/system/%v/container/%v/component/%v", systemName, containerName, componentName)
 }
 
 // DeleteRelationshipDSLEditorPath returns the URL path to the DSLEditor service DeleteRelationship HTTP endpoint.
-func DeleteRelationshipDSLEditorPath(sourcePath string, destinationPath string) string {
-	return fmt.Sprintf("/api/dsl/relationship/%v/%v", sourcePath, destinationPath)
+func DeleteRelationshipDSLEditorPath() string {
+	return "/api/dsl/relationship"
 }

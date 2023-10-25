@@ -11,8 +11,7 @@ type (
 	// Service implements the model service business logic.
 	// It exposes methods for manipulating a model DSL.
 	Service struct {
-		dir           string // SVG generation directory
-		workspace     string // Go workspace
+		dir           string // Models root directory
 		debug         bool   // Whether to print debug output when generating
 		lock          sync.Mutex
 		subscriptions map[string]*subscription // subscriptions indexed by module
@@ -20,16 +19,14 @@ type (
 
 	// subscription represents a client subscription to model updates.
 	subscription struct {
-		ch      chan []byte                         // Channel used to notify of model changes.
-		streams []genpackages.SubscribeServerStream // List of active client streams.
+		streams []genpackages.SubscribeServerStream // client streams
 	}
 )
 
 // New returns the Service implementation.
-func New(ctx context.Context, workspace, dir string, debug bool) (*Service, error) {
+func New(ctx context.Context, dir string, debug bool) (*Service, error) {
 	return &Service{
 		dir:           dir,
-		workspace:     workspace,
 		debug:         debug,
 		subscriptions: make(map[string]*subscription),
 	}, nil
