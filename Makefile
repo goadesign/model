@@ -34,7 +34,7 @@ depend:
 	@for package in $(DEPEND); do go install $$package; done
 
 gen:
-	goa gen goa.design/model/mdlsvc/design -o mdlsvc/
+	goa gen goa.design/model/svc/design -o svc/
 
 lint:
 ifneq ($(GOOS),windows)

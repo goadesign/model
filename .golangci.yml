@@ -4,4 +4,4 @@ linters-settings:
       - composites
 run:
   skip-dirs:
-    - mdlsvc/gen
+    - svc/gen

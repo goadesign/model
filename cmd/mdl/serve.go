@@ -16,15 +16,15 @@ import (
 	"goa.design/clue/log"
 	goahttp "goa.design/goa/v3/http"
 
-	mdlsvc "goa.design/model/mdlsvc"
-	pstore "goa.design/model/mdlsvc/clients/package_store"
-	geneditorsvc "goa.design/model/mdlsvc/gen/dsl_editor"
-	genassetshttp "goa.design/model/mdlsvc/gen/http/assets/server"
-	geneditorhttp "goa.design/model/mdlsvc/gen/http/dsl_editor/server"
-	genpackageshttp "goa.design/model/mdlsvc/gen/http/packages/server"
-	gensvghttp "goa.design/model/mdlsvc/gen/http/svg/server"
-	genpackagesvc "goa.design/model/mdlsvc/gen/packages"
-	gensvgvc "goa.design/model/mdlsvc/gen/svg"
+	svc "goa.design/model/svc"
+	pstore "goa.design/model/svc/clients/package_store"
+	geneditorsvc "goa.design/model/svc/gen/dsl_editor"
+	genassetshttp "goa.design/model/svc/gen/http/assets/server"
+	geneditorhttp "goa.design/model/svc/gen/http/dsl_editor/server"
+	genpackageshttp "goa.design/model/svc/gen/http/packages/server"
+	gensvghttp "goa.design/model/svc/gen/http/svg/server"
+	genpackagesvc "goa.design/model/svc/gen/packages"
+	gensvgvc "goa.design/model/svc/gen/svg"
 )
 
 //go:embed webapp/dist
@@ -42,7 +42,7 @@ func serve(dir string, store pstore.PackageStore, port int, devmode, debugf bool
 		log.Debugf(ctx, "debug logs enabled")
 	}
 
-	svc, err := mdlsvc.New(ctx, dir, store, debugf)
+	svc, err := svc.New(ctx, dir, store, debugf)
 	if err != nil {
 		return err
 	}

@@ -2,7 +2,7 @@ go 1.21.3
 
 use (
 	.
-	./mdlsvc/testdata/parent
-	./mdlsvc/testdata/model
-	./mdlsvc/testdata/not_model
+	./svc/testdata/parent
+	./svc/testdata/model
+	./svc/testdata/not_model
 )

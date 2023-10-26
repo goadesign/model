@@ -7,8 +7,8 @@ import (
 	"strings"
 
 	"goa.design/model/codegen"
-	pstore "goa.design/model/mdlsvc/clients/package_store"
 	model "goa.design/model/pkg"
+	pstore "goa.design/model/svc/clients/package_store"
 )
 
 func main() {
