@@ -2,7 +2,6 @@ package dsl
 
 import (
 	"fmt"
-	"reflect"
 	"strconv"
 	"strings"
 
@@ -1478,26 +1477,26 @@ var DefaultEdgeSeparation = 200
 //
 // Example:
 //
-//	var _ = Design(func() {
-//	    var System = SoftwareSystem("Software System", "My software system.")
-//	    var OtherSystem = SoftwareSystem("Other software System")
-//	    var Customer = Person("Customer", func() {
-//	        External()
-//	        Uses(System, "Sends emails", "SMTP")
-//	    })
-//	    Views(func() {
-//	        SystemContextView(SoftwareSystem, "context", "An overview diagram.", func() {
-//	            AddDefault()
-//	            AutoLayout(RankTopBottom, ImplementationDagre, func() {
-//					Implementation(ImplementationGraphviz)
-//	                RankSeparation(200)
-//	                NodeSeparation(100)
-//	                EdgeSeparation(10)
-//	                Vertices()
-//	            })
-//	        })
-//	    })
-//	})
+//		var _ = Design(func() {
+//		    var System = SoftwareSystem("Software System", "My software system.")
+//		    var OtherSystem = SoftwareSystem("Other software System")
+//		    var Customer = Person("Customer", func() {
+//		        External()
+//		        Uses(System, "Sends emails", "SMTP")
+//		    })
+//		    Views(func() {
+//		        SystemContextView(SoftwareSystem, "context", "An overview diagram.", func() {
+//		            AddDefault()
+//		            AutoLayout(RankTopBottom, ImplementationDagre, func() {
+//	                 Implementation(ImplementationGraphviz)
+//		                RankSeparation(200)
+//		                NodeSeparation(100)
+//		                EdgeSeparation(10)
+//		                Vertices()
+//		            })
+//		        })
+//		    })
+//		})
 func AutoLayout(rank RankDirectionKind, args ...func()) {
 	v, ok := eval.Current().(expr.View)
 	if !ok {
@@ -1859,10 +1858,6 @@ func Position(pos int) {
 //	    })
 //	})
 func Implementation(impl ImplementationKind) {
-	if reflect.ValueOf(impl).IsNil() {
-		eval.ReportError("Implementation: value must be set")
-		return
-	}
 	if a, ok := eval.Current().(*expr.AutoLayout); ok {
 		a.Implementation = expr.ImplementationKind(impl)
 		return
