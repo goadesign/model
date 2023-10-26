@@ -27,7 +27,7 @@ var _ = Design("Getting Started", "This is a model of my software system.", func
 	Views(func() {
 		SystemContextView(System, "SystemContext", "An example of a System Context diagram.", func() {
 			AddAll()
-			AutoLayout(ImplementationDagre, RankLeftRight)
+			AutoLayout(RankLeftRight)
 		})
 		Styles(func() {
 			ElementStyle("system", func() {

@@ -471,7 +471,7 @@ var _ = Design("Big Bank plc", "This is an example workspace to illustrate the k
 
 		DeploymentView("Internet Banking System", "Live", "LiveDeployment", "An example live deployment scenario for the Internet Banking System.", func() {
 			PaperSize(SizeA5Landscape)
-			AutoLayout(ImplementationDagre, RankLeftRight)
+			AutoLayout(RankLeftRight)
 
 			Add(LiveWebBrowser)
 			Add(CustomerComputer)
@@ -495,7 +495,7 @@ var _ = Design("Big Bank plc", "This is an example workspace to illustrate the k
 
 		DeploymentView("Internet Banking System", "Development", "DevelopmentDeployment", "An example development deployment scenario for the Internet Banking System.", func() {
 			PaperSize(SizeA5Landscape)
-			AutoLayout(ImplementationDagre, RankBottomTop)
+			AutoLayout(RankBottomTop)
 
 			Add(DevWebBrowser)
 			Add(DevLaptop)

@@ -2,6 +2,7 @@ package dsl
 
 import (
 	"fmt"
+	"reflect"
 	"strconv"
 	"strings"
 
@@ -1452,6 +1453,9 @@ func RemoveUnrelated() {
 	eval.IncompatibleDSL()
 }
 
+// DefaultImplementation sets tje default implementation for the auto layout.
+var DefaultImplementation = ImplementationDagre
+
 // DefaultRankSeparation sets the default rank separation for auto layout.
 var DefaultRankSeparation = 300
 
@@ -1463,10 +1467,7 @@ var DefaultEdgeSeparation = 200
 
 // AutoLayout enables automatic layout mode for the diagram.
 //
-// The first argument indicates the implementation used for the automatic
-// layout, it must be one of ImplementationGraphviz or ImplementationDagre
-//
-// The second argument indicates the rank direction, it must be one of
+// The First argument indicates the rank direction, it must be one of
 // RankTopBottom, RankBottomTop, RankLeftRight or RankRightLeft
 //
 // AutoLayout must appear in SystemLandscapeView, SystemContextView,
@@ -1488,6 +1489,7 @@ var DefaultEdgeSeparation = 200
 //	        SystemContextView(SoftwareSystem, "context", "An overview diagram.", func() {
 //	            AddDefault()
 //	            AutoLayout(RankTopBottom, ImplementationDagre, func() {
+//					Implementation(ImplementationGraphviz)
 //	                RankSeparation(200)
 //	                NodeSeparation(100)
 //	                EdgeSeparation(10)
@@ -1496,7 +1498,7 @@ var DefaultEdgeSeparation = 200
 //	        })
 //	    })
 //	})
-func AutoLayout(impl ImplementationKind, rank RankDirectionKind, args ...func()) {
+func AutoLayout(rank RankDirectionKind, args ...func()) {
 	v, ok := eval.Current().(expr.View)
 	if !ok {
 		eval.IncompatibleDSL()
@@ -1511,7 +1513,7 @@ func AutoLayout(impl ImplementationKind, rank RankDirectionKind, args ...func())
 	}
 	layout := &expr.AutoLayout{
 		RankDirection:  expr.RankDirectionKind(rank),
-		Implementation: expr.ImplementationKind(impl),
+		Implementation: expr.ImplementationKind(DefaultImplementation),
 		RankSep:        &DefaultRankSeparation,
 		NodeSep:        &DefaultNodeSeparation,
 		EdgeSep:        &DefaultEdgeSeparation,
@@ -1836,6 +1838,36 @@ func Position(pos int) {
 	default:
 		eval.IncompatibleDSL()
 	}
+}
+
+// Implementation sets the implementation of the automatic layout, defaults to ImplementationDagre.
+//
+// Implementation must appear in AutoLayout.
+//
+// Implementation takes one argument: the ImplementationKind.
+//
+// Example:
+//
+//	var _ = Design(func() {
+//	    var System = SoftwareSystem("Software System", "My software system.")
+//	    Views(func() {
+//	        SystemContextView(SoftwareSystem, "context", "An overview diagram.", func() {
+//	            AutoLayout(func() {
+//	                Implementation(ImplementationGraphviz)
+//	            })
+//	        })
+//	    })
+//	})
+func Implementation(impl ImplementationKind) {
+	if reflect.ValueOf(impl).IsNil() {
+		eval.ReportError("Implementation: value must be set")
+		return
+	}
+	if a, ok := eval.Current().(*expr.AutoLayout); ok {
+		a.Implementation = expr.ImplementationKind(impl)
+		return
+	}
+	eval.IncompatibleDSL()
 }
 
 // RankSeparation sets the separation between ranks in pixels, defaults to 300.
