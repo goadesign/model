@@ -25,7 +25,7 @@ import (
 //	command (subcommand1|subcommand2|...)
 func UsageCommands() string {
 	return `dsl-editor (update-dsl|upsert-system|upsert-person|upsert-container|upsert-component|upsert-relationship|delete-system|delete-person|delete-container|delete-component|delete-relationship)
-packages (list-packages|list-package-files|subscribe|get-model-json|get-layout)
+packages (list-workspaces|create-package|delete-package|list-packages|read-package-files|subscribe)
 svg (load|save)
 `
 }
@@ -40,7 +40,7 @@ func UsageExamples() string {
          "Workspace": "my-workspace"
       }
    }'` + "\n" +
-		os.Args[0] + ` packages list-packages --workspace "my-workspace"` + "\n" +
+		os.Args[0] + ` packages list-workspaces` + "\n" +
 		os.Args[0] + ` svg load --filename "diagram.svg"` + "\n" +
 		""
 }
@@ -101,24 +101,27 @@ func ParseEndpoint(
 
 		packagesFlags = flag.NewFlagSet("packages", flag.ContinueOnError)
 
+		packagesListWorkspacesFlags = flag.NewFlagSet("list-workspaces", flag.ExitOnError)
+
+		packagesCreatePackageFlags         = flag.NewFlagSet("create-package", flag.ExitOnError)
+		packagesCreatePackageBodyFlag      = packagesCreatePackageFlags.String("body", "REQUIRED", "")
+		packagesCreatePackageWorkspaceFlag = packagesCreatePackageFlags.String("workspace", "REQUIRED", "")
+		packagesCreatePackageDirFlag       = packagesCreatePackageFlags.String("dir", "REQUIRED", "")
+
+		packagesDeletePackageFlags         = flag.NewFlagSet("delete-package", flag.ExitOnError)
+		packagesDeletePackageWorkspaceFlag = packagesDeletePackageFlags.String("workspace", "REQUIRED", "")
+		packagesDeletePackageDirFlag       = packagesDeletePackageFlags.String("dir", "REQUIRED", "")
+
 		packagesListPackagesFlags         = flag.NewFlagSet("list-packages", flag.ExitOnError)
 		packagesListPackagesWorkspaceFlag = packagesListPackagesFlags.String("workspace", "REQUIRED", "")
 
-		packagesListPackageFilesFlags         = flag.NewFlagSet("list-package-files", flag.ExitOnError)
-		packagesListPackageFilesWorkspaceFlag = packagesListPackageFilesFlags.String("workspace", "REQUIRED", "")
-		packagesListPackageFilesDirFlag       = packagesListPackageFilesFlags.String("dir", "REQUIRED", "")
+		packagesReadPackageFilesFlags         = flag.NewFlagSet("read-package-files", flag.ExitOnError)
+		packagesReadPackageFilesWorkspaceFlag = packagesReadPackageFilesFlags.String("workspace", "REQUIRED", "")
+		packagesReadPackageFilesDirFlag       = packagesReadPackageFilesFlags.String("dir", "REQUIRED", "")
 
 		packagesSubscribeFlags         = flag.NewFlagSet("subscribe", flag.ExitOnError)
 		packagesSubscribeWorkspaceFlag = packagesSubscribeFlags.String("workspace", "REQUIRED", "")
 		packagesSubscribeDirFlag       = packagesSubscribeFlags.String("dir", "REQUIRED", "")
-
-		packagesGetModelJSONFlags         = flag.NewFlagSet("get-model-json", flag.ExitOnError)
-		packagesGetModelJSONWorkspaceFlag = packagesGetModelJSONFlags.String("workspace", "REQUIRED", "")
-		packagesGetModelJSONDirFlag       = packagesGetModelJSONFlags.String("dir", "REQUIRED", "")
-
-		packagesGetLayoutFlags         = flag.NewFlagSet("get-layout", flag.ExitOnError)
-		packagesGetLayoutWorkspaceFlag = packagesGetLayoutFlags.String("workspace", "REQUIRED", "")
-		packagesGetLayoutDirFlag       = packagesGetLayoutFlags.String("dir", "REQUIRED", "")
 
 		sVGFlags = flag.NewFlagSet("svg", flag.ContinueOnError)
 
@@ -143,11 +146,12 @@ func ParseEndpoint(
 	dSLEditorDeleteRelationshipFlags.Usage = dSLEditorDeleteRelationshipUsage
 
 	packagesFlags.Usage = packagesUsage
+	packagesListWorkspacesFlags.Usage = packagesListWorkspacesUsage
+	packagesCreatePackageFlags.Usage = packagesCreatePackageUsage
+	packagesDeletePackageFlags.Usage = packagesDeletePackageUsage
 	packagesListPackagesFlags.Usage = packagesListPackagesUsage
-	packagesListPackageFilesFlags.Usage = packagesListPackageFilesUsage
+	packagesReadPackageFilesFlags.Usage = packagesReadPackageFilesUsage
 	packagesSubscribeFlags.Usage = packagesSubscribeUsage
-	packagesGetModelJSONFlags.Usage = packagesGetModelJSONUsage
-	packagesGetLayoutFlags.Usage = packagesGetLayoutUsage
 
 	sVGFlags.Usage = sVGUsage
 	sVGLoadFlags.Usage = sVGLoadUsage
@@ -228,20 +232,23 @@ func ParseEndpoint(
 
 		case "packages":
 			switch epn {
+			case "list-workspaces":
+				epf = packagesListWorkspacesFlags
+
+			case "create-package":
+				epf = packagesCreatePackageFlags
+
+			case "delete-package":
+				epf = packagesDeletePackageFlags
+
 			case "list-packages":
 				epf = packagesListPackagesFlags
 
-			case "list-package-files":
-				epf = packagesListPackageFilesFlags
+			case "read-package-files":
+				epf = packagesReadPackageFilesFlags
 
 			case "subscribe":
 				epf = packagesSubscribeFlags
-
-			case "get-model-json":
-				epf = packagesGetModelJSONFlags
-
-			case "get-layout":
-				epf = packagesGetLayoutFlags
 
 			}
 
@@ -315,21 +322,24 @@ func ParseEndpoint(
 		case "packages":
 			c := packagesc.NewClient(scheme, host, doer, enc, dec, restore, dialer, packagesConfigurer)
 			switch epn {
+			case "list-workspaces":
+				endpoint = c.ListWorkspaces()
+				data = nil
+			case "create-package":
+				endpoint = c.CreatePackage()
+				data, err = packagesc.BuildCreatePackagePayload(*packagesCreatePackageBodyFlag, *packagesCreatePackageWorkspaceFlag, *packagesCreatePackageDirFlag)
+			case "delete-package":
+				endpoint = c.DeletePackage()
+				data, err = packagesc.BuildDeletePackagePayload(*packagesDeletePackageWorkspaceFlag, *packagesDeletePackageDirFlag)
 			case "list-packages":
 				endpoint = c.ListPackages()
 				data, err = packagesc.BuildListPackagesPayload(*packagesListPackagesWorkspaceFlag)
-			case "list-package-files":
-				endpoint = c.ListPackageFiles()
-				data, err = packagesc.BuildListPackageFilesPayload(*packagesListPackageFilesWorkspaceFlag, *packagesListPackageFilesDirFlag)
+			case "read-package-files":
+				endpoint = c.ReadPackageFiles()
+				data, err = packagesc.BuildReadPackageFilesPayload(*packagesReadPackageFilesWorkspaceFlag, *packagesReadPackageFilesDirFlag)
 			case "subscribe":
 				endpoint = c.Subscribe()
 				data, err = packagesc.BuildSubscribePayload(*packagesSubscribeWorkspaceFlag, *packagesSubscribeDirFlag)
-			case "get-model-json":
-				endpoint = c.GetModelJSON()
-				data, err = packagesc.BuildGetModelJSONPayload(*packagesGetModelJSONWorkspaceFlag, *packagesGetModelJSONDirFlag)
-			case "get-layout":
-				endpoint = c.GetLayout()
-				data, err = packagesc.BuildGetLayoutPayload(*packagesGetLayoutWorkspaceFlag, *packagesGetLayoutDirFlag)
 			}
 		case "svg":
 			c := svgc.NewClient(scheme, host, doer, enc, dec, restore)
@@ -401,7 +411,7 @@ Create or update a software system in the model
 Example:
     %[1]s dsl-editor upsert-system --body '{
       "Description": "System description",
-      "Location": "External",
+      "Location": "Internal",
       "Locator": {
          "Dir": "src/repo/model",
          "Filename": "model.go",
@@ -430,7 +440,7 @@ Create or update a person in the model
 Example:
     %[1]s dsl-editor upsert-person --body '{
       "Description": "Person description",
-      "Location": "External",
+      "Location": "Internal",
       "Locator": {
          "Dir": "src/repo/model",
          "Filename": "model.go",
@@ -521,7 +531,7 @@ Example:
     %[1]s dsl-editor upsert-relationship --body '{
       "Description": "Relationship description",
       "DestinationPath": "Software System/Container/Component",
-      "InteractionStyle": "Synchronous",
+      "InteractionStyle": "Asynchronous",
       "Locator": {
          "Dir": "src/repo/model",
          "Filename": "model.go",
@@ -629,16 +639,54 @@ Usage:
     %[1]s [globalflags] packages COMMAND [flags]
 
 COMMAND:
+    list-workspaces: List the known workspaces
+    create-package: Create a new model package in the given workspace
+    delete-package: Delete the given model package
     list-packages: List the model packages in the given workspace
-    list-package-files: Get the DSL files and their content for the given model package
+    read-package-files: Get the DSL files and their content for the given model package
     subscribe: Send model JSON on initial subscription and when the model package changes
-    get-model-json: Streams the model JSON for the given package, see https://pkg.go.dev/goa.design/model/model#Model
-    get-layout: Streams the model layout JSON for the given package
 
 Additional help:
     %[1]s packages COMMAND --help
 `, os.Args[0])
 }
+func packagesListWorkspacesUsage() {
+	fmt.Fprintf(os.Stderr, `%[1]s [flags] packages list-workspaces
+
+List the known workspaces
+
+Example:
+    %[1]s packages list-workspaces
+`, os.Args[0])
+}
+
+func packagesCreatePackageUsage() {
+	fmt.Fprintf(os.Stderr, `%[1]s [flags] packages create-package -body JSON -workspace STRING -dir STRING
+
+Create a new model package in the given workspace
+    -body JSON: 
+    -workspace STRING: 
+    -dir STRING: 
+
+Example:
+    %[1]s packages create-package --body '{
+      "Content": "import . \"goa.design/model/dsl\"\n\nvar _ = Design(\"System Design\", func() {\n\n})"
+   }' --workspace "my-workspace" --dir "src/repo/model"
+`, os.Args[0])
+}
+
+func packagesDeletePackageUsage() {
+	fmt.Fprintf(os.Stderr, `%[1]s [flags] packages delete-package -workspace STRING -dir STRING
+
+Delete the given model package
+    -workspace STRING: 
+    -dir STRING: 
+
+Example:
+    %[1]s packages delete-package --workspace "my-workspace" --dir "src/repo/model"
+`, os.Args[0])
+}
+
 func packagesListPackagesUsage() {
 	fmt.Fprintf(os.Stderr, `%[1]s [flags] packages list-packages -workspace STRING
 
@@ -650,15 +698,15 @@ Example:
 `, os.Args[0])
 }
 
-func packagesListPackageFilesUsage() {
-	fmt.Fprintf(os.Stderr, `%[1]s [flags] packages list-package-files -workspace STRING -dir STRING
+func packagesReadPackageFilesUsage() {
+	fmt.Fprintf(os.Stderr, `%[1]s [flags] packages read-package-files -workspace STRING -dir STRING
 
 Get the DSL files and their content for the given model package
     -workspace STRING: 
     -dir STRING: 
 
 Example:
-    %[1]s packages list-package-files --workspace "my-workspace" --dir "src/repo/model"
+    %[1]s packages read-package-files --workspace "my-workspace" --dir "src/repo/model"
 `, os.Args[0])
 }
 
@@ -671,30 +719,6 @@ Send model JSON on initial subscription and when the model package changes
 
 Example:
     %[1]s packages subscribe --workspace "my-workspace" --dir "src/repo/model"
-`, os.Args[0])
-}
-
-func packagesGetModelJSONUsage() {
-	fmt.Fprintf(os.Stderr, `%[1]s [flags] packages get-model-json -workspace STRING -dir STRING
-
-Streams the model JSON for the given package, see https://pkg.go.dev/goa.design/model/model#Model
-    -workspace STRING: 
-    -dir STRING: 
-
-Example:
-    %[1]s packages get-model-json --workspace "my-workspace" --dir "src/repo/model"
-`, os.Args[0])
-}
-
-func packagesGetLayoutUsage() {
-	fmt.Fprintf(os.Stderr, `%[1]s [flags] packages get-layout -workspace STRING -dir STRING
-
-Streams the model layout JSON for the given package
-    -workspace STRING: 
-    -dir STRING: 
-
-Example:
-    %[1]s packages get-layout --workspace "my-workspace" --dir "src/repo/model"
 `, os.Args[0])
 }
 
@@ -732,7 +756,7 @@ Save the SVG streamed in the request body
 
 Example:
     %[1]s svg save --body '{
-      "SVG": "\u003csvg\u003c/svg\u003e"
+      "SVG": "\u003csvg�\u003c/svg\u003e"
    }' --filename "diagram.svg"
 `, os.Args[0])
 }

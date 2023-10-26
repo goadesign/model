@@ -9,7 +9,6 @@ package packages
 
 import (
 	"context"
-	"io"
 
 	goa "goa.design/goa/v3/pkg"
 	types "goa.design/model/mdlsvc/gen/types"
@@ -17,22 +16,52 @@ import (
 
 // Client is the "Packages" service client.
 type Client struct {
+	ListWorkspacesEndpoint   goa.Endpoint
+	CreatePackageEndpoint    goa.Endpoint
+	DeletePackageEndpoint    goa.Endpoint
 	ListPackagesEndpoint     goa.Endpoint
-	ListPackageFilesEndpoint goa.Endpoint
+	ReadPackageFilesEndpoint goa.Endpoint
 	SubscribeEndpoint        goa.Endpoint
-	GetModelJSONEndpoint     goa.Endpoint
-	GetLayoutEndpoint        goa.Endpoint
 }
 
 // NewClient initializes a "Packages" service client given the endpoints.
-func NewClient(listPackages, listPackageFiles, subscribe, getModelJSON, getLayout goa.Endpoint) *Client {
+func NewClient(listWorkspaces, createPackage, deletePackage, listPackages, readPackageFiles, subscribe goa.Endpoint) *Client {
 	return &Client{
+		ListWorkspacesEndpoint:   listWorkspaces,
+		CreatePackageEndpoint:    createPackage,
+		DeletePackageEndpoint:    deletePackage,
 		ListPackagesEndpoint:     listPackages,
-		ListPackageFilesEndpoint: listPackageFiles,
+		ReadPackageFilesEndpoint: readPackageFiles,
 		SubscribeEndpoint:        subscribe,
-		GetModelJSONEndpoint:     getModelJSON,
-		GetLayoutEndpoint:        getLayout,
 	}
+}
+
+// ListWorkspaces calls the "ListWorkspaces" endpoint of the "Packages" service.
+func (c *Client) ListWorkspaces(ctx context.Context) (res []*types.Workspace, err error) {
+	var ires any
+	ires, err = c.ListWorkspacesEndpoint(ctx, nil)
+	if err != nil {
+		return
+	}
+	return ires.([]*types.Workspace), nil
+}
+
+// CreatePackage calls the "CreatePackage" endpoint of the "Packages" service.
+// CreatePackage may return the following errors:
+//   - "already_exists" (type *goa.ServiceError): Package already exists
+//   - error: internal error
+func (c *Client) CreatePackage(ctx context.Context, p *CreatePackagePayload) (err error) {
+	_, err = c.CreatePackageEndpoint(ctx, p)
+	return
+}
+
+// DeletePackage calls the "DeletePackage" endpoint of the "Packages" service.
+// DeletePackage may return the following errors:
+//   - "not_found" (type *goa.ServiceError): Package not found
+//   - error: internal error
+func (c *Client) DeletePackage(ctx context.Context, p *types.PackageLocator) (err error) {
+	_, err = c.DeletePackageEndpoint(ctx, p)
+	return
 }
 
 // ListPackages calls the "ListPackages" endpoint of the "Packages" service.
@@ -45,11 +74,11 @@ func (c *Client) ListPackages(ctx context.Context, p *types.Workspace) (res []*t
 	return ires.([]*types.Package), nil
 }
 
-// ListPackageFiles calls the "ListPackageFiles" endpoint of the "Packages"
+// ReadPackageFiles calls the "ReadPackageFiles" endpoint of the "Packages"
 // service.
-func (c *Client) ListPackageFiles(ctx context.Context, p *types.PackageLocator) (res []*types.PackageFile, err error) {
+func (c *Client) ReadPackageFiles(ctx context.Context, p *types.PackageLocator) (res []*types.PackageFile, err error) {
 	var ires any
-	ires, err = c.ListPackageFilesEndpoint(ctx, p)
+	ires, err = c.ReadPackageFilesEndpoint(ctx, p)
 	if err != nil {
 		return
 	}
@@ -64,26 +93,4 @@ func (c *Client) Subscribe(ctx context.Context, p *types.PackageLocator) (res Su
 		return
 	}
 	return ires.(SubscribeClientStream), nil
-}
-
-// GetModelJSON calls the "GetModelJSON" endpoint of the "Packages" service.
-func (c *Client) GetModelJSON(ctx context.Context, p *types.PackageLocator) (resp io.ReadCloser, err error) {
-	var ires any
-	ires, err = c.GetModelJSONEndpoint(ctx, p)
-	if err != nil {
-		return
-	}
-	o := ires.(*GetModelJSONResponseData)
-	return o.Body, nil
-}
-
-// GetLayout calls the "GetLayout" endpoint of the "Packages" service.
-func (c *Client) GetLayout(ctx context.Context, p *types.PackageLocator) (resp io.ReadCloser, err error) {
-	var ires any
-	ires, err = c.GetLayoutEndpoint(ctx, p)
-	if err != nil {
-		return
-	}
-	o := ires.(*GetLayoutResponseData)
-	return o.Body, nil
 }

@@ -16,8 +16,224 @@ import (
 
 	goahttp "goa.design/goa/v3/http"
 	goa "goa.design/goa/v3/pkg"
+	packages "goa.design/model/mdlsvc/gen/packages"
 	types "goa.design/model/mdlsvc/gen/types"
 )
+
+// BuildListWorkspacesRequest instantiates a HTTP request object with method
+// and path set to call the "Packages" service "ListWorkspaces" endpoint
+func (c *Client) BuildListWorkspacesRequest(ctx context.Context, v any) (*http.Request, error) {
+	u := &url.URL{Scheme: c.scheme, Host: c.host, Path: ListWorkspacesPackagesPath()}
+	req, err := http.NewRequest("GET", u.String(), nil)
+	if err != nil {
+		return nil, goahttp.ErrInvalidURL("Packages", "ListWorkspaces", u.String(), err)
+	}
+	if ctx != nil {
+		req = req.WithContext(ctx)
+	}
+
+	return req, nil
+}
+
+// DecodeListWorkspacesResponse returns a decoder for responses returned by the
+// Packages ListWorkspaces endpoint. restoreBody controls whether the response
+// body should be restored after having been read.
+func DecodeListWorkspacesResponse(decoder func(*http.Response) goahttp.Decoder, restoreBody bool) func(*http.Response) (any, error) {
+	return func(resp *http.Response) (any, error) {
+		if restoreBody {
+			b, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return nil, err
+			}
+			resp.Body = io.NopCloser(bytes.NewBuffer(b))
+			defer func() {
+				resp.Body = io.NopCloser(bytes.NewBuffer(b))
+			}()
+		} else {
+			defer resp.Body.Close()
+		}
+		switch resp.StatusCode {
+		case http.StatusOK:
+			var (
+				body ListWorkspacesResponseBody
+				err  error
+			)
+			err = decoder(resp).Decode(&body)
+			if err != nil {
+				return nil, goahttp.ErrDecodingError("Packages", "ListWorkspaces", err)
+			}
+			for _, e := range body {
+				if e != nil {
+					if err2 := ValidateWorkspaceResponse(e); err2 != nil {
+						err = goa.MergeErrors(err, err2)
+					}
+				}
+			}
+			if err != nil {
+				return nil, goahttp.ErrValidationError("Packages", "ListWorkspaces", err)
+			}
+			res := NewListWorkspacesTypesWorkspaceOK(body)
+			return res, nil
+		default:
+			body, _ := io.ReadAll(resp.Body)
+			return nil, goahttp.ErrInvalidResponse("Packages", "ListWorkspaces", resp.StatusCode, string(body))
+		}
+	}
+}
+
+// BuildCreatePackageRequest instantiates a HTTP request object with method and
+// path set to call the "Packages" service "CreatePackage" endpoint
+func (c *Client) BuildCreatePackageRequest(ctx context.Context, v any) (*http.Request, error) {
+	u := &url.URL{Scheme: c.scheme, Host: c.host, Path: CreatePackagePackagesPath()}
+	req, err := http.NewRequest("POST", u.String(), nil)
+	if err != nil {
+		return nil, goahttp.ErrInvalidURL("Packages", "CreatePackage", u.String(), err)
+	}
+	if ctx != nil {
+		req = req.WithContext(ctx)
+	}
+
+	return req, nil
+}
+
+// EncodeCreatePackageRequest returns an encoder for requests sent to the
+// Packages CreatePackage server.
+func EncodeCreatePackageRequest(encoder func(*http.Request) goahttp.Encoder) func(*http.Request, any) error {
+	return func(req *http.Request, v any) error {
+		p, ok := v.(*packages.CreatePackagePayload)
+		if !ok {
+			return goahttp.ErrInvalidType("Packages", "CreatePackage", "*packages.CreatePackagePayload", v)
+		}
+		values := req.URL.Query()
+		values.Add("work", p.Workspace)
+		values.Add("dir", p.Dir)
+		req.URL.RawQuery = values.Encode()
+		body := NewCreatePackageRequestBody(p)
+		if err := encoder(req).Encode(&body); err != nil {
+			return goahttp.ErrEncodingError("Packages", "CreatePackage", err)
+		}
+		return nil
+	}
+}
+
+// DecodeCreatePackageResponse returns a decoder for responses returned by the
+// Packages CreatePackage endpoint. restoreBody controls whether the response
+// body should be restored after having been read.
+// DecodeCreatePackageResponse may return the following errors:
+//   - "already_exists" (type *goa.ServiceError): http.StatusConflict
+//   - error: internal error
+func DecodeCreatePackageResponse(decoder func(*http.Response) goahttp.Decoder, restoreBody bool) func(*http.Response) (any, error) {
+	return func(resp *http.Response) (any, error) {
+		if restoreBody {
+			b, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return nil, err
+			}
+			resp.Body = io.NopCloser(bytes.NewBuffer(b))
+			defer func() {
+				resp.Body = io.NopCloser(bytes.NewBuffer(b))
+			}()
+		} else {
+			defer resp.Body.Close()
+		}
+		switch resp.StatusCode {
+		case http.StatusCreated:
+			return nil, nil
+		case http.StatusConflict:
+			var (
+				body CreatePackageAlreadyExistsResponseBody
+				err  error
+			)
+			err = decoder(resp).Decode(&body)
+			if err != nil {
+				return nil, goahttp.ErrDecodingError("Packages", "CreatePackage", err)
+			}
+			err = ValidateCreatePackageAlreadyExistsResponseBody(&body)
+			if err != nil {
+				return nil, goahttp.ErrValidationError("Packages", "CreatePackage", err)
+			}
+			return nil, NewCreatePackageAlreadyExists(&body)
+		default:
+			body, _ := io.ReadAll(resp.Body)
+			return nil, goahttp.ErrInvalidResponse("Packages", "CreatePackage", resp.StatusCode, string(body))
+		}
+	}
+}
+
+// BuildDeletePackageRequest instantiates a HTTP request object with method and
+// path set to call the "Packages" service "DeletePackage" endpoint
+func (c *Client) BuildDeletePackageRequest(ctx context.Context, v any) (*http.Request, error) {
+	u := &url.URL{Scheme: c.scheme, Host: c.host, Path: DeletePackagePackagesPath()}
+	req, err := http.NewRequest("DELETE", u.String(), nil)
+	if err != nil {
+		return nil, goahttp.ErrInvalidURL("Packages", "DeletePackage", u.String(), err)
+	}
+	if ctx != nil {
+		req = req.WithContext(ctx)
+	}
+
+	return req, nil
+}
+
+// EncodeDeletePackageRequest returns an encoder for requests sent to the
+// Packages DeletePackage server.
+func EncodeDeletePackageRequest(encoder func(*http.Request) goahttp.Encoder) func(*http.Request, any) error {
+	return func(req *http.Request, v any) error {
+		p, ok := v.(*types.PackageLocator)
+		if !ok {
+			return goahttp.ErrInvalidType("Packages", "DeletePackage", "*types.PackageLocator", v)
+		}
+		values := req.URL.Query()
+		values.Add("work", p.Workspace)
+		values.Add("dir", p.Dir)
+		req.URL.RawQuery = values.Encode()
+		return nil
+	}
+}
+
+// DecodeDeletePackageResponse returns a decoder for responses returned by the
+// Packages DeletePackage endpoint. restoreBody controls whether the response
+// body should be restored after having been read.
+// DecodeDeletePackageResponse may return the following errors:
+//   - "not_found" (type *goa.ServiceError): http.StatusNotFound
+//   - error: internal error
+func DecodeDeletePackageResponse(decoder func(*http.Response) goahttp.Decoder, restoreBody bool) func(*http.Response) (any, error) {
+	return func(resp *http.Response) (any, error) {
+		if restoreBody {
+			b, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return nil, err
+			}
+			resp.Body = io.NopCloser(bytes.NewBuffer(b))
+			defer func() {
+				resp.Body = io.NopCloser(bytes.NewBuffer(b))
+			}()
+		} else {
+			defer resp.Body.Close()
+		}
+		switch resp.StatusCode {
+		case http.StatusNoContent:
+			return nil, nil
+		case http.StatusNotFound:
+			var (
+				body DeletePackageNotFoundResponseBody
+				err  error
+			)
+			err = decoder(resp).Decode(&body)
+			if err != nil {
+				return nil, goahttp.ErrDecodingError("Packages", "DeletePackage", err)
+			}
+			err = ValidateDeletePackageNotFoundResponseBody(&body)
+			if err != nil {
+				return nil, goahttp.ErrValidationError("Packages", "DeletePackage", err)
+			}
+			return nil, NewDeletePackageNotFound(&body)
+		default:
+			body, _ := io.ReadAll(resp.Body)
+			return nil, goahttp.ErrInvalidResponse("Packages", "DeletePackage", resp.StatusCode, string(body))
+		}
+	}
+}
 
 // BuildListPackagesRequest instantiates a HTTP request object with method and
 // path set to call the "Packages" service "ListPackages" endpoint
@@ -95,13 +311,13 @@ func DecodeListPackagesResponse(decoder func(*http.Response) goahttp.Decoder, re
 	}
 }
 
-// BuildListPackageFilesRequest instantiates a HTTP request object with method
-// and path set to call the "Packages" service "ListPackageFiles" endpoint
-func (c *Client) BuildListPackageFilesRequest(ctx context.Context, v any) (*http.Request, error) {
-	u := &url.URL{Scheme: c.scheme, Host: c.host, Path: ListPackageFilesPackagesPath()}
+// BuildReadPackageFilesRequest instantiates a HTTP request object with method
+// and path set to call the "Packages" service "ReadPackageFiles" endpoint
+func (c *Client) BuildReadPackageFilesRequest(ctx context.Context, v any) (*http.Request, error) {
+	u := &url.URL{Scheme: c.scheme, Host: c.host, Path: ReadPackageFilesPackagesPath()}
 	req, err := http.NewRequest("GET", u.String(), nil)
 	if err != nil {
-		return nil, goahttp.ErrInvalidURL("Packages", "ListPackageFiles", u.String(), err)
+		return nil, goahttp.ErrInvalidURL("Packages", "ReadPackageFiles", u.String(), err)
 	}
 	if ctx != nil {
 		req = req.WithContext(ctx)
@@ -110,13 +326,13 @@ func (c *Client) BuildListPackageFilesRequest(ctx context.Context, v any) (*http
 	return req, nil
 }
 
-// EncodeListPackageFilesRequest returns an encoder for requests sent to the
-// Packages ListPackageFiles server.
-func EncodeListPackageFilesRequest(encoder func(*http.Request) goahttp.Encoder) func(*http.Request, any) error {
+// EncodeReadPackageFilesRequest returns an encoder for requests sent to the
+// Packages ReadPackageFiles server.
+func EncodeReadPackageFilesRequest(encoder func(*http.Request) goahttp.Encoder) func(*http.Request, any) error {
 	return func(req *http.Request, v any) error {
 		p, ok := v.(*types.PackageLocator)
 		if !ok {
-			return goahttp.ErrInvalidType("Packages", "ListPackageFiles", "*types.PackageLocator", v)
+			return goahttp.ErrInvalidType("Packages", "ReadPackageFiles", "*types.PackageLocator", v)
 		}
 		values := req.URL.Query()
 		values.Add("work", p.Workspace)
@@ -126,10 +342,10 @@ func EncodeListPackageFilesRequest(encoder func(*http.Request) goahttp.Encoder) 
 	}
 }
 
-// DecodeListPackageFilesResponse returns a decoder for responses returned by
-// the Packages ListPackageFiles endpoint. restoreBody controls whether the
+// DecodeReadPackageFilesResponse returns a decoder for responses returned by
+// the Packages ReadPackageFiles endpoint. restoreBody controls whether the
 // response body should be restored after having been read.
-func DecodeListPackageFilesResponse(decoder func(*http.Response) goahttp.Decoder, restoreBody bool) func(*http.Response) (any, error) {
+func DecodeReadPackageFilesResponse(decoder func(*http.Response) goahttp.Decoder, restoreBody bool) func(*http.Response) (any, error) {
 	return func(resp *http.Response) (any, error) {
 		if restoreBody {
 			b, err := io.ReadAll(resp.Body)
@@ -146,12 +362,12 @@ func DecodeListPackageFilesResponse(decoder func(*http.Response) goahttp.Decoder
 		switch resp.StatusCode {
 		case http.StatusOK:
 			var (
-				body ListPackageFilesResponseBody
+				body ReadPackageFilesResponseBody
 				err  error
 			)
 			err = decoder(resp).Decode(&body)
 			if err != nil {
-				return nil, goahttp.ErrDecodingError("Packages", "ListPackageFiles", err)
+				return nil, goahttp.ErrDecodingError("Packages", "ReadPackageFiles", err)
 			}
 			for _, e := range body {
 				if e != nil {
@@ -161,13 +377,13 @@ func DecodeListPackageFilesResponse(decoder func(*http.Response) goahttp.Decoder
 				}
 			}
 			if err != nil {
-				return nil, goahttp.ErrValidationError("Packages", "ListPackageFiles", err)
+				return nil, goahttp.ErrValidationError("Packages", "ReadPackageFiles", err)
 			}
-			res := NewListPackageFilesTypesPackageFileOK(body)
+			res := NewReadPackageFilesTypesPackageFileOK(body)
 			return res, nil
 		default:
 			body, _ := io.ReadAll(resp.Body)
-			return nil, goahttp.ErrInvalidResponse("Packages", "ListPackageFiles", resp.StatusCode, string(body))
+			return nil, goahttp.ErrInvalidResponse("Packages", "ReadPackageFiles", resp.StatusCode, string(body))
 		}
 	}
 }
@@ -250,116 +466,14 @@ func DecodeSubscribeResponse(decoder func(*http.Response) goahttp.Decoder, resto
 	}
 }
 
-// BuildGetModelJSONRequest instantiates a HTTP request object with method and
-// path set to call the "Packages" service "GetModelJSON" endpoint
-func (c *Client) BuildGetModelJSONRequest(ctx context.Context, v any) (*http.Request, error) {
-	u := &url.URL{Scheme: c.scheme, Host: c.host, Path: GetModelJSONPackagesPath()}
-	req, err := http.NewRequest("GET", u.String(), nil)
-	if err != nil {
-		return nil, goahttp.ErrInvalidURL("Packages", "GetModelJSON", u.String(), err)
-	}
-	if ctx != nil {
-		req = req.WithContext(ctx)
+// unmarshalWorkspaceResponseToTypesWorkspace builds a value of type
+// *types.Workspace from a value of type *WorkspaceResponse.
+func unmarshalWorkspaceResponseToTypesWorkspace(v *WorkspaceResponse) *types.Workspace {
+	res := &types.Workspace{
+		Workspace: *v.Workspace,
 	}
 
-	return req, nil
-}
-
-// EncodeGetModelJSONRequest returns an encoder for requests sent to the
-// Packages GetModelJSON server.
-func EncodeGetModelJSONRequest(encoder func(*http.Request) goahttp.Encoder) func(*http.Request, any) error {
-	return func(req *http.Request, v any) error {
-		p, ok := v.(*types.PackageLocator)
-		if !ok {
-			return goahttp.ErrInvalidType("Packages", "GetModelJSON", "*types.PackageLocator", v)
-		}
-		values := req.URL.Query()
-		values.Add("work", p.Workspace)
-		values.Add("dir", p.Dir)
-		req.URL.RawQuery = values.Encode()
-		return nil
-	}
-}
-
-// DecodeGetModelJSONResponse returns a decoder for responses returned by the
-// Packages GetModelJSON endpoint. restoreBody controls whether the response
-// body should be restored after having been read.
-func DecodeGetModelJSONResponse(decoder func(*http.Response) goahttp.Decoder, restoreBody bool) func(*http.Response) (any, error) {
-	return func(resp *http.Response) (any, error) {
-		if restoreBody {
-			b, err := io.ReadAll(resp.Body)
-			if err != nil {
-				return nil, err
-			}
-			resp.Body = io.NopCloser(bytes.NewBuffer(b))
-			defer func() {
-				resp.Body = io.NopCloser(bytes.NewBuffer(b))
-			}()
-		}
-		switch resp.StatusCode {
-		case http.StatusOK:
-			return nil, nil
-		default:
-			body, _ := io.ReadAll(resp.Body)
-			return nil, goahttp.ErrInvalidResponse("Packages", "GetModelJSON", resp.StatusCode, string(body))
-		}
-	}
-}
-
-// BuildGetLayoutRequest instantiates a HTTP request object with method and
-// path set to call the "Packages" service "GetLayout" endpoint
-func (c *Client) BuildGetLayoutRequest(ctx context.Context, v any) (*http.Request, error) {
-	u := &url.URL{Scheme: c.scheme, Host: c.host, Path: GetLayoutPackagesPath()}
-	req, err := http.NewRequest("GET", u.String(), nil)
-	if err != nil {
-		return nil, goahttp.ErrInvalidURL("Packages", "GetLayout", u.String(), err)
-	}
-	if ctx != nil {
-		req = req.WithContext(ctx)
-	}
-
-	return req, nil
-}
-
-// EncodeGetLayoutRequest returns an encoder for requests sent to the Packages
-// GetLayout server.
-func EncodeGetLayoutRequest(encoder func(*http.Request) goahttp.Encoder) func(*http.Request, any) error {
-	return func(req *http.Request, v any) error {
-		p, ok := v.(*types.PackageLocator)
-		if !ok {
-			return goahttp.ErrInvalidType("Packages", "GetLayout", "*types.PackageLocator", v)
-		}
-		values := req.URL.Query()
-		values.Add("work", p.Workspace)
-		values.Add("dir", p.Dir)
-		req.URL.RawQuery = values.Encode()
-		return nil
-	}
-}
-
-// DecodeGetLayoutResponse returns a decoder for responses returned by the
-// Packages GetLayout endpoint. restoreBody controls whether the response body
-// should be restored after having been read.
-func DecodeGetLayoutResponse(decoder func(*http.Response) goahttp.Decoder, restoreBody bool) func(*http.Response) (any, error) {
-	return func(resp *http.Response) (any, error) {
-		if restoreBody {
-			b, err := io.ReadAll(resp.Body)
-			if err != nil {
-				return nil, err
-			}
-			resp.Body = io.NopCloser(bytes.NewBuffer(b))
-			defer func() {
-				resp.Body = io.NopCloser(bytes.NewBuffer(b))
-			}()
-		}
-		switch resp.StatusCode {
-		case http.StatusOK:
-			return nil, nil
-		default:
-			body, _ := io.ReadAll(resp.Body)
-			return nil, goahttp.ErrInvalidResponse("Packages", "GetLayout", resp.StatusCode, string(body))
-		}
-	}
+	return res
 }
 
 // unmarshalPackageResponseToTypesPackage builds a value of type *types.Package

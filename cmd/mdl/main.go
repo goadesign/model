@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"goa.design/model/codegen"
+	pstore "goa.design/model/mdlsvc/clients/package_store"
 	model "goa.design/model/pkg"
 )
 
@@ -20,6 +21,7 @@ func main() {
 
 		svrset = flag.NewFlagSet("serve", flag.ExitOnError)
 		port   = svrset.Int("port", 8080, "set local HTTP port used to serve diagram editor")
+		root   = svrset.String("root", "", "set root path to package files")
 
 		devmode = os.Getenv("DEVMODE") == "1"
 
@@ -89,7 +91,8 @@ func main() {
 		if pkg == "" {
 			fail(`missing MODEL_DIR argument, use "--help" for usage`)
 		}
-		err = serve(pkg, *port, devmode, *debug)
+		store := pstore.NewFileStore(*root, devmode)
+		err = serve(pkg, store, *port, devmode, *debug)
 	case "version":
 		fmt.Printf("%s %s\n", os.Args[0], model.Version())
 	case "", "help":

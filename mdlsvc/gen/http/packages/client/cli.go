@@ -8,11 +8,92 @@
 package client
 
 import (
+	"encoding/json"
+	"fmt"
 	"unicode/utf8"
 
 	goa "goa.design/goa/v3/pkg"
+	packages "goa.design/model/mdlsvc/gen/packages"
 	types "goa.design/model/mdlsvc/gen/types"
 )
+
+// BuildCreatePackagePayload builds the payload for the Packages CreatePackage
+// endpoint from CLI flags.
+func BuildCreatePackagePayload(packagesCreatePackageBody string, packagesCreatePackageWorkspace string, packagesCreatePackageDir string) (*packages.CreatePackagePayload, error) {
+	var err error
+	var body CreatePackageRequestBody
+	{
+		err = json.Unmarshal([]byte(packagesCreatePackageBody), &body)
+		if err != nil {
+			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Content\": \"import . \\\"goa.design/model/dsl\\\"\\n\\nvar _ = Design(\\\"System Design\\\", func() {\\n\\n})\"\n   }'")
+		}
+		err = goa.MergeErrors(err, goa.ValidatePattern("body.Content", body.Content, "import . \"goa.design/model/dsl\""))
+		if utf8.RuneCountInString(body.Content) < 58 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Content", body.Content, utf8.RuneCountInString(body.Content), 58, true))
+		}
+		if err != nil {
+			return nil, err
+		}
+	}
+	var workspace string
+	{
+		workspace = packagesCreatePackageWorkspace
+		if utf8.RuneCountInString(workspace) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("Workspace", workspace, utf8.RuneCountInString(workspace), 1, true))
+		}
+		if err != nil {
+			return nil, err
+		}
+	}
+	var dir string
+	{
+		dir = packagesCreatePackageDir
+		if utf8.RuneCountInString(dir) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("Dir", dir, utf8.RuneCountInString(dir), 1, true))
+		}
+		if err != nil {
+			return nil, err
+		}
+	}
+	v := &packages.CreatePackagePayload{
+		Content: body.Content,
+	}
+	v.Workspace = workspace
+	v.Dir = dir
+
+	return v, nil
+}
+
+// BuildDeletePackagePayload builds the payload for the Packages DeletePackage
+// endpoint from CLI flags.
+func BuildDeletePackagePayload(packagesDeletePackageWorkspace string, packagesDeletePackageDir string) (*types.PackageLocator, error) {
+	var err error
+	var workspace string
+	{
+		workspace = packagesDeletePackageWorkspace
+		if utf8.RuneCountInString(workspace) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("Workspace", workspace, utf8.RuneCountInString(workspace), 1, true))
+		}
+		if err != nil {
+			return nil, err
+		}
+	}
+	var dir string
+	{
+		dir = packagesDeletePackageDir
+		if utf8.RuneCountInString(dir) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("Dir", dir, utf8.RuneCountInString(dir), 1, true))
+		}
+		if err != nil {
+			return nil, err
+		}
+	}
+	v := &types.PackageLocator{}
+	v.Workspace = workspace
+	v.Dir = dir
+
+	return v, nil
+}
 
 // BuildListPackagesPayload builds the payload for the Packages ListPackages
 // endpoint from CLI flags.
@@ -34,13 +115,13 @@ func BuildListPackagesPayload(packagesListPackagesWorkspace string) (*types.Work
 	return v, nil
 }
 
-// BuildListPackageFilesPayload builds the payload for the Packages
-// ListPackageFiles endpoint from CLI flags.
-func BuildListPackageFilesPayload(packagesListPackageFilesWorkspace string, packagesListPackageFilesDir string) (*types.PackageLocator, error) {
+// BuildReadPackageFilesPayload builds the payload for the Packages
+// ReadPackageFiles endpoint from CLI flags.
+func BuildReadPackageFilesPayload(packagesReadPackageFilesWorkspace string, packagesReadPackageFilesDir string) (*types.PackageLocator, error) {
 	var err error
 	var workspace string
 	{
-		workspace = packagesListPackageFilesWorkspace
+		workspace = packagesReadPackageFilesWorkspace
 		if utf8.RuneCountInString(workspace) < 1 {
 			err = goa.MergeErrors(err, goa.InvalidLengthError("Workspace", workspace, utf8.RuneCountInString(workspace), 1, true))
 		}
@@ -50,7 +131,7 @@ func BuildListPackageFilesPayload(packagesListPackageFilesWorkspace string, pack
 	}
 	var dir string
 	{
-		dir = packagesListPackageFilesDir
+		dir = packagesReadPackageFilesDir
 		if utf8.RuneCountInString(dir) < 1 {
 			err = goa.MergeErrors(err, goa.InvalidLengthError("Dir", dir, utf8.RuneCountInString(dir), 1, true))
 		}
@@ -82,68 +163,6 @@ func BuildSubscribePayload(packagesSubscribeWorkspace string, packagesSubscribeD
 	var dir string
 	{
 		dir = packagesSubscribeDir
-		if utf8.RuneCountInString(dir) < 1 {
-			err = goa.MergeErrors(err, goa.InvalidLengthError("Dir", dir, utf8.RuneCountInString(dir), 1, true))
-		}
-		if err != nil {
-			return nil, err
-		}
-	}
-	v := &types.PackageLocator{}
-	v.Workspace = workspace
-	v.Dir = dir
-
-	return v, nil
-}
-
-// BuildGetModelJSONPayload builds the payload for the Packages GetModelJSON
-// endpoint from CLI flags.
-func BuildGetModelJSONPayload(packagesGetModelJSONWorkspace string, packagesGetModelJSONDir string) (*types.PackageLocator, error) {
-	var err error
-	var workspace string
-	{
-		workspace = packagesGetModelJSONWorkspace
-		if utf8.RuneCountInString(workspace) < 1 {
-			err = goa.MergeErrors(err, goa.InvalidLengthError("Workspace", workspace, utf8.RuneCountInString(workspace), 1, true))
-		}
-		if err != nil {
-			return nil, err
-		}
-	}
-	var dir string
-	{
-		dir = packagesGetModelJSONDir
-		if utf8.RuneCountInString(dir) < 1 {
-			err = goa.MergeErrors(err, goa.InvalidLengthError("Dir", dir, utf8.RuneCountInString(dir), 1, true))
-		}
-		if err != nil {
-			return nil, err
-		}
-	}
-	v := &types.PackageLocator{}
-	v.Workspace = workspace
-	v.Dir = dir
-
-	return v, nil
-}
-
-// BuildGetLayoutPayload builds the payload for the Packages GetLayout endpoint
-// from CLI flags.
-func BuildGetLayoutPayload(packagesGetLayoutWorkspace string, packagesGetLayoutDir string) (*types.PackageLocator, error) {
-	var err error
-	var workspace string
-	{
-		workspace = packagesGetLayoutWorkspace
-		if utf8.RuneCountInString(workspace) < 1 {
-			err = goa.MergeErrors(err, goa.InvalidLengthError("Workspace", workspace, utf8.RuneCountInString(workspace), 1, true))
-		}
-		if err != nil {
-			return nil, err
-		}
-	}
-	var dir string
-	{
-		dir = packagesGetLayoutDir
 		if utf8.RuneCountInString(dir) < 1 {
 			err = goa.MergeErrors(err, goa.InvalidLengthError("Dir", dir, utf8.RuneCountInString(dir), 1, true))
 		}

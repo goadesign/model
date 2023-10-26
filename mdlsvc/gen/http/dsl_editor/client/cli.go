@@ -61,7 +61,7 @@ func BuildUpsertSystemPayload(dSLEditorUpsertSystemBody string) (*dsleditor.Syst
 	{
 		err = json.Unmarshal([]byte(dSLEditorUpsertSystemBody), &body)
 		if err != nil {
-			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Description\": \"System description\",\n      \"Location\": \"External\",\n      \"Locator\": {\n         \"Dir\": \"src/repo/model\",\n         \"Filename\": \"model.go\",\n         \"Workspace\": \"my-workspace\"\n      },\n      \"Name\": \"System\",\n      \"Properties\": {\n         \"key1\": \"value1\",\n         \"key2\": \"value2\"\n      },\n      \"Tags\": [\n         \"Tag1\",\n         \"Tag2\"\n      ],\n      \"URL\": \"https://system.com\"\n   }'")
+			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Description\": \"System description\",\n      \"Location\": \"Internal\",\n      \"Locator\": {\n         \"Dir\": \"src/repo/model\",\n         \"Filename\": \"model.go\",\n         \"Workspace\": \"my-workspace\"\n      },\n      \"Name\": \"System\",\n      \"Properties\": {\n         \"key1\": \"value1\",\n         \"key2\": \"value2\"\n      },\n      \"Tags\": [\n         \"Tag1\",\n         \"Tag2\"\n      ],\n      \"URL\": \"https://system.com\"\n   }'")
 		}
 		if body.Locator != nil {
 			if err2 := ValidateFileLocatorRequestBody(body.Locator); err2 != nil {
@@ -116,7 +116,7 @@ func BuildUpsertPersonPayload(dSLEditorUpsertPersonBody string) (*dsleditor.Pers
 	{
 		err = json.Unmarshal([]byte(dSLEditorUpsertPersonBody), &body)
 		if err != nil {
-			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Description\": \"Person description\",\n      \"Location\": \"External\",\n      \"Locator\": {\n         \"Dir\": \"src/repo/model\",\n         \"Filename\": \"model.go\",\n         \"Workspace\": \"my-workspace\"\n      },\n      \"Name\": \"Person\",\n      \"Properties\": {\n         \"key1\": \"value1\",\n         \"key2\": \"value2\"\n      },\n      \"Tags\": [\n         \"Tag1\",\n         \"Tag2\"\n      ],\n      \"URL\": \"https://person.com\"\n   }'")
+			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Description\": \"Person description\",\n      \"Location\": \"Internal\",\n      \"Locator\": {\n         \"Dir\": \"src/repo/model\",\n         \"Filename\": \"model.go\",\n         \"Workspace\": \"my-workspace\"\n      },\n      \"Name\": \"Person\",\n      \"Properties\": {\n         \"key1\": \"value1\",\n         \"key2\": \"value2\"\n      },\n      \"Tags\": [\n         \"Tag1\",\n         \"Tag2\"\n      ],\n      \"URL\": \"https://person.com\"\n   }'")
 		}
 		if body.Locator != nil {
 			if err2 := ValidateFileLocatorRequestBody(body.Locator); err2 != nil {
@@ -266,7 +266,7 @@ func BuildUpsertRelationshipPayload(dSLEditorUpsertRelationshipBody string) (*ds
 	{
 		err = json.Unmarshal([]byte(dSLEditorUpsertRelationshipBody), &body)
 		if err != nil {
-			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Description\": \"Relationship description\",\n      \"DestinationPath\": \"Software System/Container/Component\",\n      \"InteractionStyle\": \"Synchronous\",\n      \"Locator\": {\n         \"Dir\": \"src/repo/model\",\n         \"Filename\": \"model.go\",\n         \"Workspace\": \"my-workspace\"\n      },\n      \"SourcePath\": \"Software System/Container/Component\",\n      \"Tags\": [\n         \"Tag1\",\n         \"Tag2\"\n      ],\n      \"Technology\": \"Technology\",\n      \"URL\": \"https://relationship.com\"\n   }'")
+			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Description\": \"Relationship description\",\n      \"DestinationPath\": \"Software System/Container/Component\",\n      \"InteractionStyle\": \"Asynchronous\",\n      \"Locator\": {\n         \"Dir\": \"src/repo/model\",\n         \"Filename\": \"model.go\",\n         \"Workspace\": \"my-workspace\"\n      },\n      \"SourcePath\": \"Software System/Container/Component\",\n      \"Tags\": [\n         \"Tag1\",\n         \"Tag2\"\n      ],\n      \"Technology\": \"Technology\",\n      \"URL\": \"https://relationship.com\"\n   }'")
 		}
 		if body.Locator != nil {
 			if err2 := ValidateFileLocatorRequestBody(body.Locator); err2 != nil {

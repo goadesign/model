@@ -7,27 +7,32 @@
 
 package server
 
+// ListWorkspacesPackagesPath returns the URL path to the Packages service ListWorkspaces HTTP endpoint.
+func ListWorkspacesPackagesPath() string {
+	return "/api/packages/workspaces"
+}
+
+// CreatePackagePackagesPath returns the URL path to the Packages service CreatePackage HTTP endpoint.
+func CreatePackagePackagesPath() string {
+	return "/api/packages"
+}
+
+// DeletePackagePackagesPath returns the URL path to the Packages service DeletePackage HTTP endpoint.
+func DeletePackagePackagesPath() string {
+	return "/api/packages"
+}
+
 // ListPackagesPackagesPath returns the URL path to the Packages service ListPackages HTTP endpoint.
 func ListPackagesPackagesPath() string {
 	return "/api/packages"
 }
 
-// ListPackageFilesPackagesPath returns the URL path to the Packages service ListPackageFiles HTTP endpoint.
-func ListPackageFilesPackagesPath() string {
+// ReadPackageFilesPackagesPath returns the URL path to the Packages service ReadPackageFiles HTTP endpoint.
+func ReadPackageFilesPackagesPath() string {
 	return "/api/packages/files"
 }
 
 // SubscribePackagesPath returns the URL path to the Packages service Subscribe HTTP endpoint.
 func SubscribePackagesPath() string {
 	return "/api/packages/subscribe"
-}
-
-// GetModelJSONPackagesPath returns the URL path to the Packages service GetModelJSON HTTP endpoint.
-func GetModelJSONPackagesPath() string {
-	return "/api/packages/model"
-}
-
-// GetLayoutPackagesPath returns the URL path to the Packages service GetLayout HTTP endpoint.
-func GetLayoutPackagesPath() string {
-	return "/api/packages/layout"
 }

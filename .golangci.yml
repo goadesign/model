@@ -2,3 +2,6 @@ linters-settings:
   govet:
     disable:
       - composites
+run:
+  skip-dirs:
+    - mdlsvc/gen

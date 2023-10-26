@@ -1,176 +1,77 @@
 package mdlsvc
 
 import (
-	"bytes"
 	"context"
 	"fmt"
-	"go/parser"
-	"go/token"
-	"io"
-	"os"
-	"path/filepath"
 
 	"goa.design/clue/log"
-	"goa.design/model/codegen"
 	genpackages "goa.design/model/mdlsvc/gen/packages"
-	gentypes "goa.design/model/mdlsvc/gen/types"
+	"goa.design/model/mdlsvc/gen/types"
 )
 
-// List the model packages located below the service packages directory.
-func (svc *Service) ListPackages(ctx context.Context) ([]*gentypes.Package, error) {
-	var pkgs []*gentypes.Package
-	err := filepath.Walk(svc.dir, func(fpath string, info os.FileInfo, err error) error {
-		if err != nil {
-			log.Errorf(ctx, err, "failed to stat %s", fpath)
-			return nil
-		}
-		if !info.IsDir() {
-			return nil
-		}
-		// Parse directory and look for goa.design/model/dsl imports
-		parsed, err := parser.ParseDir(token.NewFileSet(), fpath, nil, parser.ImportsOnly)
-		if err != nil {
-			log.Errorf(ctx, err, "failed to parse %s", fpath)
-			return nil
-		}
-		if len(parsed) == 0 {
-			return nil
-		}
-		fmpath, mpath, err := modulePath(fpath)
-		if err != nil {
-			log.Errorf(ctx, err, "failed to find module for %s", fpath)
-			return nil
-		}
-		for _, pkg := range parsed {
-			for _, f := range pkg.Files {
-				for _, imp := range f.Imports {
-					if imp.Path.Value == `"goa.design/model/dsl"` {
-						pkgPath, err := packagePath(pkg.Name, fpath, mpath, fmpath)
-						if err != nil {
-							log.Error(ctx, err)
-							continue
-						}
-						pkgs = append(pkgs, &gentypes.Package{
-							Dir:        fpath,
-							ImportPath: pkgPath,
-						})
-					}
-				}
-			}
-		}
-		return nil
-	})
+// List the known workspaces
+func (s *Service) ListWorkspaces(ctx context.Context) (res []*types.Workspace, err error) {
+	ws, err := s.store.ListWorkspaces(ctx)
 	if err != nil {
-		log.Errorf(ctx, err, "failed to list packages")
-		return nil, err
+		return nil, logAndReturn(ctx, err, "failed to list workspaces")
 	}
-	return pkgs, nil
+	return ws, nil
 }
 
-// WebSocket endpoint for subscribing to updates to the model
-func (svc *Service) Subscribe(ctx context.Context, dir *gentypes.PackageLocator, stream genpackages.SubscribeServerStream) error {
-	pkgPath, err := findPackagePath(dir.Dir)
-	if err != nil {
-		return logAndReturn(ctx, err, "failed to find package path for %s", dir.Dir)
+// CreatePackage creates a new package in the given workspace.
+func (s *Service) CreatePackage(ctx context.Context, p *genpackages.CreatePackagePayload) (err error) {
+	pf := &types.PackageFile{
+		Locator: &types.FileLocator{
+			Workspace: p.Workspace,
+			Dir:       p.Dir,
+			Filename:  "design.go",
+		},
+		Content: p.Content,
 	}
-	js, err := codegen.JSON(dir.Dir, pkgPath, svc.debug)
-	if err != nil {
-		return logAndReturn(ctx, err, "failed to generate JSON for %s, package %s", dir.Dir, pkgPath)
+	if err := s.store.CreatePackage(ctx, pf); err != nil {
+		return logAndReturn(ctx, err, "failed to create package %s", p.Dir)
 	}
-	if err := stream.Send(gentypes.ModelJSON(js)); err != nil {
-		return logAndReturn(ctx, err, "failed to send update for %s, package %s", dir.Dir, pkgPath)
-	}
-	svc.lock.Lock()
-	sub, ok := svc.subscriptions[dir.Dir]
-	if ok {
-		sub.streams = append(sub.streams, stream)
-		svc.lock.Unlock()
-	} else {
-		sub, err = svc.subscribe(ctx, dir.Dir, pkgPath, stream)
-		svc.lock.Unlock()
-		if err != nil {
-			return logAndReturn(ctx, err, "failed to subscribe to %s", dir.Dir)
-		}
-	}
-	<-ctx.Done() // wait for client to disconnect
-	svc.lock.Lock()
-	for i, s := range sub.streams {
-		if s == stream {
-			sub.streams = append(sub.streams[:i], sub.streams[i+1:]...)
-			break
-		}
-	}
-	if len(sub.streams) == 0 {
-		delete(svc.subscriptions, dir.Dir)
-	}
-	svc.lock.Unlock()
 	return nil
 }
 
-// Get the files and their content for the given package
-func (svc *Service) ListPackageFiles(ctx context.Context, dir *gentypes.PackageLocator) ([]*gentypes.PackageFile, error) {
-	files, err := os.ReadDir(dir.Dir)
-	if err != nil {
-		return nil, logAndReturn(ctx, err, "failed to read directory %s", dir.Dir)
+// DeletePackage deletes the given package.
+func (s *Service) DeletePackage(ctx context.Context, p *types.PackageLocator) (err error) {
+	if err := s.store.DeletePackage(ctx, p); err != nil {
+		return logAndReturn(ctx, err, "failed to delete package %s", p.Dir)
 	}
-	res := make([]*gentypes.PackageFile, 0, len(files))
-	for _, f := range files {
-		if f.IsDir() {
-			continue
-		}
-		b, err := os.ReadFile(filepath.Join(dir.Dir, f.Name()))
-		if err != nil {
-			return nil, logAndReturn(ctx, err, "failed to read file %s", f.Name())
-		}
-		res = append(res, &gentypes.PackageFile{
-			Locator: &gentypes.FileLocator{
-				Workspace: dir.Workspace,
-				Dir:       dir.Dir,
-				Filename:  f.Name(),
-			},
-			Content: string(b),
-		})
-	}
-	return res, nil
+	return nil
 }
 
-// Stream the model JSON, see https://pkg.go.dev/goa.design/model/model#model
-func (svc *Service) GetModelJSON(ctx context.Context, dir *gentypes.PackageLocator) (io.ReadCloser, error) {
-	pkgPath, err := findPackagePath(dir.Dir)
+// ListPackages lists the packages in the given workspace.
+func (s *Service) ListPackages(ctx context.Context, w *types.Workspace) (res []*types.Package, err error) {
+	ps, err := s.store.ListPackages(ctx, w.Workspace)
 	if err != nil {
-		return nil, logAndReturn(ctx, err, "failed to find package path for %s", dir.Dir)
+		return nil, logAndReturn(ctx, err, "failed to list packages in workspace %s", w.Workspace)
 	}
-	js, err := codegen.JSON(dir.Dir, pkgPath, svc.debug)
-	if err != nil {
-		return nil, logAndReturn(ctx, err, "failed to generate JSON for %s", dir.Dir)
-	}
-	return io.NopCloser(bytes.NewBuffer(js)), nil
+	return ps, nil
 }
 
-// Subscribe to updates to the model, svc lock must be held.
-func (svc *Service) subscribe(ctx context.Context, dir, pkgPath string, stream genpackages.SubscribeServerStream) (*subscription, error) {
-	sub := &subscription{streams: []genpackages.SubscribeServerStream{stream}}
-	svc.subscriptions[dir] = sub
-	err := watch(ctx, svc.dir, dir, func() {
-		js, err := codegen.JSON(dir, pkgPath, svc.debug)
-		if err != nil {
-			log.Errorf(ctx, err, "failed to generate JSON for %s", dir)
-			return
-		}
-		svc.lock.Lock()
-		streams := svc.subscriptions[dir].streams
-		svc.lock.Unlock()
-		for _, s := range streams {
-			if err := s.Send(gentypes.ModelJSON(js)); err != nil {
-				log.Errorf(ctx, err, "failed to send update for %s", dir)
-			}
-		}
-	})
+// ReadPackageFiles lists the DSL files and their content for the given package.
+func (s *Service) ReadPackageFiles(ctx context.Context, p *types.PackageLocator) (res []*types.PackageFile, err error) {
+	fs, err := s.store.ReadPackageFiles(ctx, p)
 	if err != nil {
-		delete(svc.subscriptions, dir)
-		return nil, err
+		return nil, logAndReturn(ctx, err, "failed to read files in package %s", p.Dir)
 	}
-	return sub, nil
+	return fs, nil
+}
+
+// Subscribe streams the model JSON for the given package.
+func (s *Service) Subscribe(ctx context.Context, p *types.PackageLocator, stream genpackages.SubscribeServerStream) (err error) {
+	ch, err := s.store.Subscribe(ctx, p)
+	if err != nil {
+		return logAndReturn(ctx, err, "failed to subscribe to package %s", p.Dir)
+	}
+	for m := range ch {
+		if err := stream.Send(types.ModelJSON(m)); err != nil {
+			return logAndReturn(ctx, err, "failed to send model JSON for package %s", p.Dir)
+		}
+	}
+	return nil
 }
 
 // logAndReturn logs the given error and returns it.

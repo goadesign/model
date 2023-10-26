@@ -8,16 +8,73 @@
 package server
 
 import (
+	"unicode/utf8"
+
+	goa "goa.design/goa/v3/pkg"
+	packages "goa.design/model/mdlsvc/gen/packages"
 	types "goa.design/model/mdlsvc/gen/types"
 )
+
+// CreatePackageRequestBody is the type of the "Packages" service
+// "CreatePackage" endpoint HTTP request body.
+type CreatePackageRequestBody struct {
+	// DSL code
+	Content *string `form:"Content,omitempty" json:"Content,omitempty" xml:"Content,omitempty"`
+}
+
+// ListWorkspacesResponseBody is the type of the "Packages" service
+// "ListWorkspaces" endpoint HTTP response body.
+type ListWorkspacesResponseBody []*WorkspaceResponse
 
 // ListPackagesResponseBody is the type of the "Packages" service
 // "ListPackages" endpoint HTTP response body.
 type ListPackagesResponseBody []*PackageResponse
 
-// ListPackageFilesResponseBody is the type of the "Packages" service
-// "ListPackageFiles" endpoint HTTP response body.
-type ListPackageFilesResponseBody []*PackageFileResponse
+// ReadPackageFilesResponseBody is the type of the "Packages" service
+// "ReadPackageFiles" endpoint HTTP response body.
+type ReadPackageFilesResponseBody []*PackageFileResponse
+
+// CreatePackageAlreadyExistsResponseBody is the type of the "Packages" service
+// "CreatePackage" endpoint HTTP response body for the "already_exists" error.
+type CreatePackageAlreadyExistsResponseBody struct {
+	// Name is the name of this class of errors.
+	Name string `form:"name" json:"name" xml:"name"`
+	// ID is a unique identifier for this particular occurrence of the problem.
+	ID string `form:"id" json:"id" xml:"id"`
+	// Message is a human-readable explanation specific to this occurrence of the
+	// problem.
+	Message string `form:"message" json:"message" xml:"message"`
+	// Is the error temporary?
+	Temporary bool `form:"temporary" json:"temporary" xml:"temporary"`
+	// Is the error a timeout?
+	Timeout bool `form:"timeout" json:"timeout" xml:"timeout"`
+	// Is the error a server-side fault?
+	Fault bool `form:"fault" json:"fault" xml:"fault"`
+}
+
+// DeletePackageNotFoundResponseBody is the type of the "Packages" service
+// "DeletePackage" endpoint HTTP response body for the "not_found" error.
+type DeletePackageNotFoundResponseBody struct {
+	// Name is the name of this class of errors.
+	Name string `form:"name" json:"name" xml:"name"`
+	// ID is a unique identifier for this particular occurrence of the problem.
+	ID string `form:"id" json:"id" xml:"id"`
+	// Message is a human-readable explanation specific to this occurrence of the
+	// problem.
+	Message string `form:"message" json:"message" xml:"message"`
+	// Is the error temporary?
+	Temporary bool `form:"temporary" json:"temporary" xml:"temporary"`
+	// Is the error a timeout?
+	Timeout bool `form:"timeout" json:"timeout" xml:"timeout"`
+	// Is the error a server-side fault?
+	Fault bool `form:"fault" json:"fault" xml:"fault"`
+}
+
+// WorkspaceResponse is used to define fields on response body types.
+type WorkspaceResponse struct {
+	// Workspace identifier
+	Workspace string `form:"Workspace" json:"Workspace" xml:"Workspace"`
+}
 
 // PackageResponse is used to define fields on response body types.
 type PackageResponse struct {
@@ -45,6 +102,16 @@ type FileLocatorResponse struct {
 	Dir string `form:"Dir" json:"Dir" xml:"Dir"`
 }
 
+// NewListWorkspacesResponseBody builds the HTTP response body from the result
+// of the "ListWorkspaces" endpoint of the "Packages" service.
+func NewListWorkspacesResponseBody(res []*types.Workspace) ListWorkspacesResponseBody {
+	body := make([]*WorkspaceResponse, len(res))
+	for i, val := range res {
+		body[i] = marshalTypesWorkspaceToWorkspaceResponse(val)
+	}
+	return body
+}
+
 // NewListPackagesResponseBody builds the HTTP response body from the result of
 // the "ListPackages" endpoint of the "Packages" service.
 func NewListPackagesResponseBody(res []*types.Package) ListPackagesResponseBody {
@@ -55,14 +122,64 @@ func NewListPackagesResponseBody(res []*types.Package) ListPackagesResponseBody 
 	return body
 }
 
-// NewListPackageFilesResponseBody builds the HTTP response body from the
-// result of the "ListPackageFiles" endpoint of the "Packages" service.
-func NewListPackageFilesResponseBody(res []*types.PackageFile) ListPackageFilesResponseBody {
+// NewReadPackageFilesResponseBody builds the HTTP response body from the
+// result of the "ReadPackageFiles" endpoint of the "Packages" service.
+func NewReadPackageFilesResponseBody(res []*types.PackageFile) ReadPackageFilesResponseBody {
 	body := make([]*PackageFileResponse, len(res))
 	for i, val := range res {
 		body[i] = marshalTypesPackageFileToPackageFileResponse(val)
 	}
 	return body
+}
+
+// NewCreatePackageAlreadyExistsResponseBody builds the HTTP response body from
+// the result of the "CreatePackage" endpoint of the "Packages" service.
+func NewCreatePackageAlreadyExistsResponseBody(res *goa.ServiceError) *CreatePackageAlreadyExistsResponseBody {
+	body := &CreatePackageAlreadyExistsResponseBody{
+		Name:      res.Name,
+		ID:        res.ID,
+		Message:   res.Message,
+		Temporary: res.Temporary,
+		Timeout:   res.Timeout,
+		Fault:     res.Fault,
+	}
+	return body
+}
+
+// NewDeletePackageNotFoundResponseBody builds the HTTP response body from the
+// result of the "DeletePackage" endpoint of the "Packages" service.
+func NewDeletePackageNotFoundResponseBody(res *goa.ServiceError) *DeletePackageNotFoundResponseBody {
+	body := &DeletePackageNotFoundResponseBody{
+		Name:      res.Name,
+		ID:        res.ID,
+		Message:   res.Message,
+		Temporary: res.Temporary,
+		Timeout:   res.Timeout,
+		Fault:     res.Fault,
+	}
+	return body
+}
+
+// NewCreatePackagePayload builds a Packages service CreatePackage endpoint
+// payload.
+func NewCreatePackagePayload(body *CreatePackageRequestBody, workspace string, dir string) *packages.CreatePackagePayload {
+	v := &packages.CreatePackagePayload{
+		Content: *body.Content,
+	}
+	v.Workspace = workspace
+	v.Dir = dir
+
+	return v
+}
+
+// NewDeletePackagePackageLocator builds a Packages service DeletePackage
+// endpoint payload.
+func NewDeletePackagePackageLocator(workspace string, dir string) *types.PackageLocator {
+	v := &types.PackageLocator{}
+	v.Workspace = workspace
+	v.Dir = dir
+
+	return v
 }
 
 // NewListPackagesWorkspace builds a Packages service ListPackages endpoint
@@ -74,9 +191,9 @@ func NewListPackagesWorkspace(workspace string) *types.Workspace {
 	return v
 }
 
-// NewListPackageFilesPackageLocator builds a Packages service ListPackageFiles
+// NewReadPackageFilesPackageLocator builds a Packages service ReadPackageFiles
 // endpoint payload.
-func NewListPackageFilesPackageLocator(workspace string, dir string) *types.PackageLocator {
+func NewReadPackageFilesPackageLocator(workspace string, dir string) *types.PackageLocator {
 	v := &types.PackageLocator{}
 	v.Workspace = workspace
 	v.Dir = dir
@@ -94,22 +211,19 @@ func NewSubscribePackageLocator(workspace string, dir string) *types.PackageLoca
 	return v
 }
 
-// NewGetModelJSONPackageLocator builds a Packages service GetModelJSON
-// endpoint payload.
-func NewGetModelJSONPackageLocator(workspace string, dir string) *types.PackageLocator {
-	v := &types.PackageLocator{}
-	v.Workspace = workspace
-	v.Dir = dir
-
-	return v
-}
-
-// NewGetLayoutPackageLocator builds a Packages service GetLayout endpoint
-// payload.
-func NewGetLayoutPackageLocator(workspace string, dir string) *types.PackageLocator {
-	v := &types.PackageLocator{}
-	v.Workspace = workspace
-	v.Dir = dir
-
-	return v
+// ValidateCreatePackageRequestBody runs the validations defined on
+// CreatePackageRequestBody
+func ValidateCreatePackageRequestBody(body *CreatePackageRequestBody) (err error) {
+	if body.Content == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Content", "body"))
+	}
+	if body.Content != nil {
+		err = goa.MergeErrors(err, goa.ValidatePattern("body.Content", *body.Content, "import . \"goa.design/model/dsl\""))
+	}
+	if body.Content != nil {
+		if utf8.RuneCountInString(*body.Content) < 58 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Content", *body.Content, utf8.RuneCountInString(*body.Content), 58, true))
+		}
+	}
+	return
 }

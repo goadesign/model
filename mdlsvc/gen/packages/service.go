@@ -9,24 +9,25 @@ package packages
 
 import (
 	"context"
-	"io"
 
+	goa "goa.design/goa/v3/pkg"
 	types "goa.design/model/mdlsvc/gen/types"
 )
 
 // Service is the Packages service interface.
 type Service interface {
+	// List the known workspaces
+	ListWorkspaces(context.Context) (res []*types.Workspace, err error)
+	// Create a new model package in the given workspace
+	CreatePackage(context.Context, *CreatePackagePayload) (err error)
+	// Delete the given model package
+	DeletePackage(context.Context, *types.PackageLocator) (err error)
 	// List the model packages in the given workspace
 	ListPackages(context.Context, *types.Workspace) (res []*types.Package, err error)
 	// Get the DSL files and their content for the given model package
-	ListPackageFiles(context.Context, *types.PackageLocator) (res []*types.PackageFile, err error)
+	ReadPackageFiles(context.Context, *types.PackageLocator) (res []*types.PackageFile, err error)
 	// Send model JSON on initial subscription and when the model package changes
 	Subscribe(context.Context, *types.PackageLocator, SubscribeServerStream) (err error)
-	// Streams the model JSON for the given package, see
-	// https://pkg.go.dev/goa.design/model/model#Model
-	GetModelJSON(context.Context, *types.PackageLocator) (body io.ReadCloser, err error)
-	// Streams the model layout JSON for the given package
-	GetLayout(context.Context, *types.PackageLocator) (body io.ReadCloser, err error)
 }
 
 // ServiceName is the name of the service as defined in the design. This is the
@@ -37,7 +38,7 @@ const ServiceName = "Packages"
 // MethodNames lists the service method names as defined in the design. These
 // are the same values that are set in the endpoint request contexts under the
 // MethodKey key.
-var MethodNames = [5]string{"ListPackages", "ListPackageFiles", "Subscribe", "GetModelJSON", "GetLayout"}
+var MethodNames = [6]string{"ListWorkspaces", "CreatePackage", "DeletePackage", "ListPackages", "ReadPackageFiles", "Subscribe"}
 
 // SubscribeServerStream is the interface a "Subscribe" endpoint server stream
 // must satisfy.
@@ -53,4 +54,25 @@ type SubscribeServerStream interface {
 type SubscribeClientStream interface {
 	// Recv reads instances of "ModelJSON" from the stream.
 	Recv() (types.ModelJSON, error)
+}
+
+// CreatePackagePayload is the payload type of the Packages service
+// CreatePackage method.
+type CreatePackagePayload struct {
+	// DSL code
+	Content string
+	// Workspace identifier
+	Workspace string
+	// Path to directory containing a model package
+	Dir string
+}
+
+// MakeAlreadyExists builds a goa.ServiceError from an error.
+func MakeAlreadyExists(err error) *goa.ServiceError {
+	return goa.NewServiceError(err, "already_exists", false, false, false)
+}
+
+// MakeNotFound builds a goa.ServiceError from an error.
+func MakeNotFound(err error) *goa.ServiceError {
+	return goa.NewServiceError(err, "not_found", false, false, false)
 }

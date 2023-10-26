@@ -17,6 +17,7 @@ import (
 	goahttp "goa.design/goa/v3/http"
 
 	mdlsvc "goa.design/model/mdlsvc"
+	pstore "goa.design/model/mdlsvc/clients/package_store"
 	geneditorsvc "goa.design/model/mdlsvc/gen/dsl_editor"
 	genassetshttp "goa.design/model/mdlsvc/gen/http/assets/server"
 	geneditorhttp "goa.design/model/mdlsvc/gen/http/dsl_editor/server"
@@ -29,7 +30,7 @@ import (
 //go:embed webapp/dist
 var webapp embed.FS
 
-func serve(dir string, port int, devmode, debugf bool) error {
+func serve(dir string, store pstore.PackageStore, port int, devmode, debugf bool) error {
 	format := log.FormatJSON
 	if log.IsTerminal() {
 		format = log.FormatTerminal
@@ -41,7 +42,7 @@ func serve(dir string, port int, devmode, debugf bool) error {
 		log.Debugf(ctx, "debug logs enabled")
 	}
 
-	svc, err := mdlsvc.New(ctx, dir, debugf)
+	svc, err := mdlsvc.New(ctx, dir, store, debugf)
 	if err != nil {
 		return err
 	}

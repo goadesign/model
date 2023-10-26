@@ -8,9 +8,7 @@
 package server
 
 import (
-	"bufio"
 	"context"
-	"io"
 	"net/http"
 
 	goahttp "goa.design/goa/v3/http"
@@ -22,11 +20,12 @@ import (
 // Server lists the Packages service endpoint HTTP handlers.
 type Server struct {
 	Mounts           []*MountPoint
+	ListWorkspaces   http.Handler
+	CreatePackage    http.Handler
+	DeletePackage    http.Handler
 	ListPackages     http.Handler
-	ListPackageFiles http.Handler
+	ReadPackageFiles http.Handler
 	Subscribe        http.Handler
-	GetModelJSON     http.Handler
-	GetLayout        http.Handler
 }
 
 // MountPoint holds information about the mounted endpoints.
@@ -61,17 +60,19 @@ func New(
 	}
 	return &Server{
 		Mounts: []*MountPoint{
+			{"ListWorkspaces", "GET", "/api/packages/workspaces"},
+			{"CreatePackage", "POST", "/api/packages"},
+			{"DeletePackage", "DELETE", "/api/packages"},
 			{"ListPackages", "GET", "/api/packages"},
-			{"ListPackageFiles", "GET", "/api/packages/files"},
+			{"ReadPackageFiles", "GET", "/api/packages/files"},
 			{"Subscribe", "GET", "/api/packages/subscribe"},
-			{"GetModelJSON", "GET", "/api/packages/model"},
-			{"GetLayout", "GET", "/api/packages/layout"},
 		},
+		ListWorkspaces:   NewListWorkspacesHandler(e.ListWorkspaces, mux, decoder, encoder, errhandler, formatter),
+		CreatePackage:    NewCreatePackageHandler(e.CreatePackage, mux, decoder, encoder, errhandler, formatter),
+		DeletePackage:    NewDeletePackageHandler(e.DeletePackage, mux, decoder, encoder, errhandler, formatter),
 		ListPackages:     NewListPackagesHandler(e.ListPackages, mux, decoder, encoder, errhandler, formatter),
-		ListPackageFiles: NewListPackageFilesHandler(e.ListPackageFiles, mux, decoder, encoder, errhandler, formatter),
+		ReadPackageFiles: NewReadPackageFilesHandler(e.ReadPackageFiles, mux, decoder, encoder, errhandler, formatter),
 		Subscribe:        NewSubscribeHandler(e.Subscribe, mux, decoder, encoder, errhandler, formatter, upgrader, configurer.SubscribeFn),
-		GetModelJSON:     NewGetModelJSONHandler(e.GetModelJSON, mux, decoder, encoder, errhandler, formatter),
-		GetLayout:        NewGetLayoutHandler(e.GetLayout, mux, decoder, encoder, errhandler, formatter),
 	}
 }
 
@@ -80,11 +81,12 @@ func (s *Server) Service() string { return "Packages" }
 
 // Use wraps the server handlers with the given middleware.
 func (s *Server) Use(m func(http.Handler) http.Handler) {
+	s.ListWorkspaces = m(s.ListWorkspaces)
+	s.CreatePackage = m(s.CreatePackage)
+	s.DeletePackage = m(s.DeletePackage)
 	s.ListPackages = m(s.ListPackages)
-	s.ListPackageFiles = m(s.ListPackageFiles)
+	s.ReadPackageFiles = m(s.ReadPackageFiles)
 	s.Subscribe = m(s.Subscribe)
-	s.GetModelJSON = m(s.GetModelJSON)
-	s.GetLayout = m(s.GetLayout)
 }
 
 // MethodNames returns the methods served.
@@ -92,16 +94,163 @@ func (s *Server) MethodNames() []string { return packages.MethodNames[:] }
 
 // Mount configures the mux to serve the Packages endpoints.
 func Mount(mux goahttp.Muxer, h *Server) {
+	MountListWorkspacesHandler(mux, h.ListWorkspaces)
+	MountCreatePackageHandler(mux, h.CreatePackage)
+	MountDeletePackageHandler(mux, h.DeletePackage)
 	MountListPackagesHandler(mux, h.ListPackages)
-	MountListPackageFilesHandler(mux, h.ListPackageFiles)
+	MountReadPackageFilesHandler(mux, h.ReadPackageFiles)
 	MountSubscribeHandler(mux, h.Subscribe)
-	MountGetModelJSONHandler(mux, h.GetModelJSON)
-	MountGetLayoutHandler(mux, h.GetLayout)
 }
 
 // Mount configures the mux to serve the Packages endpoints.
 func (s *Server) Mount(mux goahttp.Muxer) {
 	Mount(mux, s)
+}
+
+// MountListWorkspacesHandler configures the mux to serve the "Packages"
+// service "ListWorkspaces" endpoint.
+func MountListWorkspacesHandler(mux goahttp.Muxer, h http.Handler) {
+	f, ok := h.(http.HandlerFunc)
+	if !ok {
+		f = func(w http.ResponseWriter, r *http.Request) {
+			h.ServeHTTP(w, r)
+		}
+	}
+	mux.Handle("GET", "/api/packages/workspaces", f)
+}
+
+// NewListWorkspacesHandler creates a HTTP handler which loads the HTTP request
+// and calls the "Packages" service "ListWorkspaces" endpoint.
+func NewListWorkspacesHandler(
+	endpoint goa.Endpoint,
+	mux goahttp.Muxer,
+	decoder func(*http.Request) goahttp.Decoder,
+	encoder func(context.Context, http.ResponseWriter) goahttp.Encoder,
+	errhandler func(context.Context, http.ResponseWriter, error),
+	formatter func(ctx context.Context, err error) goahttp.Statuser,
+) http.Handler {
+	var (
+		encodeResponse = EncodeListWorkspacesResponse(encoder)
+		encodeError    = goahttp.ErrorEncoder(encoder, formatter)
+	)
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := context.WithValue(r.Context(), goahttp.AcceptTypeKey, r.Header.Get("Accept"))
+		ctx = context.WithValue(ctx, goa.MethodKey, "ListWorkspaces")
+		ctx = context.WithValue(ctx, goa.ServiceKey, "Packages")
+		var err error
+		res, err := endpoint(ctx, nil)
+		if err != nil {
+			if err := encodeError(ctx, w, err); err != nil {
+				errhandler(ctx, w, err)
+			}
+			return
+		}
+		if err := encodeResponse(ctx, w, res); err != nil {
+			errhandler(ctx, w, err)
+		}
+	})
+}
+
+// MountCreatePackageHandler configures the mux to serve the "Packages" service
+// "CreatePackage" endpoint.
+func MountCreatePackageHandler(mux goahttp.Muxer, h http.Handler) {
+	f, ok := h.(http.HandlerFunc)
+	if !ok {
+		f = func(w http.ResponseWriter, r *http.Request) {
+			h.ServeHTTP(w, r)
+		}
+	}
+	mux.Handle("POST", "/api/packages", f)
+}
+
+// NewCreatePackageHandler creates a HTTP handler which loads the HTTP request
+// and calls the "Packages" service "CreatePackage" endpoint.
+func NewCreatePackageHandler(
+	endpoint goa.Endpoint,
+	mux goahttp.Muxer,
+	decoder func(*http.Request) goahttp.Decoder,
+	encoder func(context.Context, http.ResponseWriter) goahttp.Encoder,
+	errhandler func(context.Context, http.ResponseWriter, error),
+	formatter func(ctx context.Context, err error) goahttp.Statuser,
+) http.Handler {
+	var (
+		decodeRequest  = DecodeCreatePackageRequest(mux, decoder)
+		encodeResponse = EncodeCreatePackageResponse(encoder)
+		encodeError    = EncodeCreatePackageError(encoder, formatter)
+	)
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := context.WithValue(r.Context(), goahttp.AcceptTypeKey, r.Header.Get("Accept"))
+		ctx = context.WithValue(ctx, goa.MethodKey, "CreatePackage")
+		ctx = context.WithValue(ctx, goa.ServiceKey, "Packages")
+		payload, err := decodeRequest(r)
+		if err != nil {
+			if err := encodeError(ctx, w, err); err != nil {
+				errhandler(ctx, w, err)
+			}
+			return
+		}
+		res, err := endpoint(ctx, payload)
+		if err != nil {
+			if err := encodeError(ctx, w, err); err != nil {
+				errhandler(ctx, w, err)
+			}
+			return
+		}
+		if err := encodeResponse(ctx, w, res); err != nil {
+			errhandler(ctx, w, err)
+		}
+	})
+}
+
+// MountDeletePackageHandler configures the mux to serve the "Packages" service
+// "DeletePackage" endpoint.
+func MountDeletePackageHandler(mux goahttp.Muxer, h http.Handler) {
+	f, ok := h.(http.HandlerFunc)
+	if !ok {
+		f = func(w http.ResponseWriter, r *http.Request) {
+			h.ServeHTTP(w, r)
+		}
+	}
+	mux.Handle("DELETE", "/api/packages", f)
+}
+
+// NewDeletePackageHandler creates a HTTP handler which loads the HTTP request
+// and calls the "Packages" service "DeletePackage" endpoint.
+func NewDeletePackageHandler(
+	endpoint goa.Endpoint,
+	mux goahttp.Muxer,
+	decoder func(*http.Request) goahttp.Decoder,
+	encoder func(context.Context, http.ResponseWriter) goahttp.Encoder,
+	errhandler func(context.Context, http.ResponseWriter, error),
+	formatter func(ctx context.Context, err error) goahttp.Statuser,
+) http.Handler {
+	var (
+		decodeRequest  = DecodeDeletePackageRequest(mux, decoder)
+		encodeResponse = EncodeDeletePackageResponse(encoder)
+		encodeError    = EncodeDeletePackageError(encoder, formatter)
+	)
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := context.WithValue(r.Context(), goahttp.AcceptTypeKey, r.Header.Get("Accept"))
+		ctx = context.WithValue(ctx, goa.MethodKey, "DeletePackage")
+		ctx = context.WithValue(ctx, goa.ServiceKey, "Packages")
+		payload, err := decodeRequest(r)
+		if err != nil {
+			if err := encodeError(ctx, w, err); err != nil {
+				errhandler(ctx, w, err)
+			}
+			return
+		}
+		res, err := endpoint(ctx, payload)
+		if err != nil {
+			if err := encodeError(ctx, w, err); err != nil {
+				errhandler(ctx, w, err)
+			}
+			return
+		}
+		if err := encodeResponse(ctx, w, res); err != nil {
+			errhandler(ctx, w, err)
+		}
+	})
 }
 
 // MountListPackagesHandler configures the mux to serve the "Packages" service
@@ -155,9 +304,9 @@ func NewListPackagesHandler(
 	})
 }
 
-// MountListPackageFilesHandler configures the mux to serve the "Packages"
-// service "ListPackageFiles" endpoint.
-func MountListPackageFilesHandler(mux goahttp.Muxer, h http.Handler) {
+// MountReadPackageFilesHandler configures the mux to serve the "Packages"
+// service "ReadPackageFiles" endpoint.
+func MountReadPackageFilesHandler(mux goahttp.Muxer, h http.Handler) {
 	f, ok := h.(http.HandlerFunc)
 	if !ok {
 		f = func(w http.ResponseWriter, r *http.Request) {
@@ -167,9 +316,9 @@ func MountListPackageFilesHandler(mux goahttp.Muxer, h http.Handler) {
 	mux.Handle("GET", "/api/packages/files", f)
 }
 
-// NewListPackageFilesHandler creates a HTTP handler which loads the HTTP
-// request and calls the "Packages" service "ListPackageFiles" endpoint.
-func NewListPackageFilesHandler(
+// NewReadPackageFilesHandler creates a HTTP handler which loads the HTTP
+// request and calls the "Packages" service "ReadPackageFiles" endpoint.
+func NewReadPackageFilesHandler(
 	endpoint goa.Endpoint,
 	mux goahttp.Muxer,
 	decoder func(*http.Request) goahttp.Decoder,
@@ -178,13 +327,13 @@ func NewListPackageFilesHandler(
 	formatter func(ctx context.Context, err error) goahttp.Statuser,
 ) http.Handler {
 	var (
-		decodeRequest  = DecodeListPackageFilesRequest(mux, decoder)
-		encodeResponse = EncodeListPackageFilesResponse(encoder)
+		decodeRequest  = DecodeReadPackageFilesRequest(mux, decoder)
+		encodeResponse = EncodeReadPackageFilesResponse(encoder)
 		encodeError    = goahttp.ErrorEncoder(encoder, formatter)
 	)
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := context.WithValue(r.Context(), goahttp.AcceptTypeKey, r.Header.Get("Accept"))
-		ctx = context.WithValue(ctx, goa.MethodKey, "ListPackageFiles")
+		ctx = context.WithValue(ctx, goa.MethodKey, "ReadPackageFiles")
 		ctx = context.WithValue(ctx, goa.ServiceKey, "Packages")
 		payload, err := decodeRequest(r)
 		if err != nil {
@@ -268,142 +417,6 @@ func NewSubscribeHandler(
 				errhandler(ctx, w, err)
 			}
 			return
-		}
-	})
-}
-
-// MountGetModelJSONHandler configures the mux to serve the "Packages" service
-// "GetModelJSON" endpoint.
-func MountGetModelJSONHandler(mux goahttp.Muxer, h http.Handler) {
-	f, ok := h.(http.HandlerFunc)
-	if !ok {
-		f = func(w http.ResponseWriter, r *http.Request) {
-			h.ServeHTTP(w, r)
-		}
-	}
-	mux.Handle("GET", "/api/packages/model", f)
-}
-
-// NewGetModelJSONHandler creates a HTTP handler which loads the HTTP request
-// and calls the "Packages" service "GetModelJSON" endpoint.
-func NewGetModelJSONHandler(
-	endpoint goa.Endpoint,
-	mux goahttp.Muxer,
-	decoder func(*http.Request) goahttp.Decoder,
-	encoder func(context.Context, http.ResponseWriter) goahttp.Encoder,
-	errhandler func(context.Context, http.ResponseWriter, error),
-	formatter func(ctx context.Context, err error) goahttp.Statuser,
-) http.Handler {
-	var (
-		decodeRequest  = DecodeGetModelJSONRequest(mux, decoder)
-		encodeResponse = EncodeGetModelJSONResponse(encoder)
-		encodeError    = goahttp.ErrorEncoder(encoder, formatter)
-	)
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ctx := context.WithValue(r.Context(), goahttp.AcceptTypeKey, r.Header.Get("Accept"))
-		ctx = context.WithValue(ctx, goa.MethodKey, "GetModelJSON")
-		ctx = context.WithValue(ctx, goa.ServiceKey, "Packages")
-		payload, err := decodeRequest(r)
-		if err != nil {
-			if err := encodeError(ctx, w, err); err != nil {
-				errhandler(ctx, w, err)
-			}
-			return
-		}
-		res, err := endpoint(ctx, payload)
-		if err != nil {
-			if err := encodeError(ctx, w, err); err != nil {
-				errhandler(ctx, w, err)
-			}
-			return
-		}
-		o := res.(*packages.GetModelJSONResponseData)
-		defer o.Body.Close()
-		// handle immediate read error like a returned error
-		buf := bufio.NewReader(o.Body)
-		if _, err := buf.Peek(1); err != nil && err != io.EOF {
-			if err := encodeError(ctx, w, err); err != nil {
-				errhandler(ctx, w, err)
-			}
-			return
-		}
-		if err := encodeResponse(ctx, w, res); err != nil {
-			errhandler(ctx, w, err)
-			return
-		}
-		if _, err := io.Copy(w, buf); err != nil {
-			if f, ok := w.(http.Flusher); ok {
-				f.Flush()
-			}
-			panic(http.ErrAbortHandler) // too late to write an error
-		}
-	})
-}
-
-// MountGetLayoutHandler configures the mux to serve the "Packages" service
-// "GetLayout" endpoint.
-func MountGetLayoutHandler(mux goahttp.Muxer, h http.Handler) {
-	f, ok := h.(http.HandlerFunc)
-	if !ok {
-		f = func(w http.ResponseWriter, r *http.Request) {
-			h.ServeHTTP(w, r)
-		}
-	}
-	mux.Handle("GET", "/api/packages/layout", f)
-}
-
-// NewGetLayoutHandler creates a HTTP handler which loads the HTTP request and
-// calls the "Packages" service "GetLayout" endpoint.
-func NewGetLayoutHandler(
-	endpoint goa.Endpoint,
-	mux goahttp.Muxer,
-	decoder func(*http.Request) goahttp.Decoder,
-	encoder func(context.Context, http.ResponseWriter) goahttp.Encoder,
-	errhandler func(context.Context, http.ResponseWriter, error),
-	formatter func(ctx context.Context, err error) goahttp.Statuser,
-) http.Handler {
-	var (
-		decodeRequest  = DecodeGetLayoutRequest(mux, decoder)
-		encodeResponse = EncodeGetLayoutResponse(encoder)
-		encodeError    = goahttp.ErrorEncoder(encoder, formatter)
-	)
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ctx := context.WithValue(r.Context(), goahttp.AcceptTypeKey, r.Header.Get("Accept"))
-		ctx = context.WithValue(ctx, goa.MethodKey, "GetLayout")
-		ctx = context.WithValue(ctx, goa.ServiceKey, "Packages")
-		payload, err := decodeRequest(r)
-		if err != nil {
-			if err := encodeError(ctx, w, err); err != nil {
-				errhandler(ctx, w, err)
-			}
-			return
-		}
-		res, err := endpoint(ctx, payload)
-		if err != nil {
-			if err := encodeError(ctx, w, err); err != nil {
-				errhandler(ctx, w, err)
-			}
-			return
-		}
-		o := res.(*packages.GetLayoutResponseData)
-		defer o.Body.Close()
-		// handle immediate read error like a returned error
-		buf := bufio.NewReader(o.Body)
-		if _, err := buf.Peek(1); err != nil && err != io.EOF {
-			if err := encodeError(ctx, w, err); err != nil {
-				errhandler(ctx, w, err)
-			}
-			return
-		}
-		if err := encodeResponse(ctx, w, res); err != nil {
-			errhandler(ctx, w, err)
-			return
-		}
-		if _, err := io.Copy(w, buf); err != nil {
-			if f, ok := w.(http.Flusher); ok {
-				f.Flush()
-			}
-			panic(http.ErrAbortHandler) // too late to write an error
 		}
 	})
 }

@@ -11,16 +11,70 @@ import (
 	"unicode/utf8"
 
 	goa "goa.design/goa/v3/pkg"
+	packages "goa.design/model/mdlsvc/gen/packages"
 	types "goa.design/model/mdlsvc/gen/types"
 )
+
+// CreatePackageRequestBody is the type of the "Packages" service
+// "CreatePackage" endpoint HTTP request body.
+type CreatePackageRequestBody struct {
+	// DSL code
+	Content string `form:"Content" json:"Content" xml:"Content"`
+}
+
+// ListWorkspacesResponseBody is the type of the "Packages" service
+// "ListWorkspaces" endpoint HTTP response body.
+type ListWorkspacesResponseBody []*WorkspaceResponse
 
 // ListPackagesResponseBody is the type of the "Packages" service
 // "ListPackages" endpoint HTTP response body.
 type ListPackagesResponseBody []*PackageResponse
 
-// ListPackageFilesResponseBody is the type of the "Packages" service
-// "ListPackageFiles" endpoint HTTP response body.
-type ListPackageFilesResponseBody []*PackageFileResponse
+// ReadPackageFilesResponseBody is the type of the "Packages" service
+// "ReadPackageFiles" endpoint HTTP response body.
+type ReadPackageFilesResponseBody []*PackageFileResponse
+
+// CreatePackageAlreadyExistsResponseBody is the type of the "Packages" service
+// "CreatePackage" endpoint HTTP response body for the "already_exists" error.
+type CreatePackageAlreadyExistsResponseBody struct {
+	// Name is the name of this class of errors.
+	Name *string `form:"name,omitempty" json:"name,omitempty" xml:"name,omitempty"`
+	// ID is a unique identifier for this particular occurrence of the problem.
+	ID *string `form:"id,omitempty" json:"id,omitempty" xml:"id,omitempty"`
+	// Message is a human-readable explanation specific to this occurrence of the
+	// problem.
+	Message *string `form:"message,omitempty" json:"message,omitempty" xml:"message,omitempty"`
+	// Is the error temporary?
+	Temporary *bool `form:"temporary,omitempty" json:"temporary,omitempty" xml:"temporary,omitempty"`
+	// Is the error a timeout?
+	Timeout *bool `form:"timeout,omitempty" json:"timeout,omitempty" xml:"timeout,omitempty"`
+	// Is the error a server-side fault?
+	Fault *bool `form:"fault,omitempty" json:"fault,omitempty" xml:"fault,omitempty"`
+}
+
+// DeletePackageNotFoundResponseBody is the type of the "Packages" service
+// "DeletePackage" endpoint HTTP response body for the "not_found" error.
+type DeletePackageNotFoundResponseBody struct {
+	// Name is the name of this class of errors.
+	Name *string `form:"name,omitempty" json:"name,omitempty" xml:"name,omitempty"`
+	// ID is a unique identifier for this particular occurrence of the problem.
+	ID *string `form:"id,omitempty" json:"id,omitempty" xml:"id,omitempty"`
+	// Message is a human-readable explanation specific to this occurrence of the
+	// problem.
+	Message *string `form:"message,omitempty" json:"message,omitempty" xml:"message,omitempty"`
+	// Is the error temporary?
+	Temporary *bool `form:"temporary,omitempty" json:"temporary,omitempty" xml:"temporary,omitempty"`
+	// Is the error a timeout?
+	Timeout *bool `form:"timeout,omitempty" json:"timeout,omitempty" xml:"timeout,omitempty"`
+	// Is the error a server-side fault?
+	Fault *bool `form:"fault,omitempty" json:"fault,omitempty" xml:"fault,omitempty"`
+}
+
+// WorkspaceResponse is used to define fields on response body types.
+type WorkspaceResponse struct {
+	// Workspace identifier
+	Workspace *string `form:"Workspace,omitempty" json:"Workspace,omitempty" xml:"Workspace,omitempty"`
+}
 
 // PackageResponse is used to define fields on response body types.
 type PackageResponse struct {
@@ -48,6 +102,56 @@ type FileLocatorResponse struct {
 	Dir *string `form:"Dir,omitempty" json:"Dir,omitempty" xml:"Dir,omitempty"`
 }
 
+// NewCreatePackageRequestBody builds the HTTP request body from the payload of
+// the "CreatePackage" endpoint of the "Packages" service.
+func NewCreatePackageRequestBody(p *packages.CreatePackagePayload) *CreatePackageRequestBody {
+	body := &CreatePackageRequestBody{
+		Content: p.Content,
+	}
+	return body
+}
+
+// NewListWorkspacesTypesWorkspaceOK builds a "Packages" service
+// "ListWorkspaces" endpoint result from a HTTP "OK" response.
+func NewListWorkspacesTypesWorkspaceOK(body []*WorkspaceResponse) []*types.Workspace {
+	v := make([]*types.Workspace, len(body))
+	for i, val := range body {
+		v[i] = unmarshalWorkspaceResponseToTypesWorkspace(val)
+	}
+
+	return v
+}
+
+// NewCreatePackageAlreadyExists builds a Packages service CreatePackage
+// endpoint already_exists error.
+func NewCreatePackageAlreadyExists(body *CreatePackageAlreadyExistsResponseBody) *goa.ServiceError {
+	v := &goa.ServiceError{
+		Name:      *body.Name,
+		ID:        *body.ID,
+		Message:   *body.Message,
+		Temporary: *body.Temporary,
+		Timeout:   *body.Timeout,
+		Fault:     *body.Fault,
+	}
+
+	return v
+}
+
+// NewDeletePackageNotFound builds a Packages service DeletePackage endpoint
+// not_found error.
+func NewDeletePackageNotFound(body *DeletePackageNotFoundResponseBody) *goa.ServiceError {
+	v := &goa.ServiceError{
+		Name:      *body.Name,
+		ID:        *body.ID,
+		Message:   *body.Message,
+		Temporary: *body.Temporary,
+		Timeout:   *body.Timeout,
+		Fault:     *body.Fault,
+	}
+
+	return v
+}
+
 // NewListPackagesTypesPackageOK builds a "Packages" service "ListPackages"
 // endpoint result from a HTTP "OK" response.
 func NewListPackagesTypesPackageOK(body []*PackageResponse) []*types.Package {
@@ -59,9 +163,9 @@ func NewListPackagesTypesPackageOK(body []*PackageResponse) []*types.Package {
 	return v
 }
 
-// NewListPackageFilesTypesPackageFileOK builds a "Packages" service
-// "ListPackageFiles" endpoint result from a HTTP "OK" response.
-func NewListPackageFilesTypesPackageFileOK(body []*PackageFileResponse) []*types.PackageFile {
+// NewReadPackageFilesTypesPackageFileOK builds a "Packages" service
+// "ReadPackageFiles" endpoint result from a HTTP "OK" response.
+func NewReadPackageFilesTypesPackageFileOK(body []*PackageFileResponse) []*types.PackageFile {
 	v := make([]*types.PackageFile, len(body))
 	for i, val := range body {
 		v[i] = unmarshalPackageFileResponseToTypesPackageFile(val)
@@ -76,6 +180,67 @@ func NewSubscribeModelJSONSwitchingProtocols(body string) types.ModelJSON {
 	v := types.ModelJSON(body)
 
 	return v
+}
+
+// ValidateCreatePackageAlreadyExistsResponseBody runs the validations defined
+// on CreatePackage_already_exists_Response_Body
+func ValidateCreatePackageAlreadyExistsResponseBody(body *CreatePackageAlreadyExistsResponseBody) (err error) {
+	if body.Name == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("name", "body"))
+	}
+	if body.ID == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("id", "body"))
+	}
+	if body.Message == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("message", "body"))
+	}
+	if body.Temporary == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("temporary", "body"))
+	}
+	if body.Timeout == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("timeout", "body"))
+	}
+	if body.Fault == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("fault", "body"))
+	}
+	return
+}
+
+// ValidateDeletePackageNotFoundResponseBody runs the validations defined on
+// DeletePackage_not_found_Response_Body
+func ValidateDeletePackageNotFoundResponseBody(body *DeletePackageNotFoundResponseBody) (err error) {
+	if body.Name == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("name", "body"))
+	}
+	if body.ID == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("id", "body"))
+	}
+	if body.Message == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("message", "body"))
+	}
+	if body.Temporary == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("temporary", "body"))
+	}
+	if body.Timeout == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("timeout", "body"))
+	}
+	if body.Fault == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("fault", "body"))
+	}
+	return
+}
+
+// ValidateWorkspaceResponse runs the validations defined on WorkspaceResponse
+func ValidateWorkspaceResponse(body *WorkspaceResponse) (err error) {
+	if body.Workspace == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Workspace", "body"))
+	}
+	if body.Workspace != nil {
+		if utf8.RuneCountInString(*body.Workspace) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Workspace", *body.Workspace, utf8.RuneCountInString(*body.Workspace), 1, true))
+		}
+	}
+	return
 }
 
 // ValidatePackageResponse runs the validations defined on PackageResponse

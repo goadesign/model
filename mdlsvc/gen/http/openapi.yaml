@@ -418,13 +418,76 @@ paths:
                             $ref: '#/definitions/PackageResponse'
             schemes:
                 - http
+        post:
+            tags:
+                - Packages
+            summary: CreatePackage Packages
+            description: Create a new model package in the given workspace
+            operationId: Packages#CreatePackage
+            parameters:
+                - name: work
+                  in: query
+                  description: Workspace identifier
+                  required: true
+                  type: string
+                  minLength: 1
+                - name: dir
+                  in: query
+                  description: Path to directory containing a model package
+                  required: true
+                  type: string
+                  minLength: 1
+                - name: CreatePackageRequestBody
+                  in: body
+                  required: true
+                  schema:
+                    $ref: '#/definitions/PackagesCreatePackageRequestBody'
+                    required:
+                        - Content
+            responses:
+                "201":
+                    description: Created response.
+                "409":
+                    description: Conflict response.
+                    schema:
+                        $ref: '#/definitions/PackagesCreatePackageAlreadyExistsResponseBody'
+            schemes:
+                - http
+        delete:
+            tags:
+                - Packages
+            summary: DeletePackage Packages
+            description: Delete the given model package
+            operationId: Packages#DeletePackage
+            parameters:
+                - name: work
+                  in: query
+                  description: Workspace identifier
+                  required: true
+                  type: string
+                  minLength: 1
+                - name: dir
+                  in: query
+                  description: Path to directory containing a model package
+                  required: true
+                  type: string
+                  minLength: 1
+            responses:
+                "204":
+                    description: No Content response.
+                "404":
+                    description: Not Found response.
+                    schema:
+                        $ref: '#/definitions/PackagesDeletePackageNotFoundResponseBody'
+            schemes:
+                - http
     /api/packages/files:
         get:
             tags:
                 - Packages
-            summary: ListPackageFiles Packages
+            summary: ReadPackageFiles Packages
             description: Get the DSL files and their content for the given model package
-            operationId: Packages#ListPackageFiles
+            operationId: Packages#ReadPackageFiles
             parameters:
                 - name: work
                   in: query
@@ -445,56 +508,6 @@ paths:
                         type: array
                         items:
                             $ref: '#/definitions/PackageFileResponse'
-            schemes:
-                - http
-    /api/packages/layout:
-        get:
-            tags:
-                - Packages
-            summary: GetLayout Packages
-            description: Streams the model layout JSON for the given package
-            operationId: Packages#GetLayout
-            parameters:
-                - name: work
-                  in: query
-                  description: Workspace identifier
-                  required: true
-                  type: string
-                  minLength: 1
-                - name: dir
-                  in: query
-                  description: Path to directory containing a model package
-                  required: true
-                  type: string
-                  minLength: 1
-            responses:
-                "200":
-                    description: OK response.
-            schemes:
-                - http
-    /api/packages/model:
-        get:
-            tags:
-                - Packages
-            summary: GetModelJSON Packages
-            description: Streams the model JSON for the given package, see https://pkg.go.dev/goa.design/model/model#Model
-            operationId: Packages#GetModelJSON
-            parameters:
-                - name: work
-                  in: query
-                  description: Workspace identifier
-                  required: true
-                  type: string
-                  minLength: 1
-                - name: dir
-                  in: query
-                  description: Path to directory containing a model package
-                  required: true
-                  type: string
-                  minLength: 1
-            responses:
-                "200":
-                    description: OK response.
             schemes:
                 - http
     /api/packages/subscribe:
@@ -525,6 +538,22 @@ paths:
                         format: json
             schemes:
                 - ws
+    /api/packages/workspaces:
+        get:
+            tags:
+                - Packages
+            summary: ListWorkspaces Packages
+            description: List the known workspaces
+            operationId: Packages#ListWorkspaces
+            responses:
+                "200":
+                    description: OK response.
+                    schema:
+                        type: array
+                        items:
+                            $ref: '#/definitions/WorkspaceResponse'
+            schemes:
+                - http
     /assets:
         get:
             tags:
@@ -567,15 +596,15 @@ definitions:
             timeout:
                 type: boolean
                 description: Is the error a timeout?
-                example: false
+                example: true
         description: Compilation failed (default view)
         example:
-            fault: true
+            fault: false
             id: 123abc
             message: parameter 'p' must be an integer
             name: bad_request
             temporary: true
-            timeout: false
+            timeout: true
         required:
             - name
             - id
@@ -606,7 +635,7 @@ definitions:
             temporary:
                 type: boolean
                 description: Is the error temporary?
-                example: true
+                example: false
             timeout:
                 type: boolean
                 description: Is the error a timeout?
@@ -617,7 +646,7 @@ definitions:
             id: 123abc
             message: parameter 'p' must be an integer
             name: bad_request
-            temporary: true
+            temporary: false
             timeout: false
         required:
             - name
@@ -680,15 +709,15 @@ definitions:
             timeout:
                 type: boolean
                 description: Is the error a timeout?
-                example: false
+                example: true
         description: Compilation failed (default view)
         example:
             fault: true
             id: 123abc
             message: parameter 'p' must be an integer
             name: bad_request
-            temporary: false
-            timeout: true
+            temporary: true
+            timeout: false
         required:
             - name
             - id
@@ -703,7 +732,7 @@ definitions:
             fault:
                 type: boolean
                 description: Is the error a server-side fault?
-                example: true
+                example: false
             id:
                 type: string
                 description: ID is a unique identifier for this particular occurrence of the problem.
@@ -719,19 +748,19 @@ definitions:
             temporary:
                 type: boolean
                 description: Is the error temporary?
-                example: true
+                example: false
             timeout:
                 type: boolean
                 description: Is the error a timeout?
-                example: false
+                example: true
         description: Container not found (default view)
         example:
-            fault: true
+            fault: false
             id: 123abc
             message: parameter 'p' must be an integer
             name: bad_request
-            temporary: true
-            timeout: true
+            temporary: false
+            timeout: false
         required:
             - name
             - id
@@ -789,7 +818,7 @@ definitions:
             temporary:
                 type: boolean
                 description: Is the error temporary?
-                example: true
+                example: false
             timeout:
                 type: boolean
                 description: Is the error a timeout?
@@ -801,7 +830,7 @@ definitions:
             message: parameter 'p' must be an integer
             name: bad_request
             temporary: false
-            timeout: false
+            timeout: true
         required:
             - name
             - id
@@ -886,7 +915,7 @@ definitions:
             fault:
                 type: boolean
                 description: Is the error a server-side fault?
-                example: false
+                example: true
             id:
                 type: string
                 description: ID is a unique identifier for this particular occurrence of the problem.
@@ -906,15 +935,15 @@ definitions:
             timeout:
                 type: boolean
                 description: Is the error a timeout?
-                example: true
+                example: false
         description: Compilation failed (default view)
         example:
-            fault: false
+            fault: true
             id: 123abc
             message: parameter 'p' must be an integer
             name: bad_request
             temporary: true
-            timeout: false
+            timeout: true
         required:
             - name
             - id
@@ -929,7 +958,7 @@ definitions:
             fault:
                 type: boolean
                 description: Is the error a server-side fault?
-                example: false
+                example: true
             id:
                 type: string
                 description: ID is a unique identifier for this particular occurrence of the problem.
@@ -945,7 +974,7 @@ definitions:
             temporary:
                 type: boolean
                 description: Is the error temporary?
-                example: false
+                example: true
             timeout:
                 type: boolean
                 description: Is the error a timeout?
@@ -1011,7 +1040,7 @@ definitions:
             fault:
                 type: boolean
                 description: Is the error a server-side fault?
-                example: false
+                example: true
             id:
                 type: string
                 description: ID is a unique identifier for this particular occurrence of the problem.
@@ -1027,18 +1056,18 @@ definitions:
             temporary:
                 type: boolean
                 description: Is the error temporary?
-                example: false
+                example: true
             timeout:
                 type: boolean
                 description: Is the error a timeout?
-                example: false
+                example: true
         description: Compilation failed (default view)
         example:
             fault: false
             id: 123abc
             message: parameter 'p' must be an integer
             name: bad_request
-            temporary: true
+            temporary: false
             timeout: false
         required:
             - name
@@ -1054,7 +1083,7 @@ definitions:
             fault:
                 type: boolean
                 description: Is the error a server-side fault?
-                example: false
+                example: true
             id:
                 type: string
                 description: ID is a unique identifier for this particular occurrence of the problem.
@@ -1074,14 +1103,14 @@ definitions:
             timeout:
                 type: boolean
                 description: Is the error a timeout?
-                example: false
+                example: true
         description: Software system not found (default view)
         example:
             fault: true
             id: 123abc
             message: parameter 'p' must be an integer
             name: bad_request
-            temporary: true
+            temporary: false
             timeout: true
         required:
             - name
@@ -1140,7 +1169,7 @@ definitions:
             temporary:
                 type: boolean
                 description: Is the error temporary?
-                example: true
+                example: false
             timeout:
                 type: boolean
                 description: Is the error a timeout?
@@ -1151,7 +1180,7 @@ definitions:
             id: 123abc
             message: parameter 'p' must be an integer
             name: bad_request
-            temporary: false
+            temporary: true
             timeout: true
         required:
             - name
@@ -1194,7 +1223,7 @@ definitions:
             fault:
                 type: boolean
                 description: Is the error a server-side fault?
-                example: false
+                example: true
             id:
                 type: string
                 description: ID is a unique identifier for this particular occurrence of the problem.
@@ -1214,10 +1243,10 @@ definitions:
             timeout:
                 type: boolean
                 description: Is the error a timeout?
-                example: true
+                example: false
         description: Compilation failed (default view)
         example:
-            fault: false
+            fault: true
             id: 123abc
             message: parameter 'p' must be an integer
             name: bad_request
@@ -1256,7 +1285,7 @@ definitions:
                     key2: value2
                 additionalProperties:
                     type: string
-                    example: Harum excepturi quisquam.
+                    example: Soluta sint soluta accusamus quibusdam et.
             SystemName:
                 type: string
                 description: Name of parent software system
@@ -1265,7 +1294,7 @@ definitions:
                 type: array
                 items:
                     type: string
-                    example: Facilis laudantium.
+                    example: Distinctio et fuga totam.
                 description: Attached tags
                 example:
                     - Tag1
@@ -1326,7 +1355,7 @@ definitions:
             timeout:
                 type: boolean
                 description: Is the error a timeout?
-                example: true
+                example: false
         description: Compilation failed (default view)
         example:
             fault: false
@@ -1364,7 +1393,7 @@ definitions:
                     key2: value2
                 additionalProperties:
                     type: string
-                    example: Ex nisi ipsa eum consequatur quibusdam labore.
+                    example: Laudantium aut harum excepturi quisquam repellendus.
             SystemName:
                 type: string
                 description: Name of parent software system
@@ -1373,7 +1402,7 @@ definitions:
                 type: array
                 items:
                     type: string
-                    example: Illo est illum est.
+                    example: Odio reiciendis cupiditate velit non architecto voluptas.
                 description: Attached tags
                 example:
                     - Tag1
@@ -1460,7 +1489,7 @@ definitions:
                 type: string
                 description: Indicates whether the person is an employee (Internal) or a third party (External)
                 default: Internal
-                example: External
+                example: Internal
                 enum:
                     - Internal
                     - External
@@ -1478,12 +1507,12 @@ definitions:
                     key2: value2
                 additionalProperties:
                     type: string
-                    example: Sint quibusdam eum velit porro delectus dolor.
+                    example: Et tempora illo est illum est.
             Tags:
                 type: array
                 items:
                     type: string
-                    example: Hic porro itaque suscipit perferendis nostrum.
+                    example: Delectus dolor et aut temporibus impedit.
                 description: Attached tags
                 example:
                     - Tag1
@@ -1494,7 +1523,7 @@ definitions:
                 example: https://person.com
         example:
             Description: Person description
-            Location: Internal
+            Location: External
             Locator:
                 Dir: src/repo/model
                 Filename: model.go
@@ -1539,12 +1568,12 @@ definitions:
                 example: false
         description: Compilation failed (default view)
         example:
-            fault: true
+            fault: false
             id: 123abc
             message: parameter 'p' must be an integer
             name: bad_request
             temporary: true
-            timeout: true
+            timeout: false
         required:
             - name
             - id
@@ -1582,7 +1611,7 @@ definitions:
                 type: array
                 items:
                     type: string
-                    example: Distinctio et fuga totam.
+                    example: Rerum ex totam optio ipsum accusamus voluptatem.
                 description: Attached tags
                 example:
                     - Tag1
@@ -1599,7 +1628,7 @@ definitions:
         example:
             Description: Relationship description
             DestinationPath: Software System/Container/Component
-            InteractionStyle: Synchronous
+            InteractionStyle: Asynchronous
             Locator:
                 Dir: src/repo/model
                 Filename: model.go
@@ -1620,7 +1649,7 @@ definitions:
             fault:
                 type: boolean
                 description: Is the error a server-side fault?
-                example: true
+                example: false
             id:
                 type: string
                 description: ID is a unique identifier for this particular occurrence of the problem.
@@ -1643,12 +1672,12 @@ definitions:
                 example: false
         description: Compilation failed (default view)
         example:
-            fault: true
+            fault: false
             id: 123abc
             message: parameter 'p' must be an integer
             name: bad_request
             temporary: true
-            timeout: true
+            timeout: false
         required:
             - name
             - id
@@ -1686,12 +1715,12 @@ definitions:
                     key2: value2
                 additionalProperties:
                     type: string
-                    example: Accusantium id nemo.
+                    example: Sed exercitationem hic porro itaque suscipit perferendis.
             Tags:
                 type: array
                 items:
                     type: string
-                    example: Itaque id debitis.
+                    example: Nemo minima veritatis quibusdam nisi.
                 description: Attached tags
                 example:
                     - Tag1
@@ -1702,7 +1731,7 @@ definitions:
                 example: https://system.com
         example:
             Description: System description
-            Location: Internal
+            Location: External
             Locator:
                 Dir: src/repo/model
                 Filename: model.go
@@ -1820,6 +1849,116 @@ definitions:
         required:
             - ImportPath
             - Dir
+    PackagesCreatePackageAlreadyExistsResponseBody:
+        title: 'Mediatype identifier: application/vnd.goa.error; view=default'
+        type: object
+        properties:
+            fault:
+                type: boolean
+                description: Is the error a server-side fault?
+                example: true
+            id:
+                type: string
+                description: ID is a unique identifier for this particular occurrence of the problem.
+                example: 123abc
+            message:
+                type: string
+                description: Message is a human-readable explanation specific to this occurrence of the problem.
+                example: parameter 'p' must be an integer
+            name:
+                type: string
+                description: Name is the name of this class of errors.
+                example: bad_request
+            temporary:
+                type: boolean
+                description: Is the error temporary?
+                example: true
+            timeout:
+                type: boolean
+                description: Is the error a timeout?
+                example: true
+        description: Package already exists (default view)
+        example:
+            fault: true
+            id: 123abc
+            message: parameter 'p' must be an integer
+            name: bad_request
+            temporary: false
+            timeout: false
+        required:
+            - name
+            - id
+            - message
+            - temporary
+            - timeout
+            - fault
+    PackagesCreatePackageRequestBody:
+        title: PackagesCreatePackageRequestBody
+        type: object
+        properties:
+            Content:
+                type: string
+                description: DSL code
+                example: |-
+                    import . "goa.design/model/dsl"
+
+                    var _ = Design("System Design", func() {
+
+                    })
+                pattern: import . "goa.design/model/dsl"
+                minLength: 58
+        example:
+            Content: |-
+                import . "goa.design/model/dsl"
+
+                var _ = Design("System Design", func() {
+
+                })
+        required:
+            - Content
+    PackagesDeletePackageNotFoundResponseBody:
+        title: 'Mediatype identifier: application/vnd.goa.error; view=default'
+        type: object
+        properties:
+            fault:
+                type: boolean
+                description: Is the error a server-side fault?
+                example: true
+            id:
+                type: string
+                description: ID is a unique identifier for this particular occurrence of the problem.
+                example: 123abc
+            message:
+                type: string
+                description: Message is a human-readable explanation specific to this occurrence of the problem.
+                example: parameter 'p' must be an integer
+            name:
+                type: string
+                description: Name is the name of this class of errors.
+                example: bad_request
+            temporary:
+                type: boolean
+                description: Is the error temporary?
+                example: true
+            timeout:
+                type: boolean
+                description: Is the error a timeout?
+                example: false
+        description: Package not found (default view)
+        example:
+            fault: false
+            id: 123abc
+            message: parameter 'p' must be an integer
+            name: bad_request
+            temporary: true
+            timeout: false
+        required:
+            - name
+            - id
+            - message
+            - temporary
+            - timeout
+            - fault
     SVGSaveRequestBody:
         title: SVGSaveRequestBody
         type: object
@@ -1827,9 +1966,22 @@ definitions:
             SVG:
                 type: string
                 description: Diagram SVG
-                example: <svg</svg>
+                example: <svg�</svg>
                 pattern: <svg.*</svg>$
         example:
-            SVG: <svg��</svg>
+            SVG: <svg������</svg>
         required:
             - SVG
+    WorkspaceResponse:
+        title: WorkspaceResponse
+        type: object
+        properties:
+            Workspace:
+                type: string
+                description: Workspace identifier
+                example: my-workspace
+                minLength: 1
+        example:
+            Workspace: my-workspace
+        required:
+            - Workspace

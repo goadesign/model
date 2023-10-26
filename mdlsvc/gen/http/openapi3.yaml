@@ -32,7 +32,7 @@ paths:
                         schema:
                             $ref: '#/components/schemas/SaveRequestBody'
                         example:
-                            SVG: <svg</svg>
+                            SVG: <svg�</svg>
             responses:
                 "204":
                     description: No Content response.
@@ -62,9 +62,9 @@ paths:
                         application/json:
                             schema:
                                 type: string
-                                example: <svg���</svg>
+                                example: <svg����</svg>
                                 pattern: <svg.*</svg>$
-                            example: <svg������</svg>
+                            example: <svg�����</svg>
     /api/dsl:
         post:
             tags:
@@ -188,7 +188,7 @@ paths:
                             $ref: '#/components/schemas/UpsertSystemRequestBody'
                         example:
                             Description: Person description
-                            Location: External
+                            Location: Internal
                             Locator:
                                 Dir: src/repo/model
                                 Filename: model.go
@@ -225,8 +225,8 @@ paths:
                   schema:
                     type: string
                     description: Name of person to delete
-                    example: Et reprehenderit in ullam sed sed magni.
-                  example: Reprehenderit consequatur.
+                    example: Nesciunt fugiat laborum.
+                  example: Et in.
             requestBody:
                 required: true
                 content:
@@ -301,7 +301,7 @@ paths:
                         example:
                             Description: Relationship description
                             DestinationPath: Software System/Container/Component
-                            InteractionStyle: Synchronous
+                            InteractionStyle: Asynchronous
                             Locator:
                                 Dir: src/repo/model
                                 Filename: model.go
@@ -336,7 +336,7 @@ paths:
                             $ref: '#/components/schemas/UpsertSystemRequestBody'
                         example:
                             Description: System description
-                            Location: External
+                            Location: Internal
                             Locator:
                                 Dir: src/repo/model
                                 Filename: model.go
@@ -373,8 +373,8 @@ paths:
                   schema:
                     type: string
                     description: Name of software system to delete
-                    example: Assumenda ullam modi porro qui minima at.
-                  example: Dolores qui.
+                    example: Consequatur ullam et temporibus non in.
+                  example: Inventore molestiae.
             requestBody:
                 required: true
                 content:
@@ -415,8 +415,8 @@ paths:
                   schema:
                     type: string
                     description: Name of container software system
-                    example: Vero ipsam aut deserunt sequi molestiae nihil.
-                  example: Dicta eos hic ipsum.
+                    example: Consequatur dolorem voluptatem labore.
+                  example: Odit id odit sit quos quia ut.
                 - name: ContainerName
                   in: path
                   description: Name of container to delete
@@ -424,8 +424,8 @@ paths:
                   schema:
                     type: string
                     description: Name of container to delete
-                    example: Minima accusamus modi a omnis unde odio.
-                  example: Ullam et.
+                    example: Nostrum accusamus aspernatur facere dolorem velit.
+                  example: Cupiditate et dolore inventore.
             requestBody:
                 required: true
                 content:
@@ -512,6 +512,44 @@ paths:
                             schema:
                                 $ref: '#/components/schemas/Error'
     /api/packages:
+        delete:
+            tags:
+                - Packages
+            summary: DeletePackage Packages
+            description: Delete the given model package
+            operationId: Packages#DeletePackage
+            parameters:
+                - name: work
+                  in: query
+                  description: Workspace identifier
+                  allowEmptyValue: true
+                  required: true
+                  schema:
+                    type: string
+                    description: Workspace identifier
+                    example: my-workspace
+                    minLength: 1
+                  example: my-workspace
+                - name: dir
+                  in: query
+                  description: Path to directory containing a model package
+                  allowEmptyValue: true
+                  required: true
+                  schema:
+                    type: string
+                    description: Path to directory containing a model package
+                    example: src/repo/model
+                    minLength: 1
+                  example: src/repo/model
+            responses:
+                "204":
+                    description: No Content response.
+                "404":
+                    description: 'not_found: Package not found'
+                    content:
+                        application/vnd.goa.error:
+                            schema:
+                                $ref: '#/components/schemas/Error'
         get:
             tags:
                 - Packages
@@ -551,13 +589,64 @@ paths:
                                   ImportPath: goa.design/model/examples/basic/model
                                 - Dir: src/repo/model
                                   ImportPath: goa.design/model/examples/basic/model
+        post:
+            tags:
+                - Packages
+            summary: CreatePackage Packages
+            description: Create a new model package in the given workspace
+            operationId: Packages#CreatePackage
+            parameters:
+                - name: work
+                  in: query
+                  description: Workspace identifier
+                  allowEmptyValue: true
+                  required: true
+                  schema:
+                    type: string
+                    description: Workspace identifier
+                    example: my-workspace
+                    minLength: 1
+                  example: my-workspace
+                - name: dir
+                  in: query
+                  description: Path to directory containing a model package
+                  allowEmptyValue: true
+                  required: true
+                  schema:
+                    type: string
+                    description: Path to directory containing a model package
+                    example: src/repo/model
+                    minLength: 1
+                  example: src/repo/model
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/CreatePackageRequestBody'
+                        example:
+                            Content: |-
+                                import . "goa.design/model/dsl"
+
+                                var _ = Design("System Design", func() {
+
+                                })
+            responses:
+                "201":
+                    description: Created response.
+                "409":
+                    description: 'already_exists: Package already exists'
+                    content:
+                        application/vnd.goa.error:
+                            schema:
+                                $ref: '#/components/schemas/Error'
     /api/packages/files:
         get:
             tags:
                 - Packages
-            summary: ListPackageFiles Packages
+            summary: ReadPackageFiles Packages
             description: Get the DSL files and their content for the given model package
-            operationId: Packages#ListPackageFiles
+            operationId: Packages#ReadPackageFiles
             parameters:
                 - name: work
                   in: query
@@ -615,14 +704,6 @@ paths:
                                         Dir: src/repo/model
                                         Filename: model.go
                                         Workspace: my-workspace
-                                    - Content: |-
-                                        import . "goa.design/model/dsl"
-
-                                        var _ = Design(func() {})
-                                      Locator:
-                                        Dir: src/repo/model
-                                        Filename: model.go
-                                        Workspace: my-workspace
                             example:
                                 - Content: |-
                                     import . "goa.design/model/dsl"
@@ -640,82 +721,22 @@ paths:
                                     Dir: src/repo/model
                                     Filename: model.go
                                     Workspace: my-workspace
-    /api/packages/layout:
-        get:
-            tags:
-                - Packages
-            summary: GetLayout Packages
-            description: Streams the model layout JSON for the given package
-            operationId: Packages#GetLayout
-            parameters:
-                - name: work
-                  in: query
-                  description: Workspace identifier
-                  allowEmptyValue: true
-                  required: true
-                  schema:
-                    type: string
-                    description: Workspace identifier
-                    example: my-workspace
-                    minLength: 1
-                  example: my-workspace
-                - name: dir
-                  in: query
-                  description: Path to directory containing a model package
-                  allowEmptyValue: true
-                  required: true
-                  schema:
-                    type: string
-                    description: Path to directory containing a model package
-                    example: src/repo/model
-                    minLength: 1
-                  example: src/repo/model
-            responses:
-                "200":
-                    description: OK response.
-                    content:
-                        application/json:
-                            schema:
-                                type: string
-                                format: binary
-    /api/packages/model:
-        get:
-            tags:
-                - Packages
-            summary: GetModelJSON Packages
-            description: Streams the model JSON for the given package, see https://pkg.go.dev/goa.design/model/model#Model
-            operationId: Packages#GetModelJSON
-            parameters:
-                - name: work
-                  in: query
-                  description: Workspace identifier
-                  allowEmptyValue: true
-                  required: true
-                  schema:
-                    type: string
-                    description: Workspace identifier
-                    example: my-workspace
-                    minLength: 1
-                  example: my-workspace
-                - name: dir
-                  in: query
-                  description: Path to directory containing a model package
-                  allowEmptyValue: true
-                  required: true
-                  schema:
-                    type: string
-                    description: Path to directory containing a model package
-                    example: src/repo/model
-                    minLength: 1
-                  example: src/repo/model
-            responses:
-                "200":
-                    description: OK response.
-                    content:
-                        application/json:
-                            schema:
-                                type: string
-                                format: binary
+                                - Content: |-
+                                    import . "goa.design/model/dsl"
+
+                                    var _ = Design(func() {})
+                                  Locator:
+                                    Dir: src/repo/model
+                                    Filename: model.go
+                                    Workspace: my-workspace
+                                - Content: |-
+                                    import . "goa.design/model/dsl"
+
+                                    var _ = Design(func() {})
+                                  Locator:
+                                    Dir: src/repo/model
+                                    Filename: model.go
+                                    Workspace: my-workspace
     /api/packages/subscribe:
         get:
             tags:
@@ -756,6 +777,30 @@ paths:
                                 example: '{"name":"example","email":"mail@example.com"}'
                                 format: json
                             example: '{"name":"example","email":"mail@example.com"}'
+    /api/packages/workspaces:
+        get:
+            tags:
+                - Packages
+            summary: ListWorkspaces Packages
+            description: List the known workspaces
+            operationId: Packages#ListWorkspaces
+            responses:
+                "200":
+                    description: OK response.
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: '#/components/schemas/Workspace'
+                                example:
+                                    - Workspace: my-workspace
+                                    - Workspace: my-workspace
+                                    - Workspace: my-workspace
+                            example:
+                                - Workspace: my-workspace
+                                - Workspace: my-workspace
+                                - Workspace: my-workspace
     /assets:
         get:
             tags:
@@ -768,6 +813,29 @@ paths:
                     description: File downloaded
 components:
     schemas:
+        CreatePackageRequestBody:
+            type: object
+            properties:
+                Content:
+                    type: string
+                    description: DSL code
+                    example: |-
+                        import . "goa.design/model/dsl"
+
+                        var _ = Design("System Design", func() {
+
+                        })
+                    pattern: import . "goa.design/model/dsl"
+                    minLength: 58
+            example:
+                Content: |-
+                    import . "goa.design/model/dsl"
+
+                    var _ = Design("System Design", func() {
+
+                    })
+            required:
+                - Content
         DeleteRelationshipRequestBody:
             type: object
             properties:
@@ -812,7 +880,7 @@ components:
                 fault:
                     type: boolean
                     description: Is the error a server-side fault?
-                    example: false
+                    example: true
                 id:
                     type: string
                     description: ID is a unique identifier for this particular occurrence of the problem.
@@ -832,15 +900,15 @@ components:
                 timeout:
                     type: boolean
                     description: Is the error a timeout?
-                    example: false
+                    example: true
             description: Compilation failed
             example:
-                fault: true
+                fault: false
                 id: 123abc
                 message: parameter 'p' must be an integer
                 name: bad_request
                 temporary: true
-                timeout: false
+                timeout: true
             required:
                 - name
                 - id
@@ -900,10 +968,10 @@ components:
                 SVG:
                     type: string
                     description: Diagram SVG
-                    example: <svg</svg>
+                    example: <svg�����</svg>
                     pattern: <svg.*</svg>$
             example:
-                SVG: <svg�����</svg>
+                SVG: <svg������</svg>
             required:
                 - SVG
         UpdateDSLRequestBody:
@@ -957,7 +1025,7 @@ components:
                         key2: value2
                     additionalProperties:
                         type: string
-                        example: Dolores tempora ut.
+                        example: Voluptas magni ad.
                 SystemName:
                     type: string
                     description: Name of parent software system
@@ -966,7 +1034,7 @@ components:
                     type: array
                     items:
                         type: string
-                        example: Enim ea laborum.
+                        example: Quas quis ratione provident.
                     description: Attached tags
                     example:
                         - Tag1
@@ -1021,7 +1089,7 @@ components:
                         key2: value2
                     additionalProperties:
                         type: string
-                        example: Rerum consequatur.
+                        example: Libero accusamus.
                 SystemName:
                     type: string
                     description: Name of parent software system
@@ -1030,7 +1098,7 @@ components:
                     type: array
                     items:
                         type: string
-                        example: Maxime eius aspernatur sapiente.
+                        example: Et perspiciatis delectus illo distinctio impedit.
                     description: Attached tags
                     example:
                         - Tag1
@@ -1077,7 +1145,7 @@ components:
                     type: string
                     description: Indicates whether the relationship is synchronous or asynchronous
                     default: Synchronous
-                    example: Asynchronous
+                    example: Synchronous
                     enum:
                         - Synchronous
                         - Asynchronous
@@ -1091,7 +1159,7 @@ components:
                     type: array
                     items:
                         type: string
-                        example: Ex fugiat omnis tenetur error dolorem.
+                        example: Amet minus velit non omnis earum amet.
                     description: Attached tags
                     example:
                         - Tag1
@@ -1133,7 +1201,7 @@ components:
                     type: string
                     description: Indicates whether the system is in-house (Internal) or hosted by a third party (External)
                     default: Internal
-                    example: External
+                    example: Internal
                     enum:
                         - Internal
                         - External
@@ -1151,12 +1219,12 @@ components:
                         key2: value2
                     additionalProperties:
                         type: string
-                        example: Animi sunt laudantium temporibus dolores ut.
+                        example: Ut magnam ut voluptates ipsam ut.
                 Tags:
                     type: array
                     items:
                         type: string
-                        example: Sint excepturi.
+                        example: Dolorem accusamus nam iste.
                     description: Attached tags
                     example:
                         - Tag1
@@ -1182,6 +1250,18 @@ components:
                 URL: https://system.com
             required:
                 - Name
+        Workspace:
+            type: object
+            properties:
+                Workspace:
+                    type: string
+                    description: Workspace identifier
+                    example: my-workspace
+                    minLength: 1
+            example:
+                Workspace: my-workspace
+            required:
+                - Workspace
 tags:
     - name: Assets
     - name: DSLEditor

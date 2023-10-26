@@ -6,6 +6,49 @@ var _ = Service("Packages", func() {
 	HTTP(func() {
 		Path("/api/packages")
 	})
+	Method("ListWorkspaces", func() {
+		Description("List the known workspaces")
+		Result(ArrayOf(Workspace))
+		HTTP(func() {
+			GET("/workspaces")
+		})
+	})
+	Method("CreatePackage", func() {
+		Description("Create a new model package in the given workspace")
+		Payload(func() {
+			Extend(PackageLocator)
+			Attribute("Content", String, "DSL code", func() {
+				Example(`import . "goa.design/model/dsl"
+
+var _ = Design("System Design", func() {
+
+})`)
+				MinLength(58)
+				Pattern(`import . "goa.design/model/dsl"`)
+			})
+			Required("Content")
+		})
+		Error("already_exists", ErrorResult, "Package already exists")
+		HTTP(func() {
+			POST("/")
+			Param("Workspace:work")
+			Param("Dir:dir")
+			Response(StatusCreated)
+			Response("already_exists", StatusConflict)
+		})
+	})
+	Method("DeletePackage", func() {
+		Description("Delete the given model package")
+		Payload(PackageLocator)
+		Error("not_found", ErrorResult, "Package not found")
+		HTTP(func() {
+			DELETE("/")
+			Param("Workspace:work")
+			Param("Dir:dir")
+			Response(StatusNoContent)
+			Response("not_found", StatusNotFound)
+		})
+	})
 	Method("ListPackages", func() {
 		Description("List the model packages in the given workspace")
 		Payload(Workspace)
@@ -16,7 +59,7 @@ var _ = Service("Packages", func() {
 			Response(StatusOK)
 		})
 	})
-	Method("ListPackageFiles", func() {
+	Method("ReadPackageFiles", func() {
 		Description("Get the DSL files and their content for the given model package")
 		Payload(PackageLocator)
 		Result(ArrayOf(PackageFile))
@@ -36,26 +79,6 @@ var _ = Service("Packages", func() {
 			Param("Workspace:work")
 			Param("Dir:dir")
 			Response(StatusSwitchingProtocols)
-		})
-	})
-	Method("GetModelJSON", func() {
-		Description("Streams the model JSON for the given package, see https://pkg.go.dev/goa.design/model/model#Model")
-		Payload(PackageLocator)
-		HTTP(func() {
-			GET("/model")
-			Param("Workspace:work")
-			Param("Dir:dir")
-			SkipResponseBodyEncodeDecode()
-		})
-	})
-	Method("GetLayout", func() {
-		Description("Streams the model layout JSON for the given package")
-		Payload(PackageLocator)
-		HTTP(func() {
-			GET("/layout")
-			Param("Workspace:work")
-			Param("Dir:dir")
-			SkipResponseBodyEncodeDecode()
 		})
 	})
 })

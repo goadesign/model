@@ -7,7 +7,7 @@
 
 package types
 
-// PackageLocator is the payload type of the Packages service ListPackageFiles
+// PackageLocator is the payload type of the Packages service DeletePackage
 // method.
 type PackageLocator struct {
 	// Workspace identifier
