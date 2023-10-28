@@ -16,33 +16,57 @@ import (
 
 // Client is the "DSLEditor" service client.
 type Client struct {
-	UpdateDSLEndpoint          goa.Endpoint
-	UpsertSystemEndpoint       goa.Endpoint
-	UpsertPersonEndpoint       goa.Endpoint
-	UpsertContainerEndpoint    goa.Endpoint
-	UpsertComponentEndpoint    goa.Endpoint
-	UpsertRelationshipEndpoint goa.Endpoint
-	DeleteSystemEndpoint       goa.Endpoint
-	DeletePersonEndpoint       goa.Endpoint
-	DeleteContainerEndpoint    goa.Endpoint
-	DeleteComponentEndpoint    goa.Endpoint
-	DeleteRelationshipEndpoint goa.Endpoint
+	UpdateDSLEndpoint               goa.Endpoint
+	UpsertSystemEndpoint            goa.Endpoint
+	UpsertPersonEndpoint            goa.Endpoint
+	UpsertContainerEndpoint         goa.Endpoint
+	UpsertComponentEndpoint         goa.Endpoint
+	UpsertRelationshipEndpoint      goa.Endpoint
+	UpsertLandscapeViewEndpoint     goa.Endpoint
+	UpsertSystemContextViewEndpoint goa.Endpoint
+	UpsertContainerViewEndpoint     goa.Endpoint
+	UpsertComponentViewEndpoint     goa.Endpoint
+	UpserElementStyleEndpoint       goa.Endpoint
+	UpsertRelationshipStyleEndpoint goa.Endpoint
+	DeleteSystemEndpoint            goa.Endpoint
+	DeletePersonEndpoint            goa.Endpoint
+	DeleteContainerEndpoint         goa.Endpoint
+	DeleteComponentEndpoint         goa.Endpoint
+	DeleteRelationshipEndpoint      goa.Endpoint
+	DeleteLandscapeViewEndpoint     goa.Endpoint
+	DeleteSystemContextViewEndpoint goa.Endpoint
+	DeleteContainerViewEndpoint     goa.Endpoint
+	DeleteComponentViewEndpoint     goa.Endpoint
+	DeleteElementStyleEndpoint      goa.Endpoint
+	DeleteRelationshipStyleEndpoint goa.Endpoint
 }
 
 // NewClient initializes a "DSLEditor" service client given the endpoints.
-func NewClient(updateDSL, upsertSystem, upsertPerson, upsertContainer, upsertComponent, upsertRelationship, deleteSystem, deletePerson, deleteContainer, deleteComponent, deleteRelationship goa.Endpoint) *Client {
+func NewClient(updateDSL, upsertSystem, upsertPerson, upsertContainer, upsertComponent, upsertRelationship, upsertLandscapeView, upsertSystemContextView, upsertContainerView, upsertComponentView, upserElementStyle, upsertRelationshipStyle, deleteSystem, deletePerson, deleteContainer, deleteComponent, deleteRelationship, deleteLandscapeView, deleteSystemContextView, deleteContainerView, deleteComponentView, deleteElementStyle, deleteRelationshipStyle goa.Endpoint) *Client {
 	return &Client{
-		UpdateDSLEndpoint:          updateDSL,
-		UpsertSystemEndpoint:       upsertSystem,
-		UpsertPersonEndpoint:       upsertPerson,
-		UpsertContainerEndpoint:    upsertContainer,
-		UpsertComponentEndpoint:    upsertComponent,
-		UpsertRelationshipEndpoint: upsertRelationship,
-		DeleteSystemEndpoint:       deleteSystem,
-		DeletePersonEndpoint:       deletePerson,
-		DeleteContainerEndpoint:    deleteContainer,
-		DeleteComponentEndpoint:    deleteComponent,
-		DeleteRelationshipEndpoint: deleteRelationship,
+		UpdateDSLEndpoint:               updateDSL,
+		UpsertSystemEndpoint:            upsertSystem,
+		UpsertPersonEndpoint:            upsertPerson,
+		UpsertContainerEndpoint:         upsertContainer,
+		UpsertComponentEndpoint:         upsertComponent,
+		UpsertRelationshipEndpoint:      upsertRelationship,
+		UpsertLandscapeViewEndpoint:     upsertLandscapeView,
+		UpsertSystemContextViewEndpoint: upsertSystemContextView,
+		UpsertContainerViewEndpoint:     upsertContainerView,
+		UpsertComponentViewEndpoint:     upsertComponentView,
+		UpserElementStyleEndpoint:       upserElementStyle,
+		UpsertRelationshipStyleEndpoint: upsertRelationshipStyle,
+		DeleteSystemEndpoint:            deleteSystem,
+		DeletePersonEndpoint:            deletePerson,
+		DeleteContainerEndpoint:         deleteContainer,
+		DeleteComponentEndpoint:         deleteComponent,
+		DeleteRelationshipEndpoint:      deleteRelationship,
+		DeleteLandscapeViewEndpoint:     deleteLandscapeView,
+		DeleteSystemContextViewEndpoint: deleteSystemContextView,
+		DeleteContainerViewEndpoint:     deleteContainerView,
+		DeleteComponentViewEndpoint:     deleteComponentView,
+		DeleteElementStyleEndpoint:      deleteElementStyle,
+		DeleteRelationshipStyleEndpoint: deleteRelationshipStyle,
 	}
 }
 
@@ -103,6 +127,66 @@ func (c *Client) UpsertRelationship(ctx context.Context, p *Relationship) (err e
 	return
 }
 
+// UpsertLandscapeView calls the "UpsertLandscapeView" endpoint of the
+// "DSLEditor" service.
+// UpsertLandscapeView may return the following errors:
+//   - "compilation_failed" (type *goa.ServiceError): Compilation failed
+//   - error: internal error
+func (c *Client) UpsertLandscapeView(ctx context.Context, p *LandscapeView) (err error) {
+	_, err = c.UpsertLandscapeViewEndpoint(ctx, p)
+	return
+}
+
+// UpsertSystemContextView calls the "UpsertSystemContextView" endpoint of the
+// "DSLEditor" service.
+// UpsertSystemContextView may return the following errors:
+//   - "compilation_failed" (type *goa.ServiceError): Compilation failed
+//   - error: internal error
+func (c *Client) UpsertSystemContextView(ctx context.Context, p *SystemContextView) (err error) {
+	_, err = c.UpsertSystemContextViewEndpoint(ctx, p)
+	return
+}
+
+// UpsertContainerView calls the "UpsertContainerView" endpoint of the
+// "DSLEditor" service.
+// UpsertContainerView may return the following errors:
+//   - "compilation_failed" (type *goa.ServiceError): Compilation failed
+//   - error: internal error
+func (c *Client) UpsertContainerView(ctx context.Context, p *ContainerView) (err error) {
+	_, err = c.UpsertContainerViewEndpoint(ctx, p)
+	return
+}
+
+// UpsertComponentView calls the "UpsertComponentView" endpoint of the
+// "DSLEditor" service.
+// UpsertComponentView may return the following errors:
+//   - "compilation_failed" (type *goa.ServiceError): Compilation failed
+//   - error: internal error
+func (c *Client) UpsertComponentView(ctx context.Context, p *ComponentView) (err error) {
+	_, err = c.UpsertComponentViewEndpoint(ctx, p)
+	return
+}
+
+// UpserElementStyle calls the "UpserElementStyle" endpoint of the "DSLEditor"
+// service.
+// UpserElementStyle may return the following errors:
+//   - "compilation_failed" (type *goa.ServiceError): Compilation failed
+//   - error: internal error
+func (c *Client) UpserElementStyle(ctx context.Context, p *ElementStyle) (err error) {
+	_, err = c.UpserElementStyleEndpoint(ctx, p)
+	return
+}
+
+// UpsertRelationshipStyle calls the "UpsertRelationshipStyle" endpoint of the
+// "DSLEditor" service.
+// UpsertRelationshipStyle may return the following errors:
+//   - "compilation_failed" (type *goa.ServiceError): Compilation failed
+//   - error: internal error
+func (c *Client) UpsertRelationshipStyle(ctx context.Context, p *RelationshipStyle) (err error) {
+	_, err = c.UpsertRelationshipStyleEndpoint(ctx, p)
+	return
+}
+
 // DeleteSystem calls the "DeleteSystem" endpoint of the "DSLEditor" service.
 // DeleteSystem may return the following errors:
 //   - "NotFound" (type *goa.ServiceError): Software system not found
@@ -153,5 +237,71 @@ func (c *Client) DeleteComponent(ctx context.Context, p *DeleteComponentPayload)
 //   - error: internal error
 func (c *Client) DeleteRelationship(ctx context.Context, p *DeleteRelationshipPayload) (err error) {
 	_, err = c.DeleteRelationshipEndpoint(ctx, p)
+	return
+}
+
+// DeleteLandscapeView calls the "DeleteLandscapeView" endpoint of the
+// "DSLEditor" service.
+// DeleteLandscapeView may return the following errors:
+//   - "NotFound" (type *goa.ServiceError): Landscape view not found
+//   - "compilation_failed" (type *goa.ServiceError): Compilation failed
+//   - error: internal error
+func (c *Client) DeleteLandscapeView(ctx context.Context, p *DeleteLandscapeViewPayload) (err error) {
+	_, err = c.DeleteLandscapeViewEndpoint(ctx, p)
+	return
+}
+
+// DeleteSystemContextView calls the "DeleteSystemContextView" endpoint of the
+// "DSLEditor" service.
+// DeleteSystemContextView may return the following errors:
+//   - "NotFound" (type *goa.ServiceError): System context view not found
+//   - "compilation_failed" (type *goa.ServiceError): Compilation failed
+//   - error: internal error
+func (c *Client) DeleteSystemContextView(ctx context.Context, p *DeleteSystemContextViewPayload) (err error) {
+	_, err = c.DeleteSystemContextViewEndpoint(ctx, p)
+	return
+}
+
+// DeleteContainerView calls the "DeleteContainerView" endpoint of the
+// "DSLEditor" service.
+// DeleteContainerView may return the following errors:
+//   - "NotFound" (type *goa.ServiceError): Container view not found
+//   - "compilation_failed" (type *goa.ServiceError): Compilation failed
+//   - error: internal error
+func (c *Client) DeleteContainerView(ctx context.Context, p *DeleteContainerViewPayload) (err error) {
+	_, err = c.DeleteContainerViewEndpoint(ctx, p)
+	return
+}
+
+// DeleteComponentView calls the "DeleteComponentView" endpoint of the
+// "DSLEditor" service.
+// DeleteComponentView may return the following errors:
+//   - "NotFound" (type *goa.ServiceError): Component view not found
+//   - "compilation_failed" (type *goa.ServiceError): Compilation failed
+//   - error: internal error
+func (c *Client) DeleteComponentView(ctx context.Context, p *DeleteComponentViewPayload) (err error) {
+	_, err = c.DeleteComponentViewEndpoint(ctx, p)
+	return
+}
+
+// DeleteElementStyle calls the "DeleteElementStyle" endpoint of the
+// "DSLEditor" service.
+// DeleteElementStyle may return the following errors:
+//   - "NotFound" (type *goa.ServiceError): Element style not found
+//   - "compilation_failed" (type *goa.ServiceError): Compilation failed
+//   - error: internal error
+func (c *Client) DeleteElementStyle(ctx context.Context, p *DeleteElementStylePayload) (err error) {
+	_, err = c.DeleteElementStyleEndpoint(ctx, p)
+	return
+}
+
+// DeleteRelationshipStyle calls the "DeleteRelationshipStyle" endpoint of the
+// "DSLEditor" service.
+// DeleteRelationshipStyle may return the following errors:
+//   - "NotFound" (type *goa.ServiceError): Relationship style not found
+//   - "compilation_failed" (type *goa.ServiceError): Compilation failed
+//   - error: internal error
+func (c *Client) DeleteRelationshipStyle(ctx context.Context, p *DeleteRelationshipStylePayload) (err error) {
+	_, err = c.DeleteRelationshipStyleEndpoint(ctx, p)
 	return
 }

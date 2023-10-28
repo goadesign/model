@@ -11,8 +11,8 @@ package types
 type FileLocator struct {
 	// Name of DSL file
 	Filename string
-	// Workspace identifier
-	Workspace string
+	// Path to repository root
+	Repository string
 	// Path to directory containing a model package
 	Dir string
 }

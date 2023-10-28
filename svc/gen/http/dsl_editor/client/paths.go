@@ -18,50 +18,110 @@ func UpdateDSLDSLEditorPath() string {
 
 // UpsertSystemDSLEditorPath returns the URL path to the DSLEditor service UpsertSystem HTTP endpoint.
 func UpsertSystemDSLEditorPath() string {
-	return "/api/dsl/system"
+	return "/api/dsl/model/system"
 }
 
 // UpsertPersonDSLEditorPath returns the URL path to the DSLEditor service UpsertPerson HTTP endpoint.
 func UpsertPersonDSLEditorPath() string {
-	return "/api/dsl/person"
+	return "/api/dsl/model/person"
 }
 
 // UpsertContainerDSLEditorPath returns the URL path to the DSLEditor service UpsertContainer HTTP endpoint.
 func UpsertContainerDSLEditorPath() string {
-	return "/api/dsl/container"
+	return "/api/dsl/model/container"
 }
 
 // UpsertComponentDSLEditorPath returns the URL path to the DSLEditor service UpsertComponent HTTP endpoint.
 func UpsertComponentDSLEditorPath() string {
-	return "/api/dsl/component"
+	return "/api/dsl/model/component"
 }
 
 // UpsertRelationshipDSLEditorPath returns the URL path to the DSLEditor service UpsertRelationship HTTP endpoint.
 func UpsertRelationshipDSLEditorPath() string {
-	return "/api/dsl/relationship"
+	return "/api/dsl/model/relationship"
+}
+
+// UpsertLandscapeViewDSLEditorPath returns the URL path to the DSLEditor service UpsertLandscapeView HTTP endpoint.
+func UpsertLandscapeViewDSLEditorPath() string {
+	return "/api/dsl/views/landscape"
+}
+
+// UpsertSystemContextViewDSLEditorPath returns the URL path to the DSLEditor service UpsertSystemContextView HTTP endpoint.
+func UpsertSystemContextViewDSLEditorPath() string {
+	return "/api/dsl/views/systemcontext"
+}
+
+// UpsertContainerViewDSLEditorPath returns the URL path to the DSLEditor service UpsertContainerView HTTP endpoint.
+func UpsertContainerViewDSLEditorPath() string {
+	return "/api/dsl/views/container"
+}
+
+// UpsertComponentViewDSLEditorPath returns the URL path to the DSLEditor service UpsertComponentView HTTP endpoint.
+func UpsertComponentViewDSLEditorPath() string {
+	return "/api/dsl/views/component"
+}
+
+// UpserElementStyleDSLEditorPath returns the URL path to the DSLEditor service UpserElementStyle HTTP endpoint.
+func UpserElementStyleDSLEditorPath() string {
+	return "/api/dsl/views/elementstyle"
+}
+
+// UpsertRelationshipStyleDSLEditorPath returns the URL path to the DSLEditor service UpsertRelationshipStyle HTTP endpoint.
+func UpsertRelationshipStyleDSLEditorPath() string {
+	return "/api/dsl/views/relationshipstyle"
 }
 
 // DeleteSystemDSLEditorPath returns the URL path to the DSLEditor service DeleteSystem HTTP endpoint.
 func DeleteSystemDSLEditorPath(systemName string) string {
-	return fmt.Sprintf("/api/dsl/system/%v", systemName)
+	return fmt.Sprintf("/api/dsl/model/system/%v", systemName)
 }
 
 // DeletePersonDSLEditorPath returns the URL path to the DSLEditor service DeletePerson HTTP endpoint.
 func DeletePersonDSLEditorPath(personName string) string {
-	return fmt.Sprintf("/api/dsl/person/%v", personName)
+	return fmt.Sprintf("/api/dsl/model/person/%v", personName)
 }
 
 // DeleteContainerDSLEditorPath returns the URL path to the DSLEditor service DeleteContainer HTTP endpoint.
 func DeleteContainerDSLEditorPath(systemName string, containerName string) string {
-	return fmt.Sprintf("/api/dsl/system/%v/container/%v", systemName, containerName)
+	return fmt.Sprintf("/api/dsl/model/system/%v/container/%v", systemName, containerName)
 }
 
 // DeleteComponentDSLEditorPath returns the URL path to the DSLEditor service DeleteComponent HTTP endpoint.
 func DeleteComponentDSLEditorPath(systemName string, containerName string, componentName string) string {
-	return fmt.Sprintf("/api/dsl/system/%v/container/%v/component/%v", systemName, containerName, componentName)
+	return fmt.Sprintf("/api/dsl/model/system/%v/container/%v/component/%v", systemName, containerName, componentName)
 }
 
 // DeleteRelationshipDSLEditorPath returns the URL path to the DSLEditor service DeleteRelationship HTTP endpoint.
 func DeleteRelationshipDSLEditorPath() string {
-	return "/api/dsl/relationship"
+	return "/api/dsl/model/relationship"
+}
+
+// DeleteLandscapeViewDSLEditorPath returns the URL path to the DSLEditor service DeleteLandscapeView HTTP endpoint.
+func DeleteLandscapeViewDSLEditorPath(key string) string {
+	return fmt.Sprintf("/api/dsl/views/landscape/%v", key)
+}
+
+// DeleteSystemContextViewDSLEditorPath returns the URL path to the DSLEditor service DeleteSystemContextView HTTP endpoint.
+func DeleteSystemContextViewDSLEditorPath(key string) string {
+	return fmt.Sprintf("/api/dsl/views/systemcontext/%v", key)
+}
+
+// DeleteContainerViewDSLEditorPath returns the URL path to the DSLEditor service DeleteContainerView HTTP endpoint.
+func DeleteContainerViewDSLEditorPath(key string) string {
+	return fmt.Sprintf("/api/dsl/views/container/%v", key)
+}
+
+// DeleteComponentViewDSLEditorPath returns the URL path to the DSLEditor service DeleteComponentView HTTP endpoint.
+func DeleteComponentViewDSLEditorPath(key string) string {
+	return fmt.Sprintf("/api/dsl/views/component/%v", key)
+}
+
+// DeleteElementStyleDSLEditorPath returns the URL path to the DSLEditor service DeleteElementStyle HTTP endpoint.
+func DeleteElementStyleDSLEditorPath(tag string) string {
+	return fmt.Sprintf("/api/dsl/views/elementstyle/%v", tag)
+}
+
+// DeleteRelationshipStyleDSLEditorPath returns the URL path to the DSLEditor service DeleteRelationshipStyle HTTP endpoint.
+func DeleteRelationshipStyleDSLEditorPath(tag string) string {
+	return fmt.Sprintf("/api/dsl/views/relationshipstyle/%v", tag)
 }

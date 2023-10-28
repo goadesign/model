@@ -12,7 +12,7 @@ import (
 // Update the DSL for the given package, compile it and return the
 // corresponding JSON if successful
 func (svc *Service) UpdateDSL(ctx context.Context, p *gentypes.PackageFile) error {
-	err := os.WriteFile(filepath.Join(p.Locator.Dir, p.Locator.Filename), []byte(p.Content), 0644)
+	err := os.WriteFile(filepath.Join(p.Locator.Repository, p.Locator.Dir, p.Locator.Filename), []byte(p.Content), 0644)
 	if err != nil {
 		return logAndReturn(ctx, err, "failed to write file %s", p.Locator.Filename)
 	}
@@ -44,6 +44,36 @@ func (svc *Service) UpsertRelationship(ctx context.Context, p *geneditor.Relatio
 	panic("not implemented")
 }
 
+// Create or update a landscape view in the model
+func (svc *Service) UpsertLandscapeView(ctx context.Context, v *geneditor.LandscapeView) error {
+	panic("not implemented")
+}
+
+// Create or update a system context view in the model
+func (svc *Service) UpsertSystemContextView(ctx context.Context, v *geneditor.SystemContextView) error {
+	panic("not implemented")
+}
+
+// Create or update a container view in the model
+func (svc *Service) UpsertContainerView(ctx context.Context, v *geneditor.ContainerView) error {
+	panic("not implemented")
+}
+
+// Create or update a component view in the model
+func (svc *Service) UpsertComponentView(ctx context.Context, v *geneditor.ComponentView) error {
+	panic("not implemented")
+}
+
+// Create or update an element style in the model
+func (svc *Service) UpserElementStyle(ctx context.Context, v *geneditor.ElementStyle) error {
+	panic("not implemented")
+}
+
+// Create or update a relationship style in the model
+func (svc *Service) UpsertRelationshipStyle(ctx context.Context, v *geneditor.RelationshipStyle) error {
+	panic("not implemented")
+}
+
 // DeleteSystem implements DeleteSystem.
 func (svc *Service) DeleteSystem(ctx context.Context, p *geneditor.DeleteSystemPayload) error {
 	panic("not implemented")
@@ -66,5 +96,35 @@ func (svc *Service) DeleteComponent(ctx context.Context, p *geneditor.DeleteComp
 
 // DeleteRelationship implements DeleteRelationship.
 func (svc *Service) DeleteRelationship(ctx context.Context, p *geneditor.DeleteRelationshipPayload) error {
+	panic("not implemented")
+}
+
+// Delete an existing landscape view from the model
+func (svc *Service) DeleteLandscapeView(ctx context.Context, p *geneditor.DeleteLandscapeViewPayload) error {
+	panic("not implemented")
+}
+
+// Delete an existing system context view from the model
+func (svc *Service) DeleteSystemContextView(ctx context.Context, p *geneditor.DeleteSystemContextViewPayload) error {
+	panic("not implemented")
+}
+
+// Delete an existing container view from the model
+func (svc *Service) DeleteContainerView(ctx context.Context, p *geneditor.DeleteContainerViewPayload) error {
+	panic("not implemented")
+}
+
+// Delete an existing component view from the model
+func (svc *Service) DeleteComponentView(ctx context.Context, p *geneditor.DeleteComponentViewPayload) error {
+	panic("not implemented")
+}
+
+// Delete an existing element style from the model
+func (svc *Service) DeleteElementStyle(ctx context.Context, p *geneditor.DeleteElementStylePayload) error {
+	panic("not implemented")
+}
+
+// Delete an existing relationship style from the model
+func (svc *Service) DeleteRelationshipStyle(ctx context.Context, p *geneditor.DeleteRelationshipStylePayload) error {
 	panic("not implemented")
 }

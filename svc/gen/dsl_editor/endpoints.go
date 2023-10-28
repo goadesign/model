@@ -16,33 +16,57 @@ import (
 
 // Endpoints wraps the "DSLEditor" service endpoints.
 type Endpoints struct {
-	UpdateDSL          goa.Endpoint
-	UpsertSystem       goa.Endpoint
-	UpsertPerson       goa.Endpoint
-	UpsertContainer    goa.Endpoint
-	UpsertComponent    goa.Endpoint
-	UpsertRelationship goa.Endpoint
-	DeleteSystem       goa.Endpoint
-	DeletePerson       goa.Endpoint
-	DeleteContainer    goa.Endpoint
-	DeleteComponent    goa.Endpoint
-	DeleteRelationship goa.Endpoint
+	UpdateDSL               goa.Endpoint
+	UpsertSystem            goa.Endpoint
+	UpsertPerson            goa.Endpoint
+	UpsertContainer         goa.Endpoint
+	UpsertComponent         goa.Endpoint
+	UpsertRelationship      goa.Endpoint
+	UpsertLandscapeView     goa.Endpoint
+	UpsertSystemContextView goa.Endpoint
+	UpsertContainerView     goa.Endpoint
+	UpsertComponentView     goa.Endpoint
+	UpserElementStyle       goa.Endpoint
+	UpsertRelationshipStyle goa.Endpoint
+	DeleteSystem            goa.Endpoint
+	DeletePerson            goa.Endpoint
+	DeleteContainer         goa.Endpoint
+	DeleteComponent         goa.Endpoint
+	DeleteRelationship      goa.Endpoint
+	DeleteLandscapeView     goa.Endpoint
+	DeleteSystemContextView goa.Endpoint
+	DeleteContainerView     goa.Endpoint
+	DeleteComponentView     goa.Endpoint
+	DeleteElementStyle      goa.Endpoint
+	DeleteRelationshipStyle goa.Endpoint
 }
 
 // NewEndpoints wraps the methods of the "DSLEditor" service with endpoints.
 func NewEndpoints(s Service) *Endpoints {
 	return &Endpoints{
-		UpdateDSL:          NewUpdateDSLEndpoint(s),
-		UpsertSystem:       NewUpsertSystemEndpoint(s),
-		UpsertPerson:       NewUpsertPersonEndpoint(s),
-		UpsertContainer:    NewUpsertContainerEndpoint(s),
-		UpsertComponent:    NewUpsertComponentEndpoint(s),
-		UpsertRelationship: NewUpsertRelationshipEndpoint(s),
-		DeleteSystem:       NewDeleteSystemEndpoint(s),
-		DeletePerson:       NewDeletePersonEndpoint(s),
-		DeleteContainer:    NewDeleteContainerEndpoint(s),
-		DeleteComponent:    NewDeleteComponentEndpoint(s),
-		DeleteRelationship: NewDeleteRelationshipEndpoint(s),
+		UpdateDSL:               NewUpdateDSLEndpoint(s),
+		UpsertSystem:            NewUpsertSystemEndpoint(s),
+		UpsertPerson:            NewUpsertPersonEndpoint(s),
+		UpsertContainer:         NewUpsertContainerEndpoint(s),
+		UpsertComponent:         NewUpsertComponentEndpoint(s),
+		UpsertRelationship:      NewUpsertRelationshipEndpoint(s),
+		UpsertLandscapeView:     NewUpsertLandscapeViewEndpoint(s),
+		UpsertSystemContextView: NewUpsertSystemContextViewEndpoint(s),
+		UpsertContainerView:     NewUpsertContainerViewEndpoint(s),
+		UpsertComponentView:     NewUpsertComponentViewEndpoint(s),
+		UpserElementStyle:       NewUpserElementStyleEndpoint(s),
+		UpsertRelationshipStyle: NewUpsertRelationshipStyleEndpoint(s),
+		DeleteSystem:            NewDeleteSystemEndpoint(s),
+		DeletePerson:            NewDeletePersonEndpoint(s),
+		DeleteContainer:         NewDeleteContainerEndpoint(s),
+		DeleteComponent:         NewDeleteComponentEndpoint(s),
+		DeleteRelationship:      NewDeleteRelationshipEndpoint(s),
+		DeleteLandscapeView:     NewDeleteLandscapeViewEndpoint(s),
+		DeleteSystemContextView: NewDeleteSystemContextViewEndpoint(s),
+		DeleteContainerView:     NewDeleteContainerViewEndpoint(s),
+		DeleteComponentView:     NewDeleteComponentViewEndpoint(s),
+		DeleteElementStyle:      NewDeleteElementStyleEndpoint(s),
+		DeleteRelationshipStyle: NewDeleteRelationshipStyleEndpoint(s),
 	}
 }
 
@@ -54,11 +78,23 @@ func (e *Endpoints) Use(m func(goa.Endpoint) goa.Endpoint) {
 	e.UpsertContainer = m(e.UpsertContainer)
 	e.UpsertComponent = m(e.UpsertComponent)
 	e.UpsertRelationship = m(e.UpsertRelationship)
+	e.UpsertLandscapeView = m(e.UpsertLandscapeView)
+	e.UpsertSystemContextView = m(e.UpsertSystemContextView)
+	e.UpsertContainerView = m(e.UpsertContainerView)
+	e.UpsertComponentView = m(e.UpsertComponentView)
+	e.UpserElementStyle = m(e.UpserElementStyle)
+	e.UpsertRelationshipStyle = m(e.UpsertRelationshipStyle)
 	e.DeleteSystem = m(e.DeleteSystem)
 	e.DeletePerson = m(e.DeletePerson)
 	e.DeleteContainer = m(e.DeleteContainer)
 	e.DeleteComponent = m(e.DeleteComponent)
 	e.DeleteRelationship = m(e.DeleteRelationship)
+	e.DeleteLandscapeView = m(e.DeleteLandscapeView)
+	e.DeleteSystemContextView = m(e.DeleteSystemContextView)
+	e.DeleteContainerView = m(e.DeleteContainerView)
+	e.DeleteComponentView = m(e.DeleteComponentView)
+	e.DeleteElementStyle = m(e.DeleteElementStyle)
+	e.DeleteRelationshipStyle = m(e.DeleteRelationshipStyle)
 }
 
 // NewUpdateDSLEndpoint returns an endpoint function that calls the method
@@ -115,6 +151,60 @@ func NewUpsertRelationshipEndpoint(s Service) goa.Endpoint {
 	}
 }
 
+// NewUpsertLandscapeViewEndpoint returns an endpoint function that calls the
+// method "UpsertLandscapeView" of service "DSLEditor".
+func NewUpsertLandscapeViewEndpoint(s Service) goa.Endpoint {
+	return func(ctx context.Context, req any) (any, error) {
+		p := req.(*LandscapeView)
+		return nil, s.UpsertLandscapeView(ctx, p)
+	}
+}
+
+// NewUpsertSystemContextViewEndpoint returns an endpoint function that calls
+// the method "UpsertSystemContextView" of service "DSLEditor".
+func NewUpsertSystemContextViewEndpoint(s Service) goa.Endpoint {
+	return func(ctx context.Context, req any) (any, error) {
+		p := req.(*SystemContextView)
+		return nil, s.UpsertSystemContextView(ctx, p)
+	}
+}
+
+// NewUpsertContainerViewEndpoint returns an endpoint function that calls the
+// method "UpsertContainerView" of service "DSLEditor".
+func NewUpsertContainerViewEndpoint(s Service) goa.Endpoint {
+	return func(ctx context.Context, req any) (any, error) {
+		p := req.(*ContainerView)
+		return nil, s.UpsertContainerView(ctx, p)
+	}
+}
+
+// NewUpsertComponentViewEndpoint returns an endpoint function that calls the
+// method "UpsertComponentView" of service "DSLEditor".
+func NewUpsertComponentViewEndpoint(s Service) goa.Endpoint {
+	return func(ctx context.Context, req any) (any, error) {
+		p := req.(*ComponentView)
+		return nil, s.UpsertComponentView(ctx, p)
+	}
+}
+
+// NewUpserElementStyleEndpoint returns an endpoint function that calls the
+// method "UpserElementStyle" of service "DSLEditor".
+func NewUpserElementStyleEndpoint(s Service) goa.Endpoint {
+	return func(ctx context.Context, req any) (any, error) {
+		p := req.(*ElementStyle)
+		return nil, s.UpserElementStyle(ctx, p)
+	}
+}
+
+// NewUpsertRelationshipStyleEndpoint returns an endpoint function that calls
+// the method "UpsertRelationshipStyle" of service "DSLEditor".
+func NewUpsertRelationshipStyleEndpoint(s Service) goa.Endpoint {
+	return func(ctx context.Context, req any) (any, error) {
+		p := req.(*RelationshipStyle)
+		return nil, s.UpsertRelationshipStyle(ctx, p)
+	}
+}
+
 // NewDeleteSystemEndpoint returns an endpoint function that calls the method
 // "DeleteSystem" of service "DSLEditor".
 func NewDeleteSystemEndpoint(s Service) goa.Endpoint {
@@ -157,5 +247,59 @@ func NewDeleteRelationshipEndpoint(s Service) goa.Endpoint {
 	return func(ctx context.Context, req any) (any, error) {
 		p := req.(*DeleteRelationshipPayload)
 		return nil, s.DeleteRelationship(ctx, p)
+	}
+}
+
+// NewDeleteLandscapeViewEndpoint returns an endpoint function that calls the
+// method "DeleteLandscapeView" of service "DSLEditor".
+func NewDeleteLandscapeViewEndpoint(s Service) goa.Endpoint {
+	return func(ctx context.Context, req any) (any, error) {
+		p := req.(*DeleteLandscapeViewPayload)
+		return nil, s.DeleteLandscapeView(ctx, p)
+	}
+}
+
+// NewDeleteSystemContextViewEndpoint returns an endpoint function that calls
+// the method "DeleteSystemContextView" of service "DSLEditor".
+func NewDeleteSystemContextViewEndpoint(s Service) goa.Endpoint {
+	return func(ctx context.Context, req any) (any, error) {
+		p := req.(*DeleteSystemContextViewPayload)
+		return nil, s.DeleteSystemContextView(ctx, p)
+	}
+}
+
+// NewDeleteContainerViewEndpoint returns an endpoint function that calls the
+// method "DeleteContainerView" of service "DSLEditor".
+func NewDeleteContainerViewEndpoint(s Service) goa.Endpoint {
+	return func(ctx context.Context, req any) (any, error) {
+		p := req.(*DeleteContainerViewPayload)
+		return nil, s.DeleteContainerView(ctx, p)
+	}
+}
+
+// NewDeleteComponentViewEndpoint returns an endpoint function that calls the
+// method "DeleteComponentView" of service "DSLEditor".
+func NewDeleteComponentViewEndpoint(s Service) goa.Endpoint {
+	return func(ctx context.Context, req any) (any, error) {
+		p := req.(*DeleteComponentViewPayload)
+		return nil, s.DeleteComponentView(ctx, p)
+	}
+}
+
+// NewDeleteElementStyleEndpoint returns an endpoint function that calls the
+// method "DeleteElementStyle" of service "DSLEditor".
+func NewDeleteElementStyleEndpoint(s Service) goa.Endpoint {
+	return func(ctx context.Context, req any) (any, error) {
+		p := req.(*DeleteElementStylePayload)
+		return nil, s.DeleteElementStyle(ctx, p)
+	}
+}
+
+// NewDeleteRelationshipStyleEndpoint returns an endpoint function that calls
+// the method "DeleteRelationshipStyle" of service "DSLEditor".
+func NewDeleteRelationshipStyleEndpoint(s Service) goa.Endpoint {
+	return func(ctx context.Context, req any) (any, error) {
+		p := req.(*DeleteRelationshipStylePayload)
+		return nil, s.DeleteRelationshipStyle(ctx, p)
 	}
 }

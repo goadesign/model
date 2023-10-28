@@ -17,20 +17,20 @@ import (
 	goahttp "goa.design/goa/v3/http"
 
 	svc "goa.design/model/svc"
-	pstore "goa.design/model/svc/clients/package_store"
+	"goa.design/model/svc/clients/repo"
 	geneditorsvc "goa.design/model/svc/gen/dsl_editor"
 	genassetshttp "goa.design/model/svc/gen/http/assets/server"
 	geneditorhttp "goa.design/model/svc/gen/http/dsl_editor/server"
-	genpackageshttp "goa.design/model/svc/gen/http/packages/server"
+	genrepohttp "goa.design/model/svc/gen/http/repo/server"
 	gensvghttp "goa.design/model/svc/gen/http/svg/server"
-	genpackagesvc "goa.design/model/svc/gen/packages"
+	genrepovc "goa.design/model/svc/gen/repo"
 	gensvgvc "goa.design/model/svc/gen/svg"
 )
 
 //go:embed webapp/dist
 var webapp embed.FS
 
-func serve(dir string, store pstore.PackageStore, port int, devmode, debugf bool) error {
+func serve(dir string, store repo.RepoHandler, port int, devmode, debugf bool) error {
 	format := log.FormatJSON
 	if log.IsTerminal() {
 		format = log.FormatTerminal
@@ -67,11 +67,11 @@ func serve(dir string, store pstore.PackageStore, port int, devmode, debugf bool
 		log.Print(ctx, log.KV{K: "method", V: m.Method}, log.KV{K: "endpoint", V: m.Verb + " " + m.Pattern})
 	}
 
-	packagesEndpoints := genpackagesvc.NewEndpoints(svc)
+	packagesEndpoints := genrepovc.NewEndpoints(svc)
 	packagesEndpoints.Use(debug.LogPayloads())
 	packagesEndpoints.Use(log.Endpoint)
-	modulesvr := genpackageshttp.New(packagesEndpoints, mux, goahttp.RequestDecoder, goahttp.ResponseEncoder, nil, nil, &websocket.Upgrader{}, nil)
-	genpackageshttp.Mount(mux, modulesvr)
+	modulesvr := genrepohttp.New(packagesEndpoints, mux, goahttp.RequestDecoder, goahttp.ResponseEncoder, nil, nil, &websocket.Upgrader{}, nil)
+	genrepohttp.Mount(mux, modulesvr)
 	for _, m := range modulesvr.Mounts {
 		log.Print(ctx, log.KV{K: "method", V: m.Method}, log.KV{K: "endpoint", V: m.Verb + " " + m.Pattern})
 	}

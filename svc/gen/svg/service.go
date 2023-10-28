@@ -13,7 +13,7 @@ import (
 
 // Service is the SVG service interface.
 type Service interface {
-	// Stream the model layout JSON saved in the SVG
+	// Stream the SVG
 	Load(context.Context, *Filename) (res SVG, err error)
 	// Save the SVG streamed in the request body
 	Save(context.Context, *SavePayload) (err error)

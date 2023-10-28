@@ -236,3 +236,67 @@ func traverse(e *Element, seen map[string]struct{}) {
 		}
 	})
 }
+
+// Name returns the name of the paper size kind.
+func (k PaperSizeKind) Name() string {
+	switch k {
+	case SizeA0Landscape:
+		return "A0_Landscape"
+	case SizeA0Portrait:
+		return "A0_Portrait"
+	case SizeA1Landscape:
+		return "A1_Landscape"
+	case SizeA1Portrait:
+		return "A1_Portrait"
+	case SizeA2Landscape:
+		return "A2_Landscape"
+	case SizeA2Portrait:
+		return "A2_Portrait"
+	case SizeA3Landscape:
+		return "A3_Landscape"
+	case SizeA3Portrait:
+		return "A3_Portrait"
+	case SizeA4Landscape:
+		return "A4_Landscape"
+	case SizeA4Portrait:
+		return "A4_Portrait"
+	case SizeA5Landscape:
+		return "A5_Landscape"
+	case SizeA5Portrait:
+		return "A5_Portrait"
+	case SizeA6Landscape:
+		return "A6_Landscape"
+	case SizeA6Portrait:
+		return "A6_Portrait"
+	case SizeLegalLandscape:
+		return "Legal_Landscape"
+	case SizeLegalPortrait:
+		return "Legal_Portrait"
+	case SizeLetterLandscape:
+		return "Letter_Landscape"
+	case SizeLetterPortrait:
+		return "Letter_Portrait"
+	case SizeSlide16X10:
+		return "Slide_16x10"
+	case SizeSlide16X9:
+		return "Slide_16x9"
+	case SizeSlide4X3:
+		return "Slide_4x3"
+	default:
+		return ""
+	}
+}
+
+// Name of routing kind.
+func (k RoutingKind) Name() string {
+	switch k {
+	case RoutingDirect:
+		return "Direct"
+	case RoutingOrthogonal:
+		return "Orthogonal"
+	case RoutingCurved:
+		return "Curved"
+	default:
+		return ""
+	}
+}

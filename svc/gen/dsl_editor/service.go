@@ -29,6 +29,18 @@ type Service interface {
 	UpsertComponent(context.Context, *Component) (err error)
 	// Create or update a relationship in the model
 	UpsertRelationship(context.Context, *Relationship) (err error)
+	// Create or update a landscape view in the model
+	UpsertLandscapeView(context.Context, *LandscapeView) (err error)
+	// Create or update a system context view in the model
+	UpsertSystemContextView(context.Context, *SystemContextView) (err error)
+	// Create or update a container view in the model
+	UpsertContainerView(context.Context, *ContainerView) (err error)
+	// Create or update a component view in the model
+	UpsertComponentView(context.Context, *ComponentView) (err error)
+	// Create or update an element style in the model
+	UpserElementStyle(context.Context, *ElementStyle) (err error)
+	// Create or update a relationship style in the model
+	UpsertRelationshipStyle(context.Context, *RelationshipStyle) (err error)
 	// Delete an existing software system from the model
 	DeleteSystem(context.Context, *DeleteSystemPayload) (err error)
 	// Delete an existing person from the model
@@ -39,6 +51,18 @@ type Service interface {
 	DeleteComponent(context.Context, *DeleteComponentPayload) (err error)
 	// Delete an existing relationship from the model
 	DeleteRelationship(context.Context, *DeleteRelationshipPayload) (err error)
+	// Delete an existing landscape view from the model
+	DeleteLandscapeView(context.Context, *DeleteLandscapeViewPayload) (err error)
+	// Delete an existing system context view from the model
+	DeleteSystemContextView(context.Context, *DeleteSystemContextViewPayload) (err error)
+	// Delete an existing container view from the model
+	DeleteContainerView(context.Context, *DeleteContainerViewPayload) (err error)
+	// Delete an existing component view from the model
+	DeleteComponentView(context.Context, *DeleteComponentViewPayload) (err error)
+	// Delete an existing element style from the model
+	DeleteElementStyle(context.Context, *DeleteElementStylePayload) (err error)
+	// Delete an existing relationship style from the model
+	DeleteRelationshipStyle(context.Context, *DeleteRelationshipStylePayload) (err error)
 }
 
 // ServiceName is the name of the service as defined in the design. This is the
@@ -49,7 +73,7 @@ const ServiceName = "DSLEditor"
 // MethodNames lists the service method names as defined in the design. These
 // are the same values that are set in the endpoint request contexts under the
 // MethodKey key.
-var MethodNames = [11]string{"UpdateDSL", "UpsertSystem", "UpsertPerson", "UpsertContainer", "UpsertComponent", "UpsertRelationship", "DeleteSystem", "DeletePerson", "DeleteContainer", "DeleteComponent", "DeleteRelationship"}
+var MethodNames = [23]string{"UpdateDSL", "UpsertSystem", "UpsertPerson", "UpsertContainer", "UpsertComponent", "UpsertRelationship", "UpsertLandscapeView", "UpsertSystemContextView", "UpsertContainerView", "UpsertComponentView", "UpserElementStyle", "UpsertRelationshipStyle", "DeleteSystem", "DeletePerson", "DeleteContainer", "DeleteComponent", "DeleteRelationship", "DeleteLandscapeView", "DeleteSystemContextView", "DeleteContainerView", "DeleteComponentView", "DeleteElementStyle", "DeleteRelationshipStyle"}
 
 // Component is the payload type of the DSLEditor service UpsertComponent
 // method.
@@ -74,6 +98,32 @@ type Component struct {
 	Properties map[string]string
 }
 
+// ComponentView is the payload type of the DSLEditor service
+// UpsertComponentView method.
+type ComponentView struct {
+	// Name of software system to create view for
+	SoftwareSystemName string
+	// Name of container to create view for
+	ContainerName string
+	// Indicates whether the container boundaries are visible on the resulting
+	// diagram
+	ContainerBoundariesVisible bool
+	// Path to file containing view DSL
+	Locator *types.FileLocator
+	// Key of view
+	Key string
+	// Title of view
+	Title string
+	// Description of view
+	Description *string
+	// Paper size of view
+	PaperSize *string
+	// Elements in view
+	ElementViews []*ElementView
+	// Relationships in view
+	RelationshipViews []*RelationshipView
+}
+
 // Container is the payload type of the DSLEditor service UpsertContainer
 // method.
 type Container struct {
@@ -95,6 +145,29 @@ type Container struct {
 	Properties map[string]string
 }
 
+// ContainerView is the payload type of the DSLEditor service
+// UpsertContainerView method.
+type ContainerView struct {
+	// Name of software system to create view for
+	SoftwareSystemName *string
+	// Indicates whether the system boundaries are visible on the resulting diagram
+	SystemBoundariesVisible bool
+	// Path to file containing view DSL
+	Locator *types.FileLocator
+	// Key of view
+	Key string
+	// Title of view
+	Title string
+	// Description of view
+	Description *string
+	// Paper size of view
+	PaperSize *string
+	// Elements in view
+	ElementViews []*ElementView
+	// Relationships in view
+	RelationshipViews []*RelationshipView
+}
+
 // DeleteComponentPayload is the payload type of the DSLEditor service
 // DeleteComponent method.
 type DeleteComponentPayload struct {
@@ -106,8 +179,21 @@ type DeleteComponentPayload struct {
 	ComponentName string
 	// Name of DSL file
 	Filename string
-	// Workspace identifier
-	Workspace string
+	// Path to repository root
+	Repository string
+	// Path to directory containing a model package
+	Dir string
+}
+
+// DeleteComponentViewPayload is the payload type of the DSLEditor service
+// DeleteComponentView method.
+type DeleteComponentViewPayload struct {
+	// Key of component view to delete
+	Key string
+	// Name of DSL file
+	Filename string
+	// Path to repository root
+	Repository string
 	// Path to directory containing a model package
 	Dir string
 }
@@ -121,8 +207,47 @@ type DeleteContainerPayload struct {
 	ContainerName string
 	// Name of DSL file
 	Filename string
-	// Workspace identifier
-	Workspace string
+	// Path to repository root
+	Repository string
+	// Path to directory containing a model package
+	Dir string
+}
+
+// DeleteContainerViewPayload is the payload type of the DSLEditor service
+// DeleteContainerView method.
+type DeleteContainerViewPayload struct {
+	// Key of container view to delete
+	Key string
+	// Name of DSL file
+	Filename string
+	// Path to repository root
+	Repository string
+	// Path to directory containing a model package
+	Dir string
+}
+
+// DeleteElementStylePayload is the payload type of the DSLEditor service
+// DeleteElementStyle method.
+type DeleteElementStylePayload struct {
+	// Tag of element style to delete
+	Tag string
+	// Name of DSL file
+	Filename string
+	// Path to repository root
+	Repository string
+	// Path to directory containing a model package
+	Dir string
+}
+
+// DeleteLandscapeViewPayload is the payload type of the DSLEditor service
+// DeleteLandscapeView method.
+type DeleteLandscapeViewPayload struct {
+	// Key of landscape view to delete
+	Key string
+	// Name of DSL file
+	Filename string
+	// Path to repository root
+	Repository string
 	// Path to directory containing a model package
 	Dir string
 }
@@ -134,8 +259,8 @@ type DeletePersonPayload struct {
 	PersonName string
 	// Name of DSL file
 	Filename string
-	// Workspace identifier
-	Workspace string
+	// Path to repository root
+	Repository string
 	// Path to directory containing a model package
 	Dir string
 }
@@ -150,8 +275,34 @@ type DeleteRelationshipPayload struct {
 	DestinationPath string
 	// Name of DSL file
 	Filename string
-	// Workspace identifier
-	Workspace string
+	// Path to repository root
+	Repository string
+	// Path to directory containing a model package
+	Dir string
+}
+
+// DeleteRelationshipStylePayload is the payload type of the DSLEditor service
+// DeleteRelationshipStyle method.
+type DeleteRelationshipStylePayload struct {
+	// Tag of relationship style to delete
+	Tag string
+	// Name of DSL file
+	Filename string
+	// Path to repository root
+	Repository string
+	// Path to directory containing a model package
+	Dir string
+}
+
+// DeleteSystemContextViewPayload is the payload type of the DSLEditor service
+// DeleteSystemContextView method.
+type DeleteSystemContextViewPayload struct {
+	// Key of system context view to delete
+	Key string
+	// Name of DSL file
+	Filename string
+	// Path to repository root
+	Repository string
 	// Path to directory containing a model package
 	Dir string
 }
@@ -163,10 +314,70 @@ type DeleteSystemPayload struct {
 	SystemName string
 	// Name of DSL file
 	Filename string
-	// Workspace identifier
-	Workspace string
+	// Path to repository root
+	Repository string
 	// Path to directory containing a model package
 	Dir string
+}
+
+// ElementStyle is the payload type of the DSLEditor service UpserElementStyle
+// method.
+type ElementStyle struct {
+	// Tag of elements to apply style onto
+	Tag string
+	// Shape of element
+	Shape string
+	// URL to icon of element
+	Icon *string
+	// Background color of element
+	Background *string
+	// Text color of element
+	Color *string
+	// Stroke color of element
+	Stroke *string
+	// Width of element
+	Width *int
+	// Height of element
+	Height *int
+	// Font size of element
+	FontSize *int
+	// Indicates whether the element metadata should be visible on the resulting
+	// diagram
+	Metadata *bool
+	// Indicates whether the element description should be visible on the resulting
+	// diagram
+	Description bool
+	// Opacity of element as a percentage
+	Opacity *int
+	// Type of border to apply to elements
+	Border string
+}
+
+type ElementView struct {
+	// Path to element consisting of <software system name>[/<container
+	// name>[/<component name>]]
+	Element *string
+}
+
+// LandscapeView is the payload type of the DSLEditor service
+// UpsertLandscapeView method.
+type LandscapeView struct {
+	// Indicates whether the enterprise boundary is visible on the resulting diagram
+	EnterpriseBoundaryVisible bool
+	// Path to file containing view DSL
+	Locator *types.FileLocator
+	// Key of view
+	Key string
+	// Title of view
+	Title string
+	// Description of view
+	Description *string
+	// Paper size of view
+	PaperSize *string
+	// Elements in view
+	ElementViews []*ElementView
+	// Relationships in view
+	RelationshipViews []*RelationshipView
 }
 
 // Person is the payload type of the DSLEditor service UpsertPerson method.
@@ -210,6 +421,40 @@ type Relationship struct {
 	URL *string
 }
 
+// RelationshipStyle is the payload type of the DSLEditor service
+// UpsertRelationshipStyle method.
+type RelationshipStyle struct {
+	// Tag of relationships to apply style onto
+	Tag string
+	// Thickness of relationship in pixels
+	Thickness *int
+	// Font size of label on relationship
+	FontSize *int
+	// Width of label on relationship
+	Width *int
+	// Position of label on relationship as a percentage (0 is next to source, 100
+	// next to destination)
+	Position *int
+	// Color of label
+	Color *string
+	// Stroke color of relationship
+	Stroke *string
+	// Indicates whether the relationship is dashed
+	Dashed bool
+	// Routing of relationship
+	Routing string
+	// Opacity of relationship as a percentage
+	Opacity *int
+}
+
+type RelationshipView struct {
+	// Path to source element consisting of <software system name>[/<container
+	// name>[/<component name>]]
+	Source *string
+	// Path to destination element, see SourcePath for details.
+	Destination *string
+}
+
 // System is the payload type of the DSLEditor service UpsertSystem method.
 type System struct {
 	// Path to file containing system DSL
@@ -227,6 +472,29 @@ type System struct {
 	Location string
 	// Set of arbitrary name-value properties (shown in diagram tooltips)
 	Properties map[string]string
+}
+
+// SystemContextView is the payload type of the DSLEditor service
+// UpsertSystemContextView method.
+type SystemContextView struct {
+	// Name of software system to create view for
+	SoftwareSystemName string
+	// Indicates whether the enterprise boundary is visible on the resulting diagram
+	EnterpriseBoundaryVisible bool
+	// Path to file containing view DSL
+	Locator *types.FileLocator
+	// Key of view
+	Key string
+	// Title of view
+	Title string
+	// Description of view
+	Description *string
+	// Paper size of view
+	PaperSize *string
+	// Elements in view
+	ElementViews []*ElementView
+	// Relationships in view
+	RelationshipViews []*RelationshipView
 }
 
 // MakeCompilationFailed builds a goa.ServiceError from an error.

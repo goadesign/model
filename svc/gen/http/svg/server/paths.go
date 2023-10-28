@@ -9,7 +9,7 @@ package server
 
 // LoadSVGPath returns the URL path to the SVG service Load HTTP endpoint.
 func LoadSVGPath() string {
-	return "/api/diagrams/layout"
+	return "/api/diagrams"
 }
 
 // SaveSVGPath returns the URL path to the SVG service Save HTTP endpoint.

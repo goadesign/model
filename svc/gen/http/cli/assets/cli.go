@@ -16,7 +16,7 @@ import (
 	goahttp "goa.design/goa/v3/http"
 	goa "goa.design/goa/v3/pkg"
 	dsleditorc "goa.design/model/svc/gen/http/dsl_editor/client"
-	packagesc "goa.design/model/svc/gen/http/packages/client"
+	repoc "goa.design/model/svc/gen/http/repo/client"
 	svgc "goa.design/model/svc/gen/http/svg/client"
 )
 
@@ -24,8 +24,8 @@ import (
 //
 //	command (subcommand1|subcommand2|...)
 func UsageCommands() string {
-	return `dsl-editor (update-dsl|upsert-system|upsert-person|upsert-container|upsert-component|upsert-relationship|delete-system|delete-person|delete-container|delete-component|delete-relationship)
-packages (list-workspaces|create-package|delete-package|list-packages|read-package-files|subscribe)
+	return `dsl-editor (update-dsl|upsert-system|upsert-person|upsert-container|upsert-component|upsert-relationship|upsert-landscape-view|upsert-system-context-view|upsert-container-view|upsert-component-view|upser-element-style|upsert-relationship-style|delete-system|delete-person|delete-container|delete-component|delete-relationship|delete-landscape-view|delete-system-context-view|delete-container-view|delete-component-view|delete-element-style|delete-relationship-style)
+repo (create-package|delete-package|list-packages|read-package|get-model-json|subscribe)
 svg (load|save)
 `
 }
@@ -33,14 +33,21 @@ svg (load|save)
 // UsageExamples produces an example of a valid invocation of the CLI tool.
 func UsageExamples() string {
 	return os.Args[0] + ` dsl-editor update-dsl --body '{
-      "Content": "import . \"goa.design/model/dsl\"\n\nvar _ = Design(func() {})",
+      "Content": "package model\n\nimport . \"goa.design/model/dsl\"\n\nvar _ = Design(func() {})",
       "Locator": {
-         "Dir": "src/repo/model",
+         "Dir": "services/my-service/diagram",
          "Filename": "model.go",
-         "Workspace": "my-workspace"
+         "Repository": "my-repo"
       }
    }'` + "\n" +
-		os.Args[0] + ` packages list-workspaces` + "\n" +
+		os.Args[0] + ` repo create-package --body '{
+      "Content": "package model\n\nimport . \"goa.design/model/dsl\"\n\nvar _ = Design(func() {})",
+      "Locator": {
+         "Dir": "services/my-service/diagram",
+         "Filename": "model.go",
+         "Repository": "my-repo"
+      }
+   }'` + "\n" +
 		os.Args[0] + ` svg load --filename "diagram.svg"` + "\n" +
 		""
 }
@@ -54,7 +61,7 @@ func ParseEndpoint(
 	dec func(*http.Response) goahttp.Decoder,
 	restore bool,
 	dialer goahttp.Dialer,
-	packagesConfigurer *packagesc.ConnConfigurer,
+	repoConfigurer *repoc.ConnConfigurer,
 ) (goa.Endpoint, any, error) {
 	var (
 		dSLEditorFlags = flag.NewFlagSet("dsl-editor", flag.ContinueOnError)
@@ -76,6 +83,24 @@ func ParseEndpoint(
 
 		dSLEditorUpsertRelationshipFlags    = flag.NewFlagSet("upsert-relationship", flag.ExitOnError)
 		dSLEditorUpsertRelationshipBodyFlag = dSLEditorUpsertRelationshipFlags.String("body", "REQUIRED", "")
+
+		dSLEditorUpsertLandscapeViewFlags    = flag.NewFlagSet("upsert-landscape-view", flag.ExitOnError)
+		dSLEditorUpsertLandscapeViewBodyFlag = dSLEditorUpsertLandscapeViewFlags.String("body", "REQUIRED", "")
+
+		dSLEditorUpsertSystemContextViewFlags    = flag.NewFlagSet("upsert-system-context-view", flag.ExitOnError)
+		dSLEditorUpsertSystemContextViewBodyFlag = dSLEditorUpsertSystemContextViewFlags.String("body", "REQUIRED", "")
+
+		dSLEditorUpsertContainerViewFlags    = flag.NewFlagSet("upsert-container-view", flag.ExitOnError)
+		dSLEditorUpsertContainerViewBodyFlag = dSLEditorUpsertContainerViewFlags.String("body", "REQUIRED", "")
+
+		dSLEditorUpsertComponentViewFlags    = flag.NewFlagSet("upsert-component-view", flag.ExitOnError)
+		dSLEditorUpsertComponentViewBodyFlag = dSLEditorUpsertComponentViewFlags.String("body", "REQUIRED", "")
+
+		dSLEditorUpserElementStyleFlags    = flag.NewFlagSet("upser-element-style", flag.ExitOnError)
+		dSLEditorUpserElementStyleBodyFlag = dSLEditorUpserElementStyleFlags.String("body", "REQUIRED", "")
+
+		dSLEditorUpsertRelationshipStyleFlags    = flag.NewFlagSet("upsert-relationship-style", flag.ExitOnError)
+		dSLEditorUpsertRelationshipStyleBodyFlag = dSLEditorUpsertRelationshipStyleFlags.String("body", "REQUIRED", "")
 
 		dSLEditorDeleteSystemFlags          = flag.NewFlagSet("delete-system", flag.ExitOnError)
 		dSLEditorDeleteSystemBodyFlag       = dSLEditorDeleteSystemFlags.String("body", "REQUIRED", "")
@@ -99,29 +124,53 @@ func ParseEndpoint(
 		dSLEditorDeleteRelationshipFlags    = flag.NewFlagSet("delete-relationship", flag.ExitOnError)
 		dSLEditorDeleteRelationshipBodyFlag = dSLEditorDeleteRelationshipFlags.String("body", "REQUIRED", "")
 
-		packagesFlags = flag.NewFlagSet("packages", flag.ContinueOnError)
+		dSLEditorDeleteLandscapeViewFlags    = flag.NewFlagSet("delete-landscape-view", flag.ExitOnError)
+		dSLEditorDeleteLandscapeViewBodyFlag = dSLEditorDeleteLandscapeViewFlags.String("body", "REQUIRED", "")
+		dSLEditorDeleteLandscapeViewKeyFlag  = dSLEditorDeleteLandscapeViewFlags.String("key", "REQUIRED", "Key of landscape view to delete")
 
-		packagesListWorkspacesFlags = flag.NewFlagSet("list-workspaces", flag.ExitOnError)
+		dSLEditorDeleteSystemContextViewFlags    = flag.NewFlagSet("delete-system-context-view", flag.ExitOnError)
+		dSLEditorDeleteSystemContextViewBodyFlag = dSLEditorDeleteSystemContextViewFlags.String("body", "REQUIRED", "")
+		dSLEditorDeleteSystemContextViewKeyFlag  = dSLEditorDeleteSystemContextViewFlags.String("key", "REQUIRED", "Key of system context view to delete")
 
-		packagesCreatePackageFlags         = flag.NewFlagSet("create-package", flag.ExitOnError)
-		packagesCreatePackageBodyFlag      = packagesCreatePackageFlags.String("body", "REQUIRED", "")
-		packagesCreatePackageWorkspaceFlag = packagesCreatePackageFlags.String("workspace", "REQUIRED", "")
-		packagesCreatePackageDirFlag       = packagesCreatePackageFlags.String("dir", "REQUIRED", "")
+		dSLEditorDeleteContainerViewFlags    = flag.NewFlagSet("delete-container-view", flag.ExitOnError)
+		dSLEditorDeleteContainerViewBodyFlag = dSLEditorDeleteContainerViewFlags.String("body", "REQUIRED", "")
+		dSLEditorDeleteContainerViewKeyFlag  = dSLEditorDeleteContainerViewFlags.String("key", "REQUIRED", "Key of container view to delete")
 
-		packagesDeletePackageFlags         = flag.NewFlagSet("delete-package", flag.ExitOnError)
-		packagesDeletePackageWorkspaceFlag = packagesDeletePackageFlags.String("workspace", "REQUIRED", "")
-		packagesDeletePackageDirFlag       = packagesDeletePackageFlags.String("dir", "REQUIRED", "")
+		dSLEditorDeleteComponentViewFlags    = flag.NewFlagSet("delete-component-view", flag.ExitOnError)
+		dSLEditorDeleteComponentViewBodyFlag = dSLEditorDeleteComponentViewFlags.String("body", "REQUIRED", "")
+		dSLEditorDeleteComponentViewKeyFlag  = dSLEditorDeleteComponentViewFlags.String("key", "REQUIRED", "Key of component view to delete")
 
-		packagesListPackagesFlags         = flag.NewFlagSet("list-packages", flag.ExitOnError)
-		packagesListPackagesWorkspaceFlag = packagesListPackagesFlags.String("workspace", "REQUIRED", "")
+		dSLEditorDeleteElementStyleFlags    = flag.NewFlagSet("delete-element-style", flag.ExitOnError)
+		dSLEditorDeleteElementStyleBodyFlag = dSLEditorDeleteElementStyleFlags.String("body", "REQUIRED", "")
+		dSLEditorDeleteElementStyleTagFlag  = dSLEditorDeleteElementStyleFlags.String("tag", "REQUIRED", "Tag of element style to delete")
 
-		packagesReadPackageFilesFlags         = flag.NewFlagSet("read-package-files", flag.ExitOnError)
-		packagesReadPackageFilesWorkspaceFlag = packagesReadPackageFilesFlags.String("workspace", "REQUIRED", "")
-		packagesReadPackageFilesDirFlag       = packagesReadPackageFilesFlags.String("dir", "REQUIRED", "")
+		dSLEditorDeleteRelationshipStyleFlags    = flag.NewFlagSet("delete-relationship-style", flag.ExitOnError)
+		dSLEditorDeleteRelationshipStyleBodyFlag = dSLEditorDeleteRelationshipStyleFlags.String("body", "REQUIRED", "")
+		dSLEditorDeleteRelationshipStyleTagFlag  = dSLEditorDeleteRelationshipStyleFlags.String("tag", "REQUIRED", "Tag of relationship style to delete")
 
-		packagesSubscribeFlags         = flag.NewFlagSet("subscribe", flag.ExitOnError)
-		packagesSubscribeWorkspaceFlag = packagesSubscribeFlags.String("workspace", "REQUIRED", "")
-		packagesSubscribeDirFlag       = packagesSubscribeFlags.String("dir", "REQUIRED", "")
+		repoFlags = flag.NewFlagSet("repo", flag.ContinueOnError)
+
+		repoCreatePackageFlags    = flag.NewFlagSet("create-package", flag.ExitOnError)
+		repoCreatePackageBodyFlag = repoCreatePackageFlags.String("body", "REQUIRED", "")
+
+		repoDeletePackageFlags          = flag.NewFlagSet("delete-package", flag.ExitOnError)
+		repoDeletePackageRepositoryFlag = repoDeletePackageFlags.String("repository", "REQUIRED", "")
+		repoDeletePackageDirFlag        = repoDeletePackageFlags.String("dir", "REQUIRED", "")
+
+		repoListPackagesFlags          = flag.NewFlagSet("list-packages", flag.ExitOnError)
+		repoListPackagesRepositoryFlag = repoListPackagesFlags.String("repository", "REQUIRED", "")
+
+		repoReadPackageFlags          = flag.NewFlagSet("read-package", flag.ExitOnError)
+		repoReadPackageRepositoryFlag = repoReadPackageFlags.String("repository", "REQUIRED", "")
+		repoReadPackageDirFlag        = repoReadPackageFlags.String("dir", "REQUIRED", "")
+
+		repoGetModelJSONFlags          = flag.NewFlagSet("get-model-json", flag.ExitOnError)
+		repoGetModelJSONRepositoryFlag = repoGetModelJSONFlags.String("repository", "REQUIRED", "")
+		repoGetModelJSONDirFlag        = repoGetModelJSONFlags.String("dir", "REQUIRED", "")
+
+		repoSubscribeFlags          = flag.NewFlagSet("subscribe", flag.ExitOnError)
+		repoSubscribeRepositoryFlag = repoSubscribeFlags.String("repository", "REQUIRED", "")
+		repoSubscribeDirFlag        = repoSubscribeFlags.String("dir", "REQUIRED", "")
 
 		sVGFlags = flag.NewFlagSet("svg", flag.ContinueOnError)
 
@@ -139,19 +188,31 @@ func ParseEndpoint(
 	dSLEditorUpsertContainerFlags.Usage = dSLEditorUpsertContainerUsage
 	dSLEditorUpsertComponentFlags.Usage = dSLEditorUpsertComponentUsage
 	dSLEditorUpsertRelationshipFlags.Usage = dSLEditorUpsertRelationshipUsage
+	dSLEditorUpsertLandscapeViewFlags.Usage = dSLEditorUpsertLandscapeViewUsage
+	dSLEditorUpsertSystemContextViewFlags.Usage = dSLEditorUpsertSystemContextViewUsage
+	dSLEditorUpsertContainerViewFlags.Usage = dSLEditorUpsertContainerViewUsage
+	dSLEditorUpsertComponentViewFlags.Usage = dSLEditorUpsertComponentViewUsage
+	dSLEditorUpserElementStyleFlags.Usage = dSLEditorUpserElementStyleUsage
+	dSLEditorUpsertRelationshipStyleFlags.Usage = dSLEditorUpsertRelationshipStyleUsage
 	dSLEditorDeleteSystemFlags.Usage = dSLEditorDeleteSystemUsage
 	dSLEditorDeletePersonFlags.Usage = dSLEditorDeletePersonUsage
 	dSLEditorDeleteContainerFlags.Usage = dSLEditorDeleteContainerUsage
 	dSLEditorDeleteComponentFlags.Usage = dSLEditorDeleteComponentUsage
 	dSLEditorDeleteRelationshipFlags.Usage = dSLEditorDeleteRelationshipUsage
+	dSLEditorDeleteLandscapeViewFlags.Usage = dSLEditorDeleteLandscapeViewUsage
+	dSLEditorDeleteSystemContextViewFlags.Usage = dSLEditorDeleteSystemContextViewUsage
+	dSLEditorDeleteContainerViewFlags.Usage = dSLEditorDeleteContainerViewUsage
+	dSLEditorDeleteComponentViewFlags.Usage = dSLEditorDeleteComponentViewUsage
+	dSLEditorDeleteElementStyleFlags.Usage = dSLEditorDeleteElementStyleUsage
+	dSLEditorDeleteRelationshipStyleFlags.Usage = dSLEditorDeleteRelationshipStyleUsage
 
-	packagesFlags.Usage = packagesUsage
-	packagesListWorkspacesFlags.Usage = packagesListWorkspacesUsage
-	packagesCreatePackageFlags.Usage = packagesCreatePackageUsage
-	packagesDeletePackageFlags.Usage = packagesDeletePackageUsage
-	packagesListPackagesFlags.Usage = packagesListPackagesUsage
-	packagesReadPackageFilesFlags.Usage = packagesReadPackageFilesUsage
-	packagesSubscribeFlags.Usage = packagesSubscribeUsage
+	repoFlags.Usage = repoUsage
+	repoCreatePackageFlags.Usage = repoCreatePackageUsage
+	repoDeletePackageFlags.Usage = repoDeletePackageUsage
+	repoListPackagesFlags.Usage = repoListPackagesUsage
+	repoReadPackageFlags.Usage = repoReadPackageUsage
+	repoGetModelJSONFlags.Usage = repoGetModelJSONUsage
+	repoSubscribeFlags.Usage = repoSubscribeUsage
 
 	sVGFlags.Usage = sVGUsage
 	sVGLoadFlags.Usage = sVGLoadUsage
@@ -174,8 +235,8 @@ func ParseEndpoint(
 		switch svcn {
 		case "dsl-editor":
 			svcf = dSLEditorFlags
-		case "packages":
-			svcf = packagesFlags
+		case "repo":
+			svcf = repoFlags
 		case "svg":
 			svcf = sVGFlags
 		default:
@@ -213,6 +274,24 @@ func ParseEndpoint(
 			case "upsert-relationship":
 				epf = dSLEditorUpsertRelationshipFlags
 
+			case "upsert-landscape-view":
+				epf = dSLEditorUpsertLandscapeViewFlags
+
+			case "upsert-system-context-view":
+				epf = dSLEditorUpsertSystemContextViewFlags
+
+			case "upsert-container-view":
+				epf = dSLEditorUpsertContainerViewFlags
+
+			case "upsert-component-view":
+				epf = dSLEditorUpsertComponentViewFlags
+
+			case "upser-element-style":
+				epf = dSLEditorUpserElementStyleFlags
+
+			case "upsert-relationship-style":
+				epf = dSLEditorUpsertRelationshipStyleFlags
+
 			case "delete-system":
 				epf = dSLEditorDeleteSystemFlags
 
@@ -228,27 +307,45 @@ func ParseEndpoint(
 			case "delete-relationship":
 				epf = dSLEditorDeleteRelationshipFlags
 
+			case "delete-landscape-view":
+				epf = dSLEditorDeleteLandscapeViewFlags
+
+			case "delete-system-context-view":
+				epf = dSLEditorDeleteSystemContextViewFlags
+
+			case "delete-container-view":
+				epf = dSLEditorDeleteContainerViewFlags
+
+			case "delete-component-view":
+				epf = dSLEditorDeleteComponentViewFlags
+
+			case "delete-element-style":
+				epf = dSLEditorDeleteElementStyleFlags
+
+			case "delete-relationship-style":
+				epf = dSLEditorDeleteRelationshipStyleFlags
+
 			}
 
-		case "packages":
+		case "repo":
 			switch epn {
-			case "list-workspaces":
-				epf = packagesListWorkspacesFlags
-
 			case "create-package":
-				epf = packagesCreatePackageFlags
+				epf = repoCreatePackageFlags
 
 			case "delete-package":
-				epf = packagesDeletePackageFlags
+				epf = repoDeletePackageFlags
 
 			case "list-packages":
-				epf = packagesListPackagesFlags
+				epf = repoListPackagesFlags
 
-			case "read-package-files":
-				epf = packagesReadPackageFilesFlags
+			case "read-package":
+				epf = repoReadPackageFlags
+
+			case "get-model-json":
+				epf = repoGetModelJSONFlags
 
 			case "subscribe":
-				epf = packagesSubscribeFlags
+				epf = repoSubscribeFlags
 
 			}
 
@@ -303,6 +400,24 @@ func ParseEndpoint(
 			case "upsert-relationship":
 				endpoint = c.UpsertRelationship()
 				data, err = dsleditorc.BuildUpsertRelationshipPayload(*dSLEditorUpsertRelationshipBodyFlag)
+			case "upsert-landscape-view":
+				endpoint = c.UpsertLandscapeView()
+				data, err = dsleditorc.BuildUpsertLandscapeViewPayload(*dSLEditorUpsertLandscapeViewBodyFlag)
+			case "upsert-system-context-view":
+				endpoint = c.UpsertSystemContextView()
+				data, err = dsleditorc.BuildUpsertSystemContextViewPayload(*dSLEditorUpsertSystemContextViewBodyFlag)
+			case "upsert-container-view":
+				endpoint = c.UpsertContainerView()
+				data, err = dsleditorc.BuildUpsertContainerViewPayload(*dSLEditorUpsertContainerViewBodyFlag)
+			case "upsert-component-view":
+				endpoint = c.UpsertComponentView()
+				data, err = dsleditorc.BuildUpsertComponentViewPayload(*dSLEditorUpsertComponentViewBodyFlag)
+			case "upser-element-style":
+				endpoint = c.UpserElementStyle()
+				data, err = dsleditorc.BuildUpserElementStylePayload(*dSLEditorUpserElementStyleBodyFlag)
+			case "upsert-relationship-style":
+				endpoint = c.UpsertRelationshipStyle()
+				data, err = dsleditorc.BuildUpsertRelationshipStylePayload(*dSLEditorUpsertRelationshipStyleBodyFlag)
 			case "delete-system":
 				endpoint = c.DeleteSystem()
 				data, err = dsleditorc.BuildDeleteSystemPayload(*dSLEditorDeleteSystemBodyFlag, *dSLEditorDeleteSystemSystemNameFlag)
@@ -318,28 +433,46 @@ func ParseEndpoint(
 			case "delete-relationship":
 				endpoint = c.DeleteRelationship()
 				data, err = dsleditorc.BuildDeleteRelationshipPayload(*dSLEditorDeleteRelationshipBodyFlag)
+			case "delete-landscape-view":
+				endpoint = c.DeleteLandscapeView()
+				data, err = dsleditorc.BuildDeleteLandscapeViewPayload(*dSLEditorDeleteLandscapeViewBodyFlag, *dSLEditorDeleteLandscapeViewKeyFlag)
+			case "delete-system-context-view":
+				endpoint = c.DeleteSystemContextView()
+				data, err = dsleditorc.BuildDeleteSystemContextViewPayload(*dSLEditorDeleteSystemContextViewBodyFlag, *dSLEditorDeleteSystemContextViewKeyFlag)
+			case "delete-container-view":
+				endpoint = c.DeleteContainerView()
+				data, err = dsleditorc.BuildDeleteContainerViewPayload(*dSLEditorDeleteContainerViewBodyFlag, *dSLEditorDeleteContainerViewKeyFlag)
+			case "delete-component-view":
+				endpoint = c.DeleteComponentView()
+				data, err = dsleditorc.BuildDeleteComponentViewPayload(*dSLEditorDeleteComponentViewBodyFlag, *dSLEditorDeleteComponentViewKeyFlag)
+			case "delete-element-style":
+				endpoint = c.DeleteElementStyle()
+				data, err = dsleditorc.BuildDeleteElementStylePayload(*dSLEditorDeleteElementStyleBodyFlag, *dSLEditorDeleteElementStyleTagFlag)
+			case "delete-relationship-style":
+				endpoint = c.DeleteRelationshipStyle()
+				data, err = dsleditorc.BuildDeleteRelationshipStylePayload(*dSLEditorDeleteRelationshipStyleBodyFlag, *dSLEditorDeleteRelationshipStyleTagFlag)
 			}
-		case "packages":
-			c := packagesc.NewClient(scheme, host, doer, enc, dec, restore, dialer, packagesConfigurer)
+		case "repo":
+			c := repoc.NewClient(scheme, host, doer, enc, dec, restore, dialer, repoConfigurer)
 			switch epn {
-			case "list-workspaces":
-				endpoint = c.ListWorkspaces()
-				data = nil
 			case "create-package":
 				endpoint = c.CreatePackage()
-				data, err = packagesc.BuildCreatePackagePayload(*packagesCreatePackageBodyFlag, *packagesCreatePackageWorkspaceFlag, *packagesCreatePackageDirFlag)
+				data, err = repoc.BuildCreatePackagePayload(*repoCreatePackageBodyFlag)
 			case "delete-package":
 				endpoint = c.DeletePackage()
-				data, err = packagesc.BuildDeletePackagePayload(*packagesDeletePackageWorkspaceFlag, *packagesDeletePackageDirFlag)
+				data, err = repoc.BuildDeletePackagePayload(*repoDeletePackageRepositoryFlag, *repoDeletePackageDirFlag)
 			case "list-packages":
 				endpoint = c.ListPackages()
-				data, err = packagesc.BuildListPackagesPayload(*packagesListPackagesWorkspaceFlag)
-			case "read-package-files":
-				endpoint = c.ReadPackageFiles()
-				data, err = packagesc.BuildReadPackageFilesPayload(*packagesReadPackageFilesWorkspaceFlag, *packagesReadPackageFilesDirFlag)
+				data, err = repoc.BuildListPackagesPayload(*repoListPackagesRepositoryFlag)
+			case "read-package":
+				endpoint = c.ReadPackage()
+				data, err = repoc.BuildReadPackagePayload(*repoReadPackageRepositoryFlag, *repoReadPackageDirFlag)
+			case "get-model-json":
+				endpoint = c.GetModelJSON()
+				data, err = repoc.BuildGetModelJSONPayload(*repoGetModelJSONRepositoryFlag, *repoGetModelJSONDirFlag)
 			case "subscribe":
 				endpoint = c.Subscribe()
-				data, err = packagesc.BuildSubscribePayload(*packagesSubscribeWorkspaceFlag, *packagesSubscribeDirFlag)
+				data, err = repoc.BuildSubscribePayload(*repoSubscribeRepositoryFlag, *repoSubscribeDirFlag)
 			}
 		case "svg":
 			c := svgc.NewClient(scheme, host, doer, enc, dec, restore)
@@ -374,11 +507,23 @@ COMMAND:
     upsert-container: Create or update a container in the model
     upsert-component: Create or update a component in the model
     upsert-relationship: Create or update a relationship in the model
+    upsert-landscape-view: Create or update a landscape view in the model
+    upsert-system-context-view: Create or update a system context view in the model
+    upsert-container-view: Create or update a container view in the model
+    upsert-component-view: Create or update a component view in the model
+    upser-element-style: Create or update an element style in the model
+    upsert-relationship-style: Create or update a relationship style in the model
     delete-system: Delete an existing software system from the model
     delete-person: Delete an existing person from the model
     delete-container: Delete an existing container from the model
     delete-component: Delete an existing component from the model
     delete-relationship: Delete an existing relationship from the model
+    delete-landscape-view: Delete an existing landscape view from the model
+    delete-system-context-view: Delete an existing system context view from the model
+    delete-container-view: Delete an existing container view from the model
+    delete-component-view: Delete an existing component view from the model
+    delete-element-style: Delete an existing element style from the model
+    delete-relationship-style: Delete an existing relationship style from the model
 
 Additional help:
     %[1]s dsl-editor COMMAND --help
@@ -392,11 +537,11 @@ Update the DSL for the given package, compile it and return the corresponding JS
 
 Example:
     %[1]s dsl-editor update-dsl --body '{
-      "Content": "import . \"goa.design/model/dsl\"\n\nvar _ = Design(func() {})",
+      "Content": "package model\n\nimport . \"goa.design/model/dsl\"\n\nvar _ = Design(func() {})",
       "Locator": {
-         "Dir": "src/repo/model",
+         "Dir": "services/my-service/diagram",
          "Filename": "model.go",
-         "Workspace": "my-workspace"
+         "Repository": "my-repo"
       }
    }'
 `, os.Args[0])
@@ -413,9 +558,9 @@ Example:
       "Description": "System description",
       "Location": "Internal",
       "Locator": {
-         "Dir": "src/repo/model",
+         "Dir": "services/my-service/diagram",
          "Filename": "model.go",
-         "Workspace": "my-workspace"
+         "Repository": "my-repo"
       },
       "Name": "System",
       "Properties": {
@@ -440,11 +585,11 @@ Create or update a person in the model
 Example:
     %[1]s dsl-editor upsert-person --body '{
       "Description": "Person description",
-      "Location": "Internal",
+      "Location": "External",
       "Locator": {
-         "Dir": "src/repo/model",
+         "Dir": "services/my-service/diagram",
          "Filename": "model.go",
-         "Workspace": "my-workspace"
+         "Repository": "my-repo"
       },
       "Name": "Person",
       "Properties": {
@@ -470,9 +615,9 @@ Example:
     %[1]s dsl-editor upsert-container --body '{
       "Description": "Container description",
       "Locator": {
-         "Dir": "src/repo/model",
+         "Dir": "services/my-service/diagram",
          "Filename": "model.go",
-         "Workspace": "my-workspace"
+         "Repository": "my-repo"
       },
       "Name": "Container",
       "Properties": {
@@ -501,9 +646,9 @@ Example:
       "ContainerName": "My Container",
       "Description": "Component description",
       "Locator": {
-         "Dir": "src/repo/model",
+         "Dir": "services/my-service/diagram",
          "Filename": "model.go",
-         "Workspace": "my-workspace"
+         "Repository": "my-repo"
       },
       "Name": "Component",
       "Properties": {
@@ -531,11 +676,11 @@ Example:
     %[1]s dsl-editor upsert-relationship --body '{
       "Description": "Relationship description",
       "DestinationPath": "Software System/Container/Component",
-      "InteractionStyle": "Asynchronous",
+      "InteractionStyle": "Synchronous",
       "Locator": {
-         "Dir": "src/repo/model",
+         "Dir": "services/my-service/diagram",
          "Filename": "model.go",
-         "Workspace": "my-workspace"
+         "Repository": "my-repo"
       },
       "SourcePath": "Software System/Container/Component",
       "Tags": [
@@ -544,6 +689,252 @@ Example:
       ],
       "Technology": "Technology",
       "URL": "https://relationship.com"
+   }'
+`, os.Args[0])
+}
+
+func dSLEditorUpsertLandscapeViewUsage() {
+	fmt.Fprintf(os.Stderr, `%[1]s [flags] dsl-editor upsert-landscape-view -body JSON
+
+Create or update a landscape view in the model
+    -body JSON: 
+
+Example:
+    %[1]s dsl-editor upsert-landscape-view --body '{
+      "Description": "description",
+      "ElementViews": [
+         {
+            "Element": "Software System/Container/Component"
+         },
+         {
+            "Element": "Software System/Container/Component"
+         },
+         {
+            "Element": "Software System/Container/Component"
+         },
+         {
+            "Element": "Software System/Container/Component"
+         }
+      ],
+      "EnterpriseBoundaryVisible": false,
+      "Key": "key",
+      "Locator": {
+         "Dir": "services/my-service/diagram",
+         "Filename": "model.go",
+         "Repository": "my-repo"
+      },
+      "PaperSize": "A0_Landscape",
+      "RelationshipViews": [
+         {
+            "Destination": "Software System/Container/Component",
+            "Source": "Software System/Container/Component"
+         },
+         {
+            "Destination": "Software System/Container/Component",
+            "Source": "Software System/Container/Component"
+         },
+         {
+            "Destination": "Software System/Container/Component",
+            "Source": "Software System/Container/Component"
+         },
+         {
+            "Destination": "Software System/Container/Component",
+            "Source": "Software System/Container/Component"
+         }
+      ],
+      "Title": "title"
+   }'
+`, os.Args[0])
+}
+
+func dSLEditorUpsertSystemContextViewUsage() {
+	fmt.Fprintf(os.Stderr, `%[1]s [flags] dsl-editor upsert-system-context-view -body JSON
+
+Create or update a system context view in the model
+    -body JSON: 
+
+Example:
+    %[1]s dsl-editor upsert-system-context-view --body '{
+      "Description": "description",
+      "ElementViews": [
+         {
+            "Element": "Software System/Container/Component"
+         },
+         {
+            "Element": "Software System/Container/Component"
+         },
+         {
+            "Element": "Software System/Container/Component"
+         },
+         {
+            "Element": "Software System/Container/Component"
+         }
+      ],
+      "EnterpriseBoundaryVisible": false,
+      "Key": "key",
+      "Locator": {
+         "Dir": "services/my-service/diagram",
+         "Filename": "model.go",
+         "Repository": "my-repo"
+      },
+      "PaperSize": "A2_Landscape",
+      "RelationshipViews": [
+         {
+            "Destination": "Software System/Container/Component",
+            "Source": "Software System/Container/Component"
+         },
+         {
+            "Destination": "Software System/Container/Component",
+            "Source": "Software System/Container/Component"
+         },
+         {
+            "Destination": "Software System/Container/Component",
+            "Source": "Software System/Container/Component"
+         },
+         {
+            "Destination": "Software System/Container/Component",
+            "Source": "Software System/Container/Component"
+         }
+      ],
+      "SoftwareSystemName": "Software System",
+      "Title": "title"
+   }'
+`, os.Args[0])
+}
+
+func dSLEditorUpsertContainerViewUsage() {
+	fmt.Fprintf(os.Stderr, `%[1]s [flags] dsl-editor upsert-container-view -body JSON
+
+Create or update a container view in the model
+    -body JSON: 
+
+Example:
+    %[1]s dsl-editor upsert-container-view --body '{
+      "Description": "description",
+      "ElementViews": [
+         {
+            "Element": "Software System/Container/Component"
+         },
+         {
+            "Element": "Software System/Container/Component"
+         }
+      ],
+      "Key": "key",
+      "Locator": {
+         "Dir": "services/my-service/diagram",
+         "Filename": "model.go",
+         "Repository": "my-repo"
+      },
+      "PaperSize": "A4_Landscape",
+      "RelationshipViews": [
+         {
+            "Destination": "Software System/Container/Component",
+            "Source": "Software System/Container/Component"
+         },
+         {
+            "Destination": "Software System/Container/Component",
+            "Source": "Software System/Container/Component"
+         },
+         {
+            "Destination": "Software System/Container/Component",
+            "Source": "Software System/Container/Component"
+         }
+      ],
+      "SoftwareSystemName": "Software System",
+      "SystemBoundariesVisible": true,
+      "Title": "title"
+   }'
+`, os.Args[0])
+}
+
+func dSLEditorUpsertComponentViewUsage() {
+	fmt.Fprintf(os.Stderr, `%[1]s [flags] dsl-editor upsert-component-view -body JSON
+
+Create or update a component view in the model
+    -body JSON: 
+
+Example:
+    %[1]s dsl-editor upsert-component-view --body '{
+      "ContainerBoundariesVisible": true,
+      "ContainerName": "Container",
+      "Description": "description",
+      "ElementViews": [
+         {
+            "Element": "Software System/Container/Component"
+         },
+         {
+            "Element": "Software System/Container/Component"
+         },
+         {
+            "Element": "Software System/Container/Component"
+         }
+      ],
+      "Key": "key",
+      "Locator": {
+         "Dir": "services/my-service/diagram",
+         "Filename": "model.go",
+         "Repository": "my-repo"
+      },
+      "PaperSize": "Letter_Portrait",
+      "RelationshipViews": [
+         {
+            "Destination": "Software System/Container/Component",
+            "Source": "Software System/Container/Component"
+         },
+         {
+            "Destination": "Software System/Container/Component",
+            "Source": "Software System/Container/Component"
+         }
+      ],
+      "SoftwareSystemName": "Software System",
+      "Title": "title"
+   }'
+`, os.Args[0])
+}
+
+func dSLEditorUpserElementStyleUsage() {
+	fmt.Fprintf(os.Stderr, `%[1]s [flags] dsl-editor upser-element-style -body JSON
+
+Create or update an element style in the model
+    -body JSON: 
+
+Example:
+    %[1]s dsl-editor upser-element-style --body '{
+      "Background": "#8aAA88",
+      "Border": "BorderDotted",
+      "Color": "#DE3e9e",
+      "Description": false,
+      "FontSize": 20,
+      "Height": 100,
+      "Icon": "https://static.structurizr.com/images/icons/Person.png",
+      "Metadata": true,
+      "Opacity": 6,
+      "Shape": "ShapeCircle",
+      "Stroke": "#e3Aee7",
+      "Tag": "tag",
+      "Width": 100
+   }'
+`, os.Args[0])
+}
+
+func dSLEditorUpsertRelationshipStyleUsage() {
+	fmt.Fprintf(os.Stderr, `%[1]s [flags] dsl-editor upsert-relationship-style -body JSON
+
+Create or update a relationship style in the model
+    -body JSON: 
+
+Example:
+    %[1]s dsl-editor upsert-relationship-style --body '{
+      "Color": "#3Da7A0",
+      "Dashed": true,
+      "FontSize": 70,
+      "Opacity": 30,
+      "Position": 4,
+      "Routing": "Curved",
+      "Stroke": "#f3b65c",
+      "Tag": "tag",
+      "Thickness": 2,
+      "Width": 2457
    }'
 `, os.Args[0])
 }
@@ -557,10 +948,10 @@ Delete an existing software system from the model
 
 Example:
     %[1]s dsl-editor delete-system --body '{
-      "Dir": "src/repo/model",
+      "Dir": "services/my-service/diagram",
       "Filename": "model.go",
-      "Workspace": "my-workspace"
-   }' --system-name "Maxime sapiente eum dolorem eum."
+      "Repository": "my-repo"
+   }' --system-name "Inventore deserunt harum a velit quod."
 `, os.Args[0])
 }
 
@@ -573,10 +964,10 @@ Delete an existing person from the model
 
 Example:
     %[1]s dsl-editor delete-person --body '{
-      "Dir": "src/repo/model",
+      "Dir": "services/my-service/diagram",
       "Filename": "model.go",
-      "Workspace": "my-workspace"
-   }' --person-name "Tempora non est magnam dicta."
+      "Repository": "my-repo"
+   }' --person-name "Mollitia consequatur sed."
 `, os.Args[0])
 }
 
@@ -590,10 +981,10 @@ Delete an existing container from the model
 
 Example:
     %[1]s dsl-editor delete-container --body '{
-      "Dir": "src/repo/model",
+      "Dir": "services/my-service/diagram",
       "Filename": "model.go",
-      "Workspace": "my-workspace"
-   }' --system-name "Velit minus impedit molestias." --container-name "Velit quod totam vel laudantium impedit voluptatem."
+      "Repository": "my-repo"
+   }' --system-name "Debitis sed vel accusantium." --container-name "Aliquam ipsa."
 `, os.Args[0])
 }
 
@@ -608,9 +999,9 @@ Delete an existing component from the model
 
 Example:
     %[1]s dsl-editor delete-component --body '{
-      "Dir": "src/repo/model",
+      "Dir": "services/my-service/diagram",
       "Filename": "model.go",
-      "Workspace": "my-workspace"
+      "Repository": "my-repo"
    }' --system-name "My System" --container-name "My Container" --component-name "My Component"
 `, os.Args[0])
 }
@@ -624,101 +1015,202 @@ Delete an existing relationship from the model
 Example:
     %[1]s dsl-editor delete-relationship --body '{
       "DestinationPath": "Software System/Container/Component",
-      "Dir": "src/repo/model",
+      "Dir": "services/my-service/diagram",
       "Filename": "model.go",
-      "SourcePath": "Software System/Container/Component",
-      "Workspace": "my-workspace"
+      "Repository": "my-repo",
+      "SourcePath": "Software System/Container/Component"
    }'
 `, os.Args[0])
 }
 
-// packagesUsage displays the usage of the packages command and its subcommands.
-func packagesUsage() {
-	fmt.Fprintf(os.Stderr, `Service is the Packages service interface.
+func dSLEditorDeleteLandscapeViewUsage() {
+	fmt.Fprintf(os.Stderr, `%[1]s [flags] dsl-editor delete-landscape-view -body JSON -key STRING
+
+Delete an existing landscape view from the model
+    -body JSON: 
+    -key STRING: Key of landscape view to delete
+
+Example:
+    %[1]s dsl-editor delete-landscape-view --body '{
+      "Dir": "services/my-service/diagram",
+      "Filename": "model.go",
+      "Repository": "my-repo"
+   }' --key "Accusantium id nemo."
+`, os.Args[0])
+}
+
+func dSLEditorDeleteSystemContextViewUsage() {
+	fmt.Fprintf(os.Stderr, `%[1]s [flags] dsl-editor delete-system-context-view -body JSON -key STRING
+
+Delete an existing system context view from the model
+    -body JSON: 
+    -key STRING: Key of system context view to delete
+
+Example:
+    %[1]s dsl-editor delete-system-context-view --body '{
+      "Dir": "services/my-service/diagram",
+      "Filename": "model.go",
+      "Repository": "my-repo"
+   }' --key "Perferendis nostrum aut debitis sint quibusdam eum."
+`, os.Args[0])
+}
+
+func dSLEditorDeleteContainerViewUsage() {
+	fmt.Fprintf(os.Stderr, `%[1]s [flags] dsl-editor delete-container-view -body JSON -key STRING
+
+Delete an existing container view from the model
+    -body JSON: 
+    -key STRING: Key of container view to delete
+
+Example:
+    %[1]s dsl-editor delete-container-view --body '{
+      "Dir": "services/my-service/diagram",
+      "Filename": "model.go",
+      "Repository": "my-repo"
+   }' --key "Illum est."
+`, os.Args[0])
+}
+
+func dSLEditorDeleteComponentViewUsage() {
+	fmt.Fprintf(os.Stderr, `%[1]s [flags] dsl-editor delete-component-view -body JSON -key STRING
+
+Delete an existing component view from the model
+    -body JSON: 
+    -key STRING: Key of component view to delete
+
+Example:
+    %[1]s dsl-editor delete-component-view --body '{
+      "Dir": "services/my-service/diagram",
+      "Filename": "model.go",
+      "Repository": "my-repo"
+   }' --key "Cupiditate velit non architecto voluptas."
+`, os.Args[0])
+}
+
+func dSLEditorDeleteElementStyleUsage() {
+	fmt.Fprintf(os.Stderr, `%[1]s [flags] dsl-editor delete-element-style -body JSON -tag STRING
+
+Delete an existing element style from the model
+    -body JSON: 
+    -tag STRING: Tag of element style to delete
+
+Example:
+    %[1]s dsl-editor delete-element-style --body '{
+      "Dir": "services/my-service/diagram",
+      "Filename": "model.go",
+      "Repository": "my-repo"
+   }' --tag "In voluptatem."
+`, os.Args[0])
+}
+
+func dSLEditorDeleteRelationshipStyleUsage() {
+	fmt.Fprintf(os.Stderr, `%[1]s [flags] dsl-editor delete-relationship-style -body JSON -tag STRING
+
+Delete an existing relationship style from the model
+    -body JSON: 
+    -tag STRING: Tag of relationship style to delete
+
+Example:
+    %[1]s dsl-editor delete-relationship-style --body '{
+      "Dir": "services/my-service/diagram",
+      "Filename": "model.go",
+      "Repository": "my-repo"
+   }' --tag "Eaque et enim repellat voluptates eum distinctio."
+`, os.Args[0])
+}
+
+// repoUsage displays the usage of the repo command and its subcommands.
+func repoUsage() {
+	fmt.Fprintf(os.Stderr, `Service is the Repo service interface.
 Usage:
-    %[1]s [globalflags] packages COMMAND [flags]
+    %[1]s [globalflags] repo COMMAND [flags]
 
 COMMAND:
-    list-workspaces: List the known workspaces
-    create-package: Create a new model package in the given workspace
+    create-package: Create a new model package
     delete-package: Delete the given model package
     list-packages: List the model packages in the given workspace
-    read-package-files: Get the DSL files and their content for the given model package
+    read-package: Get the DSL files and their content for the given model package
+    get-model-json: Compile the given model package and return the model JSON
     subscribe: Send model JSON on initial subscription and when the model package changes
 
 Additional help:
-    %[1]s packages COMMAND --help
+    %[1]s repo COMMAND --help
 `, os.Args[0])
 }
-func packagesListWorkspacesUsage() {
-	fmt.Fprintf(os.Stderr, `%[1]s [flags] packages list-workspaces
+func repoCreatePackageUsage() {
+	fmt.Fprintf(os.Stderr, `%[1]s [flags] repo create-package -body JSON
 
-List the known workspaces
-
-Example:
-    %[1]s packages list-workspaces
-`, os.Args[0])
-}
-
-func packagesCreatePackageUsage() {
-	fmt.Fprintf(os.Stderr, `%[1]s [flags] packages create-package -body JSON -workspace STRING -dir STRING
-
-Create a new model package in the given workspace
+Create a new model package
     -body JSON: 
-    -workspace STRING: 
-    -dir STRING: 
 
 Example:
-    %[1]s packages create-package --body '{
-      "Content": "import . \"goa.design/model/dsl\"\n\nvar _ = Design(\"System Design\", func() {\n\n})"
-   }' --workspace "my-workspace" --dir "src/repo/model"
+    %[1]s repo create-package --body '{
+      "Content": "package model\n\nimport . \"goa.design/model/dsl\"\n\nvar _ = Design(func() {})",
+      "Locator": {
+         "Dir": "services/my-service/diagram",
+         "Filename": "model.go",
+         "Repository": "my-repo"
+      }
+   }'
 `, os.Args[0])
 }
 
-func packagesDeletePackageUsage() {
-	fmt.Fprintf(os.Stderr, `%[1]s [flags] packages delete-package -workspace STRING -dir STRING
+func repoDeletePackageUsage() {
+	fmt.Fprintf(os.Stderr, `%[1]s [flags] repo delete-package -repository STRING -dir STRING
 
 Delete the given model package
-    -workspace STRING: 
+    -repository STRING: 
     -dir STRING: 
 
 Example:
-    %[1]s packages delete-package --workspace "my-workspace" --dir "src/repo/model"
+    %[1]s repo delete-package --repository "my-repo" --dir "services/my-service/diagram"
 `, os.Args[0])
 }
 
-func packagesListPackagesUsage() {
-	fmt.Fprintf(os.Stderr, `%[1]s [flags] packages list-packages -workspace STRING
+func repoListPackagesUsage() {
+	fmt.Fprintf(os.Stderr, `%[1]s [flags] repo list-packages -repository STRING
 
 List the model packages in the given workspace
-    -workspace STRING: 
+    -repository STRING: 
 
 Example:
-    %[1]s packages list-packages --workspace "my-workspace"
+    %[1]s repo list-packages --repository "my-repo"
 `, os.Args[0])
 }
 
-func packagesReadPackageFilesUsage() {
-	fmt.Fprintf(os.Stderr, `%[1]s [flags] packages read-package-files -workspace STRING -dir STRING
+func repoReadPackageUsage() {
+	fmt.Fprintf(os.Stderr, `%[1]s [flags] repo read-package -repository STRING -dir STRING
 
 Get the DSL files and their content for the given model package
-    -workspace STRING: 
+    -repository STRING: 
     -dir STRING: 
 
 Example:
-    %[1]s packages read-package-files --workspace "my-workspace" --dir "src/repo/model"
+    %[1]s repo read-package --repository "my-repo" --dir "services/my-service/diagram"
 `, os.Args[0])
 }
 
-func packagesSubscribeUsage() {
-	fmt.Fprintf(os.Stderr, `%[1]s [flags] packages subscribe -workspace STRING -dir STRING
+func repoGetModelJSONUsage() {
+	fmt.Fprintf(os.Stderr, `%[1]s [flags] repo get-model-json -repository STRING -dir STRING
 
-Send model JSON on initial subscription and when the model package changes
-    -workspace STRING: 
+Compile the given model package and return the model JSON
+    -repository STRING: 
     -dir STRING: 
 
 Example:
-    %[1]s packages subscribe --workspace "my-workspace" --dir "src/repo/model"
+    %[1]s repo get-model-json --repository "my-repo" --dir "services/my-service/diagram"
+`, os.Args[0])
+}
+
+func repoSubscribeUsage() {
+	fmt.Fprintf(os.Stderr, `%[1]s [flags] repo subscribe -repository STRING -dir STRING
+
+Send model JSON on initial subscription and when the model package changes
+    -repository STRING: 
+    -dir STRING: 
+
+Example:
+    %[1]s repo subscribe --repository "my-repo" --dir "services/my-service/diagram"
 `, os.Args[0])
 }
 
@@ -729,7 +1221,7 @@ Usage:
     %[1]s [globalflags] svg COMMAND [flags]
 
 COMMAND:
-    load: Stream the model layout JSON saved in the SVG
+    load: Stream the SVG
     save: Save the SVG streamed in the request body
 
 Additional help:
@@ -739,7 +1231,7 @@ Additional help:
 func sVGLoadUsage() {
 	fmt.Fprintf(os.Stderr, `%[1]s [flags] svg load -filename STRING
 
-Stream the model layout JSON saved in the SVG
+Stream the SVG
     -filename STRING: 
 
 Example:
@@ -756,7 +1248,7 @@ Save the SVG streamed in the request body
 
 Example:
     %[1]s svg save --body '{
-      "SVG": "\u003csvg����\u003c/svg\u003e"
+      "SVG": "\u003csvg��\u003c/svg\u003e"
    }' --filename "diagram.svg"
 `, os.Args[0])
 }

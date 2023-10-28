@@ -50,7 +50,7 @@ func New(
 ) *Server {
 	return &Server{
 		Mounts: []*MountPoint{
-			{"Load", "GET", "/api/diagrams/layout"},
+			{"Load", "GET", "/api/diagrams"},
 			{"Save", "POST", "/api/diagrams"},
 		},
 		Load: NewLoadHandler(e.Load, mux, decoder, encoder, errhandler, formatter),
@@ -90,7 +90,7 @@ func MountLoadHandler(mux goahttp.Muxer, h http.Handler) {
 			h.ServeHTTP(w, r)
 		}
 	}
-	mux.Handle("GET", "/api/diagrams/layout", f)
+	mux.Handle("GET", "/api/diagrams", f)
 }
 
 // NewLoadHandler creates a HTTP handler which loads the HTTP request and calls

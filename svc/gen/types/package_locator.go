@@ -7,11 +7,10 @@
 
 package types
 
-// PackageLocator is the payload type of the Packages service DeletePackage
-// method.
+// PackageLocator is the payload type of the Repo service DeletePackage method.
 type PackageLocator struct {
-	// Workspace identifier
-	Workspace string
+	// Path to repository root
+	Repository string
 	// Path to directory containing a model package
 	Dir string
 }

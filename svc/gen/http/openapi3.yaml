@@ -7,6 +7,34 @@ servers:
       description: Default server for Assets
 paths:
     /api/diagrams:
+        get:
+            tags:
+                - SVG
+            summary: Load SVG
+            description: Stream the SVG
+            operationId: SVG#Load
+            parameters:
+                - name: file
+                  in: query
+                  description: Diagram SVG filename
+                  allowEmptyValue: true
+                  required: true
+                  schema:
+                    type: string
+                    description: Diagram SVG filename
+                    example: diagram.svg
+                    pattern: .*\.svg
+                  example: diagram.svg
+            responses:
+                "200":
+                    description: OK response.
+                    content:
+                        application/json:
+                            schema:
+                                type: string
+                                example: <svg</svg>
+                                pattern: <svg.*</svg>$
+                            example: <svg������</svg>
         post:
             tags:
                 - SVG
@@ -32,39 +60,10 @@ paths:
                         schema:
                             $ref: '#/components/schemas/SaveRequestBody'
                         example:
-                            SVG: <svg����</svg>
+                            SVG: <svg��</svg>
             responses:
                 "204":
                     description: No Content response.
-    /api/diagrams/layout:
-        get:
-            tags:
-                - SVG
-            summary: Load SVG
-            description: Stream the model layout JSON saved in the SVG
-            operationId: SVG#Load
-            parameters:
-                - name: file
-                  in: query
-                  description: Diagram SVG filename
-                  allowEmptyValue: true
-                  required: true
-                  schema:
-                    type: string
-                    description: Diagram SVG filename
-                    example: diagram.svg
-                    pattern: .*\.svg
-                  example: diagram.svg
-            responses:
-                "200":
-                    description: OK response.
-                    content:
-                        application/json:
-                            schema:
-                                type: string
-                                example: <svg���</svg>
-                                pattern: <svg.*</svg>$
-                            example: <svg���</svg>
     /api/dsl:
         post:
             tags:
@@ -80,13 +79,15 @@ paths:
                             $ref: '#/components/schemas/UpdateDSLRequestBody'
                         example:
                             Content: |-
+                                package model
+
                                 import . "goa.design/model/dsl"
 
                                 var _ = Design(func() {})
                             Locator:
-                                Dir: src/repo/model
+                                Dir: services/my-service/diagram
                                 Filename: model.go
-                                Workspace: my-workspace
+                                Repository: my-repo
             responses:
                 "204":
                     description: No Content response.
@@ -96,7 +97,7 @@ paths:
                         application/vnd.goa.error:
                             schema:
                                 $ref: '#/components/schemas/Error'
-    /api/dsl/component:
+    /api/dsl/model/component:
         put:
             tags:
                 - DSLEditor
@@ -113,9 +114,9 @@ paths:
                             ContainerName: My Container
                             Description: Component description
                             Locator:
-                                Dir: src/repo/model
+                                Dir: services/my-service/diagram
                                 Filename: model.go
-                                Workspace: my-workspace
+                                Repository: my-repo
                             Name: Component
                             Properties:
                                 key1: value1
@@ -135,7 +136,7 @@ paths:
                         application/vnd.goa.error:
                             schema:
                                 $ref: '#/components/schemas/Error'
-    /api/dsl/container:
+    /api/dsl/model/container:
         put:
             tags:
                 - DSLEditor
@@ -151,9 +152,9 @@ paths:
                         example:
                             Description: Container description
                             Locator:
-                                Dir: src/repo/model
+                                Dir: services/my-service/diagram
                                 Filename: model.go
-                                Workspace: my-workspace
+                                Repository: my-repo
                             Name: Container
                             Properties:
                                 key1: value1
@@ -173,7 +174,7 @@ paths:
                         application/vnd.goa.error:
                             schema:
                                 $ref: '#/components/schemas/Error'
-    /api/dsl/person:
+    /api/dsl/model/person:
         put:
             tags:
                 - DSLEditor
@@ -188,11 +189,11 @@ paths:
                             $ref: '#/components/schemas/UpsertSystemRequestBody'
                         example:
                             Description: Person description
-                            Location: Internal
+                            Location: External
                             Locator:
-                                Dir: src/repo/model
+                                Dir: services/my-service/diagram
                                 Filename: model.go
-                                Workspace: my-workspace
+                                Repository: my-repo
                             Name: Person
                             Properties:
                                 key1: value1
@@ -210,7 +211,7 @@ paths:
                         application/vnd.goa.error:
                             schema:
                                 $ref: '#/components/schemas/Error'
-    /api/dsl/person/{PersonName}:
+    /api/dsl/model/person/{PersonName}:
         delete:
             tags:
                 - DSLEditor
@@ -225,8 +226,8 @@ paths:
                   schema:
                     type: string
                     description: Name of person to delete
-                    example: Nesciunt fugiat laborum.
-                  example: Et in.
+                    example: Ipsum consequatur praesentium esse.
+                  example: Ut autem est sunt sapiente.
             requestBody:
                 required: true
                 content:
@@ -234,9 +235,9 @@ paths:
                         schema:
                             $ref: '#/components/schemas/FileLocator'
                         example:
-                            Dir: src/repo/model
+                            Dir: services/my-service/diagram
                             Filename: model.go
-                            Workspace: my-workspace
+                            Repository: my-repo
             responses:
                 "204":
                     description: No Content response.
@@ -252,7 +253,7 @@ paths:
                         application/vnd.goa.error:
                             schema:
                                 $ref: '#/components/schemas/Error'
-    /api/dsl/relationship:
+    /api/dsl/model/relationship:
         delete:
             tags:
                 - DSLEditor
@@ -267,10 +268,10 @@ paths:
                             $ref: '#/components/schemas/DeleteRelationshipRequestBody'
                         example:
                             DestinationPath: Software System/Container/Component
-                            Dir: src/repo/model
+                            Dir: services/my-service/diagram
                             Filename: model.go
+                            Repository: my-repo
                             SourcePath: Software System/Container/Component
-                            Workspace: my-workspace
             responses:
                 "204":
                     description: No Content response.
@@ -301,11 +302,11 @@ paths:
                         example:
                             Description: Relationship description
                             DestinationPath: Software System/Container/Component
-                            InteractionStyle: Asynchronous
+                            InteractionStyle: Synchronous
                             Locator:
-                                Dir: src/repo/model
+                                Dir: services/my-service/diagram
                                 Filename: model.go
-                                Workspace: my-workspace
+                                Repository: my-repo
                             SourcePath: Software System/Container/Component
                             Tags:
                                 - Tag1
@@ -321,7 +322,7 @@ paths:
                         application/vnd.goa.error:
                             schema:
                                 $ref: '#/components/schemas/Error'
-    /api/dsl/system:
+    /api/dsl/model/system:
         put:
             tags:
                 - DSLEditor
@@ -338,9 +339,9 @@ paths:
                             Description: System description
                             Location: Internal
                             Locator:
-                                Dir: src/repo/model
+                                Dir: services/my-service/diagram
                                 Filename: model.go
-                                Workspace: my-workspace
+                                Repository: my-repo
                             Name: System
                             Properties:
                                 key1: value1
@@ -358,7 +359,7 @@ paths:
                         application/vnd.goa.error:
                             schema:
                                 $ref: '#/components/schemas/Error'
-    /api/dsl/system/{SystemName}:
+    /api/dsl/model/system/{SystemName}:
         delete:
             tags:
                 - DSLEditor
@@ -373,8 +374,8 @@ paths:
                   schema:
                     type: string
                     description: Name of software system to delete
-                    example: Consequatur ullam et temporibus non in.
-                  example: Inventore molestiae.
+                    example: Hic asperiores.
+                  example: Quidem omnis inventore.
             requestBody:
                 required: true
                 content:
@@ -382,9 +383,9 @@ paths:
                         schema:
                             $ref: '#/components/schemas/FileLocator'
                         example:
-                            Dir: src/repo/model
+                            Dir: services/my-service/diagram
                             Filename: model.go
-                            Workspace: my-workspace
+                            Repository: my-repo
             responses:
                 "204":
                     description: No Content response.
@@ -400,7 +401,7 @@ paths:
                         application/vnd.goa.error:
                             schema:
                                 $ref: '#/components/schemas/Error'
-    /api/dsl/system/{SystemName}/container/{ContainerName}:
+    /api/dsl/model/system/{SystemName}/container/{ContainerName}:
         delete:
             tags:
                 - DSLEditor
@@ -415,8 +416,8 @@ paths:
                   schema:
                     type: string
                     description: Name of container software system
-                    example: Consequatur dolorem voluptatem labore.
-                  example: Odit id odit sit quos quia ut.
+                    example: Aliquid reprehenderit voluptatibus.
+                  example: Voluptatem excepturi.
                 - name: ContainerName
                   in: path
                   description: Name of container to delete
@@ -424,8 +425,8 @@ paths:
                   schema:
                     type: string
                     description: Name of container to delete
-                    example: Nostrum accusamus aspernatur facere dolorem velit.
-                  example: Cupiditate et dolore inventore.
+                    example: Ad fugiat facilis.
+                  example: Iusto dolorum.
             requestBody:
                 required: true
                 content:
@@ -433,9 +434,9 @@ paths:
                         schema:
                             $ref: '#/components/schemas/FileLocator'
                         example:
-                            Dir: src/repo/model
+                            Dir: services/my-service/diagram
                             Filename: model.go
-                            Workspace: my-workspace
+                            Repository: my-repo
             responses:
                 "204":
                     description: No Content response.
@@ -451,7 +452,7 @@ paths:
                         application/vnd.goa.error:
                             schema:
                                 $ref: '#/components/schemas/Error'
-    /api/dsl/system/{SystemName}/container/{ContainerName}/component/{ComponentName}:
+    /api/dsl/model/system/{SystemName}/container/{ContainerName}/component/{ComponentName}:
         delete:
             tags:
                 - DSLEditor
@@ -493,9 +494,9 @@ paths:
                         schema:
                             $ref: '#/components/schemas/FileLocator'
                         example:
-                            Dir: src/repo/model
+                            Dir: services/my-service/diagram
                             Filename: model.go
-                            Workspace: my-workspace
+                            Repository: my-repo
             responses:
                 "204":
                     description: No Content response.
@@ -511,25 +512,525 @@ paths:
                         application/vnd.goa.error:
                             schema:
                                 $ref: '#/components/schemas/Error'
-    /api/packages:
+    /api/dsl/views/component:
+        put:
+            tags:
+                - DSLEditor
+            summary: UpsertComponentView DSLEditor
+            description: Create or update a component view in the model
+            operationId: DSLEditor#UpsertComponentView
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/UpsertComponentViewRequestBody'
+                        example:
+                            ContainerBoundariesVisible: true
+                            ContainerName: Container
+                            Description: description
+                            ElementViews:
+                                - Element: Software System/Container/Component
+                                - Element: Software System/Container/Component
+                                - Element: Software System/Container/Component
+                            Key: key
+                            Locator:
+                                Dir: services/my-service/diagram
+                                Filename: model.go
+                                Repository: my-repo
+                            PaperSize: Letter_Portrait
+                            RelationshipViews:
+                                - Destination: Software System/Container/Component
+                                  Source: Software System/Container/Component
+                                - Destination: Software System/Container/Component
+                                  Source: Software System/Container/Component
+                            SoftwareSystemName: Software System
+                            Title: title
+            responses:
+                "204":
+                    description: No Content response.
+                "400":
+                    description: 'compilation_failed: Compilation failed'
+                    content:
+                        application/vnd.goa.error:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+    /api/dsl/views/component/{Key}:
         delete:
             tags:
-                - Packages
-            summary: DeletePackage Packages
-            description: Delete the given model package
-            operationId: Packages#DeletePackage
+                - DSLEditor
+            summary: DeleteComponentView DSLEditor
+            description: Delete an existing component view from the model
+            operationId: DSLEditor#DeleteComponentView
             parameters:
-                - name: work
+                - name: Key
+                  in: path
+                  description: Key of component view to delete
+                  required: true
+                  schema:
+                    type: string
+                    description: Key of component view to delete
+                    example: Cum eligendi voluptatum incidunt quos sunt.
+                  example: Aut et excepturi.
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/FileLocator'
+                        example:
+                            Dir: services/my-service/diagram
+                            Filename: model.go
+                            Repository: my-repo
+            responses:
+                "204":
+                    description: No Content response.
+                "400":
+                    description: 'compilation_failed: Compilation failed'
+                    content:
+                        application/vnd.goa.error:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                "404":
+                    description: 'NotFound: Component view not found'
+                    content:
+                        application/vnd.goa.error:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+    /api/dsl/views/container:
+        put:
+            tags:
+                - DSLEditor
+            summary: UpsertContainerView DSLEditor
+            description: Create or update a container view in the model
+            operationId: DSLEditor#UpsertContainerView
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/UpsertContainerViewRequestBody'
+                        example:
+                            Description: description
+                            ElementViews:
+                                - Element: Software System/Container/Component
+                                - Element: Software System/Container/Component
+                            Key: key
+                            Locator:
+                                Dir: services/my-service/diagram
+                                Filename: model.go
+                                Repository: my-repo
+                            PaperSize: A4_Landscape
+                            RelationshipViews:
+                                - Destination: Software System/Container/Component
+                                  Source: Software System/Container/Component
+                                - Destination: Software System/Container/Component
+                                  Source: Software System/Container/Component
+                                - Destination: Software System/Container/Component
+                                  Source: Software System/Container/Component
+                            SoftwareSystemName: Software System
+                            SystemBoundariesVisible: true
+                            Title: title
+            responses:
+                "204":
+                    description: No Content response.
+                "400":
+                    description: 'compilation_failed: Compilation failed'
+                    content:
+                        application/vnd.goa.error:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+    /api/dsl/views/container/{Key}:
+        delete:
+            tags:
+                - DSLEditor
+            summary: DeleteContainerView DSLEditor
+            description: Delete an existing container view from the model
+            operationId: DSLEditor#DeleteContainerView
+            parameters:
+                - name: Key
+                  in: path
+                  description: Key of container view to delete
+                  required: true
+                  schema:
+                    type: string
+                    description: Key of container view to delete
+                    example: Aspernatur fugit.
+                  example: Hic laboriosam id sunt enim sit.
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/FileLocator'
+                        example:
+                            Dir: services/my-service/diagram
+                            Filename: model.go
+                            Repository: my-repo
+            responses:
+                "204":
+                    description: No Content response.
+                "400":
+                    description: 'compilation_failed: Compilation failed'
+                    content:
+                        application/vnd.goa.error:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                "404":
+                    description: 'NotFound: Container view not found'
+                    content:
+                        application/vnd.goa.error:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+    /api/dsl/views/elementstyle:
+        put:
+            tags:
+                - DSLEditor
+            summary: UpserElementStyle DSLEditor
+            description: Create or update an element style in the model
+            operationId: DSLEditor#UpserElementStyle
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/UpserElementStyleRequestBody'
+                        example:
+                            Background: '#8aAA88'
+                            Border: BorderDotted
+                            Color: '#DE3e9e'
+                            Description: false
+                            FontSize: 20
+                            Height: 100
+                            Icon: https://static.structurizr.com/images/icons/Person.png
+                            Metadata: true
+                            Opacity: 6
+                            Shape: ShapeCircle
+                            Stroke: '#e3Aee7'
+                            Tag: tag
+                            Width: 100
+            responses:
+                "204":
+                    description: No Content response.
+                "400":
+                    description: 'compilation_failed: Compilation failed'
+                    content:
+                        application/vnd.goa.error:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+    /api/dsl/views/elementstyle/{Tag}:
+        delete:
+            tags:
+                - DSLEditor
+            summary: DeleteElementStyle DSLEditor
+            description: Delete an existing element style from the model
+            operationId: DSLEditor#DeleteElementStyle
+            parameters:
+                - name: Tag
+                  in: path
+                  description: Tag of element style to delete
+                  required: true
+                  schema:
+                    type: string
+                    description: Tag of element style to delete
+                    example: Animi necessitatibus.
+                  example: Nesciunt ut atque dignissimos quis qui sit.
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/FileLocator'
+                        example:
+                            Dir: services/my-service/diagram
+                            Filename: model.go
+                            Repository: my-repo
+            responses:
+                "204":
+                    description: No Content response.
+                "400":
+                    description: 'compilation_failed: Compilation failed'
+                    content:
+                        application/vnd.goa.error:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                "404":
+                    description: 'NotFound: Element style not found'
+                    content:
+                        application/vnd.goa.error:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+    /api/dsl/views/landscape:
+        put:
+            tags:
+                - DSLEditor
+            summary: UpsertLandscapeView DSLEditor
+            description: Create or update a landscape view in the model
+            operationId: DSLEditor#UpsertLandscapeView
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/UpsertLandscapeViewRequestBody'
+                        example:
+                            Description: description
+                            ElementViews:
+                                - Element: Software System/Container/Component
+                                - Element: Software System/Container/Component
+                                - Element: Software System/Container/Component
+                                - Element: Software System/Container/Component
+                            EnterpriseBoundaryVisible: false
+                            Key: key
+                            Locator:
+                                Dir: services/my-service/diagram
+                                Filename: model.go
+                                Repository: my-repo
+                            PaperSize: A0_Landscape
+                            RelationshipViews:
+                                - Destination: Software System/Container/Component
+                                  Source: Software System/Container/Component
+                                - Destination: Software System/Container/Component
+                                  Source: Software System/Container/Component
+                                - Destination: Software System/Container/Component
+                                  Source: Software System/Container/Component
+                                - Destination: Software System/Container/Component
+                                  Source: Software System/Container/Component
+                            Title: title
+            responses:
+                "204":
+                    description: No Content response.
+                "400":
+                    description: 'compilation_failed: Compilation failed'
+                    content:
+                        application/vnd.goa.error:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+    /api/dsl/views/landscape/{Key}:
+        delete:
+            tags:
+                - DSLEditor
+            summary: DeleteLandscapeView DSLEditor
+            description: Delete an existing landscape view from the model
+            operationId: DSLEditor#DeleteLandscapeView
+            parameters:
+                - name: Key
+                  in: path
+                  description: Key of landscape view to delete
+                  required: true
+                  schema:
+                    type: string
+                    description: Key of landscape view to delete
+                    example: Omnis voluptatem officia quisquam.
+                  example: Autem harum ut nesciunt aut et laudantium.
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/FileLocator'
+                        example:
+                            Dir: services/my-service/diagram
+                            Filename: model.go
+                            Repository: my-repo
+            responses:
+                "204":
+                    description: No Content response.
+                "400":
+                    description: 'compilation_failed: Compilation failed'
+                    content:
+                        application/vnd.goa.error:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                "404":
+                    description: 'NotFound: Landscape view not found'
+                    content:
+                        application/vnd.goa.error:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+    /api/dsl/views/relationshipstyle:
+        put:
+            tags:
+                - DSLEditor
+            summary: UpsertRelationshipStyle DSLEditor
+            description: Create or update a relationship style in the model
+            operationId: DSLEditor#UpsertRelationshipStyle
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/UpsertRelationshipStyleRequestBody'
+                        example:
+                            Color: '#3Da7A0'
+                            Dashed: true
+                            FontSize: 70
+                            Opacity: 30
+                            Position: 4
+                            Routing: Curved
+                            Stroke: '#f3b65c'
+                            Tag: tag
+                            Thickness: 2
+                            Width: 2457
+            responses:
+                "204":
+                    description: No Content response.
+                "400":
+                    description: 'compilation_failed: Compilation failed'
+                    content:
+                        application/vnd.goa.error:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+    /api/dsl/views/relationshipstyle/{Tag}:
+        delete:
+            tags:
+                - DSLEditor
+            summary: DeleteRelationshipStyle DSLEditor
+            description: Delete an existing relationship style from the model
+            operationId: DSLEditor#DeleteRelationshipStyle
+            parameters:
+                - name: Tag
+                  in: path
+                  description: Tag of relationship style to delete
+                  required: true
+                  schema:
+                    type: string
+                    description: Tag of relationship style to delete
+                    example: Earum animi rerum perspiciatis et aut iste.
+                  example: Libero qui consectetur.
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/FileLocator'
+                        example:
+                            Dir: services/my-service/diagram
+                            Filename: model.go
+                            Repository: my-repo
+            responses:
+                "204":
+                    description: No Content response.
+                "400":
+                    description: 'compilation_failed: Compilation failed'
+                    content:
+                        application/vnd.goa.error:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                "404":
+                    description: 'NotFound: Relationship style not found'
+                    content:
+                        application/vnd.goa.error:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+    /api/dsl/views/systemcontext:
+        put:
+            tags:
+                - DSLEditor
+            summary: UpsertSystemContextView DSLEditor
+            description: Create or update a system context view in the model
+            operationId: DSLEditor#UpsertSystemContextView
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/UpsertSystemContextViewRequestBody'
+                        example:
+                            Description: description
+                            ElementViews:
+                                - Element: Software System/Container/Component
+                                - Element: Software System/Container/Component
+                                - Element: Software System/Container/Component
+                                - Element: Software System/Container/Component
+                            EnterpriseBoundaryVisible: false
+                            Key: key
+                            Locator:
+                                Dir: services/my-service/diagram
+                                Filename: model.go
+                                Repository: my-repo
+                            PaperSize: A2_Landscape
+                            RelationshipViews:
+                                - Destination: Software System/Container/Component
+                                  Source: Software System/Container/Component
+                                - Destination: Software System/Container/Component
+                                  Source: Software System/Container/Component
+                                - Destination: Software System/Container/Component
+                                  Source: Software System/Container/Component
+                                - Destination: Software System/Container/Component
+                                  Source: Software System/Container/Component
+                            SoftwareSystemName: Software System
+                            Title: title
+            responses:
+                "204":
+                    description: No Content response.
+                "400":
+                    description: 'compilation_failed: Compilation failed'
+                    content:
+                        application/vnd.goa.error:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+    /api/dsl/views/systemcontext/{Key}:
+        delete:
+            tags:
+                - DSLEditor
+            summary: DeleteSystemContextView DSLEditor
+            description: Delete an existing system context view from the model
+            operationId: DSLEditor#DeleteSystemContextView
+            parameters:
+                - name: Key
+                  in: path
+                  description: Key of system context view to delete
+                  required: true
+                  schema:
+                    type: string
+                    description: Key of system context view to delete
+                    example: A vel tempore adipisci ex fugit reiciendis.
+                  example: Eius laudantium esse.
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/FileLocator'
+                        example:
+                            Dir: services/my-service/diagram
+                            Filename: model.go
+                            Repository: my-repo
+            responses:
+                "204":
+                    description: No Content response.
+                "400":
+                    description: 'compilation_failed: Compilation failed'
+                    content:
+                        application/vnd.goa.error:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                "404":
+                    description: 'NotFound: System context view not found'
+                    content:
+                        application/vnd.goa.error:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+    /api/repo:
+        delete:
+            tags:
+                - Repo
+            summary: DeletePackage Repo
+            description: Delete the given model package
+            operationId: Repo#DeletePackage
+            parameters:
+                - name: repo
                   in: query
-                  description: Workspace identifier
+                  description: Path to repository root
                   allowEmptyValue: true
                   required: true
                   schema:
                     type: string
-                    description: Workspace identifier
-                    example: my-workspace
+                    description: Path to repository root
+                    example: my-repo
                     minLength: 1
-                  example: my-workspace
+                  example: my-repo
                 - name: dir
                   in: query
                   description: Path to directory containing a model package
@@ -538,9 +1039,9 @@ paths:
                   schema:
                     type: string
                     description: Path to directory containing a model package
-                    example: src/repo/model
+                    example: services/my-service/diagram
                     minLength: 1
-                  example: src/repo/model
+                  example: services/my-service/diagram
             responses:
                 "204":
                     description: No Content response.
@@ -552,22 +1053,22 @@ paths:
                                 $ref: '#/components/schemas/Error'
         get:
             tags:
-                - Packages
-            summary: ListPackages Packages
+                - Repo
+            summary: ListPackages Repo
             description: List the model packages in the given workspace
-            operationId: Packages#ListPackages
+            operationId: Repo#ListPackages
             parameters:
-                - name: work
+                - name: repo
                   in: query
-                  description: Workspace identifier
+                  description: Path to repository root
                   allowEmptyValue: true
                   required: true
                   schema:
                     type: string
-                    description: Workspace identifier
-                    example: my-workspace
+                    description: Path to repository root
+                    example: my-repo
                     minLength: 1
-                  example: my-workspace
+                  example: my-repo
             responses:
                 "200":
                     description: OK response.
@@ -578,87 +1079,76 @@ paths:
                                 items:
                                     $ref: '#/components/schemas/Package'
                                 example:
-                                    - Dir: src/repo/model
+                                    - Dir: services/my-service/diagram
                                       ImportPath: goa.design/model/examples/basic/model
-                                    - Dir: src/repo/model
+                                    - Dir: services/my-service/diagram
+                                      ImportPath: goa.design/model/examples/basic/model
+                                    - Dir: services/my-service/diagram
                                       ImportPath: goa.design/model/examples/basic/model
                             example:
-                                - Dir: src/repo/model
+                                - Dir: services/my-service/diagram
                                   ImportPath: goa.design/model/examples/basic/model
-                                - Dir: src/repo/model
+                                - Dir: services/my-service/diagram
                                   ImportPath: goa.design/model/examples/basic/model
-                                - Dir: src/repo/model
+                                - Dir: services/my-service/diagram
                                   ImportPath: goa.design/model/examples/basic/model
+                "404":
+                    description: 'not_found: Package not found'
+                    content:
+                        application/vnd.goa.error:
+                            schema:
+                                $ref: '#/components/schemas/Error'
         post:
             tags:
-                - Packages
-            summary: CreatePackage Packages
-            description: Create a new model package in the given workspace
-            operationId: Packages#CreatePackage
-            parameters:
-                - name: work
-                  in: query
-                  description: Workspace identifier
-                  allowEmptyValue: true
-                  required: true
-                  schema:
-                    type: string
-                    description: Workspace identifier
-                    example: my-workspace
-                    minLength: 1
-                  example: my-workspace
-                - name: dir
-                  in: query
-                  description: Path to directory containing a model package
-                  allowEmptyValue: true
-                  required: true
-                  schema:
-                    type: string
-                    description: Path to directory containing a model package
-                    example: src/repo/model
-                    minLength: 1
-                  example: src/repo/model
+                - Repo
+            summary: CreatePackage Repo
+            description: Create a new model package
+            operationId: Repo#CreatePackage
             requestBody:
                 required: true
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/CreatePackageRequestBody'
+                            $ref: '#/components/schemas/UpdateDSLRequestBody'
                         example:
                             Content: |-
+                                package model
+
                                 import . "goa.design/model/dsl"
 
-                                var _ = Design("System Design", func() {
-
-                                })
+                                var _ = Design(func() {})
+                            Locator:
+                                Dir: services/my-service/diagram
+                                Filename: model.go
+                                Repository: my-repo
             responses:
                 "201":
                     description: Created response.
                 "409":
-                    description: 'already_exists: Package already exists'
+                    description: 'already_exists: Package or directory already exists'
                     content:
                         application/vnd.goa.error:
                             schema:
                                 $ref: '#/components/schemas/Error'
-    /api/packages/files:
+    /api/repo/files:
         get:
             tags:
-                - Packages
-            summary: ReadPackageFiles Packages
+                - Repo
+            summary: ReadPackage Repo
             description: Get the DSL files and their content for the given model package
-            operationId: Packages#ReadPackageFiles
+            operationId: Repo#ReadPackage
             parameters:
-                - name: work
+                - name: repo
                   in: query
-                  description: Workspace identifier
+                  description: Path to repository root
                   allowEmptyValue: true
                   required: true
                   schema:
                     type: string
-                    description: Workspace identifier
-                    example: my-workspace
+                    description: Path to repository root
+                    example: my-repo
                     minLength: 1
-                  example: my-workspace
+                  example: my-repo
                 - name: dir
                   in: query
                   description: Path to directory containing a model package
@@ -667,9 +1157,9 @@ paths:
                   schema:
                     type: string
                     description: Path to directory containing a model package
-                    example: src/repo/model
+                    example: services/my-service/diagram
                     minLength: 1
-                  example: src/repo/model
+                  example: services/my-service/diagram
             responses:
                 "200":
                     description: OK response.
@@ -681,81 +1171,91 @@ paths:
                                     $ref: '#/components/schemas/UpdateDSLRequestBody'
                                 example:
                                     - Content: |-
+                                        package model
+
                                         import . "goa.design/model/dsl"
 
                                         var _ = Design(func() {})
                                       Locator:
-                                        Dir: src/repo/model
+                                        Dir: services/my-service/diagram
                                         Filename: model.go
-                                        Workspace: my-workspace
+                                        Repository: my-repo
                                     - Content: |-
+                                        package model
+
                                         import . "goa.design/model/dsl"
 
                                         var _ = Design(func() {})
                                       Locator:
-                                        Dir: src/repo/model
+                                        Dir: services/my-service/diagram
                                         Filename: model.go
-                                        Workspace: my-workspace
+                                        Repository: my-repo
                                     - Content: |-
+                                        package model
+
                                         import . "goa.design/model/dsl"
 
                                         var _ = Design(func() {})
                                       Locator:
-                                        Dir: src/repo/model
+                                        Dir: services/my-service/diagram
                                         Filename: model.go
-                                        Workspace: my-workspace
+                                        Repository: my-repo
                             example:
                                 - Content: |-
+                                    package model
+
                                     import . "goa.design/model/dsl"
 
                                     var _ = Design(func() {})
                                   Locator:
-                                    Dir: src/repo/model
+                                    Dir: services/my-service/diagram
                                     Filename: model.go
-                                    Workspace: my-workspace
+                                    Repository: my-repo
                                 - Content: |-
+                                    package model
+
                                     import . "goa.design/model/dsl"
 
                                     var _ = Design(func() {})
                                   Locator:
-                                    Dir: src/repo/model
+                                    Dir: services/my-service/diagram
                                     Filename: model.go
-                                    Workspace: my-workspace
+                                    Repository: my-repo
                                 - Content: |-
+                                    package model
+
                                     import . "goa.design/model/dsl"
 
                                     var _ = Design(func() {})
                                   Locator:
-                                    Dir: src/repo/model
+                                    Dir: services/my-service/diagram
                                     Filename: model.go
-                                    Workspace: my-workspace
-                                - Content: |-
-                                    import . "goa.design/model/dsl"
-
-                                    var _ = Design(func() {})
-                                  Locator:
-                                    Dir: src/repo/model
-                                    Filename: model.go
-                                    Workspace: my-workspace
-    /api/packages/subscribe:
+                                    Repository: my-repo
+                "404":
+                    description: 'not_found: Package not found'
+                    content:
+                        application/vnd.goa.error:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+    /api/repo/json:
         get:
             tags:
-                - Packages
-            summary: Subscribe Packages
-            description: Send model JSON on initial subscription and when the model package changes
-            operationId: Packages#Subscribe
+                - Repo
+            summary: GetModelJSON Repo
+            description: Compile the given model package and return the model JSON
+            operationId: Repo#GetModelJSON
             parameters:
-                - name: work
+                - name: repo
                   in: query
-                  description: Workspace identifier
+                  description: Path to repository root
                   allowEmptyValue: true
                   required: true
                   schema:
                     type: string
-                    description: Workspace identifier
-                    example: my-workspace
+                    description: Path to repository root
+                    example: my-repo
                     minLength: 1
-                  example: my-workspace
+                  example: my-repo
                 - name: dir
                   in: query
                   description: Path to directory containing a model package
@@ -764,12 +1264,12 @@ paths:
                   schema:
                     type: string
                     description: Path to directory containing a model package
-                    example: src/repo/model
+                    example: services/my-service/diagram
                     minLength: 1
-                  example: src/repo/model
+                  example: services/my-service/diagram
             responses:
-                "101":
-                    description: Switching Protocols response.
+                "200":
+                    description: OK response.
                     content:
                         application/json:
                             schema:
@@ -777,30 +1277,64 @@ paths:
                                 example: '{"name":"example","email":"mail@example.com"}'
                                 format: json
                             example: '{"name":"example","email":"mail@example.com"}'
-    /api/packages/workspaces:
+                "404":
+                    description: 'not_found: Package not found'
+                    content:
+                        application/vnd.goa.error:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                "422":
+                    description: 'compilation_error: Compilation error'
+                    content:
+                        application/vnd.goa.error:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+    /api/repo/subscribe:
         get:
             tags:
-                - Packages
-            summary: ListWorkspaces Packages
-            description: List the known workspaces
-            operationId: Packages#ListWorkspaces
+                - Repo
+            summary: Subscribe Repo
+            description: Send model JSON on initial subscription and when the model package changes
+            operationId: Repo#Subscribe
+            parameters:
+                - name: repo
+                  in: query
+                  description: Path to repository root
+                  allowEmptyValue: true
+                  required: true
+                  schema:
+                    type: string
+                    description: Path to repository root
+                    example: my-repo
+                    minLength: 1
+                  example: my-repo
+                - name: dir
+                  in: query
+                  description: Path to directory containing a model package
+                  allowEmptyValue: true
+                  required: true
+                  schema:
+                    type: string
+                    description: Path to directory containing a model package
+                    example: services/my-service/diagram
+                    minLength: 1
+                  example: services/my-service/diagram
             responses:
-                "200":
-                    description: OK response.
+                "101":
+                    description: Switching Protocols response.
                     content:
                         application/json:
                             schema:
-                                type: array
-                                items:
-                                    $ref: '#/components/schemas/Workspace'
-                                example:
-                                    - Workspace: my-workspace
-                                    - Workspace: my-workspace
-                                    - Workspace: my-workspace
+                                $ref: '#/components/schemas/CompilationResults'
                             example:
-                                - Workspace: my-workspace
-                                - Workspace: my-workspace
-                                - Workspace: my-workspace
+                                Error: Dicta eos hic ipsum.
+                                Model: '{"name":"example","email":"mail@example.com"}'
+                "404":
+                    description: 'not_found: Package not found'
+                    content:
+                        application/vnd.goa.error:
+                            schema:
+                                $ref: '#/components/schemas/Error'
     /assets:
         get:
             tags:
@@ -813,29 +1347,21 @@ paths:
                     description: File downloaded
 components:
     schemas:
-        CreatePackageRequestBody:
+        CompilationResults:
             type: object
             properties:
-                Content:
+                Error:
                     type: string
-                    description: DSL code
-                    example: |-
-                        import . "goa.design/model/dsl"
-
-                        var _ = Design("System Design", func() {
-
-                        })
-                    pattern: import . "goa.design/model/dsl"
-                    minLength: 58
+                    description: Compilation error if any
+                    example: Rerum accusamus eos eum quas labore.
+                Model:
+                    type: string
+                    description: Model JSON if compilation succeeded
+                    example: '{"name":"example","email":"mail@example.com"}'
+                    format: json
             example:
-                Content: |-
-                    import . "goa.design/model/dsl"
-
-                    var _ = Design("System Design", func() {
-
-                    })
-            required:
-                - Content
+                Error: Commodi enim alias doloremque.
+                Model: '{"name":"example","email":"mail@example.com"}'
         DeleteRelationshipRequestBody:
             type: object
             properties:
@@ -846,41 +1372,50 @@ components:
                 Dir:
                     type: string
                     description: Path to directory containing a model package
-                    example: src/repo/model
+                    example: services/my-service/diagram
                     minLength: 1
                 Filename:
                     type: string
                     description: Name of DSL file
                     example: model.go
                     pattern: \.go$
+                Repository:
+                    type: string
+                    description: Path to repository root
+                    example: my-repo
+                    minLength: 1
                 SourcePath:
                     type: string
                     description: Path to source element consisting of <software system name>[/<container name>[/<component name>]]
                     example: Software System/Container/Component
-                Workspace:
-                    type: string
-                    description: Workspace identifier
-                    example: my-workspace
-                    minLength: 1
             example:
                 DestinationPath: Software System/Container/Component
-                Dir: src/repo/model
+                Dir: services/my-service/diagram
                 Filename: model.go
+                Repository: my-repo
                 SourcePath: Software System/Container/Component
-                Workspace: my-workspace
             required:
                 - SourcePath
                 - DestinationPath
                 - Filename
-                - Workspace
+                - Repository
                 - Dir
+        ElementView:
+            type: object
+            properties:
+                Element:
+                    type: string
+                    description: Path to element consisting of <software system name>[/<container name>[/<component name>]]
+                    example: Software System/Container/Component
+            example:
+                Element: Software System/Container/Component
         Error:
             type: object
             properties:
                 fault:
                     type: boolean
                     description: Is the error a server-side fault?
-                    example: true
+                    example: false
                 id:
                     type: string
                     description: ID is a unique identifier for this particular occurrence of the problem.
@@ -896,18 +1431,18 @@ components:
                 temporary:
                     type: boolean
                     description: Is the error temporary?
-                    example: false
+                    example: true
                 timeout:
                     type: boolean
                     description: Is the error a timeout?
-                    example: true
+                    example: false
             description: Compilation failed
             example:
                 fault: false
                 id: 123abc
                 message: parameter 'p' must be an integer
                 name: bad_request
-                temporary: true
+                temporary: false
                 timeout: true
             required:
                 - name
@@ -922,26 +1457,26 @@ components:
                 Dir:
                     type: string
                     description: Path to directory containing a model package
-                    example: src/repo/model
+                    example: services/my-service/diagram
                     minLength: 1
                 Filename:
                     type: string
                     description: Name of DSL file
                     example: model.go
                     pattern: \.go$
-                Workspace:
+                Repository:
                     type: string
-                    description: Workspace identifier
-                    example: my-workspace
+                    description: Path to repository root
+                    example: my-repo
                     minLength: 1
             description: FileLocator is the location of a DSL file in a model package
             example:
-                Dir: src/repo/model
+                Dir: services/my-service/diagram
                 Filename: model.go
-                Workspace: my-workspace
+                Repository: my-repo
             required:
                 - Filename
-                - Workspace
+                - Repository
                 - Dir
         Package:
             type: object
@@ -949,7 +1484,7 @@ components:
                 Dir:
                     type: string
                     description: Path to directory containing a model package
-                    example: src/repo/model
+                    example: services/my-service/diagram
                     minLength: 1
                 ImportPath:
                     type: string
@@ -957,21 +1492,35 @@ components:
                     example: goa.design/model/examples/basic/model
                     pattern: ^([a-zA-Z0-9]+(-[a-zA-Z0-9]+)*\.)+[a-zA-Z]{2,}/[a-zA-Z0-9_\-]+/(/([a-zA-Z0-9_\-]+))*$
             example:
-                Dir: src/repo/model
+                Dir: services/my-service/diagram
                 ImportPath: goa.design/model/examples/basic/model
             required:
                 - ImportPath
                 - Dir
+        RelationshipView:
+            type: object
+            properties:
+                Destination:
+                    type: string
+                    description: Path to destination element, see SourcePath for details.
+                    example: Software System/Container/Component
+                Source:
+                    type: string
+                    description: Path to source element consisting of <software system name>[/<container name>[/<component name>]]
+                    example: Software System/Container/Component
+            example:
+                Destination: Software System/Container/Component
+                Source: Software System/Container/Component
         SaveRequestBody:
             type: object
             properties:
                 SVG:
                     type: string
                     description: Diagram SVG
-                    example: <svg���</svg>
+                    example: <svg����</svg>
                     pattern: <svg.*</svg>$
             example:
-                SVG: <svg����</svg>
+                SVG: <svg��</svg>
             required:
                 - SVG
         UpdateDSLRequestBody:
@@ -981,6 +1530,8 @@ components:
                     type: string
                     description: DSL code
                     example: |-
+                        package model
+
                         import . "goa.design/model/dsl"
 
                         var _ = Design(func() {})
@@ -990,16 +1541,120 @@ components:
                     $ref: '#/components/schemas/FileLocator'
             example:
                 Content: |-
+                    package model
+
                     import . "goa.design/model/dsl"
 
                     var _ = Design(func() {})
                 Locator:
-                    Dir: src/repo/model
+                    Dir: services/my-service/diagram
                     Filename: model.go
-                    Workspace: my-workspace
+                    Repository: my-repo
             required:
                 - Locator
                 - Content
+        UpserElementStyleRequestBody:
+            type: object
+            properties:
+                Background:
+                    type: string
+                    description: Background color of element
+                    example: '#fC5Dc8'
+                    pattern: ^#[0-9a-fA-F]{6}$
+                Border:
+                    type: string
+                    description: Type of border to apply to elements
+                    default: BorderSolid
+                    example: BorderSolid
+                    enum:
+                        - BorderSolid
+                        - BorderDashed
+                        - BorderDotted
+                Color:
+                    type: string
+                    description: Text color of element
+                    example: '#11fD45'
+                    pattern: ^#[0-9a-fA-F]{6}$
+                Description:
+                    type: boolean
+                    description: Indicates whether the element description should be visible on the resulting diagram
+                    default: true
+                    example: false
+                FontSize:
+                    type: integer
+                    description: Font size of element
+                    example: 20
+                    format: int64
+                Height:
+                    type: integer
+                    description: Height of element
+                    example: 100
+                    format: int64
+                Icon:
+                    type: string
+                    description: URL to icon of element
+                    example: https://static.structurizr.com/images/icons/Person.png
+                    format: uri
+                Metadata:
+                    type: boolean
+                    description: Indicates whether the element metadata should be visible on the resulting diagram
+                    example: false
+                Opacity:
+                    type: integer
+                    description: Opacity of element as a percentage
+                    example: 97
+                    minimum: 0
+                    maximum: 100
+                Shape:
+                    type: string
+                    description: Shape of element
+                    default: ShapeBox
+                    example: ShapeRobot
+                    enum:
+                        - ShapeBox
+                        - ShapeCircle
+                        - ShapeCylinder
+                        - ShapeEllipse
+                        - ShapeHexagon
+                        - ShapeRoundedBox
+                        - ShapeComponent
+                        - ShapeFolder
+                        - ShapeMobileDeviceLandscape
+                        - ShapeMobileDevicePortrait
+                        - ShapePerson
+                        - ShapePipe
+                        - ShapeRobot
+                        - ShapeWebBrowser
+                Stroke:
+                    type: string
+                    description: Stroke color of element
+                    example: '#aCAcA5'
+                    pattern: ^#[0-9a-fA-F]{6}$
+                Tag:
+                    type: string
+                    description: Tag of elements to apply style onto
+                    example: tag
+                Width:
+                    type: integer
+                    description: Width of element
+                    example: 100
+                    format: int64
+            example:
+                Background: '#bf5d28'
+                Border: BorderDashed
+                Color: '#BDf362'
+                Description: false
+                FontSize: 20
+                Height: 100
+                Icon: https://static.structurizr.com/images/icons/Person.png
+                Metadata: true
+                Opacity: 58
+                Shape: ShapeMobileDeviceLandscape
+                Stroke: '#Bd4066'
+                Tag: tag
+                Width: 100
+            required:
+                - Tag
         UpsertComponentRequestBody:
             type: object
             properties:
@@ -1025,7 +1680,7 @@ components:
                         key2: value2
                     additionalProperties:
                         type: string
-                        example: Voluptas magni ad.
+                        example: Laudantium aperiam molestiae ipsum.
                 SystemName:
                     type: string
                     description: Name of parent software system
@@ -1034,7 +1689,7 @@ components:
                     type: array
                     items:
                         type: string
-                        example: Quas quis ratione provident.
+                        example: Aut molestiae.
                     description: Attached tags
                     example:
                         - Tag1
@@ -1051,9 +1706,9 @@ components:
                 ContainerName: My Container
                 Description: Component description
                 Locator:
-                    Dir: src/repo/model
+                    Dir: services/my-service/diagram
                     Filename: model.go
-                    Workspace: my-workspace
+                    Repository: my-repo
                 Name: Component
                 Properties:
                     key1: value1
@@ -1068,6 +1723,111 @@ components:
                 - SystemName
                 - ContainerName
                 - Name
+        UpsertComponentViewRequestBody:
+            type: object
+            properties:
+                ContainerBoundariesVisible:
+                    type: boolean
+                    description: Indicates whether the container boundaries are visible on the resulting diagram
+                    default: true
+                    example: false
+                ContainerName:
+                    type: string
+                    description: Name of container to create view for
+                    example: Container
+                Description:
+                    type: string
+                    description: Description of view
+                    example: description
+                ElementViews:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/ElementView'
+                    description: Elements in view
+                    example:
+                        - Element: Software System/Container/Component
+                        - Element: Software System/Container/Component
+                        - Element: Software System/Container/Component
+                        - Element: Software System/Container/Component
+                Key:
+                    type: string
+                    description: Key of view
+                    example: key
+                Locator:
+                    $ref: '#/components/schemas/FileLocator'
+                PaperSize:
+                    type: string
+                    description: Paper size of view
+                    example: Legal_Portrait
+                    enum:
+                        - A0_Landscape
+                        - A0_Portrait
+                        - A1_Landscape
+                        - A1_Portrait
+                        - A2_Landscape
+                        - A2_Portrait
+                        - A3_Landscape
+                        - A3_Portrait
+                        - A4_Landscape
+                        - A4_Portrait
+                        - A5_Landscape
+                        - A5_Portrait
+                        - A6_Landscape
+                        - A6_Portrait
+                        - Legal_Landscape
+                        - Legal_Portrait
+                        - Letter_Landscape
+                        - Letter_Portrait
+                        - Slide_16x10
+                        - Slide_16x9
+                        - Slide_4x3
+                RelationshipViews:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/RelationshipView'
+                    description: Relationships in view
+                    example:
+                        - Destination: Software System/Container/Component
+                          Source: Software System/Container/Component
+                        - Destination: Software System/Container/Component
+                          Source: Software System/Container/Component
+                SoftwareSystemName:
+                    type: string
+                    description: Name of software system to create view for
+                    example: Software System
+                Title:
+                    type: string
+                    description: Title of view
+                    example: title
+            example:
+                ContainerBoundariesVisible: false
+                ContainerName: Container
+                Description: description
+                ElementViews:
+                    - Element: Software System/Container/Component
+                    - Element: Software System/Container/Component
+                Key: key
+                Locator:
+                    Dir: services/my-service/diagram
+                    Filename: model.go
+                    Repository: my-repo
+                PaperSize: A0_Landscape
+                RelationshipViews:
+                    - Destination: Software System/Container/Component
+                      Source: Software System/Container/Component
+                    - Destination: Software System/Container/Component
+                      Source: Software System/Container/Component
+                    - Destination: Software System/Container/Component
+                      Source: Software System/Container/Component
+                    - Destination: Software System/Container/Component
+                      Source: Software System/Container/Component
+                SoftwareSystemName: Software System
+                Title: title
+            required:
+                - SoftwareSystemName
+                - ContainerName
+                - Key
+                - Title
         UpsertContainerRequestBody:
             type: object
             properties:
@@ -1089,7 +1849,7 @@ components:
                         key2: value2
                     additionalProperties:
                         type: string
-                        example: Libero accusamus.
+                        example: Sunt nostrum eum illo.
                 SystemName:
                     type: string
                     description: Name of parent software system
@@ -1098,7 +1858,7 @@ components:
                     type: array
                     items:
                         type: string
-                        example: Et perspiciatis delectus illo distinctio impedit.
+                        example: Est velit.
                     description: Attached tags
                     example:
                         - Tag1
@@ -1114,9 +1874,9 @@ components:
             example:
                 Description: Container description
                 Locator:
-                    Dir: src/repo/model
+                    Dir: services/my-service/diagram
                     Filename: model.go
-                    Workspace: my-workspace
+                    Repository: my-repo
                 Name: Container
                 Properties:
                     key1: value1
@@ -1130,6 +1890,195 @@ components:
             required:
                 - SystemName
                 - Name
+        UpsertContainerViewRequestBody:
+            type: object
+            properties:
+                Description:
+                    type: string
+                    description: Description of view
+                    example: description
+                ElementViews:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/ElementView'
+                    description: Elements in view
+                    example:
+                        - Element: Software System/Container/Component
+                        - Element: Software System/Container/Component
+                        - Element: Software System/Container/Component
+                Key:
+                    type: string
+                    description: Key of view
+                    example: key
+                Locator:
+                    $ref: '#/components/schemas/FileLocator'
+                PaperSize:
+                    type: string
+                    description: Paper size of view
+                    example: A6_Landscape
+                    enum:
+                        - A0_Landscape
+                        - A0_Portrait
+                        - A1_Landscape
+                        - A1_Portrait
+                        - A2_Landscape
+                        - A2_Portrait
+                        - A3_Landscape
+                        - A3_Portrait
+                        - A4_Landscape
+                        - A4_Portrait
+                        - A5_Landscape
+                        - A5_Portrait
+                        - A6_Landscape
+                        - A6_Portrait
+                        - Legal_Landscape
+                        - Legal_Portrait
+                        - Letter_Landscape
+                        - Letter_Portrait
+                        - Slide_16x10
+                        - Slide_16x9
+                        - Slide_4x3
+                RelationshipViews:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/RelationshipView'
+                    description: Relationships in view
+                    example:
+                        - Destination: Software System/Container/Component
+                          Source: Software System/Container/Component
+                        - Destination: Software System/Container/Component
+                          Source: Software System/Container/Component
+                SoftwareSystemName:
+                    type: string
+                    description: Name of software system to create view for
+                    example: Software System
+                SystemBoundariesVisible:
+                    type: boolean
+                    description: Indicates whether the system boundaries are visible on the resulting diagram
+                    default: true
+                    example: false
+                Title:
+                    type: string
+                    description: Title of view
+                    example: title
+            example:
+                Description: description
+                ElementViews:
+                    - Element: Software System/Container/Component
+                    - Element: Software System/Container/Component
+                    - Element: Software System/Container/Component
+                    - Element: Software System/Container/Component
+                Key: key
+                Locator:
+                    Dir: services/my-service/diagram
+                    Filename: model.go
+                    Repository: my-repo
+                PaperSize: Legal_Landscape
+                RelationshipViews:
+                    - Destination: Software System/Container/Component
+                      Source: Software System/Container/Component
+                    - Destination: Software System/Container/Component
+                      Source: Software System/Container/Component
+                SoftwareSystemName: Software System
+                SystemBoundariesVisible: true
+                Title: title
+            required:
+                - Key
+                - Title
+        UpsertLandscapeViewRequestBody:
+            type: object
+            properties:
+                Description:
+                    type: string
+                    description: Description of view
+                    example: description
+                ElementViews:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/ElementView'
+                    description: Elements in view
+                    example:
+                        - Element: Software System/Container/Component
+                        - Element: Software System/Container/Component
+                        - Element: Software System/Container/Component
+                EnterpriseBoundaryVisible:
+                    type: boolean
+                    description: Indicates whether the enterprise boundary is visible on the resulting diagram
+                    default: true
+                    example: true
+                Key:
+                    type: string
+                    description: Key of view
+                    example: key
+                Locator:
+                    $ref: '#/components/schemas/FileLocator'
+                PaperSize:
+                    type: string
+                    description: Paper size of view
+                    example: A2_Portrait
+                    enum:
+                        - A0_Landscape
+                        - A0_Portrait
+                        - A1_Landscape
+                        - A1_Portrait
+                        - A2_Landscape
+                        - A2_Portrait
+                        - A3_Landscape
+                        - A3_Portrait
+                        - A4_Landscape
+                        - A4_Portrait
+                        - A5_Landscape
+                        - A5_Portrait
+                        - A6_Landscape
+                        - A6_Portrait
+                        - Legal_Landscape
+                        - Legal_Portrait
+                        - Letter_Landscape
+                        - Letter_Portrait
+                        - Slide_16x10
+                        - Slide_16x9
+                        - Slide_4x3
+                RelationshipViews:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/RelationshipView'
+                    description: Relationships in view
+                    example:
+                        - Destination: Software System/Container/Component
+                          Source: Software System/Container/Component
+                        - Destination: Software System/Container/Component
+                          Source: Software System/Container/Component
+                        - Destination: Software System/Container/Component
+                          Source: Software System/Container/Component
+                Title:
+                    type: string
+                    description: Title of view
+                    example: title
+            example:
+                Description: description
+                ElementViews:
+                    - Element: Software System/Container/Component
+                    - Element: Software System/Container/Component
+                EnterpriseBoundaryVisible: true
+                Key: key
+                Locator:
+                    Dir: services/my-service/diagram
+                    Filename: model.go
+                    Repository: my-repo
+                PaperSize: A1_Portrait
+                RelationshipViews:
+                    - Destination: Software System/Container/Component
+                      Source: Software System/Container/Component
+                    - Destination: Software System/Container/Component
+                      Source: Software System/Container/Component
+                    - Destination: Software System/Container/Component
+                      Source: Software System/Container/Component
+                    - Destination: Software System/Container/Component
+                      Source: Software System/Container/Component
+                Title: title
+            required:
+                - Key
+                - Title
         UpsertRelationshipRequestBody:
             type: object
             properties:
@@ -1159,7 +2108,7 @@ components:
                     type: array
                     items:
                         type: string
-                        example: Amet minus velit non omnis earum amet.
+                        example: Eos repellat.
                     description: Attached tags
                     example:
                         - Tag1
@@ -1176,11 +2125,11 @@ components:
             example:
                 Description: Relationship description
                 DestinationPath: Software System/Container/Component
-                InteractionStyle: Synchronous
+                InteractionStyle: Asynchronous
                 Locator:
-                    Dir: src/repo/model
+                    Dir: services/my-service/diagram
                     Filename: model.go
-                    Workspace: my-workspace
+                    Repository: my-repo
                 SourcePath: Software System/Container/Component
                 Tags:
                     - Tag1
@@ -1190,6 +2139,180 @@ components:
             required:
                 - SourcePath
                 - DestinationPath
+        UpsertRelationshipStyleRequestBody:
+            type: object
+            properties:
+                Color:
+                    type: string
+                    description: Color of label
+                    example: '#1541dE'
+                    pattern: ^#[0-9a-fA-F]{6}$
+                Dashed:
+                    type: boolean
+                    description: Indicates whether the relationship is dashed
+                    default: true
+                    example: true
+                FontSize:
+                    type: integer
+                    description: Font size of label on relationship
+                    example: 23
+                    minimum: 1
+                    maximum: 100
+                Opacity:
+                    type: integer
+                    description: Opacity of relationship as a percentage
+                    example: 40
+                    minimum: 0
+                    maximum: 100
+                Position:
+                    type: integer
+                    description: Position of label on relationship as a percentage (0 is next to source, 100 next to destination)
+                    example: 20
+                    minimum: 0
+                    maximum: 100
+                Routing:
+                    type: string
+                    description: Routing of relationship
+                    default: Direct
+                    example: Orthogonal
+                    enum:
+                        - Direct
+                        - Orthogonal
+                        - Curved
+                Stroke:
+                    type: string
+                    description: Stroke color of relationship
+                    example: '#eFC1Fd'
+                    pattern: ^#[0-9a-fA-F]{6}$
+                Tag:
+                    type: string
+                    description: Tag of relationships to apply style onto
+                    example: tag
+                Thickness:
+                    type: integer
+                    description: Thickness of relationship in pixels
+                    example: 2
+                    minimum: 0
+                    maximum: 1000
+                Width:
+                    type: integer
+                    description: Width of label on relationship
+                    example: 292
+                    minimum: 1
+                    maximum: 10000
+            example:
+                Color: '#B4ae12'
+                Dashed: true
+                FontSize: 86
+                Opacity: 82
+                Position: 28
+                Routing: Orthogonal
+                Stroke: '#8d2E2c'
+                Tag: tag
+                Thickness: 2
+                Width: 8548
+            required:
+                - Tag
+        UpsertSystemContextViewRequestBody:
+            type: object
+            properties:
+                Description:
+                    type: string
+                    description: Description of view
+                    example: description
+                ElementViews:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/ElementView'
+                    description: Elements in view
+                    example:
+                        - Element: Software System/Container/Component
+                        - Element: Software System/Container/Component
+                EnterpriseBoundaryVisible:
+                    type: boolean
+                    description: Indicates whether the enterprise boundary is visible on the resulting diagram
+                    default: true
+                    example: false
+                Key:
+                    type: string
+                    description: Key of view
+                    example: key
+                Locator:
+                    $ref: '#/components/schemas/FileLocator'
+                PaperSize:
+                    type: string
+                    description: Paper size of view
+                    example: Slide_4x3
+                    enum:
+                        - A0_Landscape
+                        - A0_Portrait
+                        - A1_Landscape
+                        - A1_Portrait
+                        - A2_Landscape
+                        - A2_Portrait
+                        - A3_Landscape
+                        - A3_Portrait
+                        - A4_Landscape
+                        - A4_Portrait
+                        - A5_Landscape
+                        - A5_Portrait
+                        - A6_Landscape
+                        - A6_Portrait
+                        - Legal_Landscape
+                        - Legal_Portrait
+                        - Letter_Landscape
+                        - Letter_Portrait
+                        - Slide_16x10
+                        - Slide_16x9
+                        - Slide_4x3
+                RelationshipViews:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/RelationshipView'
+                    description: Relationships in view
+                    example:
+                        - Destination: Software System/Container/Component
+                          Source: Software System/Container/Component
+                        - Destination: Software System/Container/Component
+                          Source: Software System/Container/Component
+                        - Destination: Software System/Container/Component
+                          Source: Software System/Container/Component
+                SoftwareSystemName:
+                    type: string
+                    description: Name of software system to create view for
+                    example: Software System
+                Title:
+                    type: string
+                    description: Title of view
+                    example: title
+            example:
+                Description: description
+                ElementViews:
+                    - Element: Software System/Container/Component
+                    - Element: Software System/Container/Component
+                    - Element: Software System/Container/Component
+                EnterpriseBoundaryVisible: false
+                Key: key
+                Locator:
+                    Dir: services/my-service/diagram
+                    Filename: model.go
+                    Repository: my-repo
+                PaperSize: A6_Portrait
+                RelationshipViews:
+                    - Destination: Software System/Container/Component
+                      Source: Software System/Container/Component
+                    - Destination: Software System/Container/Component
+                      Source: Software System/Container/Component
+                    - Destination: Software System/Container/Component
+                      Source: Software System/Container/Component
+                    - Destination: Software System/Container/Component
+                      Source: Software System/Container/Component
+                SoftwareSystemName: Software System
+                Title: title
+            required:
+                - SoftwareSystemName
+                - Key
+                - Title
         UpsertSystemRequestBody:
             type: object
             properties:
@@ -1219,12 +2342,12 @@ components:
                         key2: value2
                     additionalProperties:
                         type: string
-                        example: Ut magnam ut voluptates ipsam ut.
+                        example: Numquam aut.
                 Tags:
                     type: array
                     items:
                         type: string
-                        example: Dolorem accusamus nam iste.
+                        example: Delectus accusantium quia animi voluptatibus.
                     description: Attached tags
                     example:
                         - Tag1
@@ -1237,9 +2360,9 @@ components:
                 Description: System description
                 Location: External
                 Locator:
-                    Dir: src/repo/model
+                    Dir: services/my-service/diagram
                     Filename: model.go
-                    Workspace: my-workspace
+                    Repository: my-repo
                 Name: System
                 Properties:
                     key1: value1
@@ -1250,20 +2373,8 @@ components:
                 URL: https://system.com
             required:
                 - Name
-        Workspace:
-            type: object
-            properties:
-                Workspace:
-                    type: string
-                    description: Workspace identifier
-                    example: my-workspace
-                    minLength: 1
-            example:
-                Workspace: my-workspace
-            required:
-                - Workspace
 tags:
     - name: Assets
     - name: DSLEditor
-    - name: Packages
+    - name: Repo
     - name: SVG

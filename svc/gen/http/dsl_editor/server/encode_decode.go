@@ -15,6 +15,7 @@ import (
 
 	goahttp "goa.design/goa/v3/http"
 	goa "goa.design/goa/v3/pkg"
+	dsleditor "goa.design/model/svc/gen/dsl_editor"
 	types "goa.design/model/svc/gen/types"
 )
 
@@ -386,6 +387,384 @@ func EncodeUpsertRelationshipError(encoder func(context.Context, http.ResponseWr
 				body = formatter(ctx, res)
 			} else {
 				body = NewUpsertRelationshipCompilationFailedResponseBody(res)
+			}
+			w.Header().Set("goa-error", res.GoaErrorName())
+			w.WriteHeader(http.StatusBadRequest)
+			return enc.Encode(body)
+		default:
+			return encodeError(ctx, w, v)
+		}
+	}
+}
+
+// EncodeUpsertLandscapeViewResponse returns an encoder for responses returned
+// by the DSLEditor UpsertLandscapeView endpoint.
+func EncodeUpsertLandscapeViewResponse(encoder func(context.Context, http.ResponseWriter) goahttp.Encoder) func(context.Context, http.ResponseWriter, any) error {
+	return func(ctx context.Context, w http.ResponseWriter, v any) error {
+		w.WriteHeader(http.StatusNoContent)
+		return nil
+	}
+}
+
+// DecodeUpsertLandscapeViewRequest returns a decoder for requests sent to the
+// DSLEditor UpsertLandscapeView endpoint.
+func DecodeUpsertLandscapeViewRequest(mux goahttp.Muxer, decoder func(*http.Request) goahttp.Decoder) func(*http.Request) (any, error) {
+	return func(r *http.Request) (any, error) {
+		var (
+			body UpsertLandscapeViewRequestBody
+			err  error
+		)
+		err = decoder(r).Decode(&body)
+		if err != nil {
+			if err == io.EOF {
+				return nil, goa.MissingPayloadError()
+			}
+			return nil, goa.DecodePayloadError(err.Error())
+		}
+		err = ValidateUpsertLandscapeViewRequestBody(&body)
+		if err != nil {
+			return nil, err
+		}
+		payload := NewUpsertLandscapeViewLandscapeView(&body)
+
+		return payload, nil
+	}
+}
+
+// EncodeUpsertLandscapeViewError returns an encoder for errors returned by the
+// UpsertLandscapeView DSLEditor endpoint.
+func EncodeUpsertLandscapeViewError(encoder func(context.Context, http.ResponseWriter) goahttp.Encoder, formatter func(ctx context.Context, err error) goahttp.Statuser) func(context.Context, http.ResponseWriter, error) error {
+	encodeError := goahttp.ErrorEncoder(encoder, formatter)
+	return func(ctx context.Context, w http.ResponseWriter, v error) error {
+		var en goa.GoaErrorNamer
+		if !errors.As(v, &en) {
+			return encodeError(ctx, w, v)
+		}
+		switch en.GoaErrorName() {
+		case "compilation_failed":
+			var res *goa.ServiceError
+			errors.As(v, &res)
+			enc := encoder(ctx, w)
+			var body any
+			if formatter != nil {
+				body = formatter(ctx, res)
+			} else {
+				body = NewUpsertLandscapeViewCompilationFailedResponseBody(res)
+			}
+			w.Header().Set("goa-error", res.GoaErrorName())
+			w.WriteHeader(http.StatusBadRequest)
+			return enc.Encode(body)
+		default:
+			return encodeError(ctx, w, v)
+		}
+	}
+}
+
+// EncodeUpsertSystemContextViewResponse returns an encoder for responses
+// returned by the DSLEditor UpsertSystemContextView endpoint.
+func EncodeUpsertSystemContextViewResponse(encoder func(context.Context, http.ResponseWriter) goahttp.Encoder) func(context.Context, http.ResponseWriter, any) error {
+	return func(ctx context.Context, w http.ResponseWriter, v any) error {
+		w.WriteHeader(http.StatusNoContent)
+		return nil
+	}
+}
+
+// DecodeUpsertSystemContextViewRequest returns a decoder for requests sent to
+// the DSLEditor UpsertSystemContextView endpoint.
+func DecodeUpsertSystemContextViewRequest(mux goahttp.Muxer, decoder func(*http.Request) goahttp.Decoder) func(*http.Request) (any, error) {
+	return func(r *http.Request) (any, error) {
+		var (
+			body UpsertSystemContextViewRequestBody
+			err  error
+		)
+		err = decoder(r).Decode(&body)
+		if err != nil {
+			if err == io.EOF {
+				return nil, goa.MissingPayloadError()
+			}
+			return nil, goa.DecodePayloadError(err.Error())
+		}
+		err = ValidateUpsertSystemContextViewRequestBody(&body)
+		if err != nil {
+			return nil, err
+		}
+		payload := NewUpsertSystemContextViewSystemContextView(&body)
+
+		return payload, nil
+	}
+}
+
+// EncodeUpsertSystemContextViewError returns an encoder for errors returned by
+// the UpsertSystemContextView DSLEditor endpoint.
+func EncodeUpsertSystemContextViewError(encoder func(context.Context, http.ResponseWriter) goahttp.Encoder, formatter func(ctx context.Context, err error) goahttp.Statuser) func(context.Context, http.ResponseWriter, error) error {
+	encodeError := goahttp.ErrorEncoder(encoder, formatter)
+	return func(ctx context.Context, w http.ResponseWriter, v error) error {
+		var en goa.GoaErrorNamer
+		if !errors.As(v, &en) {
+			return encodeError(ctx, w, v)
+		}
+		switch en.GoaErrorName() {
+		case "compilation_failed":
+			var res *goa.ServiceError
+			errors.As(v, &res)
+			enc := encoder(ctx, w)
+			var body any
+			if formatter != nil {
+				body = formatter(ctx, res)
+			} else {
+				body = NewUpsertSystemContextViewCompilationFailedResponseBody(res)
+			}
+			w.Header().Set("goa-error", res.GoaErrorName())
+			w.WriteHeader(http.StatusBadRequest)
+			return enc.Encode(body)
+		default:
+			return encodeError(ctx, w, v)
+		}
+	}
+}
+
+// EncodeUpsertContainerViewResponse returns an encoder for responses returned
+// by the DSLEditor UpsertContainerView endpoint.
+func EncodeUpsertContainerViewResponse(encoder func(context.Context, http.ResponseWriter) goahttp.Encoder) func(context.Context, http.ResponseWriter, any) error {
+	return func(ctx context.Context, w http.ResponseWriter, v any) error {
+		w.WriteHeader(http.StatusNoContent)
+		return nil
+	}
+}
+
+// DecodeUpsertContainerViewRequest returns a decoder for requests sent to the
+// DSLEditor UpsertContainerView endpoint.
+func DecodeUpsertContainerViewRequest(mux goahttp.Muxer, decoder func(*http.Request) goahttp.Decoder) func(*http.Request) (any, error) {
+	return func(r *http.Request) (any, error) {
+		var (
+			body UpsertContainerViewRequestBody
+			err  error
+		)
+		err = decoder(r).Decode(&body)
+		if err != nil {
+			if err == io.EOF {
+				return nil, goa.MissingPayloadError()
+			}
+			return nil, goa.DecodePayloadError(err.Error())
+		}
+		err = ValidateUpsertContainerViewRequestBody(&body)
+		if err != nil {
+			return nil, err
+		}
+		payload := NewUpsertContainerViewContainerView(&body)
+
+		return payload, nil
+	}
+}
+
+// EncodeUpsertContainerViewError returns an encoder for errors returned by the
+// UpsertContainerView DSLEditor endpoint.
+func EncodeUpsertContainerViewError(encoder func(context.Context, http.ResponseWriter) goahttp.Encoder, formatter func(ctx context.Context, err error) goahttp.Statuser) func(context.Context, http.ResponseWriter, error) error {
+	encodeError := goahttp.ErrorEncoder(encoder, formatter)
+	return func(ctx context.Context, w http.ResponseWriter, v error) error {
+		var en goa.GoaErrorNamer
+		if !errors.As(v, &en) {
+			return encodeError(ctx, w, v)
+		}
+		switch en.GoaErrorName() {
+		case "compilation_failed":
+			var res *goa.ServiceError
+			errors.As(v, &res)
+			enc := encoder(ctx, w)
+			var body any
+			if formatter != nil {
+				body = formatter(ctx, res)
+			} else {
+				body = NewUpsertContainerViewCompilationFailedResponseBody(res)
+			}
+			w.Header().Set("goa-error", res.GoaErrorName())
+			w.WriteHeader(http.StatusBadRequest)
+			return enc.Encode(body)
+		default:
+			return encodeError(ctx, w, v)
+		}
+	}
+}
+
+// EncodeUpsertComponentViewResponse returns an encoder for responses returned
+// by the DSLEditor UpsertComponentView endpoint.
+func EncodeUpsertComponentViewResponse(encoder func(context.Context, http.ResponseWriter) goahttp.Encoder) func(context.Context, http.ResponseWriter, any) error {
+	return func(ctx context.Context, w http.ResponseWriter, v any) error {
+		w.WriteHeader(http.StatusNoContent)
+		return nil
+	}
+}
+
+// DecodeUpsertComponentViewRequest returns a decoder for requests sent to the
+// DSLEditor UpsertComponentView endpoint.
+func DecodeUpsertComponentViewRequest(mux goahttp.Muxer, decoder func(*http.Request) goahttp.Decoder) func(*http.Request) (any, error) {
+	return func(r *http.Request) (any, error) {
+		var (
+			body UpsertComponentViewRequestBody
+			err  error
+		)
+		err = decoder(r).Decode(&body)
+		if err != nil {
+			if err == io.EOF {
+				return nil, goa.MissingPayloadError()
+			}
+			return nil, goa.DecodePayloadError(err.Error())
+		}
+		err = ValidateUpsertComponentViewRequestBody(&body)
+		if err != nil {
+			return nil, err
+		}
+		payload := NewUpsertComponentViewComponentView(&body)
+
+		return payload, nil
+	}
+}
+
+// EncodeUpsertComponentViewError returns an encoder for errors returned by the
+// UpsertComponentView DSLEditor endpoint.
+func EncodeUpsertComponentViewError(encoder func(context.Context, http.ResponseWriter) goahttp.Encoder, formatter func(ctx context.Context, err error) goahttp.Statuser) func(context.Context, http.ResponseWriter, error) error {
+	encodeError := goahttp.ErrorEncoder(encoder, formatter)
+	return func(ctx context.Context, w http.ResponseWriter, v error) error {
+		var en goa.GoaErrorNamer
+		if !errors.As(v, &en) {
+			return encodeError(ctx, w, v)
+		}
+		switch en.GoaErrorName() {
+		case "compilation_failed":
+			var res *goa.ServiceError
+			errors.As(v, &res)
+			enc := encoder(ctx, w)
+			var body any
+			if formatter != nil {
+				body = formatter(ctx, res)
+			} else {
+				body = NewUpsertComponentViewCompilationFailedResponseBody(res)
+			}
+			w.Header().Set("goa-error", res.GoaErrorName())
+			w.WriteHeader(http.StatusBadRequest)
+			return enc.Encode(body)
+		default:
+			return encodeError(ctx, w, v)
+		}
+	}
+}
+
+// EncodeUpserElementStyleResponse returns an encoder for responses returned by
+// the DSLEditor UpserElementStyle endpoint.
+func EncodeUpserElementStyleResponse(encoder func(context.Context, http.ResponseWriter) goahttp.Encoder) func(context.Context, http.ResponseWriter, any) error {
+	return func(ctx context.Context, w http.ResponseWriter, v any) error {
+		w.WriteHeader(http.StatusNoContent)
+		return nil
+	}
+}
+
+// DecodeUpserElementStyleRequest returns a decoder for requests sent to the
+// DSLEditor UpserElementStyle endpoint.
+func DecodeUpserElementStyleRequest(mux goahttp.Muxer, decoder func(*http.Request) goahttp.Decoder) func(*http.Request) (any, error) {
+	return func(r *http.Request) (any, error) {
+		var (
+			body UpserElementStyleRequestBody
+			err  error
+		)
+		err = decoder(r).Decode(&body)
+		if err != nil {
+			if err == io.EOF {
+				return nil, goa.MissingPayloadError()
+			}
+			return nil, goa.DecodePayloadError(err.Error())
+		}
+		err = ValidateUpserElementStyleRequestBody(&body)
+		if err != nil {
+			return nil, err
+		}
+		payload := NewUpserElementStyleElementStyle(&body)
+
+		return payload, nil
+	}
+}
+
+// EncodeUpserElementStyleError returns an encoder for errors returned by the
+// UpserElementStyle DSLEditor endpoint.
+func EncodeUpserElementStyleError(encoder func(context.Context, http.ResponseWriter) goahttp.Encoder, formatter func(ctx context.Context, err error) goahttp.Statuser) func(context.Context, http.ResponseWriter, error) error {
+	encodeError := goahttp.ErrorEncoder(encoder, formatter)
+	return func(ctx context.Context, w http.ResponseWriter, v error) error {
+		var en goa.GoaErrorNamer
+		if !errors.As(v, &en) {
+			return encodeError(ctx, w, v)
+		}
+		switch en.GoaErrorName() {
+		case "compilation_failed":
+			var res *goa.ServiceError
+			errors.As(v, &res)
+			enc := encoder(ctx, w)
+			var body any
+			if formatter != nil {
+				body = formatter(ctx, res)
+			} else {
+				body = NewUpserElementStyleCompilationFailedResponseBody(res)
+			}
+			w.Header().Set("goa-error", res.GoaErrorName())
+			w.WriteHeader(http.StatusBadRequest)
+			return enc.Encode(body)
+		default:
+			return encodeError(ctx, w, v)
+		}
+	}
+}
+
+// EncodeUpsertRelationshipStyleResponse returns an encoder for responses
+// returned by the DSLEditor UpsertRelationshipStyle endpoint.
+func EncodeUpsertRelationshipStyleResponse(encoder func(context.Context, http.ResponseWriter) goahttp.Encoder) func(context.Context, http.ResponseWriter, any) error {
+	return func(ctx context.Context, w http.ResponseWriter, v any) error {
+		w.WriteHeader(http.StatusNoContent)
+		return nil
+	}
+}
+
+// DecodeUpsertRelationshipStyleRequest returns a decoder for requests sent to
+// the DSLEditor UpsertRelationshipStyle endpoint.
+func DecodeUpsertRelationshipStyleRequest(mux goahttp.Muxer, decoder func(*http.Request) goahttp.Decoder) func(*http.Request) (any, error) {
+	return func(r *http.Request) (any, error) {
+		var (
+			body UpsertRelationshipStyleRequestBody
+			err  error
+		)
+		err = decoder(r).Decode(&body)
+		if err != nil {
+			if err == io.EOF {
+				return nil, goa.MissingPayloadError()
+			}
+			return nil, goa.DecodePayloadError(err.Error())
+		}
+		err = ValidateUpsertRelationshipStyleRequestBody(&body)
+		if err != nil {
+			return nil, err
+		}
+		payload := NewUpsertRelationshipStyleRelationshipStyle(&body)
+
+		return payload, nil
+	}
+}
+
+// EncodeUpsertRelationshipStyleError returns an encoder for errors returned by
+// the UpsertRelationshipStyle DSLEditor endpoint.
+func EncodeUpsertRelationshipStyleError(encoder func(context.Context, http.ResponseWriter) goahttp.Encoder, formatter func(ctx context.Context, err error) goahttp.Statuser) func(context.Context, http.ResponseWriter, error) error {
+	encodeError := goahttp.ErrorEncoder(encoder, formatter)
+	return func(ctx context.Context, w http.ResponseWriter, v error) error {
+		var en goa.GoaErrorNamer
+		if !errors.As(v, &en) {
+			return encodeError(ctx, w, v)
+		}
+		switch en.GoaErrorName() {
+		case "compilation_failed":
+			var res *goa.ServiceError
+			errors.As(v, &res)
+			enc := encoder(ctx, w)
+			var body any
+			if formatter != nil {
+				body = formatter(ctx, res)
+			} else {
+				body = NewUpsertRelationshipStyleCompilationFailedResponseBody(res)
 			}
 			w.Header().Set("goa-error", res.GoaErrorName())
 			w.WriteHeader(http.StatusBadRequest)
@@ -810,13 +1189,539 @@ func EncodeDeleteRelationshipError(encoder func(context.Context, http.ResponseWr
 	}
 }
 
+// EncodeDeleteLandscapeViewResponse returns an encoder for responses returned
+// by the DSLEditor DeleteLandscapeView endpoint.
+func EncodeDeleteLandscapeViewResponse(encoder func(context.Context, http.ResponseWriter) goahttp.Encoder) func(context.Context, http.ResponseWriter, any) error {
+	return func(ctx context.Context, w http.ResponseWriter, v any) error {
+		w.WriteHeader(http.StatusNoContent)
+		return nil
+	}
+}
+
+// DecodeDeleteLandscapeViewRequest returns a decoder for requests sent to the
+// DSLEditor DeleteLandscapeView endpoint.
+func DecodeDeleteLandscapeViewRequest(mux goahttp.Muxer, decoder func(*http.Request) goahttp.Decoder) func(*http.Request) (any, error) {
+	return func(r *http.Request) (any, error) {
+		var (
+			body DeleteLandscapeViewRequestBody
+			err  error
+		)
+		err = decoder(r).Decode(&body)
+		if err != nil {
+			if err == io.EOF {
+				return nil, goa.MissingPayloadError()
+			}
+			return nil, goa.DecodePayloadError(err.Error())
+		}
+		err = ValidateDeleteLandscapeViewRequestBody(&body)
+		if err != nil {
+			return nil, err
+		}
+
+		var (
+			key string
+
+			params = mux.Vars(r)
+		)
+		key = params["Key"]
+		payload := NewDeleteLandscapeViewPayload(&body, key)
+
+		return payload, nil
+	}
+}
+
+// EncodeDeleteLandscapeViewError returns an encoder for errors returned by the
+// DeleteLandscapeView DSLEditor endpoint.
+func EncodeDeleteLandscapeViewError(encoder func(context.Context, http.ResponseWriter) goahttp.Encoder, formatter func(ctx context.Context, err error) goahttp.Statuser) func(context.Context, http.ResponseWriter, error) error {
+	encodeError := goahttp.ErrorEncoder(encoder, formatter)
+	return func(ctx context.Context, w http.ResponseWriter, v error) error {
+		var en goa.GoaErrorNamer
+		if !errors.As(v, &en) {
+			return encodeError(ctx, w, v)
+		}
+		switch en.GoaErrorName() {
+		case "NotFound":
+			var res *goa.ServiceError
+			errors.As(v, &res)
+			enc := encoder(ctx, w)
+			var body any
+			if formatter != nil {
+				body = formatter(ctx, res)
+			} else {
+				body = NewDeleteLandscapeViewNotFoundResponseBody(res)
+			}
+			w.Header().Set("goa-error", res.GoaErrorName())
+			w.WriteHeader(http.StatusNotFound)
+			return enc.Encode(body)
+		case "compilation_failed":
+			var res *goa.ServiceError
+			errors.As(v, &res)
+			enc := encoder(ctx, w)
+			var body any
+			if formatter != nil {
+				body = formatter(ctx, res)
+			} else {
+				body = NewDeleteLandscapeViewCompilationFailedResponseBody(res)
+			}
+			w.Header().Set("goa-error", res.GoaErrorName())
+			w.WriteHeader(http.StatusBadRequest)
+			return enc.Encode(body)
+		default:
+			return encodeError(ctx, w, v)
+		}
+	}
+}
+
+// EncodeDeleteSystemContextViewResponse returns an encoder for responses
+// returned by the DSLEditor DeleteSystemContextView endpoint.
+func EncodeDeleteSystemContextViewResponse(encoder func(context.Context, http.ResponseWriter) goahttp.Encoder) func(context.Context, http.ResponseWriter, any) error {
+	return func(ctx context.Context, w http.ResponseWriter, v any) error {
+		w.WriteHeader(http.StatusNoContent)
+		return nil
+	}
+}
+
+// DecodeDeleteSystemContextViewRequest returns a decoder for requests sent to
+// the DSLEditor DeleteSystemContextView endpoint.
+func DecodeDeleteSystemContextViewRequest(mux goahttp.Muxer, decoder func(*http.Request) goahttp.Decoder) func(*http.Request) (any, error) {
+	return func(r *http.Request) (any, error) {
+		var (
+			body DeleteSystemContextViewRequestBody
+			err  error
+		)
+		err = decoder(r).Decode(&body)
+		if err != nil {
+			if err == io.EOF {
+				return nil, goa.MissingPayloadError()
+			}
+			return nil, goa.DecodePayloadError(err.Error())
+		}
+		err = ValidateDeleteSystemContextViewRequestBody(&body)
+		if err != nil {
+			return nil, err
+		}
+
+		var (
+			key string
+
+			params = mux.Vars(r)
+		)
+		key = params["Key"]
+		payload := NewDeleteSystemContextViewPayload(&body, key)
+
+		return payload, nil
+	}
+}
+
+// EncodeDeleteSystemContextViewError returns an encoder for errors returned by
+// the DeleteSystemContextView DSLEditor endpoint.
+func EncodeDeleteSystemContextViewError(encoder func(context.Context, http.ResponseWriter) goahttp.Encoder, formatter func(ctx context.Context, err error) goahttp.Statuser) func(context.Context, http.ResponseWriter, error) error {
+	encodeError := goahttp.ErrorEncoder(encoder, formatter)
+	return func(ctx context.Context, w http.ResponseWriter, v error) error {
+		var en goa.GoaErrorNamer
+		if !errors.As(v, &en) {
+			return encodeError(ctx, w, v)
+		}
+		switch en.GoaErrorName() {
+		case "NotFound":
+			var res *goa.ServiceError
+			errors.As(v, &res)
+			enc := encoder(ctx, w)
+			var body any
+			if formatter != nil {
+				body = formatter(ctx, res)
+			} else {
+				body = NewDeleteSystemContextViewNotFoundResponseBody(res)
+			}
+			w.Header().Set("goa-error", res.GoaErrorName())
+			w.WriteHeader(http.StatusNotFound)
+			return enc.Encode(body)
+		case "compilation_failed":
+			var res *goa.ServiceError
+			errors.As(v, &res)
+			enc := encoder(ctx, w)
+			var body any
+			if formatter != nil {
+				body = formatter(ctx, res)
+			} else {
+				body = NewDeleteSystemContextViewCompilationFailedResponseBody(res)
+			}
+			w.Header().Set("goa-error", res.GoaErrorName())
+			w.WriteHeader(http.StatusBadRequest)
+			return enc.Encode(body)
+		default:
+			return encodeError(ctx, w, v)
+		}
+	}
+}
+
+// EncodeDeleteContainerViewResponse returns an encoder for responses returned
+// by the DSLEditor DeleteContainerView endpoint.
+func EncodeDeleteContainerViewResponse(encoder func(context.Context, http.ResponseWriter) goahttp.Encoder) func(context.Context, http.ResponseWriter, any) error {
+	return func(ctx context.Context, w http.ResponseWriter, v any) error {
+		w.WriteHeader(http.StatusNoContent)
+		return nil
+	}
+}
+
+// DecodeDeleteContainerViewRequest returns a decoder for requests sent to the
+// DSLEditor DeleteContainerView endpoint.
+func DecodeDeleteContainerViewRequest(mux goahttp.Muxer, decoder func(*http.Request) goahttp.Decoder) func(*http.Request) (any, error) {
+	return func(r *http.Request) (any, error) {
+		var (
+			body DeleteContainerViewRequestBody
+			err  error
+		)
+		err = decoder(r).Decode(&body)
+		if err != nil {
+			if err == io.EOF {
+				return nil, goa.MissingPayloadError()
+			}
+			return nil, goa.DecodePayloadError(err.Error())
+		}
+		err = ValidateDeleteContainerViewRequestBody(&body)
+		if err != nil {
+			return nil, err
+		}
+
+		var (
+			key string
+
+			params = mux.Vars(r)
+		)
+		key = params["Key"]
+		payload := NewDeleteContainerViewPayload(&body, key)
+
+		return payload, nil
+	}
+}
+
+// EncodeDeleteContainerViewError returns an encoder for errors returned by the
+// DeleteContainerView DSLEditor endpoint.
+func EncodeDeleteContainerViewError(encoder func(context.Context, http.ResponseWriter) goahttp.Encoder, formatter func(ctx context.Context, err error) goahttp.Statuser) func(context.Context, http.ResponseWriter, error) error {
+	encodeError := goahttp.ErrorEncoder(encoder, formatter)
+	return func(ctx context.Context, w http.ResponseWriter, v error) error {
+		var en goa.GoaErrorNamer
+		if !errors.As(v, &en) {
+			return encodeError(ctx, w, v)
+		}
+		switch en.GoaErrorName() {
+		case "NotFound":
+			var res *goa.ServiceError
+			errors.As(v, &res)
+			enc := encoder(ctx, w)
+			var body any
+			if formatter != nil {
+				body = formatter(ctx, res)
+			} else {
+				body = NewDeleteContainerViewNotFoundResponseBody(res)
+			}
+			w.Header().Set("goa-error", res.GoaErrorName())
+			w.WriteHeader(http.StatusNotFound)
+			return enc.Encode(body)
+		case "compilation_failed":
+			var res *goa.ServiceError
+			errors.As(v, &res)
+			enc := encoder(ctx, w)
+			var body any
+			if formatter != nil {
+				body = formatter(ctx, res)
+			} else {
+				body = NewDeleteContainerViewCompilationFailedResponseBody(res)
+			}
+			w.Header().Set("goa-error", res.GoaErrorName())
+			w.WriteHeader(http.StatusBadRequest)
+			return enc.Encode(body)
+		default:
+			return encodeError(ctx, w, v)
+		}
+	}
+}
+
+// EncodeDeleteComponentViewResponse returns an encoder for responses returned
+// by the DSLEditor DeleteComponentView endpoint.
+func EncodeDeleteComponentViewResponse(encoder func(context.Context, http.ResponseWriter) goahttp.Encoder) func(context.Context, http.ResponseWriter, any) error {
+	return func(ctx context.Context, w http.ResponseWriter, v any) error {
+		w.WriteHeader(http.StatusNoContent)
+		return nil
+	}
+}
+
+// DecodeDeleteComponentViewRequest returns a decoder for requests sent to the
+// DSLEditor DeleteComponentView endpoint.
+func DecodeDeleteComponentViewRequest(mux goahttp.Muxer, decoder func(*http.Request) goahttp.Decoder) func(*http.Request) (any, error) {
+	return func(r *http.Request) (any, error) {
+		var (
+			body DeleteComponentViewRequestBody
+			err  error
+		)
+		err = decoder(r).Decode(&body)
+		if err != nil {
+			if err == io.EOF {
+				return nil, goa.MissingPayloadError()
+			}
+			return nil, goa.DecodePayloadError(err.Error())
+		}
+		err = ValidateDeleteComponentViewRequestBody(&body)
+		if err != nil {
+			return nil, err
+		}
+
+		var (
+			key string
+
+			params = mux.Vars(r)
+		)
+		key = params["Key"]
+		payload := NewDeleteComponentViewPayload(&body, key)
+
+		return payload, nil
+	}
+}
+
+// EncodeDeleteComponentViewError returns an encoder for errors returned by the
+// DeleteComponentView DSLEditor endpoint.
+func EncodeDeleteComponentViewError(encoder func(context.Context, http.ResponseWriter) goahttp.Encoder, formatter func(ctx context.Context, err error) goahttp.Statuser) func(context.Context, http.ResponseWriter, error) error {
+	encodeError := goahttp.ErrorEncoder(encoder, formatter)
+	return func(ctx context.Context, w http.ResponseWriter, v error) error {
+		var en goa.GoaErrorNamer
+		if !errors.As(v, &en) {
+			return encodeError(ctx, w, v)
+		}
+		switch en.GoaErrorName() {
+		case "NotFound":
+			var res *goa.ServiceError
+			errors.As(v, &res)
+			enc := encoder(ctx, w)
+			var body any
+			if formatter != nil {
+				body = formatter(ctx, res)
+			} else {
+				body = NewDeleteComponentViewNotFoundResponseBody(res)
+			}
+			w.Header().Set("goa-error", res.GoaErrorName())
+			w.WriteHeader(http.StatusNotFound)
+			return enc.Encode(body)
+		case "compilation_failed":
+			var res *goa.ServiceError
+			errors.As(v, &res)
+			enc := encoder(ctx, w)
+			var body any
+			if formatter != nil {
+				body = formatter(ctx, res)
+			} else {
+				body = NewDeleteComponentViewCompilationFailedResponseBody(res)
+			}
+			w.Header().Set("goa-error", res.GoaErrorName())
+			w.WriteHeader(http.StatusBadRequest)
+			return enc.Encode(body)
+		default:
+			return encodeError(ctx, w, v)
+		}
+	}
+}
+
+// EncodeDeleteElementStyleResponse returns an encoder for responses returned
+// by the DSLEditor DeleteElementStyle endpoint.
+func EncodeDeleteElementStyleResponse(encoder func(context.Context, http.ResponseWriter) goahttp.Encoder) func(context.Context, http.ResponseWriter, any) error {
+	return func(ctx context.Context, w http.ResponseWriter, v any) error {
+		w.WriteHeader(http.StatusNoContent)
+		return nil
+	}
+}
+
+// DecodeDeleteElementStyleRequest returns a decoder for requests sent to the
+// DSLEditor DeleteElementStyle endpoint.
+func DecodeDeleteElementStyleRequest(mux goahttp.Muxer, decoder func(*http.Request) goahttp.Decoder) func(*http.Request) (any, error) {
+	return func(r *http.Request) (any, error) {
+		var (
+			body DeleteElementStyleRequestBody
+			err  error
+		)
+		err = decoder(r).Decode(&body)
+		if err != nil {
+			if err == io.EOF {
+				return nil, goa.MissingPayloadError()
+			}
+			return nil, goa.DecodePayloadError(err.Error())
+		}
+		err = ValidateDeleteElementStyleRequestBody(&body)
+		if err != nil {
+			return nil, err
+		}
+
+		var (
+			tag string
+
+			params = mux.Vars(r)
+		)
+		tag = params["Tag"]
+		payload := NewDeleteElementStylePayload(&body, tag)
+
+		return payload, nil
+	}
+}
+
+// EncodeDeleteElementStyleError returns an encoder for errors returned by the
+// DeleteElementStyle DSLEditor endpoint.
+func EncodeDeleteElementStyleError(encoder func(context.Context, http.ResponseWriter) goahttp.Encoder, formatter func(ctx context.Context, err error) goahttp.Statuser) func(context.Context, http.ResponseWriter, error) error {
+	encodeError := goahttp.ErrorEncoder(encoder, formatter)
+	return func(ctx context.Context, w http.ResponseWriter, v error) error {
+		var en goa.GoaErrorNamer
+		if !errors.As(v, &en) {
+			return encodeError(ctx, w, v)
+		}
+		switch en.GoaErrorName() {
+		case "NotFound":
+			var res *goa.ServiceError
+			errors.As(v, &res)
+			enc := encoder(ctx, w)
+			var body any
+			if formatter != nil {
+				body = formatter(ctx, res)
+			} else {
+				body = NewDeleteElementStyleNotFoundResponseBody(res)
+			}
+			w.Header().Set("goa-error", res.GoaErrorName())
+			w.WriteHeader(http.StatusNotFound)
+			return enc.Encode(body)
+		case "compilation_failed":
+			var res *goa.ServiceError
+			errors.As(v, &res)
+			enc := encoder(ctx, w)
+			var body any
+			if formatter != nil {
+				body = formatter(ctx, res)
+			} else {
+				body = NewDeleteElementStyleCompilationFailedResponseBody(res)
+			}
+			w.Header().Set("goa-error", res.GoaErrorName())
+			w.WriteHeader(http.StatusBadRequest)
+			return enc.Encode(body)
+		default:
+			return encodeError(ctx, w, v)
+		}
+	}
+}
+
+// EncodeDeleteRelationshipStyleResponse returns an encoder for responses
+// returned by the DSLEditor DeleteRelationshipStyle endpoint.
+func EncodeDeleteRelationshipStyleResponse(encoder func(context.Context, http.ResponseWriter) goahttp.Encoder) func(context.Context, http.ResponseWriter, any) error {
+	return func(ctx context.Context, w http.ResponseWriter, v any) error {
+		w.WriteHeader(http.StatusNoContent)
+		return nil
+	}
+}
+
+// DecodeDeleteRelationshipStyleRequest returns a decoder for requests sent to
+// the DSLEditor DeleteRelationshipStyle endpoint.
+func DecodeDeleteRelationshipStyleRequest(mux goahttp.Muxer, decoder func(*http.Request) goahttp.Decoder) func(*http.Request) (any, error) {
+	return func(r *http.Request) (any, error) {
+		var (
+			body DeleteRelationshipStyleRequestBody
+			err  error
+		)
+		err = decoder(r).Decode(&body)
+		if err != nil {
+			if err == io.EOF {
+				return nil, goa.MissingPayloadError()
+			}
+			return nil, goa.DecodePayloadError(err.Error())
+		}
+		err = ValidateDeleteRelationshipStyleRequestBody(&body)
+		if err != nil {
+			return nil, err
+		}
+
+		var (
+			tag string
+
+			params = mux.Vars(r)
+		)
+		tag = params["Tag"]
+		payload := NewDeleteRelationshipStylePayload(&body, tag)
+
+		return payload, nil
+	}
+}
+
+// EncodeDeleteRelationshipStyleError returns an encoder for errors returned by
+// the DeleteRelationshipStyle DSLEditor endpoint.
+func EncodeDeleteRelationshipStyleError(encoder func(context.Context, http.ResponseWriter) goahttp.Encoder, formatter func(ctx context.Context, err error) goahttp.Statuser) func(context.Context, http.ResponseWriter, error) error {
+	encodeError := goahttp.ErrorEncoder(encoder, formatter)
+	return func(ctx context.Context, w http.ResponseWriter, v error) error {
+		var en goa.GoaErrorNamer
+		if !errors.As(v, &en) {
+			return encodeError(ctx, w, v)
+		}
+		switch en.GoaErrorName() {
+		case "NotFound":
+			var res *goa.ServiceError
+			errors.As(v, &res)
+			enc := encoder(ctx, w)
+			var body any
+			if formatter != nil {
+				body = formatter(ctx, res)
+			} else {
+				body = NewDeleteRelationshipStyleNotFoundResponseBody(res)
+			}
+			w.Header().Set("goa-error", res.GoaErrorName())
+			w.WriteHeader(http.StatusNotFound)
+			return enc.Encode(body)
+		case "compilation_failed":
+			var res *goa.ServiceError
+			errors.As(v, &res)
+			enc := encoder(ctx, w)
+			var body any
+			if formatter != nil {
+				body = formatter(ctx, res)
+			} else {
+				body = NewDeleteRelationshipStyleCompilationFailedResponseBody(res)
+			}
+			w.Header().Set("goa-error", res.GoaErrorName())
+			w.WriteHeader(http.StatusBadRequest)
+			return enc.Encode(body)
+		default:
+			return encodeError(ctx, w, v)
+		}
+	}
+}
+
 // unmarshalFileLocatorRequestBodyToTypesFileLocator builds a value of type
 // *types.FileLocator from a value of type *FileLocatorRequestBody.
 func unmarshalFileLocatorRequestBodyToTypesFileLocator(v *FileLocatorRequestBody) *types.FileLocator {
 	res := &types.FileLocator{
-		Filename:  *v.Filename,
-		Workspace: *v.Workspace,
-		Dir:       *v.Dir,
+		Filename:   *v.Filename,
+		Repository: *v.Repository,
+		Dir:        *v.Dir,
+	}
+
+	return res
+}
+
+// unmarshalElementViewRequestBodyToDsleditorElementView builds a value of type
+// *dsleditor.ElementView from a value of type *ElementViewRequestBody.
+func unmarshalElementViewRequestBodyToDsleditorElementView(v *ElementViewRequestBody) *dsleditor.ElementView {
+	if v == nil {
+		return nil
+	}
+	res := &dsleditor.ElementView{
+		Element: v.Element,
+	}
+
+	return res
+}
+
+// unmarshalRelationshipViewRequestBodyToDsleditorRelationshipView builds a
+// value of type *dsleditor.RelationshipView from a value of type
+// *RelationshipViewRequestBody.
+func unmarshalRelationshipViewRequestBodyToDsleditorRelationshipView(v *RelationshipViewRequestBody) *dsleditor.RelationshipView {
+	if v == nil {
+		return nil
+	}
+	res := &dsleditor.RelationshipView{
+		Source:      v.Source,
+		Destination: v.Destination,
 	}
 
 	return res

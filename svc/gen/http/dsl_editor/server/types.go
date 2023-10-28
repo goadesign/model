@@ -130,13 +130,165 @@ type UpsertRelationshipRequestBody struct {
 	URL *string `form:"URL,omitempty" json:"URL,omitempty" xml:"URL,omitempty"`
 }
 
+// UpsertLandscapeViewRequestBody is the type of the "DSLEditor" service
+// "UpsertLandscapeView" endpoint HTTP request body.
+type UpsertLandscapeViewRequestBody struct {
+	// Indicates whether the enterprise boundary is visible on the resulting diagram
+	EnterpriseBoundaryVisible *bool `form:"EnterpriseBoundaryVisible,omitempty" json:"EnterpriseBoundaryVisible,omitempty" xml:"EnterpriseBoundaryVisible,omitempty"`
+	// Path to file containing view DSL
+	Locator *FileLocatorRequestBody `form:"Locator,omitempty" json:"Locator,omitempty" xml:"Locator,omitempty"`
+	// Key of view
+	Key *string `form:"Key,omitempty" json:"Key,omitempty" xml:"Key,omitempty"`
+	// Title of view
+	Title *string `form:"Title,omitempty" json:"Title,omitempty" xml:"Title,omitempty"`
+	// Description of view
+	Description *string `form:"Description,omitempty" json:"Description,omitempty" xml:"Description,omitempty"`
+	// Paper size of view
+	PaperSize *string `form:"PaperSize,omitempty" json:"PaperSize,omitempty" xml:"PaperSize,omitempty"`
+	// Elements in view
+	ElementViews []*ElementViewRequestBody `form:"ElementViews,omitempty" json:"ElementViews,omitempty" xml:"ElementViews,omitempty"`
+	// Relationships in view
+	RelationshipViews []*RelationshipViewRequestBody `form:"RelationshipViews,omitempty" json:"RelationshipViews,omitempty" xml:"RelationshipViews,omitempty"`
+}
+
+// UpsertSystemContextViewRequestBody is the type of the "DSLEditor" service
+// "UpsertSystemContextView" endpoint HTTP request body.
+type UpsertSystemContextViewRequestBody struct {
+	// Name of software system to create view for
+	SoftwareSystemName *string `form:"SoftwareSystemName,omitempty" json:"SoftwareSystemName,omitempty" xml:"SoftwareSystemName,omitempty"`
+	// Indicates whether the enterprise boundary is visible on the resulting diagram
+	EnterpriseBoundaryVisible *bool `form:"EnterpriseBoundaryVisible,omitempty" json:"EnterpriseBoundaryVisible,omitempty" xml:"EnterpriseBoundaryVisible,omitempty"`
+	// Path to file containing view DSL
+	Locator *FileLocatorRequestBody `form:"Locator,omitempty" json:"Locator,omitempty" xml:"Locator,omitempty"`
+	// Key of view
+	Key *string `form:"Key,omitempty" json:"Key,omitempty" xml:"Key,omitempty"`
+	// Title of view
+	Title *string `form:"Title,omitempty" json:"Title,omitempty" xml:"Title,omitempty"`
+	// Description of view
+	Description *string `form:"Description,omitempty" json:"Description,omitempty" xml:"Description,omitempty"`
+	// Paper size of view
+	PaperSize *string `form:"PaperSize,omitempty" json:"PaperSize,omitempty" xml:"PaperSize,omitempty"`
+	// Elements in view
+	ElementViews []*ElementViewRequestBody `form:"ElementViews,omitempty" json:"ElementViews,omitempty" xml:"ElementViews,omitempty"`
+	// Relationships in view
+	RelationshipViews []*RelationshipViewRequestBody `form:"RelationshipViews,omitempty" json:"RelationshipViews,omitempty" xml:"RelationshipViews,omitempty"`
+}
+
+// UpsertContainerViewRequestBody is the type of the "DSLEditor" service
+// "UpsertContainerView" endpoint HTTP request body.
+type UpsertContainerViewRequestBody struct {
+	// Name of software system to create view for
+	SoftwareSystemName *string `form:"SoftwareSystemName,omitempty" json:"SoftwareSystemName,omitempty" xml:"SoftwareSystemName,omitempty"`
+	// Indicates whether the system boundaries are visible on the resulting diagram
+	SystemBoundariesVisible *bool `form:"SystemBoundariesVisible,omitempty" json:"SystemBoundariesVisible,omitempty" xml:"SystemBoundariesVisible,omitempty"`
+	// Path to file containing view DSL
+	Locator *FileLocatorRequestBody `form:"Locator,omitempty" json:"Locator,omitempty" xml:"Locator,omitempty"`
+	// Key of view
+	Key *string `form:"Key,omitempty" json:"Key,omitempty" xml:"Key,omitempty"`
+	// Title of view
+	Title *string `form:"Title,omitempty" json:"Title,omitempty" xml:"Title,omitempty"`
+	// Description of view
+	Description *string `form:"Description,omitempty" json:"Description,omitempty" xml:"Description,omitempty"`
+	// Paper size of view
+	PaperSize *string `form:"PaperSize,omitempty" json:"PaperSize,omitempty" xml:"PaperSize,omitempty"`
+	// Elements in view
+	ElementViews []*ElementViewRequestBody `form:"ElementViews,omitempty" json:"ElementViews,omitempty" xml:"ElementViews,omitempty"`
+	// Relationships in view
+	RelationshipViews []*RelationshipViewRequestBody `form:"RelationshipViews,omitempty" json:"RelationshipViews,omitempty" xml:"RelationshipViews,omitempty"`
+}
+
+// UpsertComponentViewRequestBody is the type of the "DSLEditor" service
+// "UpsertComponentView" endpoint HTTP request body.
+type UpsertComponentViewRequestBody struct {
+	// Name of software system to create view for
+	SoftwareSystemName *string `form:"SoftwareSystemName,omitempty" json:"SoftwareSystemName,omitempty" xml:"SoftwareSystemName,omitempty"`
+	// Name of container to create view for
+	ContainerName *string `form:"ContainerName,omitempty" json:"ContainerName,omitempty" xml:"ContainerName,omitempty"`
+	// Indicates whether the container boundaries are visible on the resulting
+	// diagram
+	ContainerBoundariesVisible *bool `form:"ContainerBoundariesVisible,omitempty" json:"ContainerBoundariesVisible,omitempty" xml:"ContainerBoundariesVisible,omitempty"`
+	// Path to file containing view DSL
+	Locator *FileLocatorRequestBody `form:"Locator,omitempty" json:"Locator,omitempty" xml:"Locator,omitempty"`
+	// Key of view
+	Key *string `form:"Key,omitempty" json:"Key,omitempty" xml:"Key,omitempty"`
+	// Title of view
+	Title *string `form:"Title,omitempty" json:"Title,omitempty" xml:"Title,omitempty"`
+	// Description of view
+	Description *string `form:"Description,omitempty" json:"Description,omitempty" xml:"Description,omitempty"`
+	// Paper size of view
+	PaperSize *string `form:"PaperSize,omitempty" json:"PaperSize,omitempty" xml:"PaperSize,omitempty"`
+	// Elements in view
+	ElementViews []*ElementViewRequestBody `form:"ElementViews,omitempty" json:"ElementViews,omitempty" xml:"ElementViews,omitempty"`
+	// Relationships in view
+	RelationshipViews []*RelationshipViewRequestBody `form:"RelationshipViews,omitempty" json:"RelationshipViews,omitempty" xml:"RelationshipViews,omitempty"`
+}
+
+// UpserElementStyleRequestBody is the type of the "DSLEditor" service
+// "UpserElementStyle" endpoint HTTP request body.
+type UpserElementStyleRequestBody struct {
+	// Tag of elements to apply style onto
+	Tag *string `form:"Tag,omitempty" json:"Tag,omitempty" xml:"Tag,omitempty"`
+	// Shape of element
+	Shape *string `form:"Shape,omitempty" json:"Shape,omitempty" xml:"Shape,omitempty"`
+	// URL to icon of element
+	Icon *string `form:"Icon,omitempty" json:"Icon,omitempty" xml:"Icon,omitempty"`
+	// Background color of element
+	Background *string `form:"Background,omitempty" json:"Background,omitempty" xml:"Background,omitempty"`
+	// Text color of element
+	Color *string `form:"Color,omitempty" json:"Color,omitempty" xml:"Color,omitempty"`
+	// Stroke color of element
+	Stroke *string `form:"Stroke,omitempty" json:"Stroke,omitempty" xml:"Stroke,omitempty"`
+	// Width of element
+	Width *int `form:"Width,omitempty" json:"Width,omitempty" xml:"Width,omitempty"`
+	// Height of element
+	Height *int `form:"Height,omitempty" json:"Height,omitempty" xml:"Height,omitempty"`
+	// Font size of element
+	FontSize *int `form:"FontSize,omitempty" json:"FontSize,omitempty" xml:"FontSize,omitempty"`
+	// Indicates whether the element metadata should be visible on the resulting
+	// diagram
+	Metadata *bool `form:"Metadata,omitempty" json:"Metadata,omitempty" xml:"Metadata,omitempty"`
+	// Indicates whether the element description should be visible on the resulting
+	// diagram
+	Description *bool `form:"Description,omitempty" json:"Description,omitempty" xml:"Description,omitempty"`
+	// Opacity of element as a percentage
+	Opacity *int `form:"Opacity,omitempty" json:"Opacity,omitempty" xml:"Opacity,omitempty"`
+	// Type of border to apply to elements
+	Border *string `form:"Border,omitempty" json:"Border,omitempty" xml:"Border,omitempty"`
+}
+
+// UpsertRelationshipStyleRequestBody is the type of the "DSLEditor" service
+// "UpsertRelationshipStyle" endpoint HTTP request body.
+type UpsertRelationshipStyleRequestBody struct {
+	// Tag of relationships to apply style onto
+	Tag *string `form:"Tag,omitempty" json:"Tag,omitempty" xml:"Tag,omitempty"`
+	// Thickness of relationship in pixels
+	Thickness *int `form:"Thickness,omitempty" json:"Thickness,omitempty" xml:"Thickness,omitempty"`
+	// Font size of label on relationship
+	FontSize *int `form:"FontSize,omitempty" json:"FontSize,omitempty" xml:"FontSize,omitempty"`
+	// Width of label on relationship
+	Width *int `form:"Width,omitempty" json:"Width,omitempty" xml:"Width,omitempty"`
+	// Position of label on relationship as a percentage (0 is next to source, 100
+	// next to destination)
+	Position *int `form:"Position,omitempty" json:"Position,omitempty" xml:"Position,omitempty"`
+	// Color of label
+	Color *string `form:"Color,omitempty" json:"Color,omitempty" xml:"Color,omitempty"`
+	// Stroke color of relationship
+	Stroke *string `form:"Stroke,omitempty" json:"Stroke,omitempty" xml:"Stroke,omitempty"`
+	// Indicates whether the relationship is dashed
+	Dashed *bool `form:"Dashed,omitempty" json:"Dashed,omitempty" xml:"Dashed,omitempty"`
+	// Routing of relationship
+	Routing *string `form:"Routing,omitempty" json:"Routing,omitempty" xml:"Routing,omitempty"`
+	// Opacity of relationship as a percentage
+	Opacity *int `form:"Opacity,omitempty" json:"Opacity,omitempty" xml:"Opacity,omitempty"`
+}
+
 // DeleteSystemRequestBody is the type of the "DSLEditor" service
 // "DeleteSystem" endpoint HTTP request body.
 type DeleteSystemRequestBody struct {
 	// Name of DSL file
 	Filename *string `form:"Filename,omitempty" json:"Filename,omitempty" xml:"Filename,omitempty"`
-	// Workspace identifier
-	Workspace *string `form:"Workspace,omitempty" json:"Workspace,omitempty" xml:"Workspace,omitempty"`
+	// Path to repository root
+	Repository *string `form:"Repository,omitempty" json:"Repository,omitempty" xml:"Repository,omitempty"`
 	// Path to directory containing a model package
 	Dir *string `form:"Dir,omitempty" json:"Dir,omitempty" xml:"Dir,omitempty"`
 }
@@ -146,8 +298,8 @@ type DeleteSystemRequestBody struct {
 type DeletePersonRequestBody struct {
 	// Name of DSL file
 	Filename *string `form:"Filename,omitempty" json:"Filename,omitempty" xml:"Filename,omitempty"`
-	// Workspace identifier
-	Workspace *string `form:"Workspace,omitempty" json:"Workspace,omitempty" xml:"Workspace,omitempty"`
+	// Path to repository root
+	Repository *string `form:"Repository,omitempty" json:"Repository,omitempty" xml:"Repository,omitempty"`
 	// Path to directory containing a model package
 	Dir *string `form:"Dir,omitempty" json:"Dir,omitempty" xml:"Dir,omitempty"`
 }
@@ -157,8 +309,8 @@ type DeletePersonRequestBody struct {
 type DeleteContainerRequestBody struct {
 	// Name of DSL file
 	Filename *string `form:"Filename,omitempty" json:"Filename,omitempty" xml:"Filename,omitempty"`
-	// Workspace identifier
-	Workspace *string `form:"Workspace,omitempty" json:"Workspace,omitempty" xml:"Workspace,omitempty"`
+	// Path to repository root
+	Repository *string `form:"Repository,omitempty" json:"Repository,omitempty" xml:"Repository,omitempty"`
 	// Path to directory containing a model package
 	Dir *string `form:"Dir,omitempty" json:"Dir,omitempty" xml:"Dir,omitempty"`
 }
@@ -168,8 +320,8 @@ type DeleteContainerRequestBody struct {
 type DeleteComponentRequestBody struct {
 	// Name of DSL file
 	Filename *string `form:"Filename,omitempty" json:"Filename,omitempty" xml:"Filename,omitempty"`
-	// Workspace identifier
-	Workspace *string `form:"Workspace,omitempty" json:"Workspace,omitempty" xml:"Workspace,omitempty"`
+	// Path to repository root
+	Repository *string `form:"Repository,omitempty" json:"Repository,omitempty" xml:"Repository,omitempty"`
 	// Path to directory containing a model package
 	Dir *string `form:"Dir,omitempty" json:"Dir,omitempty" xml:"Dir,omitempty"`
 }
@@ -184,8 +336,74 @@ type DeleteRelationshipRequestBody struct {
 	DestinationPath *string `form:"DestinationPath,omitempty" json:"DestinationPath,omitempty" xml:"DestinationPath,omitempty"`
 	// Name of DSL file
 	Filename *string `form:"Filename,omitempty" json:"Filename,omitempty" xml:"Filename,omitempty"`
-	// Workspace identifier
-	Workspace *string `form:"Workspace,omitempty" json:"Workspace,omitempty" xml:"Workspace,omitempty"`
+	// Path to repository root
+	Repository *string `form:"Repository,omitempty" json:"Repository,omitempty" xml:"Repository,omitempty"`
+	// Path to directory containing a model package
+	Dir *string `form:"Dir,omitempty" json:"Dir,omitempty" xml:"Dir,omitempty"`
+}
+
+// DeleteLandscapeViewRequestBody is the type of the "DSLEditor" service
+// "DeleteLandscapeView" endpoint HTTP request body.
+type DeleteLandscapeViewRequestBody struct {
+	// Name of DSL file
+	Filename *string `form:"Filename,omitempty" json:"Filename,omitempty" xml:"Filename,omitempty"`
+	// Path to repository root
+	Repository *string `form:"Repository,omitempty" json:"Repository,omitempty" xml:"Repository,omitempty"`
+	// Path to directory containing a model package
+	Dir *string `form:"Dir,omitempty" json:"Dir,omitempty" xml:"Dir,omitempty"`
+}
+
+// DeleteSystemContextViewRequestBody is the type of the "DSLEditor" service
+// "DeleteSystemContextView" endpoint HTTP request body.
+type DeleteSystemContextViewRequestBody struct {
+	// Name of DSL file
+	Filename *string `form:"Filename,omitempty" json:"Filename,omitempty" xml:"Filename,omitempty"`
+	// Path to repository root
+	Repository *string `form:"Repository,omitempty" json:"Repository,omitempty" xml:"Repository,omitempty"`
+	// Path to directory containing a model package
+	Dir *string `form:"Dir,omitempty" json:"Dir,omitempty" xml:"Dir,omitempty"`
+}
+
+// DeleteContainerViewRequestBody is the type of the "DSLEditor" service
+// "DeleteContainerView" endpoint HTTP request body.
+type DeleteContainerViewRequestBody struct {
+	// Name of DSL file
+	Filename *string `form:"Filename,omitempty" json:"Filename,omitempty" xml:"Filename,omitempty"`
+	// Path to repository root
+	Repository *string `form:"Repository,omitempty" json:"Repository,omitempty" xml:"Repository,omitempty"`
+	// Path to directory containing a model package
+	Dir *string `form:"Dir,omitempty" json:"Dir,omitempty" xml:"Dir,omitempty"`
+}
+
+// DeleteComponentViewRequestBody is the type of the "DSLEditor" service
+// "DeleteComponentView" endpoint HTTP request body.
+type DeleteComponentViewRequestBody struct {
+	// Name of DSL file
+	Filename *string `form:"Filename,omitempty" json:"Filename,omitempty" xml:"Filename,omitempty"`
+	// Path to repository root
+	Repository *string `form:"Repository,omitempty" json:"Repository,omitempty" xml:"Repository,omitempty"`
+	// Path to directory containing a model package
+	Dir *string `form:"Dir,omitempty" json:"Dir,omitempty" xml:"Dir,omitempty"`
+}
+
+// DeleteElementStyleRequestBody is the type of the "DSLEditor" service
+// "DeleteElementStyle" endpoint HTTP request body.
+type DeleteElementStyleRequestBody struct {
+	// Name of DSL file
+	Filename *string `form:"Filename,omitempty" json:"Filename,omitempty" xml:"Filename,omitempty"`
+	// Path to repository root
+	Repository *string `form:"Repository,omitempty" json:"Repository,omitempty" xml:"Repository,omitempty"`
+	// Path to directory containing a model package
+	Dir *string `form:"Dir,omitempty" json:"Dir,omitempty" xml:"Dir,omitempty"`
+}
+
+// DeleteRelationshipStyleRequestBody is the type of the "DSLEditor" service
+// "DeleteRelationshipStyle" endpoint HTTP request body.
+type DeleteRelationshipStyleRequestBody struct {
+	// Name of DSL file
+	Filename *string `form:"Filename,omitempty" json:"Filename,omitempty" xml:"Filename,omitempty"`
+	// Path to repository root
+	Repository *string `form:"Repository,omitempty" json:"Repository,omitempty" xml:"Repository,omitempty"`
 	// Path to directory containing a model package
 	Dir *string `form:"Dir,omitempty" json:"Dir,omitempty" xml:"Dir,omitempty"`
 }
@@ -289,6 +507,120 @@ type UpsertComponentCompilationFailedResponseBody struct {
 // "DSLEditor" service "UpsertRelationship" endpoint HTTP response body for the
 // "compilation_failed" error.
 type UpsertRelationshipCompilationFailedResponseBody struct {
+	// Name is the name of this class of errors.
+	Name string `form:"name" json:"name" xml:"name"`
+	// ID is a unique identifier for this particular occurrence of the problem.
+	ID string `form:"id" json:"id" xml:"id"`
+	// Message is a human-readable explanation specific to this occurrence of the
+	// problem.
+	Message string `form:"message" json:"message" xml:"message"`
+	// Is the error temporary?
+	Temporary bool `form:"temporary" json:"temporary" xml:"temporary"`
+	// Is the error a timeout?
+	Timeout bool `form:"timeout" json:"timeout" xml:"timeout"`
+	// Is the error a server-side fault?
+	Fault bool `form:"fault" json:"fault" xml:"fault"`
+}
+
+// UpsertLandscapeViewCompilationFailedResponseBody is the type of the
+// "DSLEditor" service "UpsertLandscapeView" endpoint HTTP response body for
+// the "compilation_failed" error.
+type UpsertLandscapeViewCompilationFailedResponseBody struct {
+	// Name is the name of this class of errors.
+	Name string `form:"name" json:"name" xml:"name"`
+	// ID is a unique identifier for this particular occurrence of the problem.
+	ID string `form:"id" json:"id" xml:"id"`
+	// Message is a human-readable explanation specific to this occurrence of the
+	// problem.
+	Message string `form:"message" json:"message" xml:"message"`
+	// Is the error temporary?
+	Temporary bool `form:"temporary" json:"temporary" xml:"temporary"`
+	// Is the error a timeout?
+	Timeout bool `form:"timeout" json:"timeout" xml:"timeout"`
+	// Is the error a server-side fault?
+	Fault bool `form:"fault" json:"fault" xml:"fault"`
+}
+
+// UpsertSystemContextViewCompilationFailedResponseBody is the type of the
+// "DSLEditor" service "UpsertSystemContextView" endpoint HTTP response body
+// for the "compilation_failed" error.
+type UpsertSystemContextViewCompilationFailedResponseBody struct {
+	// Name is the name of this class of errors.
+	Name string `form:"name" json:"name" xml:"name"`
+	// ID is a unique identifier for this particular occurrence of the problem.
+	ID string `form:"id" json:"id" xml:"id"`
+	// Message is a human-readable explanation specific to this occurrence of the
+	// problem.
+	Message string `form:"message" json:"message" xml:"message"`
+	// Is the error temporary?
+	Temporary bool `form:"temporary" json:"temporary" xml:"temporary"`
+	// Is the error a timeout?
+	Timeout bool `form:"timeout" json:"timeout" xml:"timeout"`
+	// Is the error a server-side fault?
+	Fault bool `form:"fault" json:"fault" xml:"fault"`
+}
+
+// UpsertContainerViewCompilationFailedResponseBody is the type of the
+// "DSLEditor" service "UpsertContainerView" endpoint HTTP response body for
+// the "compilation_failed" error.
+type UpsertContainerViewCompilationFailedResponseBody struct {
+	// Name is the name of this class of errors.
+	Name string `form:"name" json:"name" xml:"name"`
+	// ID is a unique identifier for this particular occurrence of the problem.
+	ID string `form:"id" json:"id" xml:"id"`
+	// Message is a human-readable explanation specific to this occurrence of the
+	// problem.
+	Message string `form:"message" json:"message" xml:"message"`
+	// Is the error temporary?
+	Temporary bool `form:"temporary" json:"temporary" xml:"temporary"`
+	// Is the error a timeout?
+	Timeout bool `form:"timeout" json:"timeout" xml:"timeout"`
+	// Is the error a server-side fault?
+	Fault bool `form:"fault" json:"fault" xml:"fault"`
+}
+
+// UpsertComponentViewCompilationFailedResponseBody is the type of the
+// "DSLEditor" service "UpsertComponentView" endpoint HTTP response body for
+// the "compilation_failed" error.
+type UpsertComponentViewCompilationFailedResponseBody struct {
+	// Name is the name of this class of errors.
+	Name string `form:"name" json:"name" xml:"name"`
+	// ID is a unique identifier for this particular occurrence of the problem.
+	ID string `form:"id" json:"id" xml:"id"`
+	// Message is a human-readable explanation specific to this occurrence of the
+	// problem.
+	Message string `form:"message" json:"message" xml:"message"`
+	// Is the error temporary?
+	Temporary bool `form:"temporary" json:"temporary" xml:"temporary"`
+	// Is the error a timeout?
+	Timeout bool `form:"timeout" json:"timeout" xml:"timeout"`
+	// Is the error a server-side fault?
+	Fault bool `form:"fault" json:"fault" xml:"fault"`
+}
+
+// UpserElementStyleCompilationFailedResponseBody is the type of the
+// "DSLEditor" service "UpserElementStyle" endpoint HTTP response body for the
+// "compilation_failed" error.
+type UpserElementStyleCompilationFailedResponseBody struct {
+	// Name is the name of this class of errors.
+	Name string `form:"name" json:"name" xml:"name"`
+	// ID is a unique identifier for this particular occurrence of the problem.
+	ID string `form:"id" json:"id" xml:"id"`
+	// Message is a human-readable explanation specific to this occurrence of the
+	// problem.
+	Message string `form:"message" json:"message" xml:"message"`
+	// Is the error temporary?
+	Temporary bool `form:"temporary" json:"temporary" xml:"temporary"`
+	// Is the error a timeout?
+	Timeout bool `form:"timeout" json:"timeout" xml:"timeout"`
+	// Is the error a server-side fault?
+	Fault bool `form:"fault" json:"fault" xml:"fault"`
+}
+
+// UpsertRelationshipStyleCompilationFailedResponseBody is the type of the
+// "DSLEditor" service "UpsertRelationshipStyle" endpoint HTTP response body
+// for the "compilation_failed" error.
+type UpsertRelationshipStyleCompilationFailedResponseBody struct {
 	// Name is the name of this class of errors.
 	Name string `form:"name" json:"name" xml:"name"`
 	// ID is a unique identifier for this particular occurrence of the problem.
@@ -490,14 +822,258 @@ type DeleteRelationshipCompilationFailedResponseBody struct {
 	Fault bool `form:"fault" json:"fault" xml:"fault"`
 }
 
+// DeleteLandscapeViewNotFoundResponseBody is the type of the "DSLEditor"
+// service "DeleteLandscapeView" endpoint HTTP response body for the "NotFound"
+// error.
+type DeleteLandscapeViewNotFoundResponseBody struct {
+	// Name is the name of this class of errors.
+	Name string `form:"name" json:"name" xml:"name"`
+	// ID is a unique identifier for this particular occurrence of the problem.
+	ID string `form:"id" json:"id" xml:"id"`
+	// Message is a human-readable explanation specific to this occurrence of the
+	// problem.
+	Message string `form:"message" json:"message" xml:"message"`
+	// Is the error temporary?
+	Temporary bool `form:"temporary" json:"temporary" xml:"temporary"`
+	// Is the error a timeout?
+	Timeout bool `form:"timeout" json:"timeout" xml:"timeout"`
+	// Is the error a server-side fault?
+	Fault bool `form:"fault" json:"fault" xml:"fault"`
+}
+
+// DeleteLandscapeViewCompilationFailedResponseBody is the type of the
+// "DSLEditor" service "DeleteLandscapeView" endpoint HTTP response body for
+// the "compilation_failed" error.
+type DeleteLandscapeViewCompilationFailedResponseBody struct {
+	// Name is the name of this class of errors.
+	Name string `form:"name" json:"name" xml:"name"`
+	// ID is a unique identifier for this particular occurrence of the problem.
+	ID string `form:"id" json:"id" xml:"id"`
+	// Message is a human-readable explanation specific to this occurrence of the
+	// problem.
+	Message string `form:"message" json:"message" xml:"message"`
+	// Is the error temporary?
+	Temporary bool `form:"temporary" json:"temporary" xml:"temporary"`
+	// Is the error a timeout?
+	Timeout bool `form:"timeout" json:"timeout" xml:"timeout"`
+	// Is the error a server-side fault?
+	Fault bool `form:"fault" json:"fault" xml:"fault"`
+}
+
+// DeleteSystemContextViewNotFoundResponseBody is the type of the "DSLEditor"
+// service "DeleteSystemContextView" endpoint HTTP response body for the
+// "NotFound" error.
+type DeleteSystemContextViewNotFoundResponseBody struct {
+	// Name is the name of this class of errors.
+	Name string `form:"name" json:"name" xml:"name"`
+	// ID is a unique identifier for this particular occurrence of the problem.
+	ID string `form:"id" json:"id" xml:"id"`
+	// Message is a human-readable explanation specific to this occurrence of the
+	// problem.
+	Message string `form:"message" json:"message" xml:"message"`
+	// Is the error temporary?
+	Temporary bool `form:"temporary" json:"temporary" xml:"temporary"`
+	// Is the error a timeout?
+	Timeout bool `form:"timeout" json:"timeout" xml:"timeout"`
+	// Is the error a server-side fault?
+	Fault bool `form:"fault" json:"fault" xml:"fault"`
+}
+
+// DeleteSystemContextViewCompilationFailedResponseBody is the type of the
+// "DSLEditor" service "DeleteSystemContextView" endpoint HTTP response body
+// for the "compilation_failed" error.
+type DeleteSystemContextViewCompilationFailedResponseBody struct {
+	// Name is the name of this class of errors.
+	Name string `form:"name" json:"name" xml:"name"`
+	// ID is a unique identifier for this particular occurrence of the problem.
+	ID string `form:"id" json:"id" xml:"id"`
+	// Message is a human-readable explanation specific to this occurrence of the
+	// problem.
+	Message string `form:"message" json:"message" xml:"message"`
+	// Is the error temporary?
+	Temporary bool `form:"temporary" json:"temporary" xml:"temporary"`
+	// Is the error a timeout?
+	Timeout bool `form:"timeout" json:"timeout" xml:"timeout"`
+	// Is the error a server-side fault?
+	Fault bool `form:"fault" json:"fault" xml:"fault"`
+}
+
+// DeleteContainerViewNotFoundResponseBody is the type of the "DSLEditor"
+// service "DeleteContainerView" endpoint HTTP response body for the "NotFound"
+// error.
+type DeleteContainerViewNotFoundResponseBody struct {
+	// Name is the name of this class of errors.
+	Name string `form:"name" json:"name" xml:"name"`
+	// ID is a unique identifier for this particular occurrence of the problem.
+	ID string `form:"id" json:"id" xml:"id"`
+	// Message is a human-readable explanation specific to this occurrence of the
+	// problem.
+	Message string `form:"message" json:"message" xml:"message"`
+	// Is the error temporary?
+	Temporary bool `form:"temporary" json:"temporary" xml:"temporary"`
+	// Is the error a timeout?
+	Timeout bool `form:"timeout" json:"timeout" xml:"timeout"`
+	// Is the error a server-side fault?
+	Fault bool `form:"fault" json:"fault" xml:"fault"`
+}
+
+// DeleteContainerViewCompilationFailedResponseBody is the type of the
+// "DSLEditor" service "DeleteContainerView" endpoint HTTP response body for
+// the "compilation_failed" error.
+type DeleteContainerViewCompilationFailedResponseBody struct {
+	// Name is the name of this class of errors.
+	Name string `form:"name" json:"name" xml:"name"`
+	// ID is a unique identifier for this particular occurrence of the problem.
+	ID string `form:"id" json:"id" xml:"id"`
+	// Message is a human-readable explanation specific to this occurrence of the
+	// problem.
+	Message string `form:"message" json:"message" xml:"message"`
+	// Is the error temporary?
+	Temporary bool `form:"temporary" json:"temporary" xml:"temporary"`
+	// Is the error a timeout?
+	Timeout bool `form:"timeout" json:"timeout" xml:"timeout"`
+	// Is the error a server-side fault?
+	Fault bool `form:"fault" json:"fault" xml:"fault"`
+}
+
+// DeleteComponentViewNotFoundResponseBody is the type of the "DSLEditor"
+// service "DeleteComponentView" endpoint HTTP response body for the "NotFound"
+// error.
+type DeleteComponentViewNotFoundResponseBody struct {
+	// Name is the name of this class of errors.
+	Name string `form:"name" json:"name" xml:"name"`
+	// ID is a unique identifier for this particular occurrence of the problem.
+	ID string `form:"id" json:"id" xml:"id"`
+	// Message is a human-readable explanation specific to this occurrence of the
+	// problem.
+	Message string `form:"message" json:"message" xml:"message"`
+	// Is the error temporary?
+	Temporary bool `form:"temporary" json:"temporary" xml:"temporary"`
+	// Is the error a timeout?
+	Timeout bool `form:"timeout" json:"timeout" xml:"timeout"`
+	// Is the error a server-side fault?
+	Fault bool `form:"fault" json:"fault" xml:"fault"`
+}
+
+// DeleteComponentViewCompilationFailedResponseBody is the type of the
+// "DSLEditor" service "DeleteComponentView" endpoint HTTP response body for
+// the "compilation_failed" error.
+type DeleteComponentViewCompilationFailedResponseBody struct {
+	// Name is the name of this class of errors.
+	Name string `form:"name" json:"name" xml:"name"`
+	// ID is a unique identifier for this particular occurrence of the problem.
+	ID string `form:"id" json:"id" xml:"id"`
+	// Message is a human-readable explanation specific to this occurrence of the
+	// problem.
+	Message string `form:"message" json:"message" xml:"message"`
+	// Is the error temporary?
+	Temporary bool `form:"temporary" json:"temporary" xml:"temporary"`
+	// Is the error a timeout?
+	Timeout bool `form:"timeout" json:"timeout" xml:"timeout"`
+	// Is the error a server-side fault?
+	Fault bool `form:"fault" json:"fault" xml:"fault"`
+}
+
+// DeleteElementStyleNotFoundResponseBody is the type of the "DSLEditor"
+// service "DeleteElementStyle" endpoint HTTP response body for the "NotFound"
+// error.
+type DeleteElementStyleNotFoundResponseBody struct {
+	// Name is the name of this class of errors.
+	Name string `form:"name" json:"name" xml:"name"`
+	// ID is a unique identifier for this particular occurrence of the problem.
+	ID string `form:"id" json:"id" xml:"id"`
+	// Message is a human-readable explanation specific to this occurrence of the
+	// problem.
+	Message string `form:"message" json:"message" xml:"message"`
+	// Is the error temporary?
+	Temporary bool `form:"temporary" json:"temporary" xml:"temporary"`
+	// Is the error a timeout?
+	Timeout bool `form:"timeout" json:"timeout" xml:"timeout"`
+	// Is the error a server-side fault?
+	Fault bool `form:"fault" json:"fault" xml:"fault"`
+}
+
+// DeleteElementStyleCompilationFailedResponseBody is the type of the
+// "DSLEditor" service "DeleteElementStyle" endpoint HTTP response body for the
+// "compilation_failed" error.
+type DeleteElementStyleCompilationFailedResponseBody struct {
+	// Name is the name of this class of errors.
+	Name string `form:"name" json:"name" xml:"name"`
+	// ID is a unique identifier for this particular occurrence of the problem.
+	ID string `form:"id" json:"id" xml:"id"`
+	// Message is a human-readable explanation specific to this occurrence of the
+	// problem.
+	Message string `form:"message" json:"message" xml:"message"`
+	// Is the error temporary?
+	Temporary bool `form:"temporary" json:"temporary" xml:"temporary"`
+	// Is the error a timeout?
+	Timeout bool `form:"timeout" json:"timeout" xml:"timeout"`
+	// Is the error a server-side fault?
+	Fault bool `form:"fault" json:"fault" xml:"fault"`
+}
+
+// DeleteRelationshipStyleNotFoundResponseBody is the type of the "DSLEditor"
+// service "DeleteRelationshipStyle" endpoint HTTP response body for the
+// "NotFound" error.
+type DeleteRelationshipStyleNotFoundResponseBody struct {
+	// Name is the name of this class of errors.
+	Name string `form:"name" json:"name" xml:"name"`
+	// ID is a unique identifier for this particular occurrence of the problem.
+	ID string `form:"id" json:"id" xml:"id"`
+	// Message is a human-readable explanation specific to this occurrence of the
+	// problem.
+	Message string `form:"message" json:"message" xml:"message"`
+	// Is the error temporary?
+	Temporary bool `form:"temporary" json:"temporary" xml:"temporary"`
+	// Is the error a timeout?
+	Timeout bool `form:"timeout" json:"timeout" xml:"timeout"`
+	// Is the error a server-side fault?
+	Fault bool `form:"fault" json:"fault" xml:"fault"`
+}
+
+// DeleteRelationshipStyleCompilationFailedResponseBody is the type of the
+// "DSLEditor" service "DeleteRelationshipStyle" endpoint HTTP response body
+// for the "compilation_failed" error.
+type DeleteRelationshipStyleCompilationFailedResponseBody struct {
+	// Name is the name of this class of errors.
+	Name string `form:"name" json:"name" xml:"name"`
+	// ID is a unique identifier for this particular occurrence of the problem.
+	ID string `form:"id" json:"id" xml:"id"`
+	// Message is a human-readable explanation specific to this occurrence of the
+	// problem.
+	Message string `form:"message" json:"message" xml:"message"`
+	// Is the error temporary?
+	Temporary bool `form:"temporary" json:"temporary" xml:"temporary"`
+	// Is the error a timeout?
+	Timeout bool `form:"timeout" json:"timeout" xml:"timeout"`
+	// Is the error a server-side fault?
+	Fault bool `form:"fault" json:"fault" xml:"fault"`
+}
+
 // FileLocatorRequestBody is used to define fields on request body types.
 type FileLocatorRequestBody struct {
 	// Name of DSL file
 	Filename *string `form:"Filename,omitempty" json:"Filename,omitempty" xml:"Filename,omitempty"`
-	// Workspace identifier
-	Workspace *string `form:"Workspace,omitempty" json:"Workspace,omitempty" xml:"Workspace,omitempty"`
+	// Path to repository root
+	Repository *string `form:"Repository,omitempty" json:"Repository,omitempty" xml:"Repository,omitempty"`
 	// Path to directory containing a model package
 	Dir *string `form:"Dir,omitempty" json:"Dir,omitempty" xml:"Dir,omitempty"`
+}
+
+// ElementViewRequestBody is used to define fields on request body types.
+type ElementViewRequestBody struct {
+	// Path to element consisting of <software system name>[/<container
+	// name>[/<component name>]]
+	Element *string `form:"Element,omitempty" json:"Element,omitempty" xml:"Element,omitempty"`
+}
+
+// RelationshipViewRequestBody is used to define fields on request body types.
+type RelationshipViewRequestBody struct {
+	// Path to source element consisting of <software system name>[/<container
+	// name>[/<component name>]]
+	Source *string `form:"Source,omitempty" json:"Source,omitempty" xml:"Source,omitempty"`
+	// Path to destination element, see SourcePath for details.
+	Destination *string `form:"Destination,omitempty" json:"Destination,omitempty" xml:"Destination,omitempty"`
 }
 
 // NewUpdateDSLCompilationFailedResponseBody builds the HTTP response body from
@@ -577,6 +1153,96 @@ func NewUpsertComponentCompilationFailedResponseBody(res *goa.ServiceError) *Ups
 // service.
 func NewUpsertRelationshipCompilationFailedResponseBody(res *goa.ServiceError) *UpsertRelationshipCompilationFailedResponseBody {
 	body := &UpsertRelationshipCompilationFailedResponseBody{
+		Name:      res.Name,
+		ID:        res.ID,
+		Message:   res.Message,
+		Temporary: res.Temporary,
+		Timeout:   res.Timeout,
+		Fault:     res.Fault,
+	}
+	return body
+}
+
+// NewUpsertLandscapeViewCompilationFailedResponseBody builds the HTTP response
+// body from the result of the "UpsertLandscapeView" endpoint of the
+// "DSLEditor" service.
+func NewUpsertLandscapeViewCompilationFailedResponseBody(res *goa.ServiceError) *UpsertLandscapeViewCompilationFailedResponseBody {
+	body := &UpsertLandscapeViewCompilationFailedResponseBody{
+		Name:      res.Name,
+		ID:        res.ID,
+		Message:   res.Message,
+		Temporary: res.Temporary,
+		Timeout:   res.Timeout,
+		Fault:     res.Fault,
+	}
+	return body
+}
+
+// NewUpsertSystemContextViewCompilationFailedResponseBody builds the HTTP
+// response body from the result of the "UpsertSystemContextView" endpoint of
+// the "DSLEditor" service.
+func NewUpsertSystemContextViewCompilationFailedResponseBody(res *goa.ServiceError) *UpsertSystemContextViewCompilationFailedResponseBody {
+	body := &UpsertSystemContextViewCompilationFailedResponseBody{
+		Name:      res.Name,
+		ID:        res.ID,
+		Message:   res.Message,
+		Temporary: res.Temporary,
+		Timeout:   res.Timeout,
+		Fault:     res.Fault,
+	}
+	return body
+}
+
+// NewUpsertContainerViewCompilationFailedResponseBody builds the HTTP response
+// body from the result of the "UpsertContainerView" endpoint of the
+// "DSLEditor" service.
+func NewUpsertContainerViewCompilationFailedResponseBody(res *goa.ServiceError) *UpsertContainerViewCompilationFailedResponseBody {
+	body := &UpsertContainerViewCompilationFailedResponseBody{
+		Name:      res.Name,
+		ID:        res.ID,
+		Message:   res.Message,
+		Temporary: res.Temporary,
+		Timeout:   res.Timeout,
+		Fault:     res.Fault,
+	}
+	return body
+}
+
+// NewUpsertComponentViewCompilationFailedResponseBody builds the HTTP response
+// body from the result of the "UpsertComponentView" endpoint of the
+// "DSLEditor" service.
+func NewUpsertComponentViewCompilationFailedResponseBody(res *goa.ServiceError) *UpsertComponentViewCompilationFailedResponseBody {
+	body := &UpsertComponentViewCompilationFailedResponseBody{
+		Name:      res.Name,
+		ID:        res.ID,
+		Message:   res.Message,
+		Temporary: res.Temporary,
+		Timeout:   res.Timeout,
+		Fault:     res.Fault,
+	}
+	return body
+}
+
+// NewUpserElementStyleCompilationFailedResponseBody builds the HTTP response
+// body from the result of the "UpserElementStyle" endpoint of the "DSLEditor"
+// service.
+func NewUpserElementStyleCompilationFailedResponseBody(res *goa.ServiceError) *UpserElementStyleCompilationFailedResponseBody {
+	body := &UpserElementStyleCompilationFailedResponseBody{
+		Name:      res.Name,
+		ID:        res.ID,
+		Message:   res.Message,
+		Temporary: res.Temporary,
+		Timeout:   res.Timeout,
+		Fault:     res.Fault,
+	}
+	return body
+}
+
+// NewUpsertRelationshipStyleCompilationFailedResponseBody builds the HTTP
+// response body from the result of the "UpsertRelationshipStyle" endpoint of
+// the "DSLEditor" service.
+func NewUpsertRelationshipStyleCompilationFailedResponseBody(res *goa.ServiceError) *UpsertRelationshipStyleCompilationFailedResponseBody {
+	body := &UpsertRelationshipStyleCompilationFailedResponseBody{
 		Name:      res.Name,
 		ID:        res.ID,
 		Message:   res.Message,
@@ -720,6 +1386,185 @@ func NewDeleteRelationshipNotFoundResponseBody(res *goa.ServiceError) *DeleteRel
 // service.
 func NewDeleteRelationshipCompilationFailedResponseBody(res *goa.ServiceError) *DeleteRelationshipCompilationFailedResponseBody {
 	body := &DeleteRelationshipCompilationFailedResponseBody{
+		Name:      res.Name,
+		ID:        res.ID,
+		Message:   res.Message,
+		Temporary: res.Temporary,
+		Timeout:   res.Timeout,
+		Fault:     res.Fault,
+	}
+	return body
+}
+
+// NewDeleteLandscapeViewNotFoundResponseBody builds the HTTP response body
+// from the result of the "DeleteLandscapeView" endpoint of the "DSLEditor"
+// service.
+func NewDeleteLandscapeViewNotFoundResponseBody(res *goa.ServiceError) *DeleteLandscapeViewNotFoundResponseBody {
+	body := &DeleteLandscapeViewNotFoundResponseBody{
+		Name:      res.Name,
+		ID:        res.ID,
+		Message:   res.Message,
+		Temporary: res.Temporary,
+		Timeout:   res.Timeout,
+		Fault:     res.Fault,
+	}
+	return body
+}
+
+// NewDeleteLandscapeViewCompilationFailedResponseBody builds the HTTP response
+// body from the result of the "DeleteLandscapeView" endpoint of the
+// "DSLEditor" service.
+func NewDeleteLandscapeViewCompilationFailedResponseBody(res *goa.ServiceError) *DeleteLandscapeViewCompilationFailedResponseBody {
+	body := &DeleteLandscapeViewCompilationFailedResponseBody{
+		Name:      res.Name,
+		ID:        res.ID,
+		Message:   res.Message,
+		Temporary: res.Temporary,
+		Timeout:   res.Timeout,
+		Fault:     res.Fault,
+	}
+	return body
+}
+
+// NewDeleteSystemContextViewNotFoundResponseBody builds the HTTP response body
+// from the result of the "DeleteSystemContextView" endpoint of the "DSLEditor"
+// service.
+func NewDeleteSystemContextViewNotFoundResponseBody(res *goa.ServiceError) *DeleteSystemContextViewNotFoundResponseBody {
+	body := &DeleteSystemContextViewNotFoundResponseBody{
+		Name:      res.Name,
+		ID:        res.ID,
+		Message:   res.Message,
+		Temporary: res.Temporary,
+		Timeout:   res.Timeout,
+		Fault:     res.Fault,
+	}
+	return body
+}
+
+// NewDeleteSystemContextViewCompilationFailedResponseBody builds the HTTP
+// response body from the result of the "DeleteSystemContextView" endpoint of
+// the "DSLEditor" service.
+func NewDeleteSystemContextViewCompilationFailedResponseBody(res *goa.ServiceError) *DeleteSystemContextViewCompilationFailedResponseBody {
+	body := &DeleteSystemContextViewCompilationFailedResponseBody{
+		Name:      res.Name,
+		ID:        res.ID,
+		Message:   res.Message,
+		Temporary: res.Temporary,
+		Timeout:   res.Timeout,
+		Fault:     res.Fault,
+	}
+	return body
+}
+
+// NewDeleteContainerViewNotFoundResponseBody builds the HTTP response body
+// from the result of the "DeleteContainerView" endpoint of the "DSLEditor"
+// service.
+func NewDeleteContainerViewNotFoundResponseBody(res *goa.ServiceError) *DeleteContainerViewNotFoundResponseBody {
+	body := &DeleteContainerViewNotFoundResponseBody{
+		Name:      res.Name,
+		ID:        res.ID,
+		Message:   res.Message,
+		Temporary: res.Temporary,
+		Timeout:   res.Timeout,
+		Fault:     res.Fault,
+	}
+	return body
+}
+
+// NewDeleteContainerViewCompilationFailedResponseBody builds the HTTP response
+// body from the result of the "DeleteContainerView" endpoint of the
+// "DSLEditor" service.
+func NewDeleteContainerViewCompilationFailedResponseBody(res *goa.ServiceError) *DeleteContainerViewCompilationFailedResponseBody {
+	body := &DeleteContainerViewCompilationFailedResponseBody{
+		Name:      res.Name,
+		ID:        res.ID,
+		Message:   res.Message,
+		Temporary: res.Temporary,
+		Timeout:   res.Timeout,
+		Fault:     res.Fault,
+	}
+	return body
+}
+
+// NewDeleteComponentViewNotFoundResponseBody builds the HTTP response body
+// from the result of the "DeleteComponentView" endpoint of the "DSLEditor"
+// service.
+func NewDeleteComponentViewNotFoundResponseBody(res *goa.ServiceError) *DeleteComponentViewNotFoundResponseBody {
+	body := &DeleteComponentViewNotFoundResponseBody{
+		Name:      res.Name,
+		ID:        res.ID,
+		Message:   res.Message,
+		Temporary: res.Temporary,
+		Timeout:   res.Timeout,
+		Fault:     res.Fault,
+	}
+	return body
+}
+
+// NewDeleteComponentViewCompilationFailedResponseBody builds the HTTP response
+// body from the result of the "DeleteComponentView" endpoint of the
+// "DSLEditor" service.
+func NewDeleteComponentViewCompilationFailedResponseBody(res *goa.ServiceError) *DeleteComponentViewCompilationFailedResponseBody {
+	body := &DeleteComponentViewCompilationFailedResponseBody{
+		Name:      res.Name,
+		ID:        res.ID,
+		Message:   res.Message,
+		Temporary: res.Temporary,
+		Timeout:   res.Timeout,
+		Fault:     res.Fault,
+	}
+	return body
+}
+
+// NewDeleteElementStyleNotFoundResponseBody builds the HTTP response body from
+// the result of the "DeleteElementStyle" endpoint of the "DSLEditor" service.
+func NewDeleteElementStyleNotFoundResponseBody(res *goa.ServiceError) *DeleteElementStyleNotFoundResponseBody {
+	body := &DeleteElementStyleNotFoundResponseBody{
+		Name:      res.Name,
+		ID:        res.ID,
+		Message:   res.Message,
+		Temporary: res.Temporary,
+		Timeout:   res.Timeout,
+		Fault:     res.Fault,
+	}
+	return body
+}
+
+// NewDeleteElementStyleCompilationFailedResponseBody builds the HTTP response
+// body from the result of the "DeleteElementStyle" endpoint of the "DSLEditor"
+// service.
+func NewDeleteElementStyleCompilationFailedResponseBody(res *goa.ServiceError) *DeleteElementStyleCompilationFailedResponseBody {
+	body := &DeleteElementStyleCompilationFailedResponseBody{
+		Name:      res.Name,
+		ID:        res.ID,
+		Message:   res.Message,
+		Temporary: res.Temporary,
+		Timeout:   res.Timeout,
+		Fault:     res.Fault,
+	}
+	return body
+}
+
+// NewDeleteRelationshipStyleNotFoundResponseBody builds the HTTP response body
+// from the result of the "DeleteRelationshipStyle" endpoint of the "DSLEditor"
+// service.
+func NewDeleteRelationshipStyleNotFoundResponseBody(res *goa.ServiceError) *DeleteRelationshipStyleNotFoundResponseBody {
+	body := &DeleteRelationshipStyleNotFoundResponseBody{
+		Name:      res.Name,
+		ID:        res.ID,
+		Message:   res.Message,
+		Temporary: res.Temporary,
+		Timeout:   res.Timeout,
+		Fault:     res.Fault,
+	}
+	return body
+}
+
+// NewDeleteRelationshipStyleCompilationFailedResponseBody builds the HTTP
+// response body from the result of the "DeleteRelationshipStyle" endpoint of
+// the "DSLEditor" service.
+func NewDeleteRelationshipStyleCompilationFailedResponseBody(res *goa.ServiceError) *DeleteRelationshipStyleCompilationFailedResponseBody {
+	body := &DeleteRelationshipStyleCompilationFailedResponseBody{
 		Name:      res.Name,
 		ID:        res.ID,
 		Message:   res.Message,
@@ -903,13 +1748,219 @@ func NewUpsertRelationshipRelationship(body *UpsertRelationshipRequestBody) *dsl
 	return v
 }
 
+// NewUpsertLandscapeViewLandscapeView builds a DSLEditor service
+// UpsertLandscapeView endpoint payload.
+func NewUpsertLandscapeViewLandscapeView(body *UpsertLandscapeViewRequestBody) *dsleditor.LandscapeView {
+	v := &dsleditor.LandscapeView{
+		Key:         *body.Key,
+		Title:       *body.Title,
+		Description: body.Description,
+		PaperSize:   body.PaperSize,
+	}
+	if body.EnterpriseBoundaryVisible != nil {
+		v.EnterpriseBoundaryVisible = *body.EnterpriseBoundaryVisible
+	}
+	if body.EnterpriseBoundaryVisible == nil {
+		v.EnterpriseBoundaryVisible = true
+	}
+	if body.Locator != nil {
+		v.Locator = unmarshalFileLocatorRequestBodyToTypesFileLocator(body.Locator)
+	}
+	if body.ElementViews != nil {
+		v.ElementViews = make([]*dsleditor.ElementView, len(body.ElementViews))
+		for i, val := range body.ElementViews {
+			v.ElementViews[i] = unmarshalElementViewRequestBodyToDsleditorElementView(val)
+		}
+	}
+	if body.RelationshipViews != nil {
+		v.RelationshipViews = make([]*dsleditor.RelationshipView, len(body.RelationshipViews))
+		for i, val := range body.RelationshipViews {
+			v.RelationshipViews[i] = unmarshalRelationshipViewRequestBodyToDsleditorRelationshipView(val)
+		}
+	}
+
+	return v
+}
+
+// NewUpsertSystemContextViewSystemContextView builds a DSLEditor service
+// UpsertSystemContextView endpoint payload.
+func NewUpsertSystemContextViewSystemContextView(body *UpsertSystemContextViewRequestBody) *dsleditor.SystemContextView {
+	v := &dsleditor.SystemContextView{
+		SoftwareSystemName: *body.SoftwareSystemName,
+		Key:                *body.Key,
+		Title:              *body.Title,
+		Description:        body.Description,
+		PaperSize:          body.PaperSize,
+	}
+	if body.EnterpriseBoundaryVisible != nil {
+		v.EnterpriseBoundaryVisible = *body.EnterpriseBoundaryVisible
+	}
+	if body.EnterpriseBoundaryVisible == nil {
+		v.EnterpriseBoundaryVisible = true
+	}
+	if body.Locator != nil {
+		v.Locator = unmarshalFileLocatorRequestBodyToTypesFileLocator(body.Locator)
+	}
+	if body.ElementViews != nil {
+		v.ElementViews = make([]*dsleditor.ElementView, len(body.ElementViews))
+		for i, val := range body.ElementViews {
+			v.ElementViews[i] = unmarshalElementViewRequestBodyToDsleditorElementView(val)
+		}
+	}
+	if body.RelationshipViews != nil {
+		v.RelationshipViews = make([]*dsleditor.RelationshipView, len(body.RelationshipViews))
+		for i, val := range body.RelationshipViews {
+			v.RelationshipViews[i] = unmarshalRelationshipViewRequestBodyToDsleditorRelationshipView(val)
+		}
+	}
+
+	return v
+}
+
+// NewUpsertContainerViewContainerView builds a DSLEditor service
+// UpsertContainerView endpoint payload.
+func NewUpsertContainerViewContainerView(body *UpsertContainerViewRequestBody) *dsleditor.ContainerView {
+	v := &dsleditor.ContainerView{
+		SoftwareSystemName: body.SoftwareSystemName,
+		Key:                *body.Key,
+		Title:              *body.Title,
+		Description:        body.Description,
+		PaperSize:          body.PaperSize,
+	}
+	if body.SystemBoundariesVisible != nil {
+		v.SystemBoundariesVisible = *body.SystemBoundariesVisible
+	}
+	if body.SystemBoundariesVisible == nil {
+		v.SystemBoundariesVisible = true
+	}
+	if body.Locator != nil {
+		v.Locator = unmarshalFileLocatorRequestBodyToTypesFileLocator(body.Locator)
+	}
+	if body.ElementViews != nil {
+		v.ElementViews = make([]*dsleditor.ElementView, len(body.ElementViews))
+		for i, val := range body.ElementViews {
+			v.ElementViews[i] = unmarshalElementViewRequestBodyToDsleditorElementView(val)
+		}
+	}
+	if body.RelationshipViews != nil {
+		v.RelationshipViews = make([]*dsleditor.RelationshipView, len(body.RelationshipViews))
+		for i, val := range body.RelationshipViews {
+			v.RelationshipViews[i] = unmarshalRelationshipViewRequestBodyToDsleditorRelationshipView(val)
+		}
+	}
+
+	return v
+}
+
+// NewUpsertComponentViewComponentView builds a DSLEditor service
+// UpsertComponentView endpoint payload.
+func NewUpsertComponentViewComponentView(body *UpsertComponentViewRequestBody) *dsleditor.ComponentView {
+	v := &dsleditor.ComponentView{
+		SoftwareSystemName: *body.SoftwareSystemName,
+		ContainerName:      *body.ContainerName,
+		Key:                *body.Key,
+		Title:              *body.Title,
+		Description:        body.Description,
+		PaperSize:          body.PaperSize,
+	}
+	if body.ContainerBoundariesVisible != nil {
+		v.ContainerBoundariesVisible = *body.ContainerBoundariesVisible
+	}
+	if body.ContainerBoundariesVisible == nil {
+		v.ContainerBoundariesVisible = true
+	}
+	if body.Locator != nil {
+		v.Locator = unmarshalFileLocatorRequestBodyToTypesFileLocator(body.Locator)
+	}
+	if body.ElementViews != nil {
+		v.ElementViews = make([]*dsleditor.ElementView, len(body.ElementViews))
+		for i, val := range body.ElementViews {
+			v.ElementViews[i] = unmarshalElementViewRequestBodyToDsleditorElementView(val)
+		}
+	}
+	if body.RelationshipViews != nil {
+		v.RelationshipViews = make([]*dsleditor.RelationshipView, len(body.RelationshipViews))
+		for i, val := range body.RelationshipViews {
+			v.RelationshipViews[i] = unmarshalRelationshipViewRequestBodyToDsleditorRelationshipView(val)
+		}
+	}
+
+	return v
+}
+
+// NewUpserElementStyleElementStyle builds a DSLEditor service
+// UpserElementStyle endpoint payload.
+func NewUpserElementStyleElementStyle(body *UpserElementStyleRequestBody) *dsleditor.ElementStyle {
+	v := &dsleditor.ElementStyle{
+		Tag:        *body.Tag,
+		Icon:       body.Icon,
+		Background: body.Background,
+		Color:      body.Color,
+		Stroke:     body.Stroke,
+		Width:      body.Width,
+		Height:     body.Height,
+		FontSize:   body.FontSize,
+		Metadata:   body.Metadata,
+		Opacity:    body.Opacity,
+	}
+	if body.Shape != nil {
+		v.Shape = *body.Shape
+	}
+	if body.Description != nil {
+		v.Description = *body.Description
+	}
+	if body.Border != nil {
+		v.Border = *body.Border
+	}
+	if body.Shape == nil {
+		v.Shape = "ShapeBox"
+	}
+	if body.Description == nil {
+		v.Description = true
+	}
+	if body.Border == nil {
+		v.Border = "BorderSolid"
+	}
+
+	return v
+}
+
+// NewUpsertRelationshipStyleRelationshipStyle builds a DSLEditor service
+// UpsertRelationshipStyle endpoint payload.
+func NewUpsertRelationshipStyleRelationshipStyle(body *UpsertRelationshipStyleRequestBody) *dsleditor.RelationshipStyle {
+	v := &dsleditor.RelationshipStyle{
+		Tag:       *body.Tag,
+		Thickness: body.Thickness,
+		FontSize:  body.FontSize,
+		Width:     body.Width,
+		Position:  body.Position,
+		Color:     body.Color,
+		Stroke:    body.Stroke,
+		Opacity:   body.Opacity,
+	}
+	if body.Dashed != nil {
+		v.Dashed = *body.Dashed
+	}
+	if body.Routing != nil {
+		v.Routing = *body.Routing
+	}
+	if body.Dashed == nil {
+		v.Dashed = true
+	}
+	if body.Routing == nil {
+		v.Routing = "Direct"
+	}
+
+	return v
+}
+
 // NewDeleteSystemPayload builds a DSLEditor service DeleteSystem endpoint
 // payload.
 func NewDeleteSystemPayload(body *DeleteSystemRequestBody, systemName string) *dsleditor.DeleteSystemPayload {
 	v := &dsleditor.DeleteSystemPayload{
-		Filename:  *body.Filename,
-		Workspace: *body.Workspace,
-		Dir:       *body.Dir,
+		Filename:   *body.Filename,
+		Repository: *body.Repository,
+		Dir:        *body.Dir,
 	}
 	v.SystemName = systemName
 
@@ -920,9 +1971,9 @@ func NewDeleteSystemPayload(body *DeleteSystemRequestBody, systemName string) *d
 // payload.
 func NewDeletePersonPayload(body *DeletePersonRequestBody, personName string) *dsleditor.DeletePersonPayload {
 	v := &dsleditor.DeletePersonPayload{
-		Filename:  *body.Filename,
-		Workspace: *body.Workspace,
-		Dir:       *body.Dir,
+		Filename:   *body.Filename,
+		Repository: *body.Repository,
+		Dir:        *body.Dir,
 	}
 	v.PersonName = personName
 
@@ -933,9 +1984,9 @@ func NewDeletePersonPayload(body *DeletePersonRequestBody, personName string) *d
 // endpoint payload.
 func NewDeleteContainerPayload(body *DeleteContainerRequestBody, systemName string, containerName string) *dsleditor.DeleteContainerPayload {
 	v := &dsleditor.DeleteContainerPayload{
-		Filename:  *body.Filename,
-		Workspace: *body.Workspace,
-		Dir:       *body.Dir,
+		Filename:   *body.Filename,
+		Repository: *body.Repository,
+		Dir:        *body.Dir,
 	}
 	v.SystemName = &systemName
 	v.ContainerName = containerName
@@ -947,9 +1998,9 @@ func NewDeleteContainerPayload(body *DeleteContainerRequestBody, systemName stri
 // endpoint payload.
 func NewDeleteComponentPayload(body *DeleteComponentRequestBody, systemName string, containerName string, componentName string) *dsleditor.DeleteComponentPayload {
 	v := &dsleditor.DeleteComponentPayload{
-		Filename:  *body.Filename,
-		Workspace: *body.Workspace,
-		Dir:       *body.Dir,
+		Filename:   *body.Filename,
+		Repository: *body.Repository,
+		Dir:        *body.Dir,
 	}
 	v.SystemName = systemName
 	v.ContainerName = containerName
@@ -965,9 +2016,87 @@ func NewDeleteRelationshipPayload(body *DeleteRelationshipRequestBody) *dsledito
 		SourcePath:      *body.SourcePath,
 		DestinationPath: *body.DestinationPath,
 		Filename:        *body.Filename,
-		Workspace:       *body.Workspace,
+		Repository:      *body.Repository,
 		Dir:             *body.Dir,
 	}
+
+	return v
+}
+
+// NewDeleteLandscapeViewPayload builds a DSLEditor service DeleteLandscapeView
+// endpoint payload.
+func NewDeleteLandscapeViewPayload(body *DeleteLandscapeViewRequestBody, key string) *dsleditor.DeleteLandscapeViewPayload {
+	v := &dsleditor.DeleteLandscapeViewPayload{
+		Filename:   *body.Filename,
+		Repository: *body.Repository,
+		Dir:        *body.Dir,
+	}
+	v.Key = key
+
+	return v
+}
+
+// NewDeleteSystemContextViewPayload builds a DSLEditor service
+// DeleteSystemContextView endpoint payload.
+func NewDeleteSystemContextViewPayload(body *DeleteSystemContextViewRequestBody, key string) *dsleditor.DeleteSystemContextViewPayload {
+	v := &dsleditor.DeleteSystemContextViewPayload{
+		Filename:   *body.Filename,
+		Repository: *body.Repository,
+		Dir:        *body.Dir,
+	}
+	v.Key = key
+
+	return v
+}
+
+// NewDeleteContainerViewPayload builds a DSLEditor service DeleteContainerView
+// endpoint payload.
+func NewDeleteContainerViewPayload(body *DeleteContainerViewRequestBody, key string) *dsleditor.DeleteContainerViewPayload {
+	v := &dsleditor.DeleteContainerViewPayload{
+		Filename:   *body.Filename,
+		Repository: *body.Repository,
+		Dir:        *body.Dir,
+	}
+	v.Key = key
+
+	return v
+}
+
+// NewDeleteComponentViewPayload builds a DSLEditor service DeleteComponentView
+// endpoint payload.
+func NewDeleteComponentViewPayload(body *DeleteComponentViewRequestBody, key string) *dsleditor.DeleteComponentViewPayload {
+	v := &dsleditor.DeleteComponentViewPayload{
+		Filename:   *body.Filename,
+		Repository: *body.Repository,
+		Dir:        *body.Dir,
+	}
+	v.Key = key
+
+	return v
+}
+
+// NewDeleteElementStylePayload builds a DSLEditor service DeleteElementStyle
+// endpoint payload.
+func NewDeleteElementStylePayload(body *DeleteElementStyleRequestBody, tag string) *dsleditor.DeleteElementStylePayload {
+	v := &dsleditor.DeleteElementStylePayload{
+		Filename:   *body.Filename,
+		Repository: *body.Repository,
+		Dir:        *body.Dir,
+	}
+	v.Tag = tag
+
+	return v
+}
+
+// NewDeleteRelationshipStylePayload builds a DSLEditor service
+// DeleteRelationshipStyle endpoint payload.
+func NewDeleteRelationshipStylePayload(body *DeleteRelationshipStyleRequestBody, tag string) *dsleditor.DeleteRelationshipStylePayload {
+	v := &dsleditor.DeleteRelationshipStylePayload{
+		Filename:   *body.Filename,
+		Repository: *body.Repository,
+		Dir:        *body.Dir,
+	}
+	v.Tag = tag
 
 	return v
 }
@@ -1097,14 +2226,222 @@ func ValidateUpsertRelationshipRequestBody(body *UpsertRelationshipRequestBody) 
 	return
 }
 
+// ValidateUpsertLandscapeViewRequestBody runs the validations defined on
+// UpsertLandscapeViewRequestBody
+func ValidateUpsertLandscapeViewRequestBody(body *UpsertLandscapeViewRequestBody) (err error) {
+	if body.Key == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Key", "body"))
+	}
+	if body.Title == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Title", "body"))
+	}
+	if body.Locator != nil {
+		if err2 := ValidateFileLocatorRequestBody(body.Locator); err2 != nil {
+			err = goa.MergeErrors(err, err2)
+		}
+	}
+	if body.PaperSize != nil {
+		if !(*body.PaperSize == "A0_Landscape" || *body.PaperSize == "A0_Portrait" || *body.PaperSize == "A1_Landscape" || *body.PaperSize == "A1_Portrait" || *body.PaperSize == "A2_Landscape" || *body.PaperSize == "A2_Portrait" || *body.PaperSize == "A3_Landscape" || *body.PaperSize == "A3_Portrait" || *body.PaperSize == "A4_Landscape" || *body.PaperSize == "A4_Portrait" || *body.PaperSize == "A5_Landscape" || *body.PaperSize == "A5_Portrait" || *body.PaperSize == "A6_Landscape" || *body.PaperSize == "A6_Portrait" || *body.PaperSize == "Legal_Landscape" || *body.PaperSize == "Legal_Portrait" || *body.PaperSize == "Letter_Landscape" || *body.PaperSize == "Letter_Portrait" || *body.PaperSize == "Slide_16x10" || *body.PaperSize == "Slide_16x9" || *body.PaperSize == "Slide_4x3") {
+			err = goa.MergeErrors(err, goa.InvalidEnumValueError("body.PaperSize", *body.PaperSize, []any{"A0_Landscape", "A0_Portrait", "A1_Landscape", "A1_Portrait", "A2_Landscape", "A2_Portrait", "A3_Landscape", "A3_Portrait", "A4_Landscape", "A4_Portrait", "A5_Landscape", "A5_Portrait", "A6_Landscape", "A6_Portrait", "Legal_Landscape", "Legal_Portrait", "Letter_Landscape", "Letter_Portrait", "Slide_16x10", "Slide_16x9", "Slide_4x3"}))
+		}
+	}
+	return
+}
+
+// ValidateUpsertSystemContextViewRequestBody runs the validations defined on
+// UpsertSystemContextViewRequestBody
+func ValidateUpsertSystemContextViewRequestBody(body *UpsertSystemContextViewRequestBody) (err error) {
+	if body.SoftwareSystemName == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("SoftwareSystemName", "body"))
+	}
+	if body.Key == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Key", "body"))
+	}
+	if body.Title == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Title", "body"))
+	}
+	if body.Locator != nil {
+		if err2 := ValidateFileLocatorRequestBody(body.Locator); err2 != nil {
+			err = goa.MergeErrors(err, err2)
+		}
+	}
+	if body.PaperSize != nil {
+		if !(*body.PaperSize == "A0_Landscape" || *body.PaperSize == "A0_Portrait" || *body.PaperSize == "A1_Landscape" || *body.PaperSize == "A1_Portrait" || *body.PaperSize == "A2_Landscape" || *body.PaperSize == "A2_Portrait" || *body.PaperSize == "A3_Landscape" || *body.PaperSize == "A3_Portrait" || *body.PaperSize == "A4_Landscape" || *body.PaperSize == "A4_Portrait" || *body.PaperSize == "A5_Landscape" || *body.PaperSize == "A5_Portrait" || *body.PaperSize == "A6_Landscape" || *body.PaperSize == "A6_Portrait" || *body.PaperSize == "Legal_Landscape" || *body.PaperSize == "Legal_Portrait" || *body.PaperSize == "Letter_Landscape" || *body.PaperSize == "Letter_Portrait" || *body.PaperSize == "Slide_16x10" || *body.PaperSize == "Slide_16x9" || *body.PaperSize == "Slide_4x3") {
+			err = goa.MergeErrors(err, goa.InvalidEnumValueError("body.PaperSize", *body.PaperSize, []any{"A0_Landscape", "A0_Portrait", "A1_Landscape", "A1_Portrait", "A2_Landscape", "A2_Portrait", "A3_Landscape", "A3_Portrait", "A4_Landscape", "A4_Portrait", "A5_Landscape", "A5_Portrait", "A6_Landscape", "A6_Portrait", "Legal_Landscape", "Legal_Portrait", "Letter_Landscape", "Letter_Portrait", "Slide_16x10", "Slide_16x9", "Slide_4x3"}))
+		}
+	}
+	return
+}
+
+// ValidateUpsertContainerViewRequestBody runs the validations defined on
+// UpsertContainerViewRequestBody
+func ValidateUpsertContainerViewRequestBody(body *UpsertContainerViewRequestBody) (err error) {
+	if body.Key == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Key", "body"))
+	}
+	if body.Title == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Title", "body"))
+	}
+	if body.Locator != nil {
+		if err2 := ValidateFileLocatorRequestBody(body.Locator); err2 != nil {
+			err = goa.MergeErrors(err, err2)
+		}
+	}
+	if body.PaperSize != nil {
+		if !(*body.PaperSize == "A0_Landscape" || *body.PaperSize == "A0_Portrait" || *body.PaperSize == "A1_Landscape" || *body.PaperSize == "A1_Portrait" || *body.PaperSize == "A2_Landscape" || *body.PaperSize == "A2_Portrait" || *body.PaperSize == "A3_Landscape" || *body.PaperSize == "A3_Portrait" || *body.PaperSize == "A4_Landscape" || *body.PaperSize == "A4_Portrait" || *body.PaperSize == "A5_Landscape" || *body.PaperSize == "A5_Portrait" || *body.PaperSize == "A6_Landscape" || *body.PaperSize == "A6_Portrait" || *body.PaperSize == "Legal_Landscape" || *body.PaperSize == "Legal_Portrait" || *body.PaperSize == "Letter_Landscape" || *body.PaperSize == "Letter_Portrait" || *body.PaperSize == "Slide_16x10" || *body.PaperSize == "Slide_16x9" || *body.PaperSize == "Slide_4x3") {
+			err = goa.MergeErrors(err, goa.InvalidEnumValueError("body.PaperSize", *body.PaperSize, []any{"A0_Landscape", "A0_Portrait", "A1_Landscape", "A1_Portrait", "A2_Landscape", "A2_Portrait", "A3_Landscape", "A3_Portrait", "A4_Landscape", "A4_Portrait", "A5_Landscape", "A5_Portrait", "A6_Landscape", "A6_Portrait", "Legal_Landscape", "Legal_Portrait", "Letter_Landscape", "Letter_Portrait", "Slide_16x10", "Slide_16x9", "Slide_4x3"}))
+		}
+	}
+	return
+}
+
+// ValidateUpsertComponentViewRequestBody runs the validations defined on
+// UpsertComponentViewRequestBody
+func ValidateUpsertComponentViewRequestBody(body *UpsertComponentViewRequestBody) (err error) {
+	if body.SoftwareSystemName == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("SoftwareSystemName", "body"))
+	}
+	if body.ContainerName == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("ContainerName", "body"))
+	}
+	if body.Key == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Key", "body"))
+	}
+	if body.Title == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Title", "body"))
+	}
+	if body.Locator != nil {
+		if err2 := ValidateFileLocatorRequestBody(body.Locator); err2 != nil {
+			err = goa.MergeErrors(err, err2)
+		}
+	}
+	if body.PaperSize != nil {
+		if !(*body.PaperSize == "A0_Landscape" || *body.PaperSize == "A0_Portrait" || *body.PaperSize == "A1_Landscape" || *body.PaperSize == "A1_Portrait" || *body.PaperSize == "A2_Landscape" || *body.PaperSize == "A2_Portrait" || *body.PaperSize == "A3_Landscape" || *body.PaperSize == "A3_Portrait" || *body.PaperSize == "A4_Landscape" || *body.PaperSize == "A4_Portrait" || *body.PaperSize == "A5_Landscape" || *body.PaperSize == "A5_Portrait" || *body.PaperSize == "A6_Landscape" || *body.PaperSize == "A6_Portrait" || *body.PaperSize == "Legal_Landscape" || *body.PaperSize == "Legal_Portrait" || *body.PaperSize == "Letter_Landscape" || *body.PaperSize == "Letter_Portrait" || *body.PaperSize == "Slide_16x10" || *body.PaperSize == "Slide_16x9" || *body.PaperSize == "Slide_4x3") {
+			err = goa.MergeErrors(err, goa.InvalidEnumValueError("body.PaperSize", *body.PaperSize, []any{"A0_Landscape", "A0_Portrait", "A1_Landscape", "A1_Portrait", "A2_Landscape", "A2_Portrait", "A3_Landscape", "A3_Portrait", "A4_Landscape", "A4_Portrait", "A5_Landscape", "A5_Portrait", "A6_Landscape", "A6_Portrait", "Legal_Landscape", "Legal_Portrait", "Letter_Landscape", "Letter_Portrait", "Slide_16x10", "Slide_16x9", "Slide_4x3"}))
+		}
+	}
+	return
+}
+
+// ValidateUpserElementStyleRequestBody runs the validations defined on
+// UpserElementStyleRequestBody
+func ValidateUpserElementStyleRequestBody(body *UpserElementStyleRequestBody) (err error) {
+	if body.Tag == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Tag", "body"))
+	}
+	if body.Shape != nil {
+		if !(*body.Shape == "ShapeBox" || *body.Shape == "ShapeCircle" || *body.Shape == "ShapeCylinder" || *body.Shape == "ShapeEllipse" || *body.Shape == "ShapeHexagon" || *body.Shape == "ShapeRoundedBox" || *body.Shape == "ShapeComponent" || *body.Shape == "ShapeFolder" || *body.Shape == "ShapeMobileDeviceLandscape" || *body.Shape == "ShapeMobileDevicePortrait" || *body.Shape == "ShapePerson" || *body.Shape == "ShapePipe" || *body.Shape == "ShapeRobot" || *body.Shape == "ShapeWebBrowser") {
+			err = goa.MergeErrors(err, goa.InvalidEnumValueError("body.Shape", *body.Shape, []any{"ShapeBox", "ShapeCircle", "ShapeCylinder", "ShapeEllipse", "ShapeHexagon", "ShapeRoundedBox", "ShapeComponent", "ShapeFolder", "ShapeMobileDeviceLandscape", "ShapeMobileDevicePortrait", "ShapePerson", "ShapePipe", "ShapeRobot", "ShapeWebBrowser"}))
+		}
+	}
+	if body.Icon != nil {
+		err = goa.MergeErrors(err, goa.ValidateFormat("body.Icon", *body.Icon, goa.FormatURI))
+	}
+	if body.Background != nil {
+		err = goa.MergeErrors(err, goa.ValidatePattern("body.Background", *body.Background, "^#[0-9a-fA-F]{6}$"))
+	}
+	if body.Color != nil {
+		err = goa.MergeErrors(err, goa.ValidatePattern("body.Color", *body.Color, "^#[0-9a-fA-F]{6}$"))
+	}
+	if body.Stroke != nil {
+		err = goa.MergeErrors(err, goa.ValidatePattern("body.Stroke", *body.Stroke, "^#[0-9a-fA-F]{6}$"))
+	}
+	if body.Opacity != nil {
+		if *body.Opacity < 0 {
+			err = goa.MergeErrors(err, goa.InvalidRangeError("body.Opacity", *body.Opacity, 0, true))
+		}
+	}
+	if body.Opacity != nil {
+		if *body.Opacity > 100 {
+			err = goa.MergeErrors(err, goa.InvalidRangeError("body.Opacity", *body.Opacity, 100, false))
+		}
+	}
+	if body.Border != nil {
+		if !(*body.Border == "BorderSolid" || *body.Border == "BorderDashed" || *body.Border == "BorderDotted") {
+			err = goa.MergeErrors(err, goa.InvalidEnumValueError("body.Border", *body.Border, []any{"BorderSolid", "BorderDashed", "BorderDotted"}))
+		}
+	}
+	return
+}
+
+// ValidateUpsertRelationshipStyleRequestBody runs the validations defined on
+// UpsertRelationshipStyleRequestBody
+func ValidateUpsertRelationshipStyleRequestBody(body *UpsertRelationshipStyleRequestBody) (err error) {
+	if body.Tag == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Tag", "body"))
+	}
+	if body.Thickness != nil {
+		if *body.Thickness < 0 {
+			err = goa.MergeErrors(err, goa.InvalidRangeError("body.Thickness", *body.Thickness, 0, true))
+		}
+	}
+	if body.Thickness != nil {
+		if *body.Thickness > 1000 {
+			err = goa.MergeErrors(err, goa.InvalidRangeError("body.Thickness", *body.Thickness, 1000, false))
+		}
+	}
+	if body.FontSize != nil {
+		if *body.FontSize < 1 {
+			err = goa.MergeErrors(err, goa.InvalidRangeError("body.FontSize", *body.FontSize, 1, true))
+		}
+	}
+	if body.FontSize != nil {
+		if *body.FontSize > 100 {
+			err = goa.MergeErrors(err, goa.InvalidRangeError("body.FontSize", *body.FontSize, 100, false))
+		}
+	}
+	if body.Width != nil {
+		if *body.Width < 1 {
+			err = goa.MergeErrors(err, goa.InvalidRangeError("body.Width", *body.Width, 1, true))
+		}
+	}
+	if body.Width != nil {
+		if *body.Width > 10000 {
+			err = goa.MergeErrors(err, goa.InvalidRangeError("body.Width", *body.Width, 10000, false))
+		}
+	}
+	if body.Position != nil {
+		if *body.Position < 0 {
+			err = goa.MergeErrors(err, goa.InvalidRangeError("body.Position", *body.Position, 0, true))
+		}
+	}
+	if body.Position != nil {
+		if *body.Position > 100 {
+			err = goa.MergeErrors(err, goa.InvalidRangeError("body.Position", *body.Position, 100, false))
+		}
+	}
+	if body.Color != nil {
+		err = goa.MergeErrors(err, goa.ValidatePattern("body.Color", *body.Color, "^#[0-9a-fA-F]{6}$"))
+	}
+	if body.Stroke != nil {
+		err = goa.MergeErrors(err, goa.ValidatePattern("body.Stroke", *body.Stroke, "^#[0-9a-fA-F]{6}$"))
+	}
+	if body.Routing != nil {
+		if !(*body.Routing == "Direct" || *body.Routing == "Orthogonal" || *body.Routing == "Curved") {
+			err = goa.MergeErrors(err, goa.InvalidEnumValueError("body.Routing", *body.Routing, []any{"Direct", "Orthogonal", "Curved"}))
+		}
+	}
+	if body.Opacity != nil {
+		if *body.Opacity < 0 {
+			err = goa.MergeErrors(err, goa.InvalidRangeError("body.Opacity", *body.Opacity, 0, true))
+		}
+	}
+	if body.Opacity != nil {
+		if *body.Opacity > 100 {
+			err = goa.MergeErrors(err, goa.InvalidRangeError("body.Opacity", *body.Opacity, 100, false))
+		}
+	}
+	return
+}
+
 // ValidateDeleteSystemRequestBody runs the validations defined on
 // DeleteSystemRequestBody
 func ValidateDeleteSystemRequestBody(body *DeleteSystemRequestBody) (err error) {
 	if body.Filename == nil {
 		err = goa.MergeErrors(err, goa.MissingFieldError("Filename", "body"))
 	}
-	if body.Workspace == nil {
-		err = goa.MergeErrors(err, goa.MissingFieldError("Workspace", "body"))
+	if body.Repository == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Repository", "body"))
 	}
 	if body.Dir == nil {
 		err = goa.MergeErrors(err, goa.MissingFieldError("Dir", "body"))
@@ -1112,9 +2449,9 @@ func ValidateDeleteSystemRequestBody(body *DeleteSystemRequestBody) (err error) 
 	if body.Filename != nil {
 		err = goa.MergeErrors(err, goa.ValidatePattern("body.Filename", *body.Filename, "\\.go$"))
 	}
-	if body.Workspace != nil {
-		if utf8.RuneCountInString(*body.Workspace) < 1 {
-			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Workspace", *body.Workspace, utf8.RuneCountInString(*body.Workspace), 1, true))
+	if body.Repository != nil {
+		if utf8.RuneCountInString(*body.Repository) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Repository", *body.Repository, utf8.RuneCountInString(*body.Repository), 1, true))
 		}
 	}
 	if body.Dir != nil {
@@ -1131,8 +2468,8 @@ func ValidateDeletePersonRequestBody(body *DeletePersonRequestBody) (err error) 
 	if body.Filename == nil {
 		err = goa.MergeErrors(err, goa.MissingFieldError("Filename", "body"))
 	}
-	if body.Workspace == nil {
-		err = goa.MergeErrors(err, goa.MissingFieldError("Workspace", "body"))
+	if body.Repository == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Repository", "body"))
 	}
 	if body.Dir == nil {
 		err = goa.MergeErrors(err, goa.MissingFieldError("Dir", "body"))
@@ -1140,9 +2477,9 @@ func ValidateDeletePersonRequestBody(body *DeletePersonRequestBody) (err error) 
 	if body.Filename != nil {
 		err = goa.MergeErrors(err, goa.ValidatePattern("body.Filename", *body.Filename, "\\.go$"))
 	}
-	if body.Workspace != nil {
-		if utf8.RuneCountInString(*body.Workspace) < 1 {
-			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Workspace", *body.Workspace, utf8.RuneCountInString(*body.Workspace), 1, true))
+	if body.Repository != nil {
+		if utf8.RuneCountInString(*body.Repository) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Repository", *body.Repository, utf8.RuneCountInString(*body.Repository), 1, true))
 		}
 	}
 	if body.Dir != nil {
@@ -1159,8 +2496,8 @@ func ValidateDeleteContainerRequestBody(body *DeleteContainerRequestBody) (err e
 	if body.Filename == nil {
 		err = goa.MergeErrors(err, goa.MissingFieldError("Filename", "body"))
 	}
-	if body.Workspace == nil {
-		err = goa.MergeErrors(err, goa.MissingFieldError("Workspace", "body"))
+	if body.Repository == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Repository", "body"))
 	}
 	if body.Dir == nil {
 		err = goa.MergeErrors(err, goa.MissingFieldError("Dir", "body"))
@@ -1168,9 +2505,9 @@ func ValidateDeleteContainerRequestBody(body *DeleteContainerRequestBody) (err e
 	if body.Filename != nil {
 		err = goa.MergeErrors(err, goa.ValidatePattern("body.Filename", *body.Filename, "\\.go$"))
 	}
-	if body.Workspace != nil {
-		if utf8.RuneCountInString(*body.Workspace) < 1 {
-			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Workspace", *body.Workspace, utf8.RuneCountInString(*body.Workspace), 1, true))
+	if body.Repository != nil {
+		if utf8.RuneCountInString(*body.Repository) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Repository", *body.Repository, utf8.RuneCountInString(*body.Repository), 1, true))
 		}
 	}
 	if body.Dir != nil {
@@ -1187,8 +2524,8 @@ func ValidateDeleteComponentRequestBody(body *DeleteComponentRequestBody) (err e
 	if body.Filename == nil {
 		err = goa.MergeErrors(err, goa.MissingFieldError("Filename", "body"))
 	}
-	if body.Workspace == nil {
-		err = goa.MergeErrors(err, goa.MissingFieldError("Workspace", "body"))
+	if body.Repository == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Repository", "body"))
 	}
 	if body.Dir == nil {
 		err = goa.MergeErrors(err, goa.MissingFieldError("Dir", "body"))
@@ -1196,9 +2533,9 @@ func ValidateDeleteComponentRequestBody(body *DeleteComponentRequestBody) (err e
 	if body.Filename != nil {
 		err = goa.MergeErrors(err, goa.ValidatePattern("body.Filename", *body.Filename, "\\.go$"))
 	}
-	if body.Workspace != nil {
-		if utf8.RuneCountInString(*body.Workspace) < 1 {
-			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Workspace", *body.Workspace, utf8.RuneCountInString(*body.Workspace), 1, true))
+	if body.Repository != nil {
+		if utf8.RuneCountInString(*body.Repository) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Repository", *body.Repository, utf8.RuneCountInString(*body.Repository), 1, true))
 		}
 	}
 	if body.Dir != nil {
@@ -1221,8 +2558,8 @@ func ValidateDeleteRelationshipRequestBody(body *DeleteRelationshipRequestBody) 
 	if body.Filename == nil {
 		err = goa.MergeErrors(err, goa.MissingFieldError("Filename", "body"))
 	}
-	if body.Workspace == nil {
-		err = goa.MergeErrors(err, goa.MissingFieldError("Workspace", "body"))
+	if body.Repository == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Repository", "body"))
 	}
 	if body.Dir == nil {
 		err = goa.MergeErrors(err, goa.MissingFieldError("Dir", "body"))
@@ -1230,9 +2567,177 @@ func ValidateDeleteRelationshipRequestBody(body *DeleteRelationshipRequestBody) 
 	if body.Filename != nil {
 		err = goa.MergeErrors(err, goa.ValidatePattern("body.Filename", *body.Filename, "\\.go$"))
 	}
-	if body.Workspace != nil {
-		if utf8.RuneCountInString(*body.Workspace) < 1 {
-			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Workspace", *body.Workspace, utf8.RuneCountInString(*body.Workspace), 1, true))
+	if body.Repository != nil {
+		if utf8.RuneCountInString(*body.Repository) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Repository", *body.Repository, utf8.RuneCountInString(*body.Repository), 1, true))
+		}
+	}
+	if body.Dir != nil {
+		if utf8.RuneCountInString(*body.Dir) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Dir", *body.Dir, utf8.RuneCountInString(*body.Dir), 1, true))
+		}
+	}
+	return
+}
+
+// ValidateDeleteLandscapeViewRequestBody runs the validations defined on
+// DeleteLandscapeViewRequestBody
+func ValidateDeleteLandscapeViewRequestBody(body *DeleteLandscapeViewRequestBody) (err error) {
+	if body.Filename == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Filename", "body"))
+	}
+	if body.Repository == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Repository", "body"))
+	}
+	if body.Dir == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Dir", "body"))
+	}
+	if body.Filename != nil {
+		err = goa.MergeErrors(err, goa.ValidatePattern("body.Filename", *body.Filename, "\\.go$"))
+	}
+	if body.Repository != nil {
+		if utf8.RuneCountInString(*body.Repository) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Repository", *body.Repository, utf8.RuneCountInString(*body.Repository), 1, true))
+		}
+	}
+	if body.Dir != nil {
+		if utf8.RuneCountInString(*body.Dir) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Dir", *body.Dir, utf8.RuneCountInString(*body.Dir), 1, true))
+		}
+	}
+	return
+}
+
+// ValidateDeleteSystemContextViewRequestBody runs the validations defined on
+// DeleteSystemContextViewRequestBody
+func ValidateDeleteSystemContextViewRequestBody(body *DeleteSystemContextViewRequestBody) (err error) {
+	if body.Filename == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Filename", "body"))
+	}
+	if body.Repository == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Repository", "body"))
+	}
+	if body.Dir == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Dir", "body"))
+	}
+	if body.Filename != nil {
+		err = goa.MergeErrors(err, goa.ValidatePattern("body.Filename", *body.Filename, "\\.go$"))
+	}
+	if body.Repository != nil {
+		if utf8.RuneCountInString(*body.Repository) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Repository", *body.Repository, utf8.RuneCountInString(*body.Repository), 1, true))
+		}
+	}
+	if body.Dir != nil {
+		if utf8.RuneCountInString(*body.Dir) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Dir", *body.Dir, utf8.RuneCountInString(*body.Dir), 1, true))
+		}
+	}
+	return
+}
+
+// ValidateDeleteContainerViewRequestBody runs the validations defined on
+// DeleteContainerViewRequestBody
+func ValidateDeleteContainerViewRequestBody(body *DeleteContainerViewRequestBody) (err error) {
+	if body.Filename == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Filename", "body"))
+	}
+	if body.Repository == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Repository", "body"))
+	}
+	if body.Dir == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Dir", "body"))
+	}
+	if body.Filename != nil {
+		err = goa.MergeErrors(err, goa.ValidatePattern("body.Filename", *body.Filename, "\\.go$"))
+	}
+	if body.Repository != nil {
+		if utf8.RuneCountInString(*body.Repository) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Repository", *body.Repository, utf8.RuneCountInString(*body.Repository), 1, true))
+		}
+	}
+	if body.Dir != nil {
+		if utf8.RuneCountInString(*body.Dir) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Dir", *body.Dir, utf8.RuneCountInString(*body.Dir), 1, true))
+		}
+	}
+	return
+}
+
+// ValidateDeleteComponentViewRequestBody runs the validations defined on
+// DeleteComponentViewRequestBody
+func ValidateDeleteComponentViewRequestBody(body *DeleteComponentViewRequestBody) (err error) {
+	if body.Filename == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Filename", "body"))
+	}
+	if body.Repository == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Repository", "body"))
+	}
+	if body.Dir == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Dir", "body"))
+	}
+	if body.Filename != nil {
+		err = goa.MergeErrors(err, goa.ValidatePattern("body.Filename", *body.Filename, "\\.go$"))
+	}
+	if body.Repository != nil {
+		if utf8.RuneCountInString(*body.Repository) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Repository", *body.Repository, utf8.RuneCountInString(*body.Repository), 1, true))
+		}
+	}
+	if body.Dir != nil {
+		if utf8.RuneCountInString(*body.Dir) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Dir", *body.Dir, utf8.RuneCountInString(*body.Dir), 1, true))
+		}
+	}
+	return
+}
+
+// ValidateDeleteElementStyleRequestBody runs the validations defined on
+// DeleteElementStyleRequestBody
+func ValidateDeleteElementStyleRequestBody(body *DeleteElementStyleRequestBody) (err error) {
+	if body.Filename == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Filename", "body"))
+	}
+	if body.Repository == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Repository", "body"))
+	}
+	if body.Dir == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Dir", "body"))
+	}
+	if body.Filename != nil {
+		err = goa.MergeErrors(err, goa.ValidatePattern("body.Filename", *body.Filename, "\\.go$"))
+	}
+	if body.Repository != nil {
+		if utf8.RuneCountInString(*body.Repository) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Repository", *body.Repository, utf8.RuneCountInString(*body.Repository), 1, true))
+		}
+	}
+	if body.Dir != nil {
+		if utf8.RuneCountInString(*body.Dir) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Dir", *body.Dir, utf8.RuneCountInString(*body.Dir), 1, true))
+		}
+	}
+	return
+}
+
+// ValidateDeleteRelationshipStyleRequestBody runs the validations defined on
+// DeleteRelationshipStyleRequestBody
+func ValidateDeleteRelationshipStyleRequestBody(body *DeleteRelationshipStyleRequestBody) (err error) {
+	if body.Filename == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Filename", "body"))
+	}
+	if body.Repository == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Repository", "body"))
+	}
+	if body.Dir == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Dir", "body"))
+	}
+	if body.Filename != nil {
+		err = goa.MergeErrors(err, goa.ValidatePattern("body.Filename", *body.Filename, "\\.go$"))
+	}
+	if body.Repository != nil {
+		if utf8.RuneCountInString(*body.Repository) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Repository", *body.Repository, utf8.RuneCountInString(*body.Repository), 1, true))
 		}
 	}
 	if body.Dir != nil {
@@ -1249,8 +2754,8 @@ func ValidateFileLocatorRequestBody(body *FileLocatorRequestBody) (err error) {
 	if body.Filename == nil {
 		err = goa.MergeErrors(err, goa.MissingFieldError("Filename", "body"))
 	}
-	if body.Workspace == nil {
-		err = goa.MergeErrors(err, goa.MissingFieldError("Workspace", "body"))
+	if body.Repository == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Repository", "body"))
 	}
 	if body.Dir == nil {
 		err = goa.MergeErrors(err, goa.MissingFieldError("Dir", "body"))
@@ -1258,9 +2763,9 @@ func ValidateFileLocatorRequestBody(body *FileLocatorRequestBody) (err error) {
 	if body.Filename != nil {
 		err = goa.MergeErrors(err, goa.ValidatePattern("body.Filename", *body.Filename, "\\.go$"))
 	}
-	if body.Workspace != nil {
-		if utf8.RuneCountInString(*body.Workspace) < 1 {
-			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Workspace", *body.Workspace, utf8.RuneCountInString(*body.Workspace), 1, true))
+	if body.Repository != nil {
+		if utf8.RuneCountInString(*body.Repository) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Repository", *body.Repository, utf8.RuneCountInString(*body.Repository), 1, true))
 		}
 	}
 	if body.Dir != nil {

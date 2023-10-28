@@ -7,11 +7,11 @@ var _ = Service("SVG", func() {
 		Path("/api/diagrams")
 	})
 	Method("Load", func() {
-		Description("Stream the model layout JSON saved in the SVG")
+		Description("Stream the SVG")
 		Payload(Filename)
 		Result(SVG)
 		HTTP(func() {
-			GET("/layout")
+			GET("/")
 			Param("Filename:file")
 		})
 	})

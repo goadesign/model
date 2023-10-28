@@ -6,12 +6,12 @@ import (
 	gensvg "goa.design/model/svc/gen/svg"
 )
 
-// Stream the model layout JSON saved in the SVG
+// Returns the SVG for the given file.
 func (svc *Service) Load(ctx context.Context, file *gensvg.Filename) (gensvg.SVG, error) {
 	panic("not implemented")
 }
 
-// Save the SVG streamed in the request body
+// Save the SVG to the given file.
 func (svc *Service) Save(ctx context.Context, payload *gensvg.SavePayload) error {
 	panic("not implemented")
 }

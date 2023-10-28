@@ -470,6 +470,461 @@ func DecodeUpsertRelationshipResponse(decoder func(*http.Response) goahttp.Decod
 	}
 }
 
+// BuildUpsertLandscapeViewRequest instantiates a HTTP request object with
+// method and path set to call the "DSLEditor" service "UpsertLandscapeView"
+// endpoint
+func (c *Client) BuildUpsertLandscapeViewRequest(ctx context.Context, v any) (*http.Request, error) {
+	u := &url.URL{Scheme: c.scheme, Host: c.host, Path: UpsertLandscapeViewDSLEditorPath()}
+	req, err := http.NewRequest("PUT", u.String(), nil)
+	if err != nil {
+		return nil, goahttp.ErrInvalidURL("DSLEditor", "UpsertLandscapeView", u.String(), err)
+	}
+	if ctx != nil {
+		req = req.WithContext(ctx)
+	}
+
+	return req, nil
+}
+
+// EncodeUpsertLandscapeViewRequest returns an encoder for requests sent to the
+// DSLEditor UpsertLandscapeView server.
+func EncodeUpsertLandscapeViewRequest(encoder func(*http.Request) goahttp.Encoder) func(*http.Request, any) error {
+	return func(req *http.Request, v any) error {
+		p, ok := v.(*dsleditor.LandscapeView)
+		if !ok {
+			return goahttp.ErrInvalidType("DSLEditor", "UpsertLandscapeView", "*dsleditor.LandscapeView", v)
+		}
+		body := NewUpsertLandscapeViewRequestBody(p)
+		if err := encoder(req).Encode(&body); err != nil {
+			return goahttp.ErrEncodingError("DSLEditor", "UpsertLandscapeView", err)
+		}
+		return nil
+	}
+}
+
+// DecodeUpsertLandscapeViewResponse returns a decoder for responses returned
+// by the DSLEditor UpsertLandscapeView endpoint. restoreBody controls whether
+// the response body should be restored after having been read.
+// DecodeUpsertLandscapeViewResponse may return the following errors:
+//   - "compilation_failed" (type *goa.ServiceError): http.StatusBadRequest
+//   - error: internal error
+func DecodeUpsertLandscapeViewResponse(decoder func(*http.Response) goahttp.Decoder, restoreBody bool) func(*http.Response) (any, error) {
+	return func(resp *http.Response) (any, error) {
+		if restoreBody {
+			b, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return nil, err
+			}
+			resp.Body = io.NopCloser(bytes.NewBuffer(b))
+			defer func() {
+				resp.Body = io.NopCloser(bytes.NewBuffer(b))
+			}()
+		} else {
+			defer resp.Body.Close()
+		}
+		switch resp.StatusCode {
+		case http.StatusNoContent:
+			return nil, nil
+		case http.StatusBadRequest:
+			var (
+				body UpsertLandscapeViewCompilationFailedResponseBody
+				err  error
+			)
+			err = decoder(resp).Decode(&body)
+			if err != nil {
+				return nil, goahttp.ErrDecodingError("DSLEditor", "UpsertLandscapeView", err)
+			}
+			err = ValidateUpsertLandscapeViewCompilationFailedResponseBody(&body)
+			if err != nil {
+				return nil, goahttp.ErrValidationError("DSLEditor", "UpsertLandscapeView", err)
+			}
+			return nil, NewUpsertLandscapeViewCompilationFailed(&body)
+		default:
+			body, _ := io.ReadAll(resp.Body)
+			return nil, goahttp.ErrInvalidResponse("DSLEditor", "UpsertLandscapeView", resp.StatusCode, string(body))
+		}
+	}
+}
+
+// BuildUpsertSystemContextViewRequest instantiates a HTTP request object with
+// method and path set to call the "DSLEditor" service
+// "UpsertSystemContextView" endpoint
+func (c *Client) BuildUpsertSystemContextViewRequest(ctx context.Context, v any) (*http.Request, error) {
+	u := &url.URL{Scheme: c.scheme, Host: c.host, Path: UpsertSystemContextViewDSLEditorPath()}
+	req, err := http.NewRequest("PUT", u.String(), nil)
+	if err != nil {
+		return nil, goahttp.ErrInvalidURL("DSLEditor", "UpsertSystemContextView", u.String(), err)
+	}
+	if ctx != nil {
+		req = req.WithContext(ctx)
+	}
+
+	return req, nil
+}
+
+// EncodeUpsertSystemContextViewRequest returns an encoder for requests sent to
+// the DSLEditor UpsertSystemContextView server.
+func EncodeUpsertSystemContextViewRequest(encoder func(*http.Request) goahttp.Encoder) func(*http.Request, any) error {
+	return func(req *http.Request, v any) error {
+		p, ok := v.(*dsleditor.SystemContextView)
+		if !ok {
+			return goahttp.ErrInvalidType("DSLEditor", "UpsertSystemContextView", "*dsleditor.SystemContextView", v)
+		}
+		body := NewUpsertSystemContextViewRequestBody(p)
+		if err := encoder(req).Encode(&body); err != nil {
+			return goahttp.ErrEncodingError("DSLEditor", "UpsertSystemContextView", err)
+		}
+		return nil
+	}
+}
+
+// DecodeUpsertSystemContextViewResponse returns a decoder for responses
+// returned by the DSLEditor UpsertSystemContextView endpoint. restoreBody
+// controls whether the response body should be restored after having been read.
+// DecodeUpsertSystemContextViewResponse may return the following errors:
+//   - "compilation_failed" (type *goa.ServiceError): http.StatusBadRequest
+//   - error: internal error
+func DecodeUpsertSystemContextViewResponse(decoder func(*http.Response) goahttp.Decoder, restoreBody bool) func(*http.Response) (any, error) {
+	return func(resp *http.Response) (any, error) {
+		if restoreBody {
+			b, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return nil, err
+			}
+			resp.Body = io.NopCloser(bytes.NewBuffer(b))
+			defer func() {
+				resp.Body = io.NopCloser(bytes.NewBuffer(b))
+			}()
+		} else {
+			defer resp.Body.Close()
+		}
+		switch resp.StatusCode {
+		case http.StatusNoContent:
+			return nil, nil
+		case http.StatusBadRequest:
+			var (
+				body UpsertSystemContextViewCompilationFailedResponseBody
+				err  error
+			)
+			err = decoder(resp).Decode(&body)
+			if err != nil {
+				return nil, goahttp.ErrDecodingError("DSLEditor", "UpsertSystemContextView", err)
+			}
+			err = ValidateUpsertSystemContextViewCompilationFailedResponseBody(&body)
+			if err != nil {
+				return nil, goahttp.ErrValidationError("DSLEditor", "UpsertSystemContextView", err)
+			}
+			return nil, NewUpsertSystemContextViewCompilationFailed(&body)
+		default:
+			body, _ := io.ReadAll(resp.Body)
+			return nil, goahttp.ErrInvalidResponse("DSLEditor", "UpsertSystemContextView", resp.StatusCode, string(body))
+		}
+	}
+}
+
+// BuildUpsertContainerViewRequest instantiates a HTTP request object with
+// method and path set to call the "DSLEditor" service "UpsertContainerView"
+// endpoint
+func (c *Client) BuildUpsertContainerViewRequest(ctx context.Context, v any) (*http.Request, error) {
+	u := &url.URL{Scheme: c.scheme, Host: c.host, Path: UpsertContainerViewDSLEditorPath()}
+	req, err := http.NewRequest("PUT", u.String(), nil)
+	if err != nil {
+		return nil, goahttp.ErrInvalidURL("DSLEditor", "UpsertContainerView", u.String(), err)
+	}
+	if ctx != nil {
+		req = req.WithContext(ctx)
+	}
+
+	return req, nil
+}
+
+// EncodeUpsertContainerViewRequest returns an encoder for requests sent to the
+// DSLEditor UpsertContainerView server.
+func EncodeUpsertContainerViewRequest(encoder func(*http.Request) goahttp.Encoder) func(*http.Request, any) error {
+	return func(req *http.Request, v any) error {
+		p, ok := v.(*dsleditor.ContainerView)
+		if !ok {
+			return goahttp.ErrInvalidType("DSLEditor", "UpsertContainerView", "*dsleditor.ContainerView", v)
+		}
+		body := NewUpsertContainerViewRequestBody(p)
+		if err := encoder(req).Encode(&body); err != nil {
+			return goahttp.ErrEncodingError("DSLEditor", "UpsertContainerView", err)
+		}
+		return nil
+	}
+}
+
+// DecodeUpsertContainerViewResponse returns a decoder for responses returned
+// by the DSLEditor UpsertContainerView endpoint. restoreBody controls whether
+// the response body should be restored after having been read.
+// DecodeUpsertContainerViewResponse may return the following errors:
+//   - "compilation_failed" (type *goa.ServiceError): http.StatusBadRequest
+//   - error: internal error
+func DecodeUpsertContainerViewResponse(decoder func(*http.Response) goahttp.Decoder, restoreBody bool) func(*http.Response) (any, error) {
+	return func(resp *http.Response) (any, error) {
+		if restoreBody {
+			b, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return nil, err
+			}
+			resp.Body = io.NopCloser(bytes.NewBuffer(b))
+			defer func() {
+				resp.Body = io.NopCloser(bytes.NewBuffer(b))
+			}()
+		} else {
+			defer resp.Body.Close()
+		}
+		switch resp.StatusCode {
+		case http.StatusNoContent:
+			return nil, nil
+		case http.StatusBadRequest:
+			var (
+				body UpsertContainerViewCompilationFailedResponseBody
+				err  error
+			)
+			err = decoder(resp).Decode(&body)
+			if err != nil {
+				return nil, goahttp.ErrDecodingError("DSLEditor", "UpsertContainerView", err)
+			}
+			err = ValidateUpsertContainerViewCompilationFailedResponseBody(&body)
+			if err != nil {
+				return nil, goahttp.ErrValidationError("DSLEditor", "UpsertContainerView", err)
+			}
+			return nil, NewUpsertContainerViewCompilationFailed(&body)
+		default:
+			body, _ := io.ReadAll(resp.Body)
+			return nil, goahttp.ErrInvalidResponse("DSLEditor", "UpsertContainerView", resp.StatusCode, string(body))
+		}
+	}
+}
+
+// BuildUpsertComponentViewRequest instantiates a HTTP request object with
+// method and path set to call the "DSLEditor" service "UpsertComponentView"
+// endpoint
+func (c *Client) BuildUpsertComponentViewRequest(ctx context.Context, v any) (*http.Request, error) {
+	u := &url.URL{Scheme: c.scheme, Host: c.host, Path: UpsertComponentViewDSLEditorPath()}
+	req, err := http.NewRequest("PUT", u.String(), nil)
+	if err != nil {
+		return nil, goahttp.ErrInvalidURL("DSLEditor", "UpsertComponentView", u.String(), err)
+	}
+	if ctx != nil {
+		req = req.WithContext(ctx)
+	}
+
+	return req, nil
+}
+
+// EncodeUpsertComponentViewRequest returns an encoder for requests sent to the
+// DSLEditor UpsertComponentView server.
+func EncodeUpsertComponentViewRequest(encoder func(*http.Request) goahttp.Encoder) func(*http.Request, any) error {
+	return func(req *http.Request, v any) error {
+		p, ok := v.(*dsleditor.ComponentView)
+		if !ok {
+			return goahttp.ErrInvalidType("DSLEditor", "UpsertComponentView", "*dsleditor.ComponentView", v)
+		}
+		body := NewUpsertComponentViewRequestBody(p)
+		if err := encoder(req).Encode(&body); err != nil {
+			return goahttp.ErrEncodingError("DSLEditor", "UpsertComponentView", err)
+		}
+		return nil
+	}
+}
+
+// DecodeUpsertComponentViewResponse returns a decoder for responses returned
+// by the DSLEditor UpsertComponentView endpoint. restoreBody controls whether
+// the response body should be restored after having been read.
+// DecodeUpsertComponentViewResponse may return the following errors:
+//   - "compilation_failed" (type *goa.ServiceError): http.StatusBadRequest
+//   - error: internal error
+func DecodeUpsertComponentViewResponse(decoder func(*http.Response) goahttp.Decoder, restoreBody bool) func(*http.Response) (any, error) {
+	return func(resp *http.Response) (any, error) {
+		if restoreBody {
+			b, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return nil, err
+			}
+			resp.Body = io.NopCloser(bytes.NewBuffer(b))
+			defer func() {
+				resp.Body = io.NopCloser(bytes.NewBuffer(b))
+			}()
+		} else {
+			defer resp.Body.Close()
+		}
+		switch resp.StatusCode {
+		case http.StatusNoContent:
+			return nil, nil
+		case http.StatusBadRequest:
+			var (
+				body UpsertComponentViewCompilationFailedResponseBody
+				err  error
+			)
+			err = decoder(resp).Decode(&body)
+			if err != nil {
+				return nil, goahttp.ErrDecodingError("DSLEditor", "UpsertComponentView", err)
+			}
+			err = ValidateUpsertComponentViewCompilationFailedResponseBody(&body)
+			if err != nil {
+				return nil, goahttp.ErrValidationError("DSLEditor", "UpsertComponentView", err)
+			}
+			return nil, NewUpsertComponentViewCompilationFailed(&body)
+		default:
+			body, _ := io.ReadAll(resp.Body)
+			return nil, goahttp.ErrInvalidResponse("DSLEditor", "UpsertComponentView", resp.StatusCode, string(body))
+		}
+	}
+}
+
+// BuildUpserElementStyleRequest instantiates a HTTP request object with method
+// and path set to call the "DSLEditor" service "UpserElementStyle" endpoint
+func (c *Client) BuildUpserElementStyleRequest(ctx context.Context, v any) (*http.Request, error) {
+	u := &url.URL{Scheme: c.scheme, Host: c.host, Path: UpserElementStyleDSLEditorPath()}
+	req, err := http.NewRequest("PUT", u.String(), nil)
+	if err != nil {
+		return nil, goahttp.ErrInvalidURL("DSLEditor", "UpserElementStyle", u.String(), err)
+	}
+	if ctx != nil {
+		req = req.WithContext(ctx)
+	}
+
+	return req, nil
+}
+
+// EncodeUpserElementStyleRequest returns an encoder for requests sent to the
+// DSLEditor UpserElementStyle server.
+func EncodeUpserElementStyleRequest(encoder func(*http.Request) goahttp.Encoder) func(*http.Request, any) error {
+	return func(req *http.Request, v any) error {
+		p, ok := v.(*dsleditor.ElementStyle)
+		if !ok {
+			return goahttp.ErrInvalidType("DSLEditor", "UpserElementStyle", "*dsleditor.ElementStyle", v)
+		}
+		body := NewUpserElementStyleRequestBody(p)
+		if err := encoder(req).Encode(&body); err != nil {
+			return goahttp.ErrEncodingError("DSLEditor", "UpserElementStyle", err)
+		}
+		return nil
+	}
+}
+
+// DecodeUpserElementStyleResponse returns a decoder for responses returned by
+// the DSLEditor UpserElementStyle endpoint. restoreBody controls whether the
+// response body should be restored after having been read.
+// DecodeUpserElementStyleResponse may return the following errors:
+//   - "compilation_failed" (type *goa.ServiceError): http.StatusBadRequest
+//   - error: internal error
+func DecodeUpserElementStyleResponse(decoder func(*http.Response) goahttp.Decoder, restoreBody bool) func(*http.Response) (any, error) {
+	return func(resp *http.Response) (any, error) {
+		if restoreBody {
+			b, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return nil, err
+			}
+			resp.Body = io.NopCloser(bytes.NewBuffer(b))
+			defer func() {
+				resp.Body = io.NopCloser(bytes.NewBuffer(b))
+			}()
+		} else {
+			defer resp.Body.Close()
+		}
+		switch resp.StatusCode {
+		case http.StatusNoContent:
+			return nil, nil
+		case http.StatusBadRequest:
+			var (
+				body UpserElementStyleCompilationFailedResponseBody
+				err  error
+			)
+			err = decoder(resp).Decode(&body)
+			if err != nil {
+				return nil, goahttp.ErrDecodingError("DSLEditor", "UpserElementStyle", err)
+			}
+			err = ValidateUpserElementStyleCompilationFailedResponseBody(&body)
+			if err != nil {
+				return nil, goahttp.ErrValidationError("DSLEditor", "UpserElementStyle", err)
+			}
+			return nil, NewUpserElementStyleCompilationFailed(&body)
+		default:
+			body, _ := io.ReadAll(resp.Body)
+			return nil, goahttp.ErrInvalidResponse("DSLEditor", "UpserElementStyle", resp.StatusCode, string(body))
+		}
+	}
+}
+
+// BuildUpsertRelationshipStyleRequest instantiates a HTTP request object with
+// method and path set to call the "DSLEditor" service
+// "UpsertRelationshipStyle" endpoint
+func (c *Client) BuildUpsertRelationshipStyleRequest(ctx context.Context, v any) (*http.Request, error) {
+	u := &url.URL{Scheme: c.scheme, Host: c.host, Path: UpsertRelationshipStyleDSLEditorPath()}
+	req, err := http.NewRequest("PUT", u.String(), nil)
+	if err != nil {
+		return nil, goahttp.ErrInvalidURL("DSLEditor", "UpsertRelationshipStyle", u.String(), err)
+	}
+	if ctx != nil {
+		req = req.WithContext(ctx)
+	}
+
+	return req, nil
+}
+
+// EncodeUpsertRelationshipStyleRequest returns an encoder for requests sent to
+// the DSLEditor UpsertRelationshipStyle server.
+func EncodeUpsertRelationshipStyleRequest(encoder func(*http.Request) goahttp.Encoder) func(*http.Request, any) error {
+	return func(req *http.Request, v any) error {
+		p, ok := v.(*dsleditor.RelationshipStyle)
+		if !ok {
+			return goahttp.ErrInvalidType("DSLEditor", "UpsertRelationshipStyle", "*dsleditor.RelationshipStyle", v)
+		}
+		body := NewUpsertRelationshipStyleRequestBody(p)
+		if err := encoder(req).Encode(&body); err != nil {
+			return goahttp.ErrEncodingError("DSLEditor", "UpsertRelationshipStyle", err)
+		}
+		return nil
+	}
+}
+
+// DecodeUpsertRelationshipStyleResponse returns a decoder for responses
+// returned by the DSLEditor UpsertRelationshipStyle endpoint. restoreBody
+// controls whether the response body should be restored after having been read.
+// DecodeUpsertRelationshipStyleResponse may return the following errors:
+//   - "compilation_failed" (type *goa.ServiceError): http.StatusBadRequest
+//   - error: internal error
+func DecodeUpsertRelationshipStyleResponse(decoder func(*http.Response) goahttp.Decoder, restoreBody bool) func(*http.Response) (any, error) {
+	return func(resp *http.Response) (any, error) {
+		if restoreBody {
+			b, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return nil, err
+			}
+			resp.Body = io.NopCloser(bytes.NewBuffer(b))
+			defer func() {
+				resp.Body = io.NopCloser(bytes.NewBuffer(b))
+			}()
+		} else {
+			defer resp.Body.Close()
+		}
+		switch resp.StatusCode {
+		case http.StatusNoContent:
+			return nil, nil
+		case http.StatusBadRequest:
+			var (
+				body UpsertRelationshipStyleCompilationFailedResponseBody
+				err  error
+			)
+			err = decoder(resp).Decode(&body)
+			if err != nil {
+				return nil, goahttp.ErrDecodingError("DSLEditor", "UpsertRelationshipStyle", err)
+			}
+			err = ValidateUpsertRelationshipStyleCompilationFailedResponseBody(&body)
+			if err != nil {
+				return nil, goahttp.ErrValidationError("DSLEditor", "UpsertRelationshipStyle", err)
+			}
+			return nil, NewUpsertRelationshipStyleCompilationFailed(&body)
+		default:
+			body, _ := io.ReadAll(resp.Body)
+			return nil, goahttp.ErrInvalidResponse("DSLEditor", "UpsertRelationshipStyle", resp.StatusCode, string(body))
+		}
+	}
+}
+
 // BuildDeleteSystemRequest instantiates a HTTP request object with method and
 // path set to call the "DSLEditor" service "DeleteSystem" endpoint
 func (c *Client) BuildDeleteSystemRequest(ctx context.Context, v any) (*http.Request, error) {
@@ -969,13 +1424,619 @@ func DecodeDeleteRelationshipResponse(decoder func(*http.Response) goahttp.Decod
 	}
 }
 
+// BuildDeleteLandscapeViewRequest instantiates a HTTP request object with
+// method and path set to call the "DSLEditor" service "DeleteLandscapeView"
+// endpoint
+func (c *Client) BuildDeleteLandscapeViewRequest(ctx context.Context, v any) (*http.Request, error) {
+	var (
+		key string
+	)
+	{
+		p, ok := v.(*dsleditor.DeleteLandscapeViewPayload)
+		if !ok {
+			return nil, goahttp.ErrInvalidType("DSLEditor", "DeleteLandscapeView", "*dsleditor.DeleteLandscapeViewPayload", v)
+		}
+		key = p.Key
+	}
+	u := &url.URL{Scheme: c.scheme, Host: c.host, Path: DeleteLandscapeViewDSLEditorPath(key)}
+	req, err := http.NewRequest("DELETE", u.String(), nil)
+	if err != nil {
+		return nil, goahttp.ErrInvalidURL("DSLEditor", "DeleteLandscapeView", u.String(), err)
+	}
+	if ctx != nil {
+		req = req.WithContext(ctx)
+	}
+
+	return req, nil
+}
+
+// EncodeDeleteLandscapeViewRequest returns an encoder for requests sent to the
+// DSLEditor DeleteLandscapeView server.
+func EncodeDeleteLandscapeViewRequest(encoder func(*http.Request) goahttp.Encoder) func(*http.Request, any) error {
+	return func(req *http.Request, v any) error {
+		p, ok := v.(*dsleditor.DeleteLandscapeViewPayload)
+		if !ok {
+			return goahttp.ErrInvalidType("DSLEditor", "DeleteLandscapeView", "*dsleditor.DeleteLandscapeViewPayload", v)
+		}
+		body := NewDeleteLandscapeViewRequestBody(p)
+		if err := encoder(req).Encode(&body); err != nil {
+			return goahttp.ErrEncodingError("DSLEditor", "DeleteLandscapeView", err)
+		}
+		return nil
+	}
+}
+
+// DecodeDeleteLandscapeViewResponse returns a decoder for responses returned
+// by the DSLEditor DeleteLandscapeView endpoint. restoreBody controls whether
+// the response body should be restored after having been read.
+// DecodeDeleteLandscapeViewResponse may return the following errors:
+//   - "NotFound" (type *goa.ServiceError): http.StatusNotFound
+//   - "compilation_failed" (type *goa.ServiceError): http.StatusBadRequest
+//   - error: internal error
+func DecodeDeleteLandscapeViewResponse(decoder func(*http.Response) goahttp.Decoder, restoreBody bool) func(*http.Response) (any, error) {
+	return func(resp *http.Response) (any, error) {
+		if restoreBody {
+			b, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return nil, err
+			}
+			resp.Body = io.NopCloser(bytes.NewBuffer(b))
+			defer func() {
+				resp.Body = io.NopCloser(bytes.NewBuffer(b))
+			}()
+		} else {
+			defer resp.Body.Close()
+		}
+		switch resp.StatusCode {
+		case http.StatusNoContent:
+			return nil, nil
+		case http.StatusNotFound:
+			var (
+				body DeleteLandscapeViewNotFoundResponseBody
+				err  error
+			)
+			err = decoder(resp).Decode(&body)
+			if err != nil {
+				return nil, goahttp.ErrDecodingError("DSLEditor", "DeleteLandscapeView", err)
+			}
+			err = ValidateDeleteLandscapeViewNotFoundResponseBody(&body)
+			if err != nil {
+				return nil, goahttp.ErrValidationError("DSLEditor", "DeleteLandscapeView", err)
+			}
+			return nil, NewDeleteLandscapeViewNotFound(&body)
+		case http.StatusBadRequest:
+			var (
+				body DeleteLandscapeViewCompilationFailedResponseBody
+				err  error
+			)
+			err = decoder(resp).Decode(&body)
+			if err != nil {
+				return nil, goahttp.ErrDecodingError("DSLEditor", "DeleteLandscapeView", err)
+			}
+			err = ValidateDeleteLandscapeViewCompilationFailedResponseBody(&body)
+			if err != nil {
+				return nil, goahttp.ErrValidationError("DSLEditor", "DeleteLandscapeView", err)
+			}
+			return nil, NewDeleteLandscapeViewCompilationFailed(&body)
+		default:
+			body, _ := io.ReadAll(resp.Body)
+			return nil, goahttp.ErrInvalidResponse("DSLEditor", "DeleteLandscapeView", resp.StatusCode, string(body))
+		}
+	}
+}
+
+// BuildDeleteSystemContextViewRequest instantiates a HTTP request object with
+// method and path set to call the "DSLEditor" service
+// "DeleteSystemContextView" endpoint
+func (c *Client) BuildDeleteSystemContextViewRequest(ctx context.Context, v any) (*http.Request, error) {
+	var (
+		key string
+	)
+	{
+		p, ok := v.(*dsleditor.DeleteSystemContextViewPayload)
+		if !ok {
+			return nil, goahttp.ErrInvalidType("DSLEditor", "DeleteSystemContextView", "*dsleditor.DeleteSystemContextViewPayload", v)
+		}
+		key = p.Key
+	}
+	u := &url.URL{Scheme: c.scheme, Host: c.host, Path: DeleteSystemContextViewDSLEditorPath(key)}
+	req, err := http.NewRequest("DELETE", u.String(), nil)
+	if err != nil {
+		return nil, goahttp.ErrInvalidURL("DSLEditor", "DeleteSystemContextView", u.String(), err)
+	}
+	if ctx != nil {
+		req = req.WithContext(ctx)
+	}
+
+	return req, nil
+}
+
+// EncodeDeleteSystemContextViewRequest returns an encoder for requests sent to
+// the DSLEditor DeleteSystemContextView server.
+func EncodeDeleteSystemContextViewRequest(encoder func(*http.Request) goahttp.Encoder) func(*http.Request, any) error {
+	return func(req *http.Request, v any) error {
+		p, ok := v.(*dsleditor.DeleteSystemContextViewPayload)
+		if !ok {
+			return goahttp.ErrInvalidType("DSLEditor", "DeleteSystemContextView", "*dsleditor.DeleteSystemContextViewPayload", v)
+		}
+		body := NewDeleteSystemContextViewRequestBody(p)
+		if err := encoder(req).Encode(&body); err != nil {
+			return goahttp.ErrEncodingError("DSLEditor", "DeleteSystemContextView", err)
+		}
+		return nil
+	}
+}
+
+// DecodeDeleteSystemContextViewResponse returns a decoder for responses
+// returned by the DSLEditor DeleteSystemContextView endpoint. restoreBody
+// controls whether the response body should be restored after having been read.
+// DecodeDeleteSystemContextViewResponse may return the following errors:
+//   - "NotFound" (type *goa.ServiceError): http.StatusNotFound
+//   - "compilation_failed" (type *goa.ServiceError): http.StatusBadRequest
+//   - error: internal error
+func DecodeDeleteSystemContextViewResponse(decoder func(*http.Response) goahttp.Decoder, restoreBody bool) func(*http.Response) (any, error) {
+	return func(resp *http.Response) (any, error) {
+		if restoreBody {
+			b, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return nil, err
+			}
+			resp.Body = io.NopCloser(bytes.NewBuffer(b))
+			defer func() {
+				resp.Body = io.NopCloser(bytes.NewBuffer(b))
+			}()
+		} else {
+			defer resp.Body.Close()
+		}
+		switch resp.StatusCode {
+		case http.StatusNoContent:
+			return nil, nil
+		case http.StatusNotFound:
+			var (
+				body DeleteSystemContextViewNotFoundResponseBody
+				err  error
+			)
+			err = decoder(resp).Decode(&body)
+			if err != nil {
+				return nil, goahttp.ErrDecodingError("DSLEditor", "DeleteSystemContextView", err)
+			}
+			err = ValidateDeleteSystemContextViewNotFoundResponseBody(&body)
+			if err != nil {
+				return nil, goahttp.ErrValidationError("DSLEditor", "DeleteSystemContextView", err)
+			}
+			return nil, NewDeleteSystemContextViewNotFound(&body)
+		case http.StatusBadRequest:
+			var (
+				body DeleteSystemContextViewCompilationFailedResponseBody
+				err  error
+			)
+			err = decoder(resp).Decode(&body)
+			if err != nil {
+				return nil, goahttp.ErrDecodingError("DSLEditor", "DeleteSystemContextView", err)
+			}
+			err = ValidateDeleteSystemContextViewCompilationFailedResponseBody(&body)
+			if err != nil {
+				return nil, goahttp.ErrValidationError("DSLEditor", "DeleteSystemContextView", err)
+			}
+			return nil, NewDeleteSystemContextViewCompilationFailed(&body)
+		default:
+			body, _ := io.ReadAll(resp.Body)
+			return nil, goahttp.ErrInvalidResponse("DSLEditor", "DeleteSystemContextView", resp.StatusCode, string(body))
+		}
+	}
+}
+
+// BuildDeleteContainerViewRequest instantiates a HTTP request object with
+// method and path set to call the "DSLEditor" service "DeleteContainerView"
+// endpoint
+func (c *Client) BuildDeleteContainerViewRequest(ctx context.Context, v any) (*http.Request, error) {
+	var (
+		key string
+	)
+	{
+		p, ok := v.(*dsleditor.DeleteContainerViewPayload)
+		if !ok {
+			return nil, goahttp.ErrInvalidType("DSLEditor", "DeleteContainerView", "*dsleditor.DeleteContainerViewPayload", v)
+		}
+		key = p.Key
+	}
+	u := &url.URL{Scheme: c.scheme, Host: c.host, Path: DeleteContainerViewDSLEditorPath(key)}
+	req, err := http.NewRequest("DELETE", u.String(), nil)
+	if err != nil {
+		return nil, goahttp.ErrInvalidURL("DSLEditor", "DeleteContainerView", u.String(), err)
+	}
+	if ctx != nil {
+		req = req.WithContext(ctx)
+	}
+
+	return req, nil
+}
+
+// EncodeDeleteContainerViewRequest returns an encoder for requests sent to the
+// DSLEditor DeleteContainerView server.
+func EncodeDeleteContainerViewRequest(encoder func(*http.Request) goahttp.Encoder) func(*http.Request, any) error {
+	return func(req *http.Request, v any) error {
+		p, ok := v.(*dsleditor.DeleteContainerViewPayload)
+		if !ok {
+			return goahttp.ErrInvalidType("DSLEditor", "DeleteContainerView", "*dsleditor.DeleteContainerViewPayload", v)
+		}
+		body := NewDeleteContainerViewRequestBody(p)
+		if err := encoder(req).Encode(&body); err != nil {
+			return goahttp.ErrEncodingError("DSLEditor", "DeleteContainerView", err)
+		}
+		return nil
+	}
+}
+
+// DecodeDeleteContainerViewResponse returns a decoder for responses returned
+// by the DSLEditor DeleteContainerView endpoint. restoreBody controls whether
+// the response body should be restored after having been read.
+// DecodeDeleteContainerViewResponse may return the following errors:
+//   - "NotFound" (type *goa.ServiceError): http.StatusNotFound
+//   - "compilation_failed" (type *goa.ServiceError): http.StatusBadRequest
+//   - error: internal error
+func DecodeDeleteContainerViewResponse(decoder func(*http.Response) goahttp.Decoder, restoreBody bool) func(*http.Response) (any, error) {
+	return func(resp *http.Response) (any, error) {
+		if restoreBody {
+			b, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return nil, err
+			}
+			resp.Body = io.NopCloser(bytes.NewBuffer(b))
+			defer func() {
+				resp.Body = io.NopCloser(bytes.NewBuffer(b))
+			}()
+		} else {
+			defer resp.Body.Close()
+		}
+		switch resp.StatusCode {
+		case http.StatusNoContent:
+			return nil, nil
+		case http.StatusNotFound:
+			var (
+				body DeleteContainerViewNotFoundResponseBody
+				err  error
+			)
+			err = decoder(resp).Decode(&body)
+			if err != nil {
+				return nil, goahttp.ErrDecodingError("DSLEditor", "DeleteContainerView", err)
+			}
+			err = ValidateDeleteContainerViewNotFoundResponseBody(&body)
+			if err != nil {
+				return nil, goahttp.ErrValidationError("DSLEditor", "DeleteContainerView", err)
+			}
+			return nil, NewDeleteContainerViewNotFound(&body)
+		case http.StatusBadRequest:
+			var (
+				body DeleteContainerViewCompilationFailedResponseBody
+				err  error
+			)
+			err = decoder(resp).Decode(&body)
+			if err != nil {
+				return nil, goahttp.ErrDecodingError("DSLEditor", "DeleteContainerView", err)
+			}
+			err = ValidateDeleteContainerViewCompilationFailedResponseBody(&body)
+			if err != nil {
+				return nil, goahttp.ErrValidationError("DSLEditor", "DeleteContainerView", err)
+			}
+			return nil, NewDeleteContainerViewCompilationFailed(&body)
+		default:
+			body, _ := io.ReadAll(resp.Body)
+			return nil, goahttp.ErrInvalidResponse("DSLEditor", "DeleteContainerView", resp.StatusCode, string(body))
+		}
+	}
+}
+
+// BuildDeleteComponentViewRequest instantiates a HTTP request object with
+// method and path set to call the "DSLEditor" service "DeleteComponentView"
+// endpoint
+func (c *Client) BuildDeleteComponentViewRequest(ctx context.Context, v any) (*http.Request, error) {
+	var (
+		key string
+	)
+	{
+		p, ok := v.(*dsleditor.DeleteComponentViewPayload)
+		if !ok {
+			return nil, goahttp.ErrInvalidType("DSLEditor", "DeleteComponentView", "*dsleditor.DeleteComponentViewPayload", v)
+		}
+		key = p.Key
+	}
+	u := &url.URL{Scheme: c.scheme, Host: c.host, Path: DeleteComponentViewDSLEditorPath(key)}
+	req, err := http.NewRequest("DELETE", u.String(), nil)
+	if err != nil {
+		return nil, goahttp.ErrInvalidURL("DSLEditor", "DeleteComponentView", u.String(), err)
+	}
+	if ctx != nil {
+		req = req.WithContext(ctx)
+	}
+
+	return req, nil
+}
+
+// EncodeDeleteComponentViewRequest returns an encoder for requests sent to the
+// DSLEditor DeleteComponentView server.
+func EncodeDeleteComponentViewRequest(encoder func(*http.Request) goahttp.Encoder) func(*http.Request, any) error {
+	return func(req *http.Request, v any) error {
+		p, ok := v.(*dsleditor.DeleteComponentViewPayload)
+		if !ok {
+			return goahttp.ErrInvalidType("DSLEditor", "DeleteComponentView", "*dsleditor.DeleteComponentViewPayload", v)
+		}
+		body := NewDeleteComponentViewRequestBody(p)
+		if err := encoder(req).Encode(&body); err != nil {
+			return goahttp.ErrEncodingError("DSLEditor", "DeleteComponentView", err)
+		}
+		return nil
+	}
+}
+
+// DecodeDeleteComponentViewResponse returns a decoder for responses returned
+// by the DSLEditor DeleteComponentView endpoint. restoreBody controls whether
+// the response body should be restored after having been read.
+// DecodeDeleteComponentViewResponse may return the following errors:
+//   - "NotFound" (type *goa.ServiceError): http.StatusNotFound
+//   - "compilation_failed" (type *goa.ServiceError): http.StatusBadRequest
+//   - error: internal error
+func DecodeDeleteComponentViewResponse(decoder func(*http.Response) goahttp.Decoder, restoreBody bool) func(*http.Response) (any, error) {
+	return func(resp *http.Response) (any, error) {
+		if restoreBody {
+			b, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return nil, err
+			}
+			resp.Body = io.NopCloser(bytes.NewBuffer(b))
+			defer func() {
+				resp.Body = io.NopCloser(bytes.NewBuffer(b))
+			}()
+		} else {
+			defer resp.Body.Close()
+		}
+		switch resp.StatusCode {
+		case http.StatusNoContent:
+			return nil, nil
+		case http.StatusNotFound:
+			var (
+				body DeleteComponentViewNotFoundResponseBody
+				err  error
+			)
+			err = decoder(resp).Decode(&body)
+			if err != nil {
+				return nil, goahttp.ErrDecodingError("DSLEditor", "DeleteComponentView", err)
+			}
+			err = ValidateDeleteComponentViewNotFoundResponseBody(&body)
+			if err != nil {
+				return nil, goahttp.ErrValidationError("DSLEditor", "DeleteComponentView", err)
+			}
+			return nil, NewDeleteComponentViewNotFound(&body)
+		case http.StatusBadRequest:
+			var (
+				body DeleteComponentViewCompilationFailedResponseBody
+				err  error
+			)
+			err = decoder(resp).Decode(&body)
+			if err != nil {
+				return nil, goahttp.ErrDecodingError("DSLEditor", "DeleteComponentView", err)
+			}
+			err = ValidateDeleteComponentViewCompilationFailedResponseBody(&body)
+			if err != nil {
+				return nil, goahttp.ErrValidationError("DSLEditor", "DeleteComponentView", err)
+			}
+			return nil, NewDeleteComponentViewCompilationFailed(&body)
+		default:
+			body, _ := io.ReadAll(resp.Body)
+			return nil, goahttp.ErrInvalidResponse("DSLEditor", "DeleteComponentView", resp.StatusCode, string(body))
+		}
+	}
+}
+
+// BuildDeleteElementStyleRequest instantiates a HTTP request object with
+// method and path set to call the "DSLEditor" service "DeleteElementStyle"
+// endpoint
+func (c *Client) BuildDeleteElementStyleRequest(ctx context.Context, v any) (*http.Request, error) {
+	var (
+		tag string
+	)
+	{
+		p, ok := v.(*dsleditor.DeleteElementStylePayload)
+		if !ok {
+			return nil, goahttp.ErrInvalidType("DSLEditor", "DeleteElementStyle", "*dsleditor.DeleteElementStylePayload", v)
+		}
+		tag = p.Tag
+	}
+	u := &url.URL{Scheme: c.scheme, Host: c.host, Path: DeleteElementStyleDSLEditorPath(tag)}
+	req, err := http.NewRequest("DELETE", u.String(), nil)
+	if err != nil {
+		return nil, goahttp.ErrInvalidURL("DSLEditor", "DeleteElementStyle", u.String(), err)
+	}
+	if ctx != nil {
+		req = req.WithContext(ctx)
+	}
+
+	return req, nil
+}
+
+// EncodeDeleteElementStyleRequest returns an encoder for requests sent to the
+// DSLEditor DeleteElementStyle server.
+func EncodeDeleteElementStyleRequest(encoder func(*http.Request) goahttp.Encoder) func(*http.Request, any) error {
+	return func(req *http.Request, v any) error {
+		p, ok := v.(*dsleditor.DeleteElementStylePayload)
+		if !ok {
+			return goahttp.ErrInvalidType("DSLEditor", "DeleteElementStyle", "*dsleditor.DeleteElementStylePayload", v)
+		}
+		body := NewDeleteElementStyleRequestBody(p)
+		if err := encoder(req).Encode(&body); err != nil {
+			return goahttp.ErrEncodingError("DSLEditor", "DeleteElementStyle", err)
+		}
+		return nil
+	}
+}
+
+// DecodeDeleteElementStyleResponse returns a decoder for responses returned by
+// the DSLEditor DeleteElementStyle endpoint. restoreBody controls whether the
+// response body should be restored after having been read.
+// DecodeDeleteElementStyleResponse may return the following errors:
+//   - "NotFound" (type *goa.ServiceError): http.StatusNotFound
+//   - "compilation_failed" (type *goa.ServiceError): http.StatusBadRequest
+//   - error: internal error
+func DecodeDeleteElementStyleResponse(decoder func(*http.Response) goahttp.Decoder, restoreBody bool) func(*http.Response) (any, error) {
+	return func(resp *http.Response) (any, error) {
+		if restoreBody {
+			b, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return nil, err
+			}
+			resp.Body = io.NopCloser(bytes.NewBuffer(b))
+			defer func() {
+				resp.Body = io.NopCloser(bytes.NewBuffer(b))
+			}()
+		} else {
+			defer resp.Body.Close()
+		}
+		switch resp.StatusCode {
+		case http.StatusNoContent:
+			return nil, nil
+		case http.StatusNotFound:
+			var (
+				body DeleteElementStyleNotFoundResponseBody
+				err  error
+			)
+			err = decoder(resp).Decode(&body)
+			if err != nil {
+				return nil, goahttp.ErrDecodingError("DSLEditor", "DeleteElementStyle", err)
+			}
+			err = ValidateDeleteElementStyleNotFoundResponseBody(&body)
+			if err != nil {
+				return nil, goahttp.ErrValidationError("DSLEditor", "DeleteElementStyle", err)
+			}
+			return nil, NewDeleteElementStyleNotFound(&body)
+		case http.StatusBadRequest:
+			var (
+				body DeleteElementStyleCompilationFailedResponseBody
+				err  error
+			)
+			err = decoder(resp).Decode(&body)
+			if err != nil {
+				return nil, goahttp.ErrDecodingError("DSLEditor", "DeleteElementStyle", err)
+			}
+			err = ValidateDeleteElementStyleCompilationFailedResponseBody(&body)
+			if err != nil {
+				return nil, goahttp.ErrValidationError("DSLEditor", "DeleteElementStyle", err)
+			}
+			return nil, NewDeleteElementStyleCompilationFailed(&body)
+		default:
+			body, _ := io.ReadAll(resp.Body)
+			return nil, goahttp.ErrInvalidResponse("DSLEditor", "DeleteElementStyle", resp.StatusCode, string(body))
+		}
+	}
+}
+
+// BuildDeleteRelationshipStyleRequest instantiates a HTTP request object with
+// method and path set to call the "DSLEditor" service
+// "DeleteRelationshipStyle" endpoint
+func (c *Client) BuildDeleteRelationshipStyleRequest(ctx context.Context, v any) (*http.Request, error) {
+	var (
+		tag string
+	)
+	{
+		p, ok := v.(*dsleditor.DeleteRelationshipStylePayload)
+		if !ok {
+			return nil, goahttp.ErrInvalidType("DSLEditor", "DeleteRelationshipStyle", "*dsleditor.DeleteRelationshipStylePayload", v)
+		}
+		tag = p.Tag
+	}
+	u := &url.URL{Scheme: c.scheme, Host: c.host, Path: DeleteRelationshipStyleDSLEditorPath(tag)}
+	req, err := http.NewRequest("DELETE", u.String(), nil)
+	if err != nil {
+		return nil, goahttp.ErrInvalidURL("DSLEditor", "DeleteRelationshipStyle", u.String(), err)
+	}
+	if ctx != nil {
+		req = req.WithContext(ctx)
+	}
+
+	return req, nil
+}
+
+// EncodeDeleteRelationshipStyleRequest returns an encoder for requests sent to
+// the DSLEditor DeleteRelationshipStyle server.
+func EncodeDeleteRelationshipStyleRequest(encoder func(*http.Request) goahttp.Encoder) func(*http.Request, any) error {
+	return func(req *http.Request, v any) error {
+		p, ok := v.(*dsleditor.DeleteRelationshipStylePayload)
+		if !ok {
+			return goahttp.ErrInvalidType("DSLEditor", "DeleteRelationshipStyle", "*dsleditor.DeleteRelationshipStylePayload", v)
+		}
+		body := NewDeleteRelationshipStyleRequestBody(p)
+		if err := encoder(req).Encode(&body); err != nil {
+			return goahttp.ErrEncodingError("DSLEditor", "DeleteRelationshipStyle", err)
+		}
+		return nil
+	}
+}
+
+// DecodeDeleteRelationshipStyleResponse returns a decoder for responses
+// returned by the DSLEditor DeleteRelationshipStyle endpoint. restoreBody
+// controls whether the response body should be restored after having been read.
+// DecodeDeleteRelationshipStyleResponse may return the following errors:
+//   - "NotFound" (type *goa.ServiceError): http.StatusNotFound
+//   - "compilation_failed" (type *goa.ServiceError): http.StatusBadRequest
+//   - error: internal error
+func DecodeDeleteRelationshipStyleResponse(decoder func(*http.Response) goahttp.Decoder, restoreBody bool) func(*http.Response) (any, error) {
+	return func(resp *http.Response) (any, error) {
+		if restoreBody {
+			b, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return nil, err
+			}
+			resp.Body = io.NopCloser(bytes.NewBuffer(b))
+			defer func() {
+				resp.Body = io.NopCloser(bytes.NewBuffer(b))
+			}()
+		} else {
+			defer resp.Body.Close()
+		}
+		switch resp.StatusCode {
+		case http.StatusNoContent:
+			return nil, nil
+		case http.StatusNotFound:
+			var (
+				body DeleteRelationshipStyleNotFoundResponseBody
+				err  error
+			)
+			err = decoder(resp).Decode(&body)
+			if err != nil {
+				return nil, goahttp.ErrDecodingError("DSLEditor", "DeleteRelationshipStyle", err)
+			}
+			err = ValidateDeleteRelationshipStyleNotFoundResponseBody(&body)
+			if err != nil {
+				return nil, goahttp.ErrValidationError("DSLEditor", "DeleteRelationshipStyle", err)
+			}
+			return nil, NewDeleteRelationshipStyleNotFound(&body)
+		case http.StatusBadRequest:
+			var (
+				body DeleteRelationshipStyleCompilationFailedResponseBody
+				err  error
+			)
+			err = decoder(resp).Decode(&body)
+			if err != nil {
+				return nil, goahttp.ErrDecodingError("DSLEditor", "DeleteRelationshipStyle", err)
+			}
+			err = ValidateDeleteRelationshipStyleCompilationFailedResponseBody(&body)
+			if err != nil {
+				return nil, goahttp.ErrValidationError("DSLEditor", "DeleteRelationshipStyle", err)
+			}
+			return nil, NewDeleteRelationshipStyleCompilationFailed(&body)
+		default:
+			body, _ := io.ReadAll(resp.Body)
+			return nil, goahttp.ErrInvalidResponse("DSLEditor", "DeleteRelationshipStyle", resp.StatusCode, string(body))
+		}
+	}
+}
+
 // marshalTypesFileLocatorToFileLocatorRequestBody builds a value of type
 // *FileLocatorRequestBody from a value of type *types.FileLocator.
 func marshalTypesFileLocatorToFileLocatorRequestBody(v *types.FileLocator) *FileLocatorRequestBody {
 	res := &FileLocatorRequestBody{
-		Filename:  v.Filename,
-		Workspace: v.Workspace,
-		Dir:       v.Dir,
+		Filename:   v.Filename,
+		Repository: v.Repository,
+		Dir:        v.Dir,
 	}
 
 	return res
@@ -985,9 +2046,65 @@ func marshalTypesFileLocatorToFileLocatorRequestBody(v *types.FileLocator) *File
 // *types.FileLocator from a value of type *FileLocatorRequestBody.
 func marshalFileLocatorRequestBodyToTypesFileLocator(v *FileLocatorRequestBody) *types.FileLocator {
 	res := &types.FileLocator{
-		Filename:  v.Filename,
-		Workspace: v.Workspace,
-		Dir:       v.Dir,
+		Filename:   v.Filename,
+		Repository: v.Repository,
+		Dir:        v.Dir,
+	}
+
+	return res
+}
+
+// marshalDsleditorElementViewToElementViewRequestBody builds a value of type
+// *ElementViewRequestBody from a value of type *dsleditor.ElementView.
+func marshalDsleditorElementViewToElementViewRequestBody(v *dsleditor.ElementView) *ElementViewRequestBody {
+	if v == nil {
+		return nil
+	}
+	res := &ElementViewRequestBody{
+		Element: v.Element,
+	}
+
+	return res
+}
+
+// marshalDsleditorRelationshipViewToRelationshipViewRequestBody builds a value
+// of type *RelationshipViewRequestBody from a value of type
+// *dsleditor.RelationshipView.
+func marshalDsleditorRelationshipViewToRelationshipViewRequestBody(v *dsleditor.RelationshipView) *RelationshipViewRequestBody {
+	if v == nil {
+		return nil
+	}
+	res := &RelationshipViewRequestBody{
+		Source:      v.Source,
+		Destination: v.Destination,
+	}
+
+	return res
+}
+
+// marshalElementViewRequestBodyToDsleditorElementView builds a value of type
+// *dsleditor.ElementView from a value of type *ElementViewRequestBody.
+func marshalElementViewRequestBodyToDsleditorElementView(v *ElementViewRequestBody) *dsleditor.ElementView {
+	if v == nil {
+		return nil
+	}
+	res := &dsleditor.ElementView{
+		Element: v.Element,
+	}
+
+	return res
+}
+
+// marshalRelationshipViewRequestBodyToDsleditorRelationshipView builds a value
+// of type *dsleditor.RelationshipView from a value of type
+// *RelationshipViewRequestBody.
+func marshalRelationshipViewRequestBodyToDsleditorRelationshipView(v *RelationshipViewRequestBody) *dsleditor.RelationshipView {
+	if v == nil {
+		return nil
+	}
+	res := &dsleditor.RelationshipView{
+		Source:      v.Source,
+		Destination: v.Destination,
 	}
 
 	return res

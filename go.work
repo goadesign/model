@@ -2,7 +2,6 @@ go 1.21.3
 
 use (
 	.
-	./svc/testdata/parent
-	./svc/testdata/model
-	./svc/testdata/not_model
+	./svc/clients/repo/testdata/parent
+	./svc/clients/repo/testdata/model
 )

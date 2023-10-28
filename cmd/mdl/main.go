@@ -8,7 +8,7 @@ import (
 
 	"goa.design/model/codegen"
 	model "goa.design/model/pkg"
-	pstore "goa.design/model/svc/clients/package_store"
+	"goa.design/model/svc/clients/repo"
 )
 
 func main() {
@@ -91,7 +91,7 @@ func main() {
 		if pkg == "" {
 			fail(`missing MODEL_DIR argument, use "--help" for usage`)
 		}
-		store := pstore.NewFileStore(*root, devmode)
+		store := repo.NewHandler(*root, devmode)
 		err = serve(pkg, store, *port, devmode, *debug)
 	case "version":
 		fmt.Printf("%s %s\n", os.Args[0], model.Version())

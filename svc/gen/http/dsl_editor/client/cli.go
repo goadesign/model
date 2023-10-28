@@ -25,7 +25,7 @@ func BuildUpdateDSLPayload(dSLEditorUpdateDSLBody string) (*types.PackageFile, e
 	{
 		err = json.Unmarshal([]byte(dSLEditorUpdateDSLBody), &body)
 		if err != nil {
-			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Content\": \"import . \\\"goa.design/model/dsl\\\"\\n\\nvar _ = Design(func() {})\",\n      \"Locator\": {\n         \"Dir\": \"src/repo/model\",\n         \"Filename\": \"model.go\",\n         \"Workspace\": \"my-workspace\"\n      }\n   }'")
+			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Content\": \"package model\\n\\nimport . \\\"goa.design/model/dsl\\\"\\n\\nvar _ = Design(func() {})\",\n      \"Locator\": {\n         \"Dir\": \"services/my-service/diagram\",\n         \"Filename\": \"model.go\",\n         \"Repository\": \"my-repo\"\n      }\n   }'")
 		}
 		if body.Locator == nil {
 			err = goa.MergeErrors(err, goa.MissingFieldError("Locator", "body"))
@@ -61,7 +61,7 @@ func BuildUpsertSystemPayload(dSLEditorUpsertSystemBody string) (*dsleditor.Syst
 	{
 		err = json.Unmarshal([]byte(dSLEditorUpsertSystemBody), &body)
 		if err != nil {
-			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Description\": \"System description\",\n      \"Location\": \"Internal\",\n      \"Locator\": {\n         \"Dir\": \"src/repo/model\",\n         \"Filename\": \"model.go\",\n         \"Workspace\": \"my-workspace\"\n      },\n      \"Name\": \"System\",\n      \"Properties\": {\n         \"key1\": \"value1\",\n         \"key2\": \"value2\"\n      },\n      \"Tags\": [\n         \"Tag1\",\n         \"Tag2\"\n      ],\n      \"URL\": \"https://system.com\"\n   }'")
+			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Description\": \"System description\",\n      \"Location\": \"Internal\",\n      \"Locator\": {\n         \"Dir\": \"services/my-service/diagram\",\n         \"Filename\": \"model.go\",\n         \"Repository\": \"my-repo\"\n      },\n      \"Name\": \"System\",\n      \"Properties\": {\n         \"key1\": \"value1\",\n         \"key2\": \"value2\"\n      },\n      \"Tags\": [\n         \"Tag1\",\n         \"Tag2\"\n      ],\n      \"URL\": \"https://system.com\"\n   }'")
 		}
 		if body.Locator != nil {
 			if err2 := ValidateFileLocatorRequestBody(body.Locator); err2 != nil {
@@ -116,7 +116,7 @@ func BuildUpsertPersonPayload(dSLEditorUpsertPersonBody string) (*dsleditor.Pers
 	{
 		err = json.Unmarshal([]byte(dSLEditorUpsertPersonBody), &body)
 		if err != nil {
-			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Description\": \"Person description\",\n      \"Location\": \"Internal\",\n      \"Locator\": {\n         \"Dir\": \"src/repo/model\",\n         \"Filename\": \"model.go\",\n         \"Workspace\": \"my-workspace\"\n      },\n      \"Name\": \"Person\",\n      \"Properties\": {\n         \"key1\": \"value1\",\n         \"key2\": \"value2\"\n      },\n      \"Tags\": [\n         \"Tag1\",\n         \"Tag2\"\n      ],\n      \"URL\": \"https://person.com\"\n   }'")
+			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Description\": \"Person description\",\n      \"Location\": \"External\",\n      \"Locator\": {\n         \"Dir\": \"services/my-service/diagram\",\n         \"Filename\": \"model.go\",\n         \"Repository\": \"my-repo\"\n      },\n      \"Name\": \"Person\",\n      \"Properties\": {\n         \"key1\": \"value1\",\n         \"key2\": \"value2\"\n      },\n      \"Tags\": [\n         \"Tag1\",\n         \"Tag2\"\n      ],\n      \"URL\": \"https://person.com\"\n   }'")
 		}
 		if body.Locator != nil {
 			if err2 := ValidateFileLocatorRequestBody(body.Locator); err2 != nil {
@@ -171,7 +171,7 @@ func BuildUpsertContainerPayload(dSLEditorUpsertContainerBody string) (*dsledito
 	{
 		err = json.Unmarshal([]byte(dSLEditorUpsertContainerBody), &body)
 		if err != nil {
-			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Description\": \"Container description\",\n      \"Locator\": {\n         \"Dir\": \"src/repo/model\",\n         \"Filename\": \"model.go\",\n         \"Workspace\": \"my-workspace\"\n      },\n      \"Name\": \"Container\",\n      \"Properties\": {\n         \"key1\": \"value1\",\n         \"key2\": \"value2\"\n      },\n      \"SystemName\": \"My System\",\n      \"Tags\": [\n         \"Tag1\",\n         \"Tag2\"\n      ],\n      \"Technology\": \"Technology\",\n      \"URL\": \"https://container.com\"\n   }'")
+			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Description\": \"Container description\",\n      \"Locator\": {\n         \"Dir\": \"services/my-service/diagram\",\n         \"Filename\": \"model.go\",\n         \"Repository\": \"my-repo\"\n      },\n      \"Name\": \"Container\",\n      \"Properties\": {\n         \"key1\": \"value1\",\n         \"key2\": \"value2\"\n      },\n      \"SystemName\": \"My System\",\n      \"Tags\": [\n         \"Tag1\",\n         \"Tag2\"\n      ],\n      \"Technology\": \"Technology\",\n      \"URL\": \"https://container.com\"\n   }'")
 		}
 		if body.Locator != nil {
 			if err2 := ValidateFileLocatorRequestBody(body.Locator); err2 != nil {
@@ -218,7 +218,7 @@ func BuildUpsertComponentPayload(dSLEditorUpsertComponentBody string) (*dsledito
 	{
 		err = json.Unmarshal([]byte(dSLEditorUpsertComponentBody), &body)
 		if err != nil {
-			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"ContainerName\": \"My Container\",\n      \"Description\": \"Component description\",\n      \"Locator\": {\n         \"Dir\": \"src/repo/model\",\n         \"Filename\": \"model.go\",\n         \"Workspace\": \"my-workspace\"\n      },\n      \"Name\": \"Component\",\n      \"Properties\": {\n         \"key1\": \"value1\",\n         \"key2\": \"value2\"\n      },\n      \"SystemName\": \"My System\",\n      \"Tags\": [\n         \"Tag1\",\n         \"Tag2\"\n      ],\n      \"Technology\": \"Technology\",\n      \"URL\": \"https://component.com\"\n   }'")
+			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"ContainerName\": \"My Container\",\n      \"Description\": \"Component description\",\n      \"Locator\": {\n         \"Dir\": \"services/my-service/diagram\",\n         \"Filename\": \"model.go\",\n         \"Repository\": \"my-repo\"\n      },\n      \"Name\": \"Component\",\n      \"Properties\": {\n         \"key1\": \"value1\",\n         \"key2\": \"value2\"\n      },\n      \"SystemName\": \"My System\",\n      \"Tags\": [\n         \"Tag1\",\n         \"Tag2\"\n      ],\n      \"Technology\": \"Technology\",\n      \"URL\": \"https://component.com\"\n   }'")
 		}
 		if body.Locator != nil {
 			if err2 := ValidateFileLocatorRequestBody(body.Locator); err2 != nil {
@@ -266,7 +266,7 @@ func BuildUpsertRelationshipPayload(dSLEditorUpsertRelationshipBody string) (*ds
 	{
 		err = json.Unmarshal([]byte(dSLEditorUpsertRelationshipBody), &body)
 		if err != nil {
-			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Description\": \"Relationship description\",\n      \"DestinationPath\": \"Software System/Container/Component\",\n      \"InteractionStyle\": \"Asynchronous\",\n      \"Locator\": {\n         \"Dir\": \"src/repo/model\",\n         \"Filename\": \"model.go\",\n         \"Workspace\": \"my-workspace\"\n      },\n      \"SourcePath\": \"Software System/Container/Component\",\n      \"Tags\": [\n         \"Tag1\",\n         \"Tag2\"\n      ],\n      \"Technology\": \"Technology\",\n      \"URL\": \"https://relationship.com\"\n   }'")
+			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Description\": \"Relationship description\",\n      \"DestinationPath\": \"Software System/Container/Component\",\n      \"InteractionStyle\": \"Synchronous\",\n      \"Locator\": {\n         \"Dir\": \"services/my-service/diagram\",\n         \"Filename\": \"model.go\",\n         \"Repository\": \"my-repo\"\n      },\n      \"SourcePath\": \"Software System/Container/Component\",\n      \"Tags\": [\n         \"Tag1\",\n         \"Tag2\"\n      ],\n      \"Technology\": \"Technology\",\n      \"URL\": \"https://relationship.com\"\n   }'")
 		}
 		if body.Locator != nil {
 			if err2 := ValidateFileLocatorRequestBody(body.Locator); err2 != nil {
@@ -310,6 +310,414 @@ func BuildUpsertRelationshipPayload(dSLEditorUpsertRelationshipBody string) (*ds
 	return v, nil
 }
 
+// BuildUpsertLandscapeViewPayload builds the payload for the DSLEditor
+// UpsertLandscapeView endpoint from CLI flags.
+func BuildUpsertLandscapeViewPayload(dSLEditorUpsertLandscapeViewBody string) (*dsleditor.LandscapeView, error) {
+	var err error
+	var body UpsertLandscapeViewRequestBody
+	{
+		err = json.Unmarshal([]byte(dSLEditorUpsertLandscapeViewBody), &body)
+		if err != nil {
+			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Description\": \"description\",\n      \"ElementViews\": [\n         {\n            \"Element\": \"Software System/Container/Component\"\n         },\n         {\n            \"Element\": \"Software System/Container/Component\"\n         },\n         {\n            \"Element\": \"Software System/Container/Component\"\n         },\n         {\n            \"Element\": \"Software System/Container/Component\"\n         }\n      ],\n      \"EnterpriseBoundaryVisible\": false,\n      \"Key\": \"key\",\n      \"Locator\": {\n         \"Dir\": \"services/my-service/diagram\",\n         \"Filename\": \"model.go\",\n         \"Repository\": \"my-repo\"\n      },\n      \"PaperSize\": \"A0_Landscape\",\n      \"RelationshipViews\": [\n         {\n            \"Destination\": \"Software System/Container/Component\",\n            \"Source\": \"Software System/Container/Component\"\n         },\n         {\n            \"Destination\": \"Software System/Container/Component\",\n            \"Source\": \"Software System/Container/Component\"\n         },\n         {\n            \"Destination\": \"Software System/Container/Component\",\n            \"Source\": \"Software System/Container/Component\"\n         },\n         {\n            \"Destination\": \"Software System/Container/Component\",\n            \"Source\": \"Software System/Container/Component\"\n         }\n      ],\n      \"Title\": \"title\"\n   }'")
+		}
+		if body.Locator != nil {
+			if err2 := ValidateFileLocatorRequestBody(body.Locator); err2 != nil {
+				err = goa.MergeErrors(err, err2)
+			}
+		}
+		if body.PaperSize != nil {
+			if !(*body.PaperSize == "A0_Landscape" || *body.PaperSize == "A0_Portrait" || *body.PaperSize == "A1_Landscape" || *body.PaperSize == "A1_Portrait" || *body.PaperSize == "A2_Landscape" || *body.PaperSize == "A2_Portrait" || *body.PaperSize == "A3_Landscape" || *body.PaperSize == "A3_Portrait" || *body.PaperSize == "A4_Landscape" || *body.PaperSize == "A4_Portrait" || *body.PaperSize == "A5_Landscape" || *body.PaperSize == "A5_Portrait" || *body.PaperSize == "A6_Landscape" || *body.PaperSize == "A6_Portrait" || *body.PaperSize == "Legal_Landscape" || *body.PaperSize == "Legal_Portrait" || *body.PaperSize == "Letter_Landscape" || *body.PaperSize == "Letter_Portrait" || *body.PaperSize == "Slide_16x10" || *body.PaperSize == "Slide_16x9" || *body.PaperSize == "Slide_4x3") {
+				err = goa.MergeErrors(err, goa.InvalidEnumValueError("body.PaperSize", *body.PaperSize, []any{"A0_Landscape", "A0_Portrait", "A1_Landscape", "A1_Portrait", "A2_Landscape", "A2_Portrait", "A3_Landscape", "A3_Portrait", "A4_Landscape", "A4_Portrait", "A5_Landscape", "A5_Portrait", "A6_Landscape", "A6_Portrait", "Legal_Landscape", "Legal_Portrait", "Letter_Landscape", "Letter_Portrait", "Slide_16x10", "Slide_16x9", "Slide_4x3"}))
+			}
+		}
+		if err != nil {
+			return nil, err
+		}
+	}
+	v := &dsleditor.LandscapeView{
+		EnterpriseBoundaryVisible: body.EnterpriseBoundaryVisible,
+		Key:                       body.Key,
+		Title:                     body.Title,
+		Description:               body.Description,
+		PaperSize:                 body.PaperSize,
+	}
+	{
+		var zero bool
+		if v.EnterpriseBoundaryVisible == zero {
+			v.EnterpriseBoundaryVisible = true
+		}
+	}
+	if body.Locator != nil {
+		v.Locator = marshalFileLocatorRequestBodyToTypesFileLocator(body.Locator)
+	}
+	if body.ElementViews != nil {
+		v.ElementViews = make([]*dsleditor.ElementView, len(body.ElementViews))
+		for i, val := range body.ElementViews {
+			v.ElementViews[i] = marshalElementViewRequestBodyToDsleditorElementView(val)
+		}
+	}
+	if body.RelationshipViews != nil {
+		v.RelationshipViews = make([]*dsleditor.RelationshipView, len(body.RelationshipViews))
+		for i, val := range body.RelationshipViews {
+			v.RelationshipViews[i] = marshalRelationshipViewRequestBodyToDsleditorRelationshipView(val)
+		}
+	}
+
+	return v, nil
+}
+
+// BuildUpsertSystemContextViewPayload builds the payload for the DSLEditor
+// UpsertSystemContextView endpoint from CLI flags.
+func BuildUpsertSystemContextViewPayload(dSLEditorUpsertSystemContextViewBody string) (*dsleditor.SystemContextView, error) {
+	var err error
+	var body UpsertSystemContextViewRequestBody
+	{
+		err = json.Unmarshal([]byte(dSLEditorUpsertSystemContextViewBody), &body)
+		if err != nil {
+			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Description\": \"description\",\n      \"ElementViews\": [\n         {\n            \"Element\": \"Software System/Container/Component\"\n         },\n         {\n            \"Element\": \"Software System/Container/Component\"\n         },\n         {\n            \"Element\": \"Software System/Container/Component\"\n         },\n         {\n            \"Element\": \"Software System/Container/Component\"\n         }\n      ],\n      \"EnterpriseBoundaryVisible\": false,\n      \"Key\": \"key\",\n      \"Locator\": {\n         \"Dir\": \"services/my-service/diagram\",\n         \"Filename\": \"model.go\",\n         \"Repository\": \"my-repo\"\n      },\n      \"PaperSize\": \"A2_Landscape\",\n      \"RelationshipViews\": [\n         {\n            \"Destination\": \"Software System/Container/Component\",\n            \"Source\": \"Software System/Container/Component\"\n         },\n         {\n            \"Destination\": \"Software System/Container/Component\",\n            \"Source\": \"Software System/Container/Component\"\n         },\n         {\n            \"Destination\": \"Software System/Container/Component\",\n            \"Source\": \"Software System/Container/Component\"\n         },\n         {\n            \"Destination\": \"Software System/Container/Component\",\n            \"Source\": \"Software System/Container/Component\"\n         }\n      ],\n      \"SoftwareSystemName\": \"Software System\",\n      \"Title\": \"title\"\n   }'")
+		}
+		if body.Locator != nil {
+			if err2 := ValidateFileLocatorRequestBody(body.Locator); err2 != nil {
+				err = goa.MergeErrors(err, err2)
+			}
+		}
+		if body.PaperSize != nil {
+			if !(*body.PaperSize == "A0_Landscape" || *body.PaperSize == "A0_Portrait" || *body.PaperSize == "A1_Landscape" || *body.PaperSize == "A1_Portrait" || *body.PaperSize == "A2_Landscape" || *body.PaperSize == "A2_Portrait" || *body.PaperSize == "A3_Landscape" || *body.PaperSize == "A3_Portrait" || *body.PaperSize == "A4_Landscape" || *body.PaperSize == "A4_Portrait" || *body.PaperSize == "A5_Landscape" || *body.PaperSize == "A5_Portrait" || *body.PaperSize == "A6_Landscape" || *body.PaperSize == "A6_Portrait" || *body.PaperSize == "Legal_Landscape" || *body.PaperSize == "Legal_Portrait" || *body.PaperSize == "Letter_Landscape" || *body.PaperSize == "Letter_Portrait" || *body.PaperSize == "Slide_16x10" || *body.PaperSize == "Slide_16x9" || *body.PaperSize == "Slide_4x3") {
+				err = goa.MergeErrors(err, goa.InvalidEnumValueError("body.PaperSize", *body.PaperSize, []any{"A0_Landscape", "A0_Portrait", "A1_Landscape", "A1_Portrait", "A2_Landscape", "A2_Portrait", "A3_Landscape", "A3_Portrait", "A4_Landscape", "A4_Portrait", "A5_Landscape", "A5_Portrait", "A6_Landscape", "A6_Portrait", "Legal_Landscape", "Legal_Portrait", "Letter_Landscape", "Letter_Portrait", "Slide_16x10", "Slide_16x9", "Slide_4x3"}))
+			}
+		}
+		if err != nil {
+			return nil, err
+		}
+	}
+	v := &dsleditor.SystemContextView{
+		SoftwareSystemName:        body.SoftwareSystemName,
+		EnterpriseBoundaryVisible: body.EnterpriseBoundaryVisible,
+		Key:                       body.Key,
+		Title:                     body.Title,
+		Description:               body.Description,
+		PaperSize:                 body.PaperSize,
+	}
+	{
+		var zero bool
+		if v.EnterpriseBoundaryVisible == zero {
+			v.EnterpriseBoundaryVisible = true
+		}
+	}
+	if body.Locator != nil {
+		v.Locator = marshalFileLocatorRequestBodyToTypesFileLocator(body.Locator)
+	}
+	if body.ElementViews != nil {
+		v.ElementViews = make([]*dsleditor.ElementView, len(body.ElementViews))
+		for i, val := range body.ElementViews {
+			v.ElementViews[i] = marshalElementViewRequestBodyToDsleditorElementView(val)
+		}
+	}
+	if body.RelationshipViews != nil {
+		v.RelationshipViews = make([]*dsleditor.RelationshipView, len(body.RelationshipViews))
+		for i, val := range body.RelationshipViews {
+			v.RelationshipViews[i] = marshalRelationshipViewRequestBodyToDsleditorRelationshipView(val)
+		}
+	}
+
+	return v, nil
+}
+
+// BuildUpsertContainerViewPayload builds the payload for the DSLEditor
+// UpsertContainerView endpoint from CLI flags.
+func BuildUpsertContainerViewPayload(dSLEditorUpsertContainerViewBody string) (*dsleditor.ContainerView, error) {
+	var err error
+	var body UpsertContainerViewRequestBody
+	{
+		err = json.Unmarshal([]byte(dSLEditorUpsertContainerViewBody), &body)
+		if err != nil {
+			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Description\": \"description\",\n      \"ElementViews\": [\n         {\n            \"Element\": \"Software System/Container/Component\"\n         },\n         {\n            \"Element\": \"Software System/Container/Component\"\n         }\n      ],\n      \"Key\": \"key\",\n      \"Locator\": {\n         \"Dir\": \"services/my-service/diagram\",\n         \"Filename\": \"model.go\",\n         \"Repository\": \"my-repo\"\n      },\n      \"PaperSize\": \"A4_Landscape\",\n      \"RelationshipViews\": [\n         {\n            \"Destination\": \"Software System/Container/Component\",\n            \"Source\": \"Software System/Container/Component\"\n         },\n         {\n            \"Destination\": \"Software System/Container/Component\",\n            \"Source\": \"Software System/Container/Component\"\n         },\n         {\n            \"Destination\": \"Software System/Container/Component\",\n            \"Source\": \"Software System/Container/Component\"\n         }\n      ],\n      \"SoftwareSystemName\": \"Software System\",\n      \"SystemBoundariesVisible\": true,\n      \"Title\": \"title\"\n   }'")
+		}
+		if body.Locator != nil {
+			if err2 := ValidateFileLocatorRequestBody(body.Locator); err2 != nil {
+				err = goa.MergeErrors(err, err2)
+			}
+		}
+		if body.PaperSize != nil {
+			if !(*body.PaperSize == "A0_Landscape" || *body.PaperSize == "A0_Portrait" || *body.PaperSize == "A1_Landscape" || *body.PaperSize == "A1_Portrait" || *body.PaperSize == "A2_Landscape" || *body.PaperSize == "A2_Portrait" || *body.PaperSize == "A3_Landscape" || *body.PaperSize == "A3_Portrait" || *body.PaperSize == "A4_Landscape" || *body.PaperSize == "A4_Portrait" || *body.PaperSize == "A5_Landscape" || *body.PaperSize == "A5_Portrait" || *body.PaperSize == "A6_Landscape" || *body.PaperSize == "A6_Portrait" || *body.PaperSize == "Legal_Landscape" || *body.PaperSize == "Legal_Portrait" || *body.PaperSize == "Letter_Landscape" || *body.PaperSize == "Letter_Portrait" || *body.PaperSize == "Slide_16x10" || *body.PaperSize == "Slide_16x9" || *body.PaperSize == "Slide_4x3") {
+				err = goa.MergeErrors(err, goa.InvalidEnumValueError("body.PaperSize", *body.PaperSize, []any{"A0_Landscape", "A0_Portrait", "A1_Landscape", "A1_Portrait", "A2_Landscape", "A2_Portrait", "A3_Landscape", "A3_Portrait", "A4_Landscape", "A4_Portrait", "A5_Landscape", "A5_Portrait", "A6_Landscape", "A6_Portrait", "Legal_Landscape", "Legal_Portrait", "Letter_Landscape", "Letter_Portrait", "Slide_16x10", "Slide_16x9", "Slide_4x3"}))
+			}
+		}
+		if err != nil {
+			return nil, err
+		}
+	}
+	v := &dsleditor.ContainerView{
+		SoftwareSystemName:      body.SoftwareSystemName,
+		SystemBoundariesVisible: body.SystemBoundariesVisible,
+		Key:                     body.Key,
+		Title:                   body.Title,
+		Description:             body.Description,
+		PaperSize:               body.PaperSize,
+	}
+	{
+		var zero bool
+		if v.SystemBoundariesVisible == zero {
+			v.SystemBoundariesVisible = true
+		}
+	}
+	if body.Locator != nil {
+		v.Locator = marshalFileLocatorRequestBodyToTypesFileLocator(body.Locator)
+	}
+	if body.ElementViews != nil {
+		v.ElementViews = make([]*dsleditor.ElementView, len(body.ElementViews))
+		for i, val := range body.ElementViews {
+			v.ElementViews[i] = marshalElementViewRequestBodyToDsleditorElementView(val)
+		}
+	}
+	if body.RelationshipViews != nil {
+		v.RelationshipViews = make([]*dsleditor.RelationshipView, len(body.RelationshipViews))
+		for i, val := range body.RelationshipViews {
+			v.RelationshipViews[i] = marshalRelationshipViewRequestBodyToDsleditorRelationshipView(val)
+		}
+	}
+
+	return v, nil
+}
+
+// BuildUpsertComponentViewPayload builds the payload for the DSLEditor
+// UpsertComponentView endpoint from CLI flags.
+func BuildUpsertComponentViewPayload(dSLEditorUpsertComponentViewBody string) (*dsleditor.ComponentView, error) {
+	var err error
+	var body UpsertComponentViewRequestBody
+	{
+		err = json.Unmarshal([]byte(dSLEditorUpsertComponentViewBody), &body)
+		if err != nil {
+			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"ContainerBoundariesVisible\": true,\n      \"ContainerName\": \"Container\",\n      \"Description\": \"description\",\n      \"ElementViews\": [\n         {\n            \"Element\": \"Software System/Container/Component\"\n         },\n         {\n            \"Element\": \"Software System/Container/Component\"\n         },\n         {\n            \"Element\": \"Software System/Container/Component\"\n         }\n      ],\n      \"Key\": \"key\",\n      \"Locator\": {\n         \"Dir\": \"services/my-service/diagram\",\n         \"Filename\": \"model.go\",\n         \"Repository\": \"my-repo\"\n      },\n      \"PaperSize\": \"Letter_Portrait\",\n      \"RelationshipViews\": [\n         {\n            \"Destination\": \"Software System/Container/Component\",\n            \"Source\": \"Software System/Container/Component\"\n         },\n         {\n            \"Destination\": \"Software System/Container/Component\",\n            \"Source\": \"Software System/Container/Component\"\n         }\n      ],\n      \"SoftwareSystemName\": \"Software System\",\n      \"Title\": \"title\"\n   }'")
+		}
+		if body.Locator != nil {
+			if err2 := ValidateFileLocatorRequestBody(body.Locator); err2 != nil {
+				err = goa.MergeErrors(err, err2)
+			}
+		}
+		if body.PaperSize != nil {
+			if !(*body.PaperSize == "A0_Landscape" || *body.PaperSize == "A0_Portrait" || *body.PaperSize == "A1_Landscape" || *body.PaperSize == "A1_Portrait" || *body.PaperSize == "A2_Landscape" || *body.PaperSize == "A2_Portrait" || *body.PaperSize == "A3_Landscape" || *body.PaperSize == "A3_Portrait" || *body.PaperSize == "A4_Landscape" || *body.PaperSize == "A4_Portrait" || *body.PaperSize == "A5_Landscape" || *body.PaperSize == "A5_Portrait" || *body.PaperSize == "A6_Landscape" || *body.PaperSize == "A6_Portrait" || *body.PaperSize == "Legal_Landscape" || *body.PaperSize == "Legal_Portrait" || *body.PaperSize == "Letter_Landscape" || *body.PaperSize == "Letter_Portrait" || *body.PaperSize == "Slide_16x10" || *body.PaperSize == "Slide_16x9" || *body.PaperSize == "Slide_4x3") {
+				err = goa.MergeErrors(err, goa.InvalidEnumValueError("body.PaperSize", *body.PaperSize, []any{"A0_Landscape", "A0_Portrait", "A1_Landscape", "A1_Portrait", "A2_Landscape", "A2_Portrait", "A3_Landscape", "A3_Portrait", "A4_Landscape", "A4_Portrait", "A5_Landscape", "A5_Portrait", "A6_Landscape", "A6_Portrait", "Legal_Landscape", "Legal_Portrait", "Letter_Landscape", "Letter_Portrait", "Slide_16x10", "Slide_16x9", "Slide_4x3"}))
+			}
+		}
+		if err != nil {
+			return nil, err
+		}
+	}
+	v := &dsleditor.ComponentView{
+		SoftwareSystemName:         body.SoftwareSystemName,
+		ContainerName:              body.ContainerName,
+		ContainerBoundariesVisible: body.ContainerBoundariesVisible,
+		Key:                        body.Key,
+		Title:                      body.Title,
+		Description:                body.Description,
+		PaperSize:                  body.PaperSize,
+	}
+	{
+		var zero bool
+		if v.ContainerBoundariesVisible == zero {
+			v.ContainerBoundariesVisible = true
+		}
+	}
+	if body.Locator != nil {
+		v.Locator = marshalFileLocatorRequestBodyToTypesFileLocator(body.Locator)
+	}
+	if body.ElementViews != nil {
+		v.ElementViews = make([]*dsleditor.ElementView, len(body.ElementViews))
+		for i, val := range body.ElementViews {
+			v.ElementViews[i] = marshalElementViewRequestBodyToDsleditorElementView(val)
+		}
+	}
+	if body.RelationshipViews != nil {
+		v.RelationshipViews = make([]*dsleditor.RelationshipView, len(body.RelationshipViews))
+		for i, val := range body.RelationshipViews {
+			v.RelationshipViews[i] = marshalRelationshipViewRequestBodyToDsleditorRelationshipView(val)
+		}
+	}
+
+	return v, nil
+}
+
+// BuildUpserElementStylePayload builds the payload for the DSLEditor
+// UpserElementStyle endpoint from CLI flags.
+func BuildUpserElementStylePayload(dSLEditorUpserElementStyleBody string) (*dsleditor.ElementStyle, error) {
+	var err error
+	var body UpserElementStyleRequestBody
+	{
+		err = json.Unmarshal([]byte(dSLEditorUpserElementStyleBody), &body)
+		if err != nil {
+			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Background\": \"#8aAA88\",\n      \"Border\": \"BorderDotted\",\n      \"Color\": \"#DE3e9e\",\n      \"Description\": false,\n      \"FontSize\": 20,\n      \"Height\": 100,\n      \"Icon\": \"https://static.structurizr.com/images/icons/Person.png\",\n      \"Metadata\": true,\n      \"Opacity\": 6,\n      \"Shape\": \"ShapeCircle\",\n      \"Stroke\": \"#e3Aee7\",\n      \"Tag\": \"tag\",\n      \"Width\": 100\n   }'")
+		}
+		if !(body.Shape == "ShapeBox" || body.Shape == "ShapeCircle" || body.Shape == "ShapeCylinder" || body.Shape == "ShapeEllipse" || body.Shape == "ShapeHexagon" || body.Shape == "ShapeRoundedBox" || body.Shape == "ShapeComponent" || body.Shape == "ShapeFolder" || body.Shape == "ShapeMobileDeviceLandscape" || body.Shape == "ShapeMobileDevicePortrait" || body.Shape == "ShapePerson" || body.Shape == "ShapePipe" || body.Shape == "ShapeRobot" || body.Shape == "ShapeWebBrowser") {
+			err = goa.MergeErrors(err, goa.InvalidEnumValueError("body.Shape", body.Shape, []any{"ShapeBox", "ShapeCircle", "ShapeCylinder", "ShapeEllipse", "ShapeHexagon", "ShapeRoundedBox", "ShapeComponent", "ShapeFolder", "ShapeMobileDeviceLandscape", "ShapeMobileDevicePortrait", "ShapePerson", "ShapePipe", "ShapeRobot", "ShapeWebBrowser"}))
+		}
+		if body.Icon != nil {
+			err = goa.MergeErrors(err, goa.ValidateFormat("body.Icon", *body.Icon, goa.FormatURI))
+		}
+		if body.Background != nil {
+			err = goa.MergeErrors(err, goa.ValidatePattern("body.Background", *body.Background, "^#[0-9a-fA-F]{6}$"))
+		}
+		if body.Color != nil {
+			err = goa.MergeErrors(err, goa.ValidatePattern("body.Color", *body.Color, "^#[0-9a-fA-F]{6}$"))
+		}
+		if body.Stroke != nil {
+			err = goa.MergeErrors(err, goa.ValidatePattern("body.Stroke", *body.Stroke, "^#[0-9a-fA-F]{6}$"))
+		}
+		if body.Opacity != nil {
+			if *body.Opacity < 0 {
+				err = goa.MergeErrors(err, goa.InvalidRangeError("body.Opacity", *body.Opacity, 0, true))
+			}
+		}
+		if body.Opacity != nil {
+			if *body.Opacity > 100 {
+				err = goa.MergeErrors(err, goa.InvalidRangeError("body.Opacity", *body.Opacity, 100, false))
+			}
+		}
+		if !(body.Border == "BorderSolid" || body.Border == "BorderDashed" || body.Border == "BorderDotted") {
+			err = goa.MergeErrors(err, goa.InvalidEnumValueError("body.Border", body.Border, []any{"BorderSolid", "BorderDashed", "BorderDotted"}))
+		}
+		if err != nil {
+			return nil, err
+		}
+	}
+	v := &dsleditor.ElementStyle{
+		Tag:         body.Tag,
+		Shape:       body.Shape,
+		Icon:        body.Icon,
+		Background:  body.Background,
+		Color:       body.Color,
+		Stroke:      body.Stroke,
+		Width:       body.Width,
+		Height:      body.Height,
+		FontSize:    body.FontSize,
+		Metadata:    body.Metadata,
+		Description: body.Description,
+		Opacity:     body.Opacity,
+		Border:      body.Border,
+	}
+	{
+		var zero string
+		if v.Shape == zero {
+			v.Shape = "ShapeBox"
+		}
+	}
+	{
+		var zero bool
+		if v.Description == zero {
+			v.Description = true
+		}
+	}
+	{
+		var zero string
+		if v.Border == zero {
+			v.Border = "BorderSolid"
+		}
+	}
+
+	return v, nil
+}
+
+// BuildUpsertRelationshipStylePayload builds the payload for the DSLEditor
+// UpsertRelationshipStyle endpoint from CLI flags.
+func BuildUpsertRelationshipStylePayload(dSLEditorUpsertRelationshipStyleBody string) (*dsleditor.RelationshipStyle, error) {
+	var err error
+	var body UpsertRelationshipStyleRequestBody
+	{
+		err = json.Unmarshal([]byte(dSLEditorUpsertRelationshipStyleBody), &body)
+		if err != nil {
+			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Color\": \"#3Da7A0\",\n      \"Dashed\": true,\n      \"FontSize\": 70,\n      \"Opacity\": 30,\n      \"Position\": 4,\n      \"Routing\": \"Curved\",\n      \"Stroke\": \"#f3b65c\",\n      \"Tag\": \"tag\",\n      \"Thickness\": 2,\n      \"Width\": 2457\n   }'")
+		}
+		if body.Thickness != nil {
+			if *body.Thickness < 0 {
+				err = goa.MergeErrors(err, goa.InvalidRangeError("body.Thickness", *body.Thickness, 0, true))
+			}
+		}
+		if body.Thickness != nil {
+			if *body.Thickness > 1000 {
+				err = goa.MergeErrors(err, goa.InvalidRangeError("body.Thickness", *body.Thickness, 1000, false))
+			}
+		}
+		if body.FontSize != nil {
+			if *body.FontSize < 1 {
+				err = goa.MergeErrors(err, goa.InvalidRangeError("body.FontSize", *body.FontSize, 1, true))
+			}
+		}
+		if body.FontSize != nil {
+			if *body.FontSize > 100 {
+				err = goa.MergeErrors(err, goa.InvalidRangeError("body.FontSize", *body.FontSize, 100, false))
+			}
+		}
+		if body.Width != nil {
+			if *body.Width < 1 {
+				err = goa.MergeErrors(err, goa.InvalidRangeError("body.Width", *body.Width, 1, true))
+			}
+		}
+		if body.Width != nil {
+			if *body.Width > 10000 {
+				err = goa.MergeErrors(err, goa.InvalidRangeError("body.Width", *body.Width, 10000, false))
+			}
+		}
+		if body.Position != nil {
+			if *body.Position < 0 {
+				err = goa.MergeErrors(err, goa.InvalidRangeError("body.Position", *body.Position, 0, true))
+			}
+		}
+		if body.Position != nil {
+			if *body.Position > 100 {
+				err = goa.MergeErrors(err, goa.InvalidRangeError("body.Position", *body.Position, 100, false))
+			}
+		}
+		if body.Color != nil {
+			err = goa.MergeErrors(err, goa.ValidatePattern("body.Color", *body.Color, "^#[0-9a-fA-F]{6}$"))
+		}
+		if body.Stroke != nil {
+			err = goa.MergeErrors(err, goa.ValidatePattern("body.Stroke", *body.Stroke, "^#[0-9a-fA-F]{6}$"))
+		}
+		if !(body.Routing == "Direct" || body.Routing == "Orthogonal" || body.Routing == "Curved") {
+			err = goa.MergeErrors(err, goa.InvalidEnumValueError("body.Routing", body.Routing, []any{"Direct", "Orthogonal", "Curved"}))
+		}
+		if body.Opacity != nil {
+			if *body.Opacity < 0 {
+				err = goa.MergeErrors(err, goa.InvalidRangeError("body.Opacity", *body.Opacity, 0, true))
+			}
+		}
+		if body.Opacity != nil {
+			if *body.Opacity > 100 {
+				err = goa.MergeErrors(err, goa.InvalidRangeError("body.Opacity", *body.Opacity, 100, false))
+			}
+		}
+		if err != nil {
+			return nil, err
+		}
+	}
+	v := &dsleditor.RelationshipStyle{
+		Tag:       body.Tag,
+		Thickness: body.Thickness,
+		FontSize:  body.FontSize,
+		Width:     body.Width,
+		Position:  body.Position,
+		Color:     body.Color,
+		Stroke:    body.Stroke,
+		Dashed:    body.Dashed,
+		Routing:   body.Routing,
+		Opacity:   body.Opacity,
+	}
+	{
+		var zero bool
+		if v.Dashed == zero {
+			v.Dashed = true
+		}
+	}
+	{
+		var zero string
+		if v.Routing == zero {
+			v.Routing = "Direct"
+		}
+	}
+
+	return v, nil
+}
+
 // BuildDeleteSystemPayload builds the payload for the DSLEditor DeleteSystem
 // endpoint from CLI flags.
 func BuildDeleteSystemPayload(dSLEditorDeleteSystemBody string, dSLEditorDeleteSystemSystemName string) (*dsleditor.DeleteSystemPayload, error) {
@@ -318,11 +726,11 @@ func BuildDeleteSystemPayload(dSLEditorDeleteSystemBody string, dSLEditorDeleteS
 	{
 		err = json.Unmarshal([]byte(dSLEditorDeleteSystemBody), &body)
 		if err != nil {
-			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Dir\": \"src/repo/model\",\n      \"Filename\": \"model.go\",\n      \"Workspace\": \"my-workspace\"\n   }'")
+			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Dir\": \"services/my-service/diagram\",\n      \"Filename\": \"model.go\",\n      \"Repository\": \"my-repo\"\n   }'")
 		}
 		err = goa.MergeErrors(err, goa.ValidatePattern("body.Filename", body.Filename, "\\.go$"))
-		if utf8.RuneCountInString(body.Workspace) < 1 {
-			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Workspace", body.Workspace, utf8.RuneCountInString(body.Workspace), 1, true))
+		if utf8.RuneCountInString(body.Repository) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Repository", body.Repository, utf8.RuneCountInString(body.Repository), 1, true))
 		}
 		if utf8.RuneCountInString(body.Dir) < 1 {
 			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Dir", body.Dir, utf8.RuneCountInString(body.Dir), 1, true))
@@ -336,9 +744,9 @@ func BuildDeleteSystemPayload(dSLEditorDeleteSystemBody string, dSLEditorDeleteS
 		systemName = dSLEditorDeleteSystemSystemName
 	}
 	v := &dsleditor.DeleteSystemPayload{
-		Filename:  body.Filename,
-		Workspace: body.Workspace,
-		Dir:       body.Dir,
+		Filename:   body.Filename,
+		Repository: body.Repository,
+		Dir:        body.Dir,
 	}
 	v.SystemName = systemName
 
@@ -353,11 +761,11 @@ func BuildDeletePersonPayload(dSLEditorDeletePersonBody string, dSLEditorDeleteP
 	{
 		err = json.Unmarshal([]byte(dSLEditorDeletePersonBody), &body)
 		if err != nil {
-			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Dir\": \"src/repo/model\",\n      \"Filename\": \"model.go\",\n      \"Workspace\": \"my-workspace\"\n   }'")
+			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Dir\": \"services/my-service/diagram\",\n      \"Filename\": \"model.go\",\n      \"Repository\": \"my-repo\"\n   }'")
 		}
 		err = goa.MergeErrors(err, goa.ValidatePattern("body.Filename", body.Filename, "\\.go$"))
-		if utf8.RuneCountInString(body.Workspace) < 1 {
-			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Workspace", body.Workspace, utf8.RuneCountInString(body.Workspace), 1, true))
+		if utf8.RuneCountInString(body.Repository) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Repository", body.Repository, utf8.RuneCountInString(body.Repository), 1, true))
 		}
 		if utf8.RuneCountInString(body.Dir) < 1 {
 			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Dir", body.Dir, utf8.RuneCountInString(body.Dir), 1, true))
@@ -371,9 +779,9 @@ func BuildDeletePersonPayload(dSLEditorDeletePersonBody string, dSLEditorDeleteP
 		personName = dSLEditorDeletePersonPersonName
 	}
 	v := &dsleditor.DeletePersonPayload{
-		Filename:  body.Filename,
-		Workspace: body.Workspace,
-		Dir:       body.Dir,
+		Filename:   body.Filename,
+		Repository: body.Repository,
+		Dir:        body.Dir,
 	}
 	v.PersonName = personName
 
@@ -388,11 +796,11 @@ func BuildDeleteContainerPayload(dSLEditorDeleteContainerBody string, dSLEditorD
 	{
 		err = json.Unmarshal([]byte(dSLEditorDeleteContainerBody), &body)
 		if err != nil {
-			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Dir\": \"src/repo/model\",\n      \"Filename\": \"model.go\",\n      \"Workspace\": \"my-workspace\"\n   }'")
+			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Dir\": \"services/my-service/diagram\",\n      \"Filename\": \"model.go\",\n      \"Repository\": \"my-repo\"\n   }'")
 		}
 		err = goa.MergeErrors(err, goa.ValidatePattern("body.Filename", body.Filename, "\\.go$"))
-		if utf8.RuneCountInString(body.Workspace) < 1 {
-			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Workspace", body.Workspace, utf8.RuneCountInString(body.Workspace), 1, true))
+		if utf8.RuneCountInString(body.Repository) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Repository", body.Repository, utf8.RuneCountInString(body.Repository), 1, true))
 		}
 		if utf8.RuneCountInString(body.Dir) < 1 {
 			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Dir", body.Dir, utf8.RuneCountInString(body.Dir), 1, true))
@@ -410,9 +818,9 @@ func BuildDeleteContainerPayload(dSLEditorDeleteContainerBody string, dSLEditorD
 		containerName = dSLEditorDeleteContainerContainerName
 	}
 	v := &dsleditor.DeleteContainerPayload{
-		Filename:  body.Filename,
-		Workspace: body.Workspace,
-		Dir:       body.Dir,
+		Filename:   body.Filename,
+		Repository: body.Repository,
+		Dir:        body.Dir,
 	}
 	v.SystemName = &systemName
 	v.ContainerName = containerName
@@ -428,11 +836,11 @@ func BuildDeleteComponentPayload(dSLEditorDeleteComponentBody string, dSLEditorD
 	{
 		err = json.Unmarshal([]byte(dSLEditorDeleteComponentBody), &body)
 		if err != nil {
-			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Dir\": \"src/repo/model\",\n      \"Filename\": \"model.go\",\n      \"Workspace\": \"my-workspace\"\n   }'")
+			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Dir\": \"services/my-service/diagram\",\n      \"Filename\": \"model.go\",\n      \"Repository\": \"my-repo\"\n   }'")
 		}
 		err = goa.MergeErrors(err, goa.ValidatePattern("body.Filename", body.Filename, "\\.go$"))
-		if utf8.RuneCountInString(body.Workspace) < 1 {
-			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Workspace", body.Workspace, utf8.RuneCountInString(body.Workspace), 1, true))
+		if utf8.RuneCountInString(body.Repository) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Repository", body.Repository, utf8.RuneCountInString(body.Repository), 1, true))
 		}
 		if utf8.RuneCountInString(body.Dir) < 1 {
 			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Dir", body.Dir, utf8.RuneCountInString(body.Dir), 1, true))
@@ -454,9 +862,9 @@ func BuildDeleteComponentPayload(dSLEditorDeleteComponentBody string, dSLEditorD
 		componentName = dSLEditorDeleteComponentComponentName
 	}
 	v := &dsleditor.DeleteComponentPayload{
-		Filename:  body.Filename,
-		Workspace: body.Workspace,
-		Dir:       body.Dir,
+		Filename:   body.Filename,
+		Repository: body.Repository,
+		Dir:        body.Dir,
 	}
 	v.SystemName = systemName
 	v.ContainerName = containerName
@@ -473,11 +881,11 @@ func BuildDeleteRelationshipPayload(dSLEditorDeleteRelationshipBody string) (*ds
 	{
 		err = json.Unmarshal([]byte(dSLEditorDeleteRelationshipBody), &body)
 		if err != nil {
-			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"DestinationPath\": \"Software System/Container/Component\",\n      \"Dir\": \"src/repo/model\",\n      \"Filename\": \"model.go\",\n      \"SourcePath\": \"Software System/Container/Component\",\n      \"Workspace\": \"my-workspace\"\n   }'")
+			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"DestinationPath\": \"Software System/Container/Component\",\n      \"Dir\": \"services/my-service/diagram\",\n      \"Filename\": \"model.go\",\n      \"Repository\": \"my-repo\",\n      \"SourcePath\": \"Software System/Container/Component\"\n   }'")
 		}
 		err = goa.MergeErrors(err, goa.ValidatePattern("body.Filename", body.Filename, "\\.go$"))
-		if utf8.RuneCountInString(body.Workspace) < 1 {
-			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Workspace", body.Workspace, utf8.RuneCountInString(body.Workspace), 1, true))
+		if utf8.RuneCountInString(body.Repository) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Repository", body.Repository, utf8.RuneCountInString(body.Repository), 1, true))
 		}
 		if utf8.RuneCountInString(body.Dir) < 1 {
 			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Dir", body.Dir, utf8.RuneCountInString(body.Dir), 1, true))
@@ -490,9 +898,219 @@ func BuildDeleteRelationshipPayload(dSLEditorDeleteRelationshipBody string) (*ds
 		SourcePath:      body.SourcePath,
 		DestinationPath: body.DestinationPath,
 		Filename:        body.Filename,
-		Workspace:       body.Workspace,
+		Repository:      body.Repository,
 		Dir:             body.Dir,
 	}
+
+	return v, nil
+}
+
+// BuildDeleteLandscapeViewPayload builds the payload for the DSLEditor
+// DeleteLandscapeView endpoint from CLI flags.
+func BuildDeleteLandscapeViewPayload(dSLEditorDeleteLandscapeViewBody string, dSLEditorDeleteLandscapeViewKey string) (*dsleditor.DeleteLandscapeViewPayload, error) {
+	var err error
+	var body DeleteLandscapeViewRequestBody
+	{
+		err = json.Unmarshal([]byte(dSLEditorDeleteLandscapeViewBody), &body)
+		if err != nil {
+			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Dir\": \"services/my-service/diagram\",\n      \"Filename\": \"model.go\",\n      \"Repository\": \"my-repo\"\n   }'")
+		}
+		err = goa.MergeErrors(err, goa.ValidatePattern("body.Filename", body.Filename, "\\.go$"))
+		if utf8.RuneCountInString(body.Repository) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Repository", body.Repository, utf8.RuneCountInString(body.Repository), 1, true))
+		}
+		if utf8.RuneCountInString(body.Dir) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Dir", body.Dir, utf8.RuneCountInString(body.Dir), 1, true))
+		}
+		if err != nil {
+			return nil, err
+		}
+	}
+	var key string
+	{
+		key = dSLEditorDeleteLandscapeViewKey
+	}
+	v := &dsleditor.DeleteLandscapeViewPayload{
+		Filename:   body.Filename,
+		Repository: body.Repository,
+		Dir:        body.Dir,
+	}
+	v.Key = key
+
+	return v, nil
+}
+
+// BuildDeleteSystemContextViewPayload builds the payload for the DSLEditor
+// DeleteSystemContextView endpoint from CLI flags.
+func BuildDeleteSystemContextViewPayload(dSLEditorDeleteSystemContextViewBody string, dSLEditorDeleteSystemContextViewKey string) (*dsleditor.DeleteSystemContextViewPayload, error) {
+	var err error
+	var body DeleteSystemContextViewRequestBody
+	{
+		err = json.Unmarshal([]byte(dSLEditorDeleteSystemContextViewBody), &body)
+		if err != nil {
+			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Dir\": \"services/my-service/diagram\",\n      \"Filename\": \"model.go\",\n      \"Repository\": \"my-repo\"\n   }'")
+		}
+		err = goa.MergeErrors(err, goa.ValidatePattern("body.Filename", body.Filename, "\\.go$"))
+		if utf8.RuneCountInString(body.Repository) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Repository", body.Repository, utf8.RuneCountInString(body.Repository), 1, true))
+		}
+		if utf8.RuneCountInString(body.Dir) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Dir", body.Dir, utf8.RuneCountInString(body.Dir), 1, true))
+		}
+		if err != nil {
+			return nil, err
+		}
+	}
+	var key string
+	{
+		key = dSLEditorDeleteSystemContextViewKey
+	}
+	v := &dsleditor.DeleteSystemContextViewPayload{
+		Filename:   body.Filename,
+		Repository: body.Repository,
+		Dir:        body.Dir,
+	}
+	v.Key = key
+
+	return v, nil
+}
+
+// BuildDeleteContainerViewPayload builds the payload for the DSLEditor
+// DeleteContainerView endpoint from CLI flags.
+func BuildDeleteContainerViewPayload(dSLEditorDeleteContainerViewBody string, dSLEditorDeleteContainerViewKey string) (*dsleditor.DeleteContainerViewPayload, error) {
+	var err error
+	var body DeleteContainerViewRequestBody
+	{
+		err = json.Unmarshal([]byte(dSLEditorDeleteContainerViewBody), &body)
+		if err != nil {
+			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Dir\": \"services/my-service/diagram\",\n      \"Filename\": \"model.go\",\n      \"Repository\": \"my-repo\"\n   }'")
+		}
+		err = goa.MergeErrors(err, goa.ValidatePattern("body.Filename", body.Filename, "\\.go$"))
+		if utf8.RuneCountInString(body.Repository) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Repository", body.Repository, utf8.RuneCountInString(body.Repository), 1, true))
+		}
+		if utf8.RuneCountInString(body.Dir) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Dir", body.Dir, utf8.RuneCountInString(body.Dir), 1, true))
+		}
+		if err != nil {
+			return nil, err
+		}
+	}
+	var key string
+	{
+		key = dSLEditorDeleteContainerViewKey
+	}
+	v := &dsleditor.DeleteContainerViewPayload{
+		Filename:   body.Filename,
+		Repository: body.Repository,
+		Dir:        body.Dir,
+	}
+	v.Key = key
+
+	return v, nil
+}
+
+// BuildDeleteComponentViewPayload builds the payload for the DSLEditor
+// DeleteComponentView endpoint from CLI flags.
+func BuildDeleteComponentViewPayload(dSLEditorDeleteComponentViewBody string, dSLEditorDeleteComponentViewKey string) (*dsleditor.DeleteComponentViewPayload, error) {
+	var err error
+	var body DeleteComponentViewRequestBody
+	{
+		err = json.Unmarshal([]byte(dSLEditorDeleteComponentViewBody), &body)
+		if err != nil {
+			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Dir\": \"services/my-service/diagram\",\n      \"Filename\": \"model.go\",\n      \"Repository\": \"my-repo\"\n   }'")
+		}
+		err = goa.MergeErrors(err, goa.ValidatePattern("body.Filename", body.Filename, "\\.go$"))
+		if utf8.RuneCountInString(body.Repository) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Repository", body.Repository, utf8.RuneCountInString(body.Repository), 1, true))
+		}
+		if utf8.RuneCountInString(body.Dir) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Dir", body.Dir, utf8.RuneCountInString(body.Dir), 1, true))
+		}
+		if err != nil {
+			return nil, err
+		}
+	}
+	var key string
+	{
+		key = dSLEditorDeleteComponentViewKey
+	}
+	v := &dsleditor.DeleteComponentViewPayload{
+		Filename:   body.Filename,
+		Repository: body.Repository,
+		Dir:        body.Dir,
+	}
+	v.Key = key
+
+	return v, nil
+}
+
+// BuildDeleteElementStylePayload builds the payload for the DSLEditor
+// DeleteElementStyle endpoint from CLI flags.
+func BuildDeleteElementStylePayload(dSLEditorDeleteElementStyleBody string, dSLEditorDeleteElementStyleTag string) (*dsleditor.DeleteElementStylePayload, error) {
+	var err error
+	var body DeleteElementStyleRequestBody
+	{
+		err = json.Unmarshal([]byte(dSLEditorDeleteElementStyleBody), &body)
+		if err != nil {
+			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Dir\": \"services/my-service/diagram\",\n      \"Filename\": \"model.go\",\n      \"Repository\": \"my-repo\"\n   }'")
+		}
+		err = goa.MergeErrors(err, goa.ValidatePattern("body.Filename", body.Filename, "\\.go$"))
+		if utf8.RuneCountInString(body.Repository) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Repository", body.Repository, utf8.RuneCountInString(body.Repository), 1, true))
+		}
+		if utf8.RuneCountInString(body.Dir) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Dir", body.Dir, utf8.RuneCountInString(body.Dir), 1, true))
+		}
+		if err != nil {
+			return nil, err
+		}
+	}
+	var tag string
+	{
+		tag = dSLEditorDeleteElementStyleTag
+	}
+	v := &dsleditor.DeleteElementStylePayload{
+		Filename:   body.Filename,
+		Repository: body.Repository,
+		Dir:        body.Dir,
+	}
+	v.Tag = tag
+
+	return v, nil
+}
+
+// BuildDeleteRelationshipStylePayload builds the payload for the DSLEditor
+// DeleteRelationshipStyle endpoint from CLI flags.
+func BuildDeleteRelationshipStylePayload(dSLEditorDeleteRelationshipStyleBody string, dSLEditorDeleteRelationshipStyleTag string) (*dsleditor.DeleteRelationshipStylePayload, error) {
+	var err error
+	var body DeleteRelationshipStyleRequestBody
+	{
+		err = json.Unmarshal([]byte(dSLEditorDeleteRelationshipStyleBody), &body)
+		if err != nil {
+			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Dir\": \"services/my-service/diagram\",\n      \"Filename\": \"model.go\",\n      \"Repository\": \"my-repo\"\n   }'")
+		}
+		err = goa.MergeErrors(err, goa.ValidatePattern("body.Filename", body.Filename, "\\.go$"))
+		if utf8.RuneCountInString(body.Repository) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Repository", body.Repository, utf8.RuneCountInString(body.Repository), 1, true))
+		}
+		if utf8.RuneCountInString(body.Dir) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Dir", body.Dir, utf8.RuneCountInString(body.Dir), 1, true))
+		}
+		if err != nil {
+			return nil, err
+		}
+	}
+	var tag string
+	{
+		tag = dSLEditorDeleteRelationshipStyleTag
+	}
+	v := &dsleditor.DeleteRelationshipStylePayload{
+		Filename:   body.Filename,
+		Repository: body.Repository,
+		Dir:        body.Dir,
+	}
+	v.Tag = tag
 
 	return v, nil
 }

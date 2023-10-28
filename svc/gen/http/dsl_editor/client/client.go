@@ -41,6 +41,30 @@ type Client struct {
 	// UpsertRelationship endpoint.
 	UpsertRelationshipDoer goahttp.Doer
 
+	// UpsertLandscapeView Doer is the HTTP client used to make requests to the
+	// UpsertLandscapeView endpoint.
+	UpsertLandscapeViewDoer goahttp.Doer
+
+	// UpsertSystemContextView Doer is the HTTP client used to make requests to the
+	// UpsertSystemContextView endpoint.
+	UpsertSystemContextViewDoer goahttp.Doer
+
+	// UpsertContainerView Doer is the HTTP client used to make requests to the
+	// UpsertContainerView endpoint.
+	UpsertContainerViewDoer goahttp.Doer
+
+	// UpsertComponentView Doer is the HTTP client used to make requests to the
+	// UpsertComponentView endpoint.
+	UpsertComponentViewDoer goahttp.Doer
+
+	// UpserElementStyle Doer is the HTTP client used to make requests to the
+	// UpserElementStyle endpoint.
+	UpserElementStyleDoer goahttp.Doer
+
+	// UpsertRelationshipStyle Doer is the HTTP client used to make requests to the
+	// UpsertRelationshipStyle endpoint.
+	UpsertRelationshipStyleDoer goahttp.Doer
+
 	// DeleteSystem Doer is the HTTP client used to make requests to the
 	// DeleteSystem endpoint.
 	DeleteSystemDoer goahttp.Doer
@@ -60,6 +84,30 @@ type Client struct {
 	// DeleteRelationship Doer is the HTTP client used to make requests to the
 	// DeleteRelationship endpoint.
 	DeleteRelationshipDoer goahttp.Doer
+
+	// DeleteLandscapeView Doer is the HTTP client used to make requests to the
+	// DeleteLandscapeView endpoint.
+	DeleteLandscapeViewDoer goahttp.Doer
+
+	// DeleteSystemContextView Doer is the HTTP client used to make requests to the
+	// DeleteSystemContextView endpoint.
+	DeleteSystemContextViewDoer goahttp.Doer
+
+	// DeleteContainerView Doer is the HTTP client used to make requests to the
+	// DeleteContainerView endpoint.
+	DeleteContainerViewDoer goahttp.Doer
+
+	// DeleteComponentView Doer is the HTTP client used to make requests to the
+	// DeleteComponentView endpoint.
+	DeleteComponentViewDoer goahttp.Doer
+
+	// DeleteElementStyle Doer is the HTTP client used to make requests to the
+	// DeleteElementStyle endpoint.
+	DeleteElementStyleDoer goahttp.Doer
+
+	// DeleteRelationshipStyle Doer is the HTTP client used to make requests to the
+	// DeleteRelationshipStyle endpoint.
+	DeleteRelationshipStyleDoer goahttp.Doer
 
 	// RestoreResponseBody controls whether the response bodies are reset after
 	// decoding so they can be read again.
@@ -81,22 +129,34 @@ func NewClient(
 	restoreBody bool,
 ) *Client {
 	return &Client{
-		UpdateDSLDoer:          doer,
-		UpsertSystemDoer:       doer,
-		UpsertPersonDoer:       doer,
-		UpsertContainerDoer:    doer,
-		UpsertComponentDoer:    doer,
-		UpsertRelationshipDoer: doer,
-		DeleteSystemDoer:       doer,
-		DeletePersonDoer:       doer,
-		DeleteContainerDoer:    doer,
-		DeleteComponentDoer:    doer,
-		DeleteRelationshipDoer: doer,
-		RestoreResponseBody:    restoreBody,
-		scheme:                 scheme,
-		host:                   host,
-		decoder:                dec,
-		encoder:                enc,
+		UpdateDSLDoer:               doer,
+		UpsertSystemDoer:            doer,
+		UpsertPersonDoer:            doer,
+		UpsertContainerDoer:         doer,
+		UpsertComponentDoer:         doer,
+		UpsertRelationshipDoer:      doer,
+		UpsertLandscapeViewDoer:     doer,
+		UpsertSystemContextViewDoer: doer,
+		UpsertContainerViewDoer:     doer,
+		UpsertComponentViewDoer:     doer,
+		UpserElementStyleDoer:       doer,
+		UpsertRelationshipStyleDoer: doer,
+		DeleteSystemDoer:            doer,
+		DeletePersonDoer:            doer,
+		DeleteContainerDoer:         doer,
+		DeleteComponentDoer:         doer,
+		DeleteRelationshipDoer:      doer,
+		DeleteLandscapeViewDoer:     doer,
+		DeleteSystemContextViewDoer: doer,
+		DeleteContainerViewDoer:     doer,
+		DeleteComponentViewDoer:     doer,
+		DeleteElementStyleDoer:      doer,
+		DeleteRelationshipStyleDoer: doer,
+		RestoreResponseBody:         restoreBody,
+		scheme:                      scheme,
+		host:                        host,
+		decoder:                     dec,
+		encoder:                     enc,
 	}
 }
 
@@ -244,6 +304,150 @@ func (c *Client) UpsertRelationship() goa.Endpoint {
 	}
 }
 
+// UpsertLandscapeView returns an endpoint that makes HTTP requests to the
+// DSLEditor service UpsertLandscapeView server.
+func (c *Client) UpsertLandscapeView() goa.Endpoint {
+	var (
+		encodeRequest  = EncodeUpsertLandscapeViewRequest(c.encoder)
+		decodeResponse = DecodeUpsertLandscapeViewResponse(c.decoder, c.RestoreResponseBody)
+	)
+	return func(ctx context.Context, v any) (any, error) {
+		req, err := c.BuildUpsertLandscapeViewRequest(ctx, v)
+		if err != nil {
+			return nil, err
+		}
+		err = encodeRequest(req, v)
+		if err != nil {
+			return nil, err
+		}
+		resp, err := c.UpsertLandscapeViewDoer.Do(req)
+		if err != nil {
+			return nil, goahttp.ErrRequestError("DSLEditor", "UpsertLandscapeView", err)
+		}
+		return decodeResponse(resp)
+	}
+}
+
+// UpsertSystemContextView returns an endpoint that makes HTTP requests to the
+// DSLEditor service UpsertSystemContextView server.
+func (c *Client) UpsertSystemContextView() goa.Endpoint {
+	var (
+		encodeRequest  = EncodeUpsertSystemContextViewRequest(c.encoder)
+		decodeResponse = DecodeUpsertSystemContextViewResponse(c.decoder, c.RestoreResponseBody)
+	)
+	return func(ctx context.Context, v any) (any, error) {
+		req, err := c.BuildUpsertSystemContextViewRequest(ctx, v)
+		if err != nil {
+			return nil, err
+		}
+		err = encodeRequest(req, v)
+		if err != nil {
+			return nil, err
+		}
+		resp, err := c.UpsertSystemContextViewDoer.Do(req)
+		if err != nil {
+			return nil, goahttp.ErrRequestError("DSLEditor", "UpsertSystemContextView", err)
+		}
+		return decodeResponse(resp)
+	}
+}
+
+// UpsertContainerView returns an endpoint that makes HTTP requests to the
+// DSLEditor service UpsertContainerView server.
+func (c *Client) UpsertContainerView() goa.Endpoint {
+	var (
+		encodeRequest  = EncodeUpsertContainerViewRequest(c.encoder)
+		decodeResponse = DecodeUpsertContainerViewResponse(c.decoder, c.RestoreResponseBody)
+	)
+	return func(ctx context.Context, v any) (any, error) {
+		req, err := c.BuildUpsertContainerViewRequest(ctx, v)
+		if err != nil {
+			return nil, err
+		}
+		err = encodeRequest(req, v)
+		if err != nil {
+			return nil, err
+		}
+		resp, err := c.UpsertContainerViewDoer.Do(req)
+		if err != nil {
+			return nil, goahttp.ErrRequestError("DSLEditor", "UpsertContainerView", err)
+		}
+		return decodeResponse(resp)
+	}
+}
+
+// UpsertComponentView returns an endpoint that makes HTTP requests to the
+// DSLEditor service UpsertComponentView server.
+func (c *Client) UpsertComponentView() goa.Endpoint {
+	var (
+		encodeRequest  = EncodeUpsertComponentViewRequest(c.encoder)
+		decodeResponse = DecodeUpsertComponentViewResponse(c.decoder, c.RestoreResponseBody)
+	)
+	return func(ctx context.Context, v any) (any, error) {
+		req, err := c.BuildUpsertComponentViewRequest(ctx, v)
+		if err != nil {
+			return nil, err
+		}
+		err = encodeRequest(req, v)
+		if err != nil {
+			return nil, err
+		}
+		resp, err := c.UpsertComponentViewDoer.Do(req)
+		if err != nil {
+			return nil, goahttp.ErrRequestError("DSLEditor", "UpsertComponentView", err)
+		}
+		return decodeResponse(resp)
+	}
+}
+
+// UpserElementStyle returns an endpoint that makes HTTP requests to the
+// DSLEditor service UpserElementStyle server.
+func (c *Client) UpserElementStyle() goa.Endpoint {
+	var (
+		encodeRequest  = EncodeUpserElementStyleRequest(c.encoder)
+		decodeResponse = DecodeUpserElementStyleResponse(c.decoder, c.RestoreResponseBody)
+	)
+	return func(ctx context.Context, v any) (any, error) {
+		req, err := c.BuildUpserElementStyleRequest(ctx, v)
+		if err != nil {
+			return nil, err
+		}
+		err = encodeRequest(req, v)
+		if err != nil {
+			return nil, err
+		}
+		resp, err := c.UpserElementStyleDoer.Do(req)
+		if err != nil {
+			return nil, goahttp.ErrRequestError("DSLEditor", "UpserElementStyle", err)
+		}
+		return decodeResponse(resp)
+	}
+}
+
+// UpsertRelationshipStyle returns an endpoint that makes HTTP requests to the
+// DSLEditor service UpsertRelationshipStyle server.
+func (c *Client) UpsertRelationshipStyle() goa.Endpoint {
+	var (
+		encodeRequest  = EncodeUpsertRelationshipStyleRequest(c.encoder)
+		decodeResponse = DecodeUpsertRelationshipStyleResponse(c.decoder, c.RestoreResponseBody)
+	)
+	return func(ctx context.Context, v any) (any, error) {
+		req, err := c.BuildUpsertRelationshipStyleRequest(ctx, v)
+		if err != nil {
+			return nil, err
+		}
+		err = encodeRequest(req, v)
+		if err != nil {
+			return nil, err
+		}
+		resp, err := c.UpsertRelationshipStyleDoer.Do(req)
+		if err != nil {
+			return nil, goahttp.ErrRequestError("DSLEditor", "UpsertRelationshipStyle", err)
+		}
+		return decodeResponse(resp)
+	}
+}
+
 // DeleteSystem returns an endpoint that makes HTTP requests to the DSLEditor
 // service DeleteSystem server.
 func (c *Client) DeleteSystem() goa.Endpoint {
@@ -359,6 +563,150 @@ func (c *Client) DeleteRelationship() goa.Endpoint {
 		resp, err := c.DeleteRelationshipDoer.Do(req)
 		if err != nil {
 			return nil, goahttp.ErrRequestError("DSLEditor", "DeleteRelationship", err)
+		}
+		return decodeResponse(resp)
+	}
+}
+
+// DeleteLandscapeView returns an endpoint that makes HTTP requests to the
+// DSLEditor service DeleteLandscapeView server.
+func (c *Client) DeleteLandscapeView() goa.Endpoint {
+	var (
+		encodeRequest  = EncodeDeleteLandscapeViewRequest(c.encoder)
+		decodeResponse = DecodeDeleteLandscapeViewResponse(c.decoder, c.RestoreResponseBody)
+	)
+	return func(ctx context.Context, v any) (any, error) {
+		req, err := c.BuildDeleteLandscapeViewRequest(ctx, v)
+		if err != nil {
+			return nil, err
+		}
+		err = encodeRequest(req, v)
+		if err != nil {
+			return nil, err
+		}
+		resp, err := c.DeleteLandscapeViewDoer.Do(req)
+		if err != nil {
+			return nil, goahttp.ErrRequestError("DSLEditor", "DeleteLandscapeView", err)
+		}
+		return decodeResponse(resp)
+	}
+}
+
+// DeleteSystemContextView returns an endpoint that makes HTTP requests to the
+// DSLEditor service DeleteSystemContextView server.
+func (c *Client) DeleteSystemContextView() goa.Endpoint {
+	var (
+		encodeRequest  = EncodeDeleteSystemContextViewRequest(c.encoder)
+		decodeResponse = DecodeDeleteSystemContextViewResponse(c.decoder, c.RestoreResponseBody)
+	)
+	return func(ctx context.Context, v any) (any, error) {
+		req, err := c.BuildDeleteSystemContextViewRequest(ctx, v)
+		if err != nil {
+			return nil, err
+		}
+		err = encodeRequest(req, v)
+		if err != nil {
+			return nil, err
+		}
+		resp, err := c.DeleteSystemContextViewDoer.Do(req)
+		if err != nil {
+			return nil, goahttp.ErrRequestError("DSLEditor", "DeleteSystemContextView", err)
+		}
+		return decodeResponse(resp)
+	}
+}
+
+// DeleteContainerView returns an endpoint that makes HTTP requests to the
+// DSLEditor service DeleteContainerView server.
+func (c *Client) DeleteContainerView() goa.Endpoint {
+	var (
+		encodeRequest  = EncodeDeleteContainerViewRequest(c.encoder)
+		decodeResponse = DecodeDeleteContainerViewResponse(c.decoder, c.RestoreResponseBody)
+	)
+	return func(ctx context.Context, v any) (any, error) {
+		req, err := c.BuildDeleteContainerViewRequest(ctx, v)
+		if err != nil {
+			return nil, err
+		}
+		err = encodeRequest(req, v)
+		if err != nil {
+			return nil, err
+		}
+		resp, err := c.DeleteContainerViewDoer.Do(req)
+		if err != nil {
+			return nil, goahttp.ErrRequestError("DSLEditor", "DeleteContainerView", err)
+		}
+		return decodeResponse(resp)
+	}
+}
+
+// DeleteComponentView returns an endpoint that makes HTTP requests to the
+// DSLEditor service DeleteComponentView server.
+func (c *Client) DeleteComponentView() goa.Endpoint {
+	var (
+		encodeRequest  = EncodeDeleteComponentViewRequest(c.encoder)
+		decodeResponse = DecodeDeleteComponentViewResponse(c.decoder, c.RestoreResponseBody)
+	)
+	return func(ctx context.Context, v any) (any, error) {
+		req, err := c.BuildDeleteComponentViewRequest(ctx, v)
+		if err != nil {
+			return nil, err
+		}
+		err = encodeRequest(req, v)
+		if err != nil {
+			return nil, err
+		}
+		resp, err := c.DeleteComponentViewDoer.Do(req)
+		if err != nil {
+			return nil, goahttp.ErrRequestError("DSLEditor", "DeleteComponentView", err)
+		}
+		return decodeResponse(resp)
+	}
+}
+
+// DeleteElementStyle returns an endpoint that makes HTTP requests to the
+// DSLEditor service DeleteElementStyle server.
+func (c *Client) DeleteElementStyle() goa.Endpoint {
+	var (
+		encodeRequest  = EncodeDeleteElementStyleRequest(c.encoder)
+		decodeResponse = DecodeDeleteElementStyleResponse(c.decoder, c.RestoreResponseBody)
+	)
+	return func(ctx context.Context, v any) (any, error) {
+		req, err := c.BuildDeleteElementStyleRequest(ctx, v)
+		if err != nil {
+			return nil, err
+		}
+		err = encodeRequest(req, v)
+		if err != nil {
+			return nil, err
+		}
+		resp, err := c.DeleteElementStyleDoer.Do(req)
+		if err != nil {
+			return nil, goahttp.ErrRequestError("DSLEditor", "DeleteElementStyle", err)
+		}
+		return decodeResponse(resp)
+	}
+}
+
+// DeleteRelationshipStyle returns an endpoint that makes HTTP requests to the
+// DSLEditor service DeleteRelationshipStyle server.
+func (c *Client) DeleteRelationshipStyle() goa.Endpoint {
+	var (
+		encodeRequest  = EncodeDeleteRelationshipStyleRequest(c.encoder)
+		decodeResponse = DecodeDeleteRelationshipStyleResponse(c.decoder, c.RestoreResponseBody)
+	)
+	return func(ctx context.Context, v any) (any, error) {
+		req, err := c.BuildDeleteRelationshipStyleRequest(ctx, v)
+		if err != nil {
+			return nil, err
+		}
+		err = encodeRequest(req, v)
+		if err != nil {
+			return nil, err
+		}
+		resp, err := c.DeleteRelationshipStyleDoer.Do(req)
+		if err != nil {
+			return nil, goahttp.ErrRequestError("DSLEditor", "DeleteRelationshipStyle", err)
 		}
 		return decodeResponse(resp)
 	}

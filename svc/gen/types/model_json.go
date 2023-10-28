@@ -7,5 +7,5 @@
 
 package types
 
-// ModelJSON is the result type of the Packages service Subscribe method.
+// ModelJSON is the result type of the Repo service GetModelJSON method.
 type ModelJSON string
