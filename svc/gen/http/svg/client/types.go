@@ -8,6 +8,7 @@
 package client
 
 import (
+	goa "goa.design/goa/v3/pkg"
 	svg "goa.design/model/svc/gen/svg"
 )
 
@@ -16,13 +17,40 @@ import (
 type SaveRequestBody struct {
 	// Diagram SVG
 	SVG string `form:"SVG" json:"SVG" xml:"SVG"`
+	// Name of DSL file
+	Filename string `form:"Filename" json:"Filename" xml:"Filename"`
+	// Path to repository root
+	Repository string `form:"Repository" json:"Repository" xml:"Repository"`
+	// Path to directory containing a model package
+	Dir string `form:"Dir" json:"Dir" xml:"Dir"`
+}
+
+// LoadNotFoundResponseBody is the type of the "SVG" service "Load" endpoint
+// HTTP response body for the "NotFound" error.
+type LoadNotFoundResponseBody struct {
+	// Name is the name of this class of errors.
+	Name *string `form:"name,omitempty" json:"name,omitempty" xml:"name,omitempty"`
+	// ID is a unique identifier for this particular occurrence of the problem.
+	ID *string `form:"id,omitempty" json:"id,omitempty" xml:"id,omitempty"`
+	// Message is a human-readable explanation specific to this occurrence of the
+	// problem.
+	Message *string `form:"message,omitempty" json:"message,omitempty" xml:"message,omitempty"`
+	// Is the error temporary?
+	Temporary *bool `form:"temporary,omitempty" json:"temporary,omitempty" xml:"temporary,omitempty"`
+	// Is the error a timeout?
+	Timeout *bool `form:"timeout,omitempty" json:"timeout,omitempty" xml:"timeout,omitempty"`
+	// Is the error a server-side fault?
+	Fault *bool `form:"fault,omitempty" json:"fault,omitempty" xml:"fault,omitempty"`
 }
 
 // NewSaveRequestBody builds the HTTP request body from the payload of the
 // "Save" endpoint of the "SVG" service.
 func NewSaveRequestBody(p *svg.SavePayload) *SaveRequestBody {
 	body := &SaveRequestBody{
-		SVG: string(p.SVG),
+		SVG:        string(p.SVG),
+		Filename:   p.Filename,
+		Repository: p.Repository,
+		Dir:        p.Dir,
 	}
 	return body
 }
@@ -33,4 +61,42 @@ func NewLoadSVGOK(body string) svg.SVG {
 	v := svg.SVG(body)
 
 	return v
+}
+
+// NewLoadNotFound builds a SVG service Load endpoint NotFound error.
+func NewLoadNotFound(body *LoadNotFoundResponseBody) *goa.ServiceError {
+	v := &goa.ServiceError{
+		Name:      *body.Name,
+		ID:        *body.ID,
+		Message:   *body.Message,
+		Temporary: *body.Temporary,
+		Timeout:   *body.Timeout,
+		Fault:     *body.Fault,
+	}
+
+	return v
+}
+
+// ValidateLoadNotFoundResponseBody runs the validations defined on
+// Load_NotFound_Response_Body
+func ValidateLoadNotFoundResponseBody(body *LoadNotFoundResponseBody) (err error) {
+	if body.Name == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("name", "body"))
+	}
+	if body.ID == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("id", "body"))
+	}
+	if body.Message == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("message", "body"))
+	}
+	if body.Temporary == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("temporary", "body"))
+	}
+	if body.Timeout == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("timeout", "body"))
+	}
+	if body.Fault == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("fault", "body"))
+	}
+	return
 }

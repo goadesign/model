@@ -110,3 +110,13 @@ func logAndReturn(ctx context.Context, err error, msg ...string) error {
 	log.Error(ctx, err)
 	return err
 }
+
+// fpath returns the file path for the given package file.
+func fpath(p *gentypes.FileLocator) string {
+	return filepath.Join(p.Repository, p.Dir, p.Filename)
+}
+
+// dpath returns the directory path for the given package file.
+func dpath(p *gentypes.FileLocator) string {
+	return filepath.Join(p.Repository, p.Dir)
+}

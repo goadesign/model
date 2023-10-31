@@ -17,6 +17,7 @@ import (
 	goahttp "goa.design/goa/v3/http"
 	goa "goa.design/goa/v3/pkg"
 	svg "goa.design/model/svc/gen/svg"
+	types "goa.design/model/svc/gen/types"
 )
 
 // BuildLoadRequest instantiates a HTTP request object with method and path set
@@ -38,12 +39,14 @@ func (c *Client) BuildLoadRequest(ctx context.Context, v any) (*http.Request, er
 // server.
 func EncodeLoadRequest(encoder func(*http.Request) goahttp.Encoder) func(*http.Request, any) error {
 	return func(req *http.Request, v any) error {
-		p, ok := v.(*svg.Filename)
+		p, ok := v.(*types.FileLocator)
 		if !ok {
-			return goahttp.ErrInvalidType("SVG", "Load", "*svg.Filename", v)
+			return goahttp.ErrInvalidType("SVG", "Load", "*types.FileLocator", v)
 		}
 		values := req.URL.Query()
-		values.Add("file", p.Filename)
+		values.Add("filename", p.Filename)
+		values.Add("repo", p.Repository)
+		values.Add("dir", p.Dir)
 		req.URL.RawQuery = values.Encode()
 		return nil
 	}
@@ -52,6 +55,9 @@ func EncodeLoadRequest(encoder func(*http.Request) goahttp.Encoder) func(*http.R
 // DecodeLoadResponse returns a decoder for responses returned by the SVG Load
 // endpoint. restoreBody controls whether the response body should be restored
 // after having been read.
+// DecodeLoadResponse may return the following errors:
+//   - "NotFound" (type *goa.ServiceError): http.StatusNotFound
+//   - error: internal error
 func DecodeLoadResponse(decoder func(*http.Response) goahttp.Decoder, restoreBody bool) func(*http.Response) (any, error) {
 	return func(resp *http.Response) (any, error) {
 		if restoreBody {
@@ -82,6 +88,20 @@ func DecodeLoadResponse(decoder func(*http.Response) goahttp.Decoder, restoreBod
 			}
 			res := NewLoadSVGOK(body)
 			return res, nil
+		case http.StatusNotFound:
+			var (
+				body LoadNotFoundResponseBody
+				err  error
+			)
+			err = decoder(resp).Decode(&body)
+			if err != nil {
+				return nil, goahttp.ErrDecodingError("SVG", "Load", err)
+			}
+			err = ValidateLoadNotFoundResponseBody(&body)
+			if err != nil {
+				return nil, goahttp.ErrValidationError("SVG", "Load", err)
+			}
+			return nil, NewLoadNotFound(&body)
 		default:
 			body, _ := io.ReadAll(resp.Body)
 			return nil, goahttp.ErrInvalidResponse("SVG", "Load", resp.StatusCode, string(body))
@@ -112,9 +132,6 @@ func EncodeSaveRequest(encoder func(*http.Request) goahttp.Encoder) func(*http.R
 		if !ok {
 			return goahttp.ErrInvalidType("SVG", "Save", "*svg.SavePayload", v)
 		}
-		values := req.URL.Query()
-		values.Add("file", p.Filename)
-		req.URL.RawQuery = values.Encode()
 		body := NewSaveRequestBody(p)
 		if err := encoder(req).Encode(&body); err != nil {
 			return goahttp.ErrEncodingError("SVG", "Save", err)

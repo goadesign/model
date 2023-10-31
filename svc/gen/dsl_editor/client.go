@@ -83,18 +83,26 @@ func (c *Client) UpdateDSL(ctx context.Context, p *types.PackageFile) (err error
 // UpsertSystem may return the following errors:
 //   - "compilation_failed" (type *goa.ServiceError): Compilation failed
 //   - error: internal error
-func (c *Client) UpsertSystem(ctx context.Context, p *System) (err error) {
-	_, err = c.UpsertSystemEndpoint(ctx, p)
-	return
+func (c *Client) UpsertSystem(ctx context.Context, p *System) (res *types.PackageFile, err error) {
+	var ires any
+	ires, err = c.UpsertSystemEndpoint(ctx, p)
+	if err != nil {
+		return
+	}
+	return ires.(*types.PackageFile), nil
 }
 
 // UpsertPerson calls the "UpsertPerson" endpoint of the "DSLEditor" service.
 // UpsertPerson may return the following errors:
 //   - "compilation_failed" (type *goa.ServiceError): Compilation failed
 //   - error: internal error
-func (c *Client) UpsertPerson(ctx context.Context, p *Person) (err error) {
-	_, err = c.UpsertPersonEndpoint(ctx, p)
-	return
+func (c *Client) UpsertPerson(ctx context.Context, p *Person) (res *types.PackageFile, err error) {
+	var ires any
+	ires, err = c.UpsertPersonEndpoint(ctx, p)
+	if err != nil {
+		return
+	}
+	return ires.(*types.PackageFile), nil
 }
 
 // UpsertContainer calls the "UpsertContainer" endpoint of the "DSLEditor"
@@ -102,9 +110,13 @@ func (c *Client) UpsertPerson(ctx context.Context, p *Person) (err error) {
 // UpsertContainer may return the following errors:
 //   - "compilation_failed" (type *goa.ServiceError): Compilation failed
 //   - error: internal error
-func (c *Client) UpsertContainer(ctx context.Context, p *Container) (err error) {
-	_, err = c.UpsertContainerEndpoint(ctx, p)
-	return
+func (c *Client) UpsertContainer(ctx context.Context, p *Container) (res *types.PackageFile, err error) {
+	var ires any
+	ires, err = c.UpsertContainerEndpoint(ctx, p)
+	if err != nil {
+		return
+	}
+	return ires.(*types.PackageFile), nil
 }
 
 // UpsertComponent calls the "UpsertComponent" endpoint of the "DSLEditor"
@@ -112,9 +124,13 @@ func (c *Client) UpsertContainer(ctx context.Context, p *Container) (err error) 
 // UpsertComponent may return the following errors:
 //   - "compilation_failed" (type *goa.ServiceError): Compilation failed
 //   - error: internal error
-func (c *Client) UpsertComponent(ctx context.Context, p *Component) (err error) {
-	_, err = c.UpsertComponentEndpoint(ctx, p)
-	return
+func (c *Client) UpsertComponent(ctx context.Context, p *Component) (res *types.PackageFile, err error) {
+	var ires any
+	ires, err = c.UpsertComponentEndpoint(ctx, p)
+	if err != nil {
+		return
+	}
+	return ires.(*types.PackageFile), nil
 }
 
 // UpsertRelationship calls the "UpsertRelationship" endpoint of the
@@ -122,9 +138,13 @@ func (c *Client) UpsertComponent(ctx context.Context, p *Component) (err error) 
 // UpsertRelationship may return the following errors:
 //   - "compilation_failed" (type *goa.ServiceError): Compilation failed
 //   - error: internal error
-func (c *Client) UpsertRelationship(ctx context.Context, p *Relationship) (err error) {
-	_, err = c.UpsertRelationshipEndpoint(ctx, p)
-	return
+func (c *Client) UpsertRelationship(ctx context.Context, p *Relationship) (res *types.PackageFile, err error) {
+	var ires any
+	ires, err = c.UpsertRelationshipEndpoint(ctx, p)
+	if err != nil {
+		return
+	}
+	return ires.(*types.PackageFile), nil
 }
 
 // UpsertLandscapeView calls the "UpsertLandscapeView" endpoint of the
@@ -132,9 +152,13 @@ func (c *Client) UpsertRelationship(ctx context.Context, p *Relationship) (err e
 // UpsertLandscapeView may return the following errors:
 //   - "compilation_failed" (type *goa.ServiceError): Compilation failed
 //   - error: internal error
-func (c *Client) UpsertLandscapeView(ctx context.Context, p *LandscapeView) (err error) {
-	_, err = c.UpsertLandscapeViewEndpoint(ctx, p)
-	return
+func (c *Client) UpsertLandscapeView(ctx context.Context, p *LandscapeView) (res *types.PackageFile, err error) {
+	var ires any
+	ires, err = c.UpsertLandscapeViewEndpoint(ctx, p)
+	if err != nil {
+		return
+	}
+	return ires.(*types.PackageFile), nil
 }
 
 // UpsertSystemContextView calls the "UpsertSystemContextView" endpoint of the
@@ -142,9 +166,13 @@ func (c *Client) UpsertLandscapeView(ctx context.Context, p *LandscapeView) (err
 // UpsertSystemContextView may return the following errors:
 //   - "compilation_failed" (type *goa.ServiceError): Compilation failed
 //   - error: internal error
-func (c *Client) UpsertSystemContextView(ctx context.Context, p *SystemContextView) (err error) {
-	_, err = c.UpsertSystemContextViewEndpoint(ctx, p)
-	return
+func (c *Client) UpsertSystemContextView(ctx context.Context, p *SystemContextView) (res *types.PackageFile, err error) {
+	var ires any
+	ires, err = c.UpsertSystemContextViewEndpoint(ctx, p)
+	if err != nil {
+		return
+	}
+	return ires.(*types.PackageFile), nil
 }
 
 // UpsertContainerView calls the "UpsertContainerView" endpoint of the
@@ -152,9 +180,13 @@ func (c *Client) UpsertSystemContextView(ctx context.Context, p *SystemContextVi
 // UpsertContainerView may return the following errors:
 //   - "compilation_failed" (type *goa.ServiceError): Compilation failed
 //   - error: internal error
-func (c *Client) UpsertContainerView(ctx context.Context, p *ContainerView) (err error) {
-	_, err = c.UpsertContainerViewEndpoint(ctx, p)
-	return
+func (c *Client) UpsertContainerView(ctx context.Context, p *ContainerView) (res *types.PackageFile, err error) {
+	var ires any
+	ires, err = c.UpsertContainerViewEndpoint(ctx, p)
+	if err != nil {
+		return
+	}
+	return ires.(*types.PackageFile), nil
 }
 
 // UpsertComponentView calls the "UpsertComponentView" endpoint of the
@@ -162,9 +194,13 @@ func (c *Client) UpsertContainerView(ctx context.Context, p *ContainerView) (err
 // UpsertComponentView may return the following errors:
 //   - "compilation_failed" (type *goa.ServiceError): Compilation failed
 //   - error: internal error
-func (c *Client) UpsertComponentView(ctx context.Context, p *ComponentView) (err error) {
-	_, err = c.UpsertComponentViewEndpoint(ctx, p)
-	return
+func (c *Client) UpsertComponentView(ctx context.Context, p *ComponentView) (res *types.PackageFile, err error) {
+	var ires any
+	ires, err = c.UpsertComponentViewEndpoint(ctx, p)
+	if err != nil {
+		return
+	}
+	return ires.(*types.PackageFile), nil
 }
 
 // UpserElementStyle calls the "UpserElementStyle" endpoint of the "DSLEditor"
@@ -172,9 +208,13 @@ func (c *Client) UpsertComponentView(ctx context.Context, p *ComponentView) (err
 // UpserElementStyle may return the following errors:
 //   - "compilation_failed" (type *goa.ServiceError): Compilation failed
 //   - error: internal error
-func (c *Client) UpserElementStyle(ctx context.Context, p *ElementStyle) (err error) {
-	_, err = c.UpserElementStyleEndpoint(ctx, p)
-	return
+func (c *Client) UpserElementStyle(ctx context.Context, p *ElementStyle) (res *types.PackageFile, err error) {
+	var ires any
+	ires, err = c.UpserElementStyleEndpoint(ctx, p)
+	if err != nil {
+		return
+	}
+	return ires.(*types.PackageFile), nil
 }
 
 // UpsertRelationshipStyle calls the "UpsertRelationshipStyle" endpoint of the
@@ -182,9 +222,13 @@ func (c *Client) UpserElementStyle(ctx context.Context, p *ElementStyle) (err er
 // UpsertRelationshipStyle may return the following errors:
 //   - "compilation_failed" (type *goa.ServiceError): Compilation failed
 //   - error: internal error
-func (c *Client) UpsertRelationshipStyle(ctx context.Context, p *RelationshipStyle) (err error) {
-	_, err = c.UpsertRelationshipStyleEndpoint(ctx, p)
-	return
+func (c *Client) UpsertRelationshipStyle(ctx context.Context, p *RelationshipStyle) (res *types.PackageFile, err error) {
+	var ires any
+	ires, err = c.UpsertRelationshipStyleEndpoint(ctx, p)
+	if err != nil {
+		return
+	}
+	return ires.(*types.PackageFile), nil
 }
 
 // DeleteSystem calls the "DeleteSystem" endpoint of the "DSLEditor" service.
@@ -192,9 +236,13 @@ func (c *Client) UpsertRelationshipStyle(ctx context.Context, p *RelationshipSty
 //   - "NotFound" (type *goa.ServiceError): Software system not found
 //   - "compilation_failed" (type *goa.ServiceError): Compilation failed
 //   - error: internal error
-func (c *Client) DeleteSystem(ctx context.Context, p *DeleteSystemPayload) (err error) {
-	_, err = c.DeleteSystemEndpoint(ctx, p)
-	return
+func (c *Client) DeleteSystem(ctx context.Context, p *DeleteSystemPayload) (res *types.PackageFile, err error) {
+	var ires any
+	ires, err = c.DeleteSystemEndpoint(ctx, p)
+	if err != nil {
+		return
+	}
+	return ires.(*types.PackageFile), nil
 }
 
 // DeletePerson calls the "DeletePerson" endpoint of the "DSLEditor" service.
@@ -202,9 +250,13 @@ func (c *Client) DeleteSystem(ctx context.Context, p *DeleteSystemPayload) (err 
 //   - "NotFound" (type *goa.ServiceError): Person not found
 //   - "compilation_failed" (type *goa.ServiceError): Compilation failed
 //   - error: internal error
-func (c *Client) DeletePerson(ctx context.Context, p *DeletePersonPayload) (err error) {
-	_, err = c.DeletePersonEndpoint(ctx, p)
-	return
+func (c *Client) DeletePerson(ctx context.Context, p *DeletePersonPayload) (res *types.PackageFile, err error) {
+	var ires any
+	ires, err = c.DeletePersonEndpoint(ctx, p)
+	if err != nil {
+		return
+	}
+	return ires.(*types.PackageFile), nil
 }
 
 // DeleteContainer calls the "DeleteContainer" endpoint of the "DSLEditor"
@@ -213,9 +265,13 @@ func (c *Client) DeletePerson(ctx context.Context, p *DeletePersonPayload) (err 
 //   - "NotFound" (type *goa.ServiceError): Container not found
 //   - "compilation_failed" (type *goa.ServiceError): Compilation failed
 //   - error: internal error
-func (c *Client) DeleteContainer(ctx context.Context, p *DeleteContainerPayload) (err error) {
-	_, err = c.DeleteContainerEndpoint(ctx, p)
-	return
+func (c *Client) DeleteContainer(ctx context.Context, p *DeleteContainerPayload) (res *types.PackageFile, err error) {
+	var ires any
+	ires, err = c.DeleteContainerEndpoint(ctx, p)
+	if err != nil {
+		return
+	}
+	return ires.(*types.PackageFile), nil
 }
 
 // DeleteComponent calls the "DeleteComponent" endpoint of the "DSLEditor"
@@ -224,9 +280,13 @@ func (c *Client) DeleteContainer(ctx context.Context, p *DeleteContainerPayload)
 //   - "NotFound" (type *goa.ServiceError): Component not found
 //   - "compilation_failed" (type *goa.ServiceError): Compilation failed
 //   - error: internal error
-func (c *Client) DeleteComponent(ctx context.Context, p *DeleteComponentPayload) (err error) {
-	_, err = c.DeleteComponentEndpoint(ctx, p)
-	return
+func (c *Client) DeleteComponent(ctx context.Context, p *DeleteComponentPayload) (res *types.PackageFile, err error) {
+	var ires any
+	ires, err = c.DeleteComponentEndpoint(ctx, p)
+	if err != nil {
+		return
+	}
+	return ires.(*types.PackageFile), nil
 }
 
 // DeleteRelationship calls the "DeleteRelationship" endpoint of the
@@ -235,9 +295,13 @@ func (c *Client) DeleteComponent(ctx context.Context, p *DeleteComponentPayload)
 //   - "NotFound" (type *goa.ServiceError): Relationship not found
 //   - "compilation_failed" (type *goa.ServiceError): Compilation failed
 //   - error: internal error
-func (c *Client) DeleteRelationship(ctx context.Context, p *DeleteRelationshipPayload) (err error) {
-	_, err = c.DeleteRelationshipEndpoint(ctx, p)
-	return
+func (c *Client) DeleteRelationship(ctx context.Context, p *DeleteRelationshipPayload) (res *types.PackageFile, err error) {
+	var ires any
+	ires, err = c.DeleteRelationshipEndpoint(ctx, p)
+	if err != nil {
+		return
+	}
+	return ires.(*types.PackageFile), nil
 }
 
 // DeleteLandscapeView calls the "DeleteLandscapeView" endpoint of the
@@ -246,9 +310,13 @@ func (c *Client) DeleteRelationship(ctx context.Context, p *DeleteRelationshipPa
 //   - "NotFound" (type *goa.ServiceError): Landscape view not found
 //   - "compilation_failed" (type *goa.ServiceError): Compilation failed
 //   - error: internal error
-func (c *Client) DeleteLandscapeView(ctx context.Context, p *DeleteLandscapeViewPayload) (err error) {
-	_, err = c.DeleteLandscapeViewEndpoint(ctx, p)
-	return
+func (c *Client) DeleteLandscapeView(ctx context.Context, p *DeleteLandscapeViewPayload) (res *types.PackageFile, err error) {
+	var ires any
+	ires, err = c.DeleteLandscapeViewEndpoint(ctx, p)
+	if err != nil {
+		return
+	}
+	return ires.(*types.PackageFile), nil
 }
 
 // DeleteSystemContextView calls the "DeleteSystemContextView" endpoint of the
@@ -257,9 +325,13 @@ func (c *Client) DeleteLandscapeView(ctx context.Context, p *DeleteLandscapeView
 //   - "NotFound" (type *goa.ServiceError): System context view not found
 //   - "compilation_failed" (type *goa.ServiceError): Compilation failed
 //   - error: internal error
-func (c *Client) DeleteSystemContextView(ctx context.Context, p *DeleteSystemContextViewPayload) (err error) {
-	_, err = c.DeleteSystemContextViewEndpoint(ctx, p)
-	return
+func (c *Client) DeleteSystemContextView(ctx context.Context, p *DeleteSystemContextViewPayload) (res *types.PackageFile, err error) {
+	var ires any
+	ires, err = c.DeleteSystemContextViewEndpoint(ctx, p)
+	if err != nil {
+		return
+	}
+	return ires.(*types.PackageFile), nil
 }
 
 // DeleteContainerView calls the "DeleteContainerView" endpoint of the
@@ -268,9 +340,13 @@ func (c *Client) DeleteSystemContextView(ctx context.Context, p *DeleteSystemCon
 //   - "NotFound" (type *goa.ServiceError): Container view not found
 //   - "compilation_failed" (type *goa.ServiceError): Compilation failed
 //   - error: internal error
-func (c *Client) DeleteContainerView(ctx context.Context, p *DeleteContainerViewPayload) (err error) {
-	_, err = c.DeleteContainerViewEndpoint(ctx, p)
-	return
+func (c *Client) DeleteContainerView(ctx context.Context, p *DeleteContainerViewPayload) (res *types.PackageFile, err error) {
+	var ires any
+	ires, err = c.DeleteContainerViewEndpoint(ctx, p)
+	if err != nil {
+		return
+	}
+	return ires.(*types.PackageFile), nil
 }
 
 // DeleteComponentView calls the "DeleteComponentView" endpoint of the
@@ -279,9 +355,13 @@ func (c *Client) DeleteContainerView(ctx context.Context, p *DeleteContainerView
 //   - "NotFound" (type *goa.ServiceError): Component view not found
 //   - "compilation_failed" (type *goa.ServiceError): Compilation failed
 //   - error: internal error
-func (c *Client) DeleteComponentView(ctx context.Context, p *DeleteComponentViewPayload) (err error) {
-	_, err = c.DeleteComponentViewEndpoint(ctx, p)
-	return
+func (c *Client) DeleteComponentView(ctx context.Context, p *DeleteComponentViewPayload) (res *types.PackageFile, err error) {
+	var ires any
+	ires, err = c.DeleteComponentViewEndpoint(ctx, p)
+	if err != nil {
+		return
+	}
+	return ires.(*types.PackageFile), nil
 }
 
 // DeleteElementStyle calls the "DeleteElementStyle" endpoint of the
@@ -290,9 +370,13 @@ func (c *Client) DeleteComponentView(ctx context.Context, p *DeleteComponentView
 //   - "NotFound" (type *goa.ServiceError): Element style not found
 //   - "compilation_failed" (type *goa.ServiceError): Compilation failed
 //   - error: internal error
-func (c *Client) DeleteElementStyle(ctx context.Context, p *DeleteElementStylePayload) (err error) {
-	_, err = c.DeleteElementStyleEndpoint(ctx, p)
-	return
+func (c *Client) DeleteElementStyle(ctx context.Context, p *DeleteElementStylePayload) (res *types.PackageFile, err error) {
+	var ires any
+	ires, err = c.DeleteElementStyleEndpoint(ctx, p)
+	if err != nil {
+		return
+	}
+	return ires.(*types.PackageFile), nil
 }
 
 // DeleteRelationshipStyle calls the "DeleteRelationshipStyle" endpoint of the
@@ -301,7 +385,11 @@ func (c *Client) DeleteElementStyle(ctx context.Context, p *DeleteElementStylePa
 //   - "NotFound" (type *goa.ServiceError): Relationship style not found
 //   - "compilation_failed" (type *goa.ServiceError): Compilation failed
 //   - error: internal error
-func (c *Client) DeleteRelationshipStyle(ctx context.Context, p *DeleteRelationshipStylePayload) (err error) {
-	_, err = c.DeleteRelationshipStyleEndpoint(ctx, p)
-	return
+func (c *Client) DeleteRelationshipStyle(ctx context.Context, p *DeleteRelationshipStylePayload) (res *types.PackageFile, err error) {
+	var ires any
+	ires, err = c.DeleteRelationshipStyleEndpoint(ctx, p)
+	if err != nil {
+		return
+	}
+	return ires.(*types.PackageFile), nil
 }

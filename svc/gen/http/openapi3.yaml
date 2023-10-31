@@ -14,17 +14,39 @@ paths:
             description: Stream the SVG
             operationId: SVG#Load
             parameters:
-                - name: file
+                - name: filename
                   in: query
-                  description: Diagram SVG filename
+                  description: Name of DSL file
                   allowEmptyValue: true
                   required: true
                   schema:
                     type: string
-                    description: Diagram SVG filename
-                    example: diagram.svg
-                    pattern: .*\.svg
-                  example: diagram.svg
+                    description: Name of DSL file
+                    example: model.go
+                    pattern: \.go$
+                  example: model.go
+                - name: repo
+                  in: query
+                  description: Path to repository root
+                  allowEmptyValue: true
+                  required: true
+                  schema:
+                    type: string
+                    description: Path to repository root
+                    example: my-repo
+                    minLength: 1
+                  example: my-repo
+                - name: dir
+                  in: query
+                  description: Path to directory containing a model package
+                  allowEmptyValue: true
+                  required: true
+                  schema:
+                    type: string
+                    description: Path to directory containing a model package
+                    example: services/my-service/diagram
+                    minLength: 1
+                  example: services/my-service/diagram
             responses:
                 "200":
                     description: OK response.
@@ -34,25 +56,19 @@ paths:
                                 type: string
                                 example: <svg</svg>
                                 pattern: <svg.*</svg>$
-                            example: <svg������</svg>
+                            example: <svg�����</svg>
+                "404":
+                    description: 'NotFound: File not found'
+                    content:
+                        application/vnd.goa.error:
+                            schema:
+                                $ref: '#/components/schemas/Error'
         post:
             tags:
                 - SVG
             summary: Save SVG
             description: Save the SVG streamed in the request body
             operationId: SVG#Save
-            parameters:
-                - name: file
-                  in: query
-                  description: Diagram SVG filename
-                  allowEmptyValue: true
-                  required: true
-                  schema:
-                    type: string
-                    description: Diagram SVG filename
-                    example: diagram.svg
-                    pattern: .*\.svg
-                  example: diagram.svg
             requestBody:
                 required: true
                 content:
@@ -60,7 +76,10 @@ paths:
                         schema:
                             $ref: '#/components/schemas/SaveRequestBody'
                         example:
-                            SVG: <svg��</svg>
+                            Dir: services/my-service/diagram
+                            Filename: model.go
+                            Repository: my-repo
+                            SVG: <svg����</svg>
             responses:
                 "204":
                     description: No Content response.
@@ -89,8 +108,8 @@ paths:
                                 Filename: model.go
                                 Repository: my-repo
             responses:
-                "204":
-                    description: No Content response.
+                "200":
+                    description: OK response.
                 "400":
                     description: 'compilation_failed: Compilation failed'
                     content:
@@ -128,8 +147,23 @@ paths:
                             Technology: Technology
                             URL: https://component.com
             responses:
-                "204":
-                    description: No Content response.
+                "200":
+                    description: OK response.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UpdateDSLRequestBody'
+                            example:
+                                Content: |-
+                                    package model
+
+                                    import . "goa.design/model/dsl"
+
+                                    var _ = Design(func() {})
+                                Locator:
+                                    Dir: services/my-service/diagram
+                                    Filename: model.go
+                                    Repository: my-repo
                 "400":
                     description: 'compilation_failed: Compilation failed'
                     content:
@@ -166,8 +200,23 @@ paths:
                             Technology: Technology
                             URL: https://container.com
             responses:
-                "204":
-                    description: No Content response.
+                "200":
+                    description: OK response.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UpdateDSLRequestBody'
+                            example:
+                                Content: |-
+                                    package model
+
+                                    import . "goa.design/model/dsl"
+
+                                    var _ = Design(func() {})
+                                Locator:
+                                    Dir: services/my-service/diagram
+                                    Filename: model.go
+                                    Repository: my-repo
                 "400":
                     description: 'compilation_failed: Compilation failed'
                     content:
@@ -203,8 +252,23 @@ paths:
                                 - Tag2
                             URL: https://person.com
             responses:
-                "204":
-                    description: No Content response.
+                "200":
+                    description: OK response.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UpdateDSLRequestBody'
+                            example:
+                                Content: |-
+                                    package model
+
+                                    import . "goa.design/model/dsl"
+
+                                    var _ = Design(func() {})
+                                Locator:
+                                    Dir: services/my-service/diagram
+                                    Filename: model.go
+                                    Repository: my-repo
                 "400":
                     description: 'compilation_failed: Compilation failed'
                     content:
@@ -226,8 +290,8 @@ paths:
                   schema:
                     type: string
                     description: Name of person to delete
-                    example: Ipsum consequatur praesentium esse.
-                  example: Ut autem est sunt sapiente.
+                    example: Autem harum ut nesciunt aut et laudantium.
+                  example: A vel tempore adipisci ex fugit reiciendis.
             requestBody:
                 required: true
                 content:
@@ -239,8 +303,23 @@ paths:
                             Filename: model.go
                             Repository: my-repo
             responses:
-                "204":
-                    description: No Content response.
+                "200":
+                    description: OK response.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UpdateDSLRequestBody'
+                            example:
+                                Content: |-
+                                    package model
+
+                                    import . "goa.design/model/dsl"
+
+                                    var _ = Design(func() {})
+                                Locator:
+                                    Dir: services/my-service/diagram
+                                    Filename: model.go
+                                    Repository: my-repo
                 "400":
                     description: 'compilation_failed: Compilation failed'
                     content:
@@ -273,8 +352,23 @@ paths:
                             Repository: my-repo
                             SourcePath: Software System/Container/Component
             responses:
-                "204":
-                    description: No Content response.
+                "200":
+                    description: OK response.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UpdateDSLRequestBody'
+                            example:
+                                Content: |-
+                                    package model
+
+                                    import . "goa.design/model/dsl"
+
+                                    var _ = Design(func() {})
+                                Locator:
+                                    Dir: services/my-service/diagram
+                                    Filename: model.go
+                                    Repository: my-repo
                 "400":
                     description: 'compilation_failed: Compilation failed'
                     content:
@@ -301,12 +395,14 @@ paths:
                             $ref: '#/components/schemas/UpsertRelationshipRequestBody'
                         example:
                             Description: Relationship description
+                            DestinationKind: Component
                             DestinationPath: Software System/Container/Component
                             InteractionStyle: Synchronous
                             Locator:
                                 Dir: services/my-service/diagram
                                 Filename: model.go
                                 Repository: my-repo
+                            SourceKind: Person
                             SourcePath: Software System/Container/Component
                             Tags:
                                 - Tag1
@@ -314,8 +410,23 @@ paths:
                             Technology: Technology
                             URL: https://relationship.com
             responses:
-                "204":
-                    description: No Content response.
+                "200":
+                    description: OK response.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UpdateDSLRequestBody'
+                            example:
+                                Content: |-
+                                    package model
+
+                                    import . "goa.design/model/dsl"
+
+                                    var _ = Design(func() {})
+                                Locator:
+                                    Dir: services/my-service/diagram
+                                    Filename: model.go
+                                    Repository: my-repo
                 "400":
                     description: 'compilation_failed: Compilation failed'
                     content:
@@ -351,8 +462,23 @@ paths:
                                 - Tag2
                             URL: https://system.com
             responses:
-                "204":
-                    description: No Content response.
+                "200":
+                    description: OK response.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UpdateDSLRequestBody'
+                            example:
+                                Content: |-
+                                    package model
+
+                                    import . "goa.design/model/dsl"
+
+                                    var _ = Design(func() {})
+                                Locator:
+                                    Dir: services/my-service/diagram
+                                    Filename: model.go
+                                    Repository: my-repo
                 "400":
                     description: 'compilation_failed: Compilation failed'
                     content:
@@ -374,8 +500,8 @@ paths:
                   schema:
                     type: string
                     description: Name of software system to delete
-                    example: Hic asperiores.
-                  example: Quidem omnis inventore.
+                    example: Iusto dolorum.
+                  example: Omnis voluptatem officia quisquam.
             requestBody:
                 required: true
                 content:
@@ -387,8 +513,23 @@ paths:
                             Filename: model.go
                             Repository: my-repo
             responses:
-                "204":
-                    description: No Content response.
+                "200":
+                    description: OK response.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UpdateDSLRequestBody'
+                            example:
+                                Content: |-
+                                    package model
+
+                                    import . "goa.design/model/dsl"
+
+                                    var _ = Design(func() {})
+                                Locator:
+                                    Dir: services/my-service/diagram
+                                    Filename: model.go
+                                    Repository: my-repo
                 "400":
                     description: 'compilation_failed: Compilation failed'
                     content:
@@ -416,8 +557,8 @@ paths:
                   schema:
                     type: string
                     description: Name of container software system
-                    example: Aliquid reprehenderit voluptatibus.
-                  example: Voluptatem excepturi.
+                    example: Eius laudantium esse.
+                  example: Aspernatur fugit.
                 - name: ContainerName
                   in: path
                   description: Name of container to delete
@@ -425,8 +566,8 @@ paths:
                   schema:
                     type: string
                     description: Name of container to delete
-                    example: Ad fugiat facilis.
-                  example: Iusto dolorum.
+                    example: Hic laboriosam id sunt enim sit.
+                  example: Cum eligendi voluptatum incidunt quos sunt.
             requestBody:
                 required: true
                 content:
@@ -438,8 +579,23 @@ paths:
                             Filename: model.go
                             Repository: my-repo
             responses:
-                "204":
-                    description: No Content response.
+                "200":
+                    description: OK response.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UpdateDSLRequestBody'
+                            example:
+                                Content: |-
+                                    package model
+
+                                    import . "goa.design/model/dsl"
+
+                                    var _ = Design(func() {})
+                                Locator:
+                                    Dir: services/my-service/diagram
+                                    Filename: model.go
+                                    Repository: my-repo
                 "400":
                     description: 'compilation_failed: Compilation failed'
                     content:
@@ -498,8 +654,23 @@ paths:
                             Filename: model.go
                             Repository: my-repo
             responses:
-                "204":
-                    description: No Content response.
+                "200":
+                    description: OK response.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UpdateDSLRequestBody'
+                            example:
+                                Content: |-
+                                    package model
+
+                                    import . "goa.design/model/dsl"
+
+                                    var _ = Design(func() {})
+                                Locator:
+                                    Dir: services/my-service/diagram
+                                    Filename: model.go
+                                    Repository: my-repo
                 "400":
                     description: 'compilation_failed: Compilation failed'
                     content:
@@ -538,8 +709,10 @@ paths:
                                 Dir: services/my-service/diagram
                                 Filename: model.go
                                 Repository: my-repo
-                            PaperSize: Letter_Portrait
+                            PaperSize: A1_Portrait
                             RelationshipViews:
+                                - Destination: Software System/Container/Component
+                                  Source: Software System/Container/Component
                                 - Destination: Software System/Container/Component
                                   Source: Software System/Container/Component
                                 - Destination: Software System/Container/Component
@@ -547,8 +720,23 @@ paths:
                             SoftwareSystemName: Software System
                             Title: title
             responses:
-                "204":
-                    description: No Content response.
+                "200":
+                    description: OK response.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UpdateDSLRequestBody'
+                            example:
+                                Content: |-
+                                    package model
+
+                                    import . "goa.design/model/dsl"
+
+                                    var _ = Design(func() {})
+                                Locator:
+                                    Dir: services/my-service/diagram
+                                    Filename: model.go
+                                    Repository: my-repo
                 "400":
                     description: 'compilation_failed: Compilation failed'
                     content:
@@ -570,8 +758,8 @@ paths:
                   schema:
                     type: string
                     description: Key of component view to delete
-                    example: Cum eligendi voluptatum incidunt quos sunt.
-                  example: Aut et excepturi.
+                    example: Omnis id consequatur provident voluptatem aut eligendi.
+                  example: Tempora quibusdam cumque amet similique deleniti aspernatur.
             requestBody:
                 required: true
                 content:
@@ -583,8 +771,23 @@ paths:
                             Filename: model.go
                             Repository: my-repo
             responses:
-                "204":
-                    description: No Content response.
+                "200":
+                    description: OK response.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UpdateDSLRequestBody'
+                            example:
+                                Content: |-
+                                    package model
+
+                                    import . "goa.design/model/dsl"
+
+                                    var _ = Design(func() {})
+                                Locator:
+                                    Dir: services/my-service/diagram
+                                    Filename: model.go
+                                    Repository: my-repo
                 "400":
                     description: 'compilation_failed: Compilation failed'
                     content:
@@ -615,12 +818,14 @@ paths:
                             ElementViews:
                                 - Element: Software System/Container/Component
                                 - Element: Software System/Container/Component
+                                - Element: Software System/Container/Component
+                                - Element: Software System/Container/Component
                             Key: key
                             Locator:
                                 Dir: services/my-service/diagram
                                 Filename: model.go
                                 Repository: my-repo
-                            PaperSize: A4_Landscape
+                            PaperSize: A3_Portrait
                             RelationshipViews:
                                 - Destination: Software System/Container/Component
                                   Source: Software System/Container/Component
@@ -629,11 +834,26 @@ paths:
                                 - Destination: Software System/Container/Component
                                   Source: Software System/Container/Component
                             SoftwareSystemName: Software System
-                            SystemBoundariesVisible: true
+                            SystemBoundariesVisible: false
                             Title: title
             responses:
-                "204":
-                    description: No Content response.
+                "200":
+                    description: OK response.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UpdateDSLRequestBody'
+                            example:
+                                Content: |-
+                                    package model
+
+                                    import . "goa.design/model/dsl"
+
+                                    var _ = Design(func() {})
+                                Locator:
+                                    Dir: services/my-service/diagram
+                                    Filename: model.go
+                                    Repository: my-repo
                 "400":
                     description: 'compilation_failed: Compilation failed'
                     content:
@@ -655,8 +875,8 @@ paths:
                   schema:
                     type: string
                     description: Key of container view to delete
-                    example: Aspernatur fugit.
-                  example: Hic laboriosam id sunt enim sit.
+                    example: Libero qui consectetur.
+                  example: Incidunt deserunt eum.
             requestBody:
                 required: true
                 content:
@@ -668,8 +888,23 @@ paths:
                             Filename: model.go
                             Repository: my-repo
             responses:
-                "204":
-                    description: No Content response.
+                "200":
+                    description: OK response.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UpdateDSLRequestBody'
+                            example:
+                                Content: |-
+                                    package model
+
+                                    import . "goa.design/model/dsl"
+
+                                    var _ = Design(func() {})
+                                Locator:
+                                    Dir: services/my-service/diagram
+                                    Filename: model.go
+                                    Repository: my-repo
                 "400":
                     description: 'compilation_failed: Compilation failed'
                     content:
@@ -696,22 +931,37 @@ paths:
                         schema:
                             $ref: '#/components/schemas/UpserElementStyleRequestBody'
                         example:
-                            Background: '#8aAA88'
+                            Background: '#4b95ba'
                             Border: BorderDotted
-                            Color: '#DE3e9e'
+                            Color: '#cBaAaC'
                             Description: false
                             FontSize: 20
                             Height: 100
                             Icon: https://static.structurizr.com/images/icons/Person.png
                             Metadata: true
-                            Opacity: 6
-                            Shape: ShapeCircle
-                            Stroke: '#e3Aee7'
+                            Opacity: 45
+                            Shape: ShapePipe
+                            Stroke: '#9013C2'
                             Tag: tag
                             Width: 100
             responses:
-                "204":
-                    description: No Content response.
+                "200":
+                    description: OK response.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UpdateDSLRequestBody'
+                            example:
+                                Content: |-
+                                    package model
+
+                                    import . "goa.design/model/dsl"
+
+                                    var _ = Design(func() {})
+                                Locator:
+                                    Dir: services/my-service/diagram
+                                    Filename: model.go
+                                    Repository: my-repo
                 "400":
                     description: 'compilation_failed: Compilation failed'
                     content:
@@ -733,8 +983,8 @@ paths:
                   schema:
                     type: string
                     description: Tag of element style to delete
-                    example: Animi necessitatibus.
-                  example: Nesciunt ut atque dignissimos quis qui sit.
+                    example: Totam voluptates sit.
+                  example: Beatae rem quibusdam dignissimos dolores illum iusto.
             requestBody:
                 required: true
                 content:
@@ -746,8 +996,23 @@ paths:
                             Filename: model.go
                             Repository: my-repo
             responses:
-                "204":
-                    description: No Content response.
+                "200":
+                    description: OK response.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UpdateDSLRequestBody'
+                            example:
+                                Content: |-
+                                    package model
+
+                                    import . "goa.design/model/dsl"
+
+                                    var _ = Design(func() {})
+                                Locator:
+                                    Dir: services/my-service/diagram
+                                    Filename: model.go
+                                    Repository: my-repo
                 "400":
                     description: 'compilation_failed: Compilation failed'
                     content:
@@ -779,27 +1044,37 @@ paths:
                                 - Element: Software System/Container/Component
                                 - Element: Software System/Container/Component
                                 - Element: Software System/Container/Component
-                                - Element: Software System/Container/Component
-                            EnterpriseBoundaryVisible: false
+                            EnterpriseBoundaryVisible: true
                             Key: key
                             Locator:
                                 Dir: services/my-service/diagram
                                 Filename: model.go
                                 Repository: my-repo
-                            PaperSize: A0_Landscape
+                            PaperSize: A4_Landscape
                             RelationshipViews:
-                                - Destination: Software System/Container/Component
-                                  Source: Software System/Container/Component
-                                - Destination: Software System/Container/Component
-                                  Source: Software System/Container/Component
                                 - Destination: Software System/Container/Component
                                   Source: Software System/Container/Component
                                 - Destination: Software System/Container/Component
                                   Source: Software System/Container/Component
                             Title: title
             responses:
-                "204":
-                    description: No Content response.
+                "200":
+                    description: OK response.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UpdateDSLRequestBody'
+                            example:
+                                Content: |-
+                                    package model
+
+                                    import . "goa.design/model/dsl"
+
+                                    var _ = Design(func() {})
+                                Locator:
+                                    Dir: services/my-service/diagram
+                                    Filename: model.go
+                                    Repository: my-repo
                 "400":
                     description: 'compilation_failed: Compilation failed'
                     content:
@@ -821,8 +1096,8 @@ paths:
                   schema:
                     type: string
                     description: Key of landscape view to delete
-                    example: Omnis voluptatem officia quisquam.
-                  example: Autem harum ut nesciunt aut et laudantium.
+                    example: Aut et excepturi.
+                  example: Animi necessitatibus.
             requestBody:
                 required: true
                 content:
@@ -834,8 +1109,23 @@ paths:
                             Filename: model.go
                             Repository: my-repo
             responses:
-                "204":
-                    description: No Content response.
+                "200":
+                    description: OK response.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UpdateDSLRequestBody'
+                            example:
+                                Content: |-
+                                    package model
+
+                                    import . "goa.design/model/dsl"
+
+                                    var _ = Design(func() {})
+                                Locator:
+                                    Dir: services/my-service/diagram
+                                    Filename: model.go
+                                    Repository: my-repo
                 "400":
                     description: 'compilation_failed: Compilation failed'
                     content:
@@ -862,19 +1152,34 @@ paths:
                         schema:
                             $ref: '#/components/schemas/UpsertRelationshipStyleRequestBody'
                         example:
-                            Color: '#3Da7A0'
+                            Color: '#f0fb3c'
                             Dashed: true
-                            FontSize: 70
-                            Opacity: 30
-                            Position: 4
-                            Routing: Curved
-                            Stroke: '#f3b65c'
+                            FontSize: 10
+                            Opacity: 35
+                            Position: 25
+                            Routing: Direct
+                            Stroke: '#6a28aB'
                             Tag: tag
                             Thickness: 2
-                            Width: 2457
+                            Width: 272
             responses:
-                "204":
-                    description: No Content response.
+                "200":
+                    description: OK response.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UpdateDSLRequestBody'
+                            example:
+                                Content: |-
+                                    package model
+
+                                    import . "goa.design/model/dsl"
+
+                                    var _ = Design(func() {})
+                                Locator:
+                                    Dir: services/my-service/diagram
+                                    Filename: model.go
+                                    Repository: my-repo
                 "400":
                     description: 'compilation_failed: Compilation failed'
                     content:
@@ -896,8 +1201,8 @@ paths:
                   schema:
                     type: string
                     description: Tag of relationship style to delete
-                    example: Earum animi rerum perspiciatis et aut iste.
-                  example: Libero qui consectetur.
+                    example: Repudiandae enim modi voluptas natus.
+                  example: Labore aut dignissimos consequuntur iure.
             requestBody:
                 required: true
                 content:
@@ -909,8 +1214,23 @@ paths:
                             Filename: model.go
                             Repository: my-repo
             responses:
-                "204":
-                    description: No Content response.
+                "200":
+                    description: OK response.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UpdateDSLRequestBody'
+                            example:
+                                Content: |-
+                                    package model
+
+                                    import . "goa.design/model/dsl"
+
+                                    var _ = Design(func() {})
+                                Locator:
+                                    Dir: services/my-service/diagram
+                                    Filename: model.go
+                                    Repository: my-repo
                 "400":
                     description: 'compilation_failed: Compilation failed'
                     content:
@@ -941,18 +1261,14 @@ paths:
                             ElementViews:
                                 - Element: Software System/Container/Component
                                 - Element: Software System/Container/Component
-                                - Element: Software System/Container/Component
-                                - Element: Software System/Container/Component
-                            EnterpriseBoundaryVisible: false
+                            EnterpriseBoundaryVisible: true
                             Key: key
                             Locator:
                                 Dir: services/my-service/diagram
                                 Filename: model.go
                                 Repository: my-repo
-                            PaperSize: A2_Landscape
+                            PaperSize: A4_Landscape
                             RelationshipViews:
-                                - Destination: Software System/Container/Component
-                                  Source: Software System/Container/Component
                                 - Destination: Software System/Container/Component
                                   Source: Software System/Container/Component
                                 - Destination: Software System/Container/Component
@@ -962,8 +1278,23 @@ paths:
                             SoftwareSystemName: Software System
                             Title: title
             responses:
-                "204":
-                    description: No Content response.
+                "200":
+                    description: OK response.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UpdateDSLRequestBody'
+                            example:
+                                Content: |-
+                                    package model
+
+                                    import . "goa.design/model/dsl"
+
+                                    var _ = Design(func() {})
+                                Locator:
+                                    Dir: services/my-service/diagram
+                                    Filename: model.go
+                                    Repository: my-repo
                 "400":
                     description: 'compilation_failed: Compilation failed'
                     content:
@@ -985,8 +1316,8 @@ paths:
                   schema:
                     type: string
                     description: Key of system context view to delete
-                    example: A vel tempore adipisci ex fugit reiciendis.
-                  example: Eius laudantium esse.
+                    example: Nesciunt ut atque dignissimos quis qui sit.
+                  example: Earum animi rerum perspiciatis et aut iste.
             requestBody:
                 required: true
                 content:
@@ -998,8 +1329,23 @@ paths:
                             Filename: model.go
                             Repository: my-repo
             responses:
-                "204":
-                    description: No Content response.
+                "200":
+                    description: OK response.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UpdateDSLRequestBody'
+                            example:
+                                Content: |-
+                                    package model
+
+                                    import . "goa.design/model/dsl"
+
+                                    var _ = Design(func() {})
+                                Locator:
+                                    Dir: services/my-service/diagram
+                                    Filename: model.go
+                                    Repository: my-repo
                 "400":
                     description: 'compilation_failed: Compilation failed'
                     content:
@@ -1221,16 +1567,6 @@ paths:
                                     Dir: services/my-service/diagram
                                     Filename: model.go
                                     Repository: my-repo
-                                - Content: |-
-                                    package model
-
-                                    import . "goa.design/model/dsl"
-
-                                    var _ = Design(func() {})
-                                  Locator:
-                                    Dir: services/my-service/diagram
-                                    Filename: model.go
-                                    Repository: my-repo
                 "404":
                     description: 'not_found: Package not found'
                     content:
@@ -1353,14 +1689,14 @@ components:
                 Error:
                     type: string
                     description: Compilation error if any
-                    example: Rerum accusamus eos eum quas labore.
+                    example: Dolorem maiores et labore.
                 Model:
                     type: string
                     description: Model JSON if compilation succeeded
                     example: '{"name":"example","email":"mail@example.com"}'
                     format: json
             example:
-                Error: Commodi enim alias doloremque.
+                Error: Ad fugiat facilis.
                 Model: '{"name":"example","email":"mail@example.com"}'
         DeleteRelationshipRequestBody:
             type: object
@@ -1407,6 +1743,7 @@ components:
                     type: string
                     description: Path to element consisting of <software system name>[/<container name>[/<component name>]]
                     example: Software System/Container/Component
+            description: ElementView defines an element in a view
             example:
                 Element: Software System/Container/Component
         Error:
@@ -1415,7 +1752,7 @@ components:
                 fault:
                     type: boolean
                     description: Is the error a server-side fault?
-                    example: false
+                    example: true
                 id:
                     type: string
                     description: ID is a unique identifier for this particular occurrence of the problem.
@@ -1443,7 +1780,7 @@ components:
                 message: parameter 'p' must be an integer
                 name: bad_request
                 temporary: false
-                timeout: true
+                timeout: false
             required:
                 - name
                 - id
@@ -1508,21 +1845,43 @@ components:
                     type: string
                     description: Path to source element consisting of <software system name>[/<container name>[/<component name>]]
                     example: Software System/Container/Component
+            description: RelationshipView defines a relationship in a view
             example:
                 Destination: Software System/Container/Component
                 Source: Software System/Container/Component
         SaveRequestBody:
             type: object
             properties:
+                Dir:
+                    type: string
+                    description: Path to directory containing a model package
+                    example: services/my-service/diagram
+                    minLength: 1
+                Filename:
+                    type: string
+                    description: Name of DSL file
+                    example: model.go
+                    pattern: \.go$
+                Repository:
+                    type: string
+                    description: Path to repository root
+                    example: my-repo
+                    minLength: 1
                 SVG:
                     type: string
                     description: Diagram SVG
                     example: <svg����</svg>
                     pattern: <svg.*</svg>$
             example:
-                SVG: <svg��</svg>
+                Dir: services/my-service/diagram
+                Filename: model.go
+                Repository: my-repo
+                SVG: <svg������</svg>
             required:
+                - Filename
                 - SVG
+                - Repository
+                - Dir
         UpdateDSLRequestBody:
             type: object
             properties:
@@ -1559,13 +1918,13 @@ components:
                 Background:
                     type: string
                     description: Background color of element
-                    example: '#fC5Dc8'
+                    example: '#9Ba895'
                     pattern: ^#[0-9a-fA-F]{6}$
                 Border:
                     type: string
                     description: Type of border to apply to elements
                     default: BorderSolid
-                    example: BorderSolid
+                    example: BorderDashed
                     enum:
                         - BorderSolid
                         - BorderDashed
@@ -1573,13 +1932,13 @@ components:
                 Color:
                     type: string
                     description: Text color of element
-                    example: '#11fD45'
+                    example: '#ca54EC'
                     pattern: ^#[0-9a-fA-F]{6}$
                 Description:
                     type: boolean
                     description: Indicates whether the element description should be visible on the resulting diagram
                     default: true
-                    example: false
+                    example: true
                 FontSize:
                     type: integer
                     description: Font size of element
@@ -1602,14 +1961,14 @@ components:
                 Opacity:
                     type: integer
                     description: Opacity of element as a percentage
-                    example: 97
+                    example: 16
                     minimum: 0
                     maximum: 100
                 Shape:
                     type: string
                     description: Shape of element
                     default: ShapeBox
-                    example: ShapeRobot
+                    example: ShapeRoundedBox
                     enum:
                         - ShapeBox
                         - ShapeCircle
@@ -1628,7 +1987,7 @@ components:
                 Stroke:
                     type: string
                     description: Stroke color of element
-                    example: '#aCAcA5'
+                    example: '#13A26c'
                     pattern: ^#[0-9a-fA-F]{6}$
                 Tag:
                     type: string
@@ -1640,17 +1999,17 @@ components:
                     example: 100
                     format: int64
             example:
-                Background: '#bf5d28'
-                Border: BorderDashed
-                Color: '#BDf362'
-                Description: false
+                Background: '#EA0c07'
+                Border: BorderSolid
+                Color: '#07f0Fc'
+                Description: true
                 FontSize: 20
                 Height: 100
                 Icon: https://static.structurizr.com/images/icons/Person.png
                 Metadata: true
-                Opacity: 58
-                Shape: ShapeMobileDeviceLandscape
-                Stroke: '#Bd4066'
+                Opacity: 13
+                Shape: ShapeRoundedBox
+                Stroke: '#284F06'
                 Tag: tag
                 Width: 100
             required:
@@ -1680,7 +2039,7 @@ components:
                         key2: value2
                     additionalProperties:
                         type: string
-                        example: Laudantium aperiam molestiae ipsum.
+                        example: Nulla sit veniam recusandae at.
                 SystemName:
                     type: string
                     description: Name of parent software system
@@ -1689,7 +2048,7 @@ components:
                     type: array
                     items:
                         type: string
-                        example: Aut molestiae.
+                        example: Maiores magni autem iste earum dolores.
                     description: Attached tags
                     example:
                         - Tag1
@@ -1730,7 +2089,7 @@ components:
                     type: boolean
                     description: Indicates whether the container boundaries are visible on the resulting diagram
                     default: true
-                    example: false
+                    example: true
                 ContainerName:
                     type: string
                     description: Name of container to create view for
@@ -1748,7 +2107,6 @@ components:
                         - Element: Software System/Container/Component
                         - Element: Software System/Container/Component
                         - Element: Software System/Container/Component
-                        - Element: Software System/Container/Component
                 Key:
                     type: string
                     description: Key of view
@@ -1758,7 +2116,7 @@ components:
                 PaperSize:
                     type: string
                     description: Paper size of view
-                    example: Legal_Portrait
+                    example: A2_Portrait
                     enum:
                         - A0_Landscape
                         - A0_Portrait
@@ -1791,6 +2149,10 @@ components:
                           Source: Software System/Container/Component
                         - Destination: Software System/Container/Component
                           Source: Software System/Container/Component
+                        - Destination: Software System/Container/Component
+                          Source: Software System/Container/Component
+                        - Destination: Software System/Container/Component
+                          Source: Software System/Container/Component
                 SoftwareSystemName:
                     type: string
                     description: Name of software system to create view for
@@ -1800,10 +2162,11 @@ components:
                     description: Title of view
                     example: title
             example:
-                ContainerBoundariesVisible: false
+                ContainerBoundariesVisible: true
                 ContainerName: Container
                 Description: description
                 ElementViews:
+                    - Element: Software System/Container/Component
                     - Element: Software System/Container/Component
                     - Element: Software System/Container/Component
                 Key: key
@@ -1849,7 +2212,7 @@ components:
                         key2: value2
                     additionalProperties:
                         type: string
-                        example: Sunt nostrum eum illo.
+                        example: Perferendis et doloremque sit qui qui quia.
                 SystemName:
                     type: string
                     description: Name of parent software system
@@ -1858,7 +2221,7 @@ components:
                     type: array
                     items:
                         type: string
-                        example: Est velit.
+                        example: Totam totam et deleniti excepturi occaecati voluptatem.
                     description: Attached tags
                     example:
                         - Tag1
@@ -1915,7 +2278,7 @@ components:
                 PaperSize:
                     type: string
                     description: Paper size of view
-                    example: A6_Landscape
+                    example: A0_Portrait
                     enum:
                         - A0_Landscape
                         - A0_Portrait
@@ -1948,6 +2311,10 @@ components:
                           Source: Software System/Container/Component
                         - Destination: Software System/Container/Component
                           Source: Software System/Container/Component
+                        - Destination: Software System/Container/Component
+                          Source: Software System/Container/Component
+                        - Destination: Software System/Container/Component
+                          Source: Software System/Container/Component
                 SoftwareSystemName:
                     type: string
                     description: Name of software system to create view for
@@ -1956,7 +2323,7 @@ components:
                     type: boolean
                     description: Indicates whether the system boundaries are visible on the resulting diagram
                     default: true
-                    example: false
+                    example: true
                 Title:
                     type: string
                     description: Title of view
@@ -1966,15 +2333,15 @@ components:
                 ElementViews:
                     - Element: Software System/Container/Component
                     - Element: Software System/Container/Component
-                    - Element: Software System/Container/Component
-                    - Element: Software System/Container/Component
                 Key: key
                 Locator:
                     Dir: services/my-service/diagram
                     Filename: model.go
                     Repository: my-repo
-                PaperSize: Legal_Landscape
+                PaperSize: A2_Portrait
                 RelationshipViews:
+                    - Destination: Software System/Container/Component
+                      Source: Software System/Container/Component
                     - Destination: Software System/Container/Component
                       Source: Software System/Container/Component
                     - Destination: Software System/Container/Component
@@ -2015,7 +2382,7 @@ components:
                 PaperSize:
                     type: string
                     description: Paper size of view
-                    example: A2_Portrait
+                    example: A1_Landscape
                     enum:
                         - A0_Landscape
                         - A0_Portrait
@@ -2065,10 +2432,8 @@ components:
                     Dir: services/my-service/diagram
                     Filename: model.go
                     Repository: my-repo
-                PaperSize: A1_Portrait
+                PaperSize: Letter_Landscape
                 RelationshipViews:
-                    - Destination: Software System/Container/Component
-                      Source: Software System/Container/Component
                     - Destination: Software System/Container/Component
                       Source: Software System/Container/Component
                     - Destination: Software System/Container/Component
@@ -2086,6 +2451,15 @@ components:
                     type: string
                     description: Description of relationship
                     example: Relationship description
+                DestinationKind:
+                    type: string
+                    description: Kind of destination element
+                    example: Component
+                    enum:
+                        - Person
+                        - Software System
+                        - Container
+                        - Component
                 DestinationPath:
                     type: string
                     description: Path to destination element, see SourcePath for details.
@@ -2094,12 +2468,21 @@ components:
                     type: string
                     description: Indicates whether the relationship is synchronous or asynchronous
                     default: Synchronous
-                    example: Synchronous
+                    example: Asynchronous
                     enum:
                         - Synchronous
                         - Asynchronous
                 Locator:
                     $ref: '#/components/schemas/FileLocator'
+                SourceKind:
+                    type: string
+                    description: Kind of source element
+                    example: Software System
+                    enum:
+                        - Person
+                        - Software System
+                        - Container
+                        - Component
                 SourcePath:
                     type: string
                     description: Path to source element consisting of <software system name>[/<container name>[/<component name>]]
@@ -2108,7 +2491,7 @@ components:
                     type: array
                     items:
                         type: string
-                        example: Eos repellat.
+                        example: Corrupti excepturi.
                     description: Attached tags
                     example:
                         - Tag1
@@ -2124,12 +2507,14 @@ components:
                     format: uri
             example:
                 Description: Relationship description
+                DestinationKind: Software System
                 DestinationPath: Software System/Container/Component
                 InteractionStyle: Asynchronous
                 Locator:
                     Dir: services/my-service/diagram
                     Filename: model.go
                     Repository: my-repo
+                SourceKind: Component
                 SourcePath: Software System/Container/Component
                 Tags:
                     - Tag1
@@ -2138,14 +2523,16 @@ components:
                 URL: https://relationship.com
             required:
                 - SourcePath
+                - SourceKind
                 - DestinationPath
+                - DestinationKind
         UpsertRelationshipStyleRequestBody:
             type: object
             properties:
                 Color:
                     type: string
                     description: Color of label
-                    example: '#1541dE'
+                    example: '#8acBB1'
                     pattern: ^#[0-9a-fA-F]{6}$
                 Dashed:
                     type: boolean
@@ -2155,26 +2542,26 @@ components:
                 FontSize:
                     type: integer
                     description: Font size of label on relationship
-                    example: 23
+                    example: 68
                     minimum: 1
                     maximum: 100
                 Opacity:
                     type: integer
                     description: Opacity of relationship as a percentage
-                    example: 40
+                    example: 16
                     minimum: 0
                     maximum: 100
                 Position:
                     type: integer
                     description: Position of label on relationship as a percentage (0 is next to source, 100 next to destination)
-                    example: 20
+                    example: 35
                     minimum: 0
                     maximum: 100
                 Routing:
                     type: string
                     description: Routing of relationship
                     default: Direct
-                    example: Orthogonal
+                    example: Direct
                     enum:
                         - Direct
                         - Orthogonal
@@ -2182,7 +2569,7 @@ components:
                 Stroke:
                     type: string
                     description: Stroke color of relationship
-                    example: '#eFC1Fd'
+                    example: '#af80a2'
                     pattern: ^#[0-9a-fA-F]{6}$
                 Tag:
                     type: string
@@ -2197,20 +2584,20 @@ components:
                 Width:
                     type: integer
                     description: Width of label on relationship
-                    example: 292
+                    example: 6270
                     minimum: 1
                     maximum: 10000
             example:
-                Color: '#B4ae12'
+                Color: '#8E078B'
                 Dashed: true
-                FontSize: 86
-                Opacity: 82
-                Position: 28
+                FontSize: 57
+                Opacity: 15
+                Position: 93
                 Routing: Orthogonal
-                Stroke: '#8d2E2c'
+                Stroke: '#647d12'
                 Tag: tag
                 Thickness: 2
-                Width: 8548
+                Width: 1379
             required:
                 - Tag
         UpsertSystemContextViewRequestBody:
@@ -2228,11 +2615,12 @@ components:
                     example:
                         - Element: Software System/Container/Component
                         - Element: Software System/Container/Component
+                        - Element: Software System/Container/Component
                 EnterpriseBoundaryVisible:
                     type: boolean
                     description: Indicates whether the enterprise boundary is visible on the resulting diagram
                     default: true
-                    example: false
+                    example: true
                 Key:
                     type: string
                     description: Key of view
@@ -2242,7 +2630,7 @@ components:
                 PaperSize:
                     type: string
                     description: Paper size of view
-                    example: Slide_4x3
+                    example: A2_Landscape
                     enum:
                         - A0_Landscape
                         - A0_Portrait
@@ -2291,16 +2679,15 @@ components:
                     - Element: Software System/Container/Component
                     - Element: Software System/Container/Component
                     - Element: Software System/Container/Component
+                    - Element: Software System/Container/Component
                 EnterpriseBoundaryVisible: false
                 Key: key
                 Locator:
                     Dir: services/my-service/diagram
                     Filename: model.go
                     Repository: my-repo
-                PaperSize: A6_Portrait
+                PaperSize: A1_Portrait
                 RelationshipViews:
-                    - Destination: Software System/Container/Component
-                      Source: Software System/Container/Component
                     - Destination: Software System/Container/Component
                       Source: Software System/Container/Component
                     - Destination: Software System/Container/Component
@@ -2342,12 +2729,12 @@ components:
                         key2: value2
                     additionalProperties:
                         type: string
-                        example: Numquam aut.
+                        example: Aperiam molestiae ipsum cumque fugiat eos.
                 Tags:
                     type: array
                     items:
                         type: string
-                        example: Delectus accusantium quia animi voluptatibus.
+                        example: Doloribus aut molestiae.
                     description: Attached tags
                     example:
                         - Tag1

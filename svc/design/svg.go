@@ -8,23 +8,27 @@ var _ = Service("SVG", func() {
 	})
 	Method("Load", func() {
 		Description("Stream the SVG")
-		Payload(Filename)
+		Payload(FileLocator)
 		Result(SVG)
+		Error("NotFound", ErrorResult, "File not found")
 		HTTP(func() {
 			GET("/")
-			Param("Filename:file")
+			Param("Filename:filename")
+			Param("Repository:repo")
+			Param("Dir:dir")
+			Response(StatusOK)
+			Response("NotFound", StatusNotFound)
 		})
 	})
 	Method("Save", func() {
 		Description("Save the SVG streamed in the request body")
 		Payload(func() {
-			Extend(Filename)
+			Extend(FileLocator)
 			Attribute("SVG", SVG, "Diagram SVG")
 			Required("Filename", "SVG")
 		})
 		HTTP(func() {
 			POST("/")
-			Param("Filename:file")
 			Response(StatusNoContent)
 		})
 	})

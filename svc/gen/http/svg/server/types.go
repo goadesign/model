@@ -8,8 +8,11 @@
 package server
 
 import (
+	"unicode/utf8"
+
 	goa "goa.design/goa/v3/pkg"
 	svg "goa.design/model/svc/gen/svg"
+	types "goa.design/model/svc/gen/types"
 )
 
 // SaveRequestBody is the type of the "SVG" service "Save" endpoint HTTP
@@ -17,33 +20,97 @@ import (
 type SaveRequestBody struct {
 	// Diagram SVG
 	SVG *string `form:"SVG,omitempty" json:"SVG,omitempty" xml:"SVG,omitempty"`
+	// Name of DSL file
+	Filename *string `form:"Filename,omitempty" json:"Filename,omitempty" xml:"Filename,omitempty"`
+	// Path to repository root
+	Repository *string `form:"Repository,omitempty" json:"Repository,omitempty" xml:"Repository,omitempty"`
+	// Path to directory containing a model package
+	Dir *string `form:"Dir,omitempty" json:"Dir,omitempty" xml:"Dir,omitempty"`
 }
 
-// NewLoadFilename builds a SVG service Load endpoint payload.
-func NewLoadFilename(filename string) *svg.Filename {
-	v := &svg.Filename{}
+// LoadNotFoundResponseBody is the type of the "SVG" service "Load" endpoint
+// HTTP response body for the "NotFound" error.
+type LoadNotFoundResponseBody struct {
+	// Name is the name of this class of errors.
+	Name string `form:"name" json:"name" xml:"name"`
+	// ID is a unique identifier for this particular occurrence of the problem.
+	ID string `form:"id" json:"id" xml:"id"`
+	// Message is a human-readable explanation specific to this occurrence of the
+	// problem.
+	Message string `form:"message" json:"message" xml:"message"`
+	// Is the error temporary?
+	Temporary bool `form:"temporary" json:"temporary" xml:"temporary"`
+	// Is the error a timeout?
+	Timeout bool `form:"timeout" json:"timeout" xml:"timeout"`
+	// Is the error a server-side fault?
+	Fault bool `form:"fault" json:"fault" xml:"fault"`
+}
+
+// NewLoadNotFoundResponseBody builds the HTTP response body from the result of
+// the "Load" endpoint of the "SVG" service.
+func NewLoadNotFoundResponseBody(res *goa.ServiceError) *LoadNotFoundResponseBody {
+	body := &LoadNotFoundResponseBody{
+		Name:      res.Name,
+		ID:        res.ID,
+		Message:   res.Message,
+		Temporary: res.Temporary,
+		Timeout:   res.Timeout,
+		Fault:     res.Fault,
+	}
+	return body
+}
+
+// NewLoadFileLocator builds a SVG service Load endpoint payload.
+func NewLoadFileLocator(filename string, repository string, dir string) *types.FileLocator {
+	v := &types.FileLocator{}
 	v.Filename = filename
+	v.Repository = repository
+	v.Dir = dir
 
 	return v
 }
 
 // NewSavePayload builds a SVG service Save endpoint payload.
-func NewSavePayload(body *SaveRequestBody, filename string) *svg.SavePayload {
+func NewSavePayload(body *SaveRequestBody) *svg.SavePayload {
 	v := &svg.SavePayload{
-		SVG: svg.SVG(*body.SVG),
+		SVG:        svg.SVG(*body.SVG),
+		Filename:   *body.Filename,
+		Repository: *body.Repository,
+		Dir:        *body.Dir,
 	}
-	v.Filename = filename
 
 	return v
 }
 
 // ValidateSaveRequestBody runs the validations defined on SaveRequestBody
 func ValidateSaveRequestBody(body *SaveRequestBody) (err error) {
+	if body.Filename == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Filename", "body"))
+	}
 	if body.SVG == nil {
 		err = goa.MergeErrors(err, goa.MissingFieldError("SVG", "body"))
 	}
+	if body.Repository == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Repository", "body"))
+	}
+	if body.Dir == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Dir", "body"))
+	}
 	if body.SVG != nil {
 		err = goa.MergeErrors(err, goa.ValidatePattern("body.SVG", *body.SVG, "<svg.*</svg>$"))
+	}
+	if body.Filename != nil {
+		err = goa.MergeErrors(err, goa.ValidatePattern("body.Filename", *body.Filename, "\\.go$"))
+	}
+	if body.Repository != nil {
+		if utf8.RuneCountInString(*body.Repository) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Repository", *body.Repository, utf8.RuneCountInString(*body.Repository), 1, true))
+		}
+	}
+	if body.Dir != nil {
+		if utf8.RuneCountInString(*body.Dir) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Dir", *body.Dir, utf8.RuneCountInString(*body.Dir), 1, true))
+		}
 	}
 	return
 }

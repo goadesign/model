@@ -48,7 +48,7 @@ func UsageExamples() string {
          "Repository": "my-repo"
       }
    }'` + "\n" +
-		os.Args[0] + ` svg load --filename "diagram.svg"` + "\n" +
+		os.Args[0] + ` svg load --filename "model.go" --repository "my-repo" --dir "services/my-service/diagram"` + "\n" +
 		""
 }
 
@@ -174,12 +174,13 @@ func ParseEndpoint(
 
 		sVGFlags = flag.NewFlagSet("svg", flag.ContinueOnError)
 
-		sVGLoadFlags        = flag.NewFlagSet("load", flag.ExitOnError)
-		sVGLoadFilenameFlag = sVGLoadFlags.String("filename", "REQUIRED", "")
+		sVGLoadFlags          = flag.NewFlagSet("load", flag.ExitOnError)
+		sVGLoadFilenameFlag   = sVGLoadFlags.String("filename", "REQUIRED", "")
+		sVGLoadRepositoryFlag = sVGLoadFlags.String("repository", "REQUIRED", "")
+		sVGLoadDirFlag        = sVGLoadFlags.String("dir", "REQUIRED", "")
 
-		sVGSaveFlags        = flag.NewFlagSet("save", flag.ExitOnError)
-		sVGSaveBodyFlag     = sVGSaveFlags.String("body", "REQUIRED", "")
-		sVGSaveFilenameFlag = sVGSaveFlags.String("filename", "REQUIRED", "")
+		sVGSaveFlags    = flag.NewFlagSet("save", flag.ExitOnError)
+		sVGSaveBodyFlag = sVGSaveFlags.String("body", "REQUIRED", "")
 	)
 	dSLEditorFlags.Usage = dSLEditorUsage
 	dSLEditorUpdateDSLFlags.Usage = dSLEditorUpdateDSLUsage
@@ -479,10 +480,10 @@ func ParseEndpoint(
 			switch epn {
 			case "load":
 				endpoint = c.Load()
-				data, err = svgc.BuildLoadPayload(*sVGLoadFilenameFlag)
+				data, err = svgc.BuildLoadPayload(*sVGLoadFilenameFlag, *sVGLoadRepositoryFlag, *sVGLoadDirFlag)
 			case "save":
 				endpoint = c.Save()
-				data, err = svgc.BuildSavePayload(*sVGSaveBodyFlag, *sVGSaveFilenameFlag)
+				data, err = svgc.BuildSavePayload(*sVGSaveBodyFlag)
 			}
 		}
 	}
@@ -675,6 +676,7 @@ Create or update a relationship in the model
 Example:
     %[1]s dsl-editor upsert-relationship --body '{
       "Description": "Relationship description",
+      "DestinationKind": "Component",
       "DestinationPath": "Software System/Container/Component",
       "InteractionStyle": "Synchronous",
       "Locator": {
@@ -682,6 +684,7 @@ Example:
          "Filename": "model.go",
          "Repository": "my-repo"
       },
+      "SourceKind": "Person",
       "SourcePath": "Software System/Container/Component",
       "Tags": [
          "Tag1",
@@ -711,28 +714,17 @@ Example:
          },
          {
             "Element": "Software System/Container/Component"
-         },
-         {
-            "Element": "Software System/Container/Component"
          }
       ],
-      "EnterpriseBoundaryVisible": false,
+      "EnterpriseBoundaryVisible": true,
       "Key": "key",
       "Locator": {
          "Dir": "services/my-service/diagram",
          "Filename": "model.go",
          "Repository": "my-repo"
       },
-      "PaperSize": "A0_Landscape",
+      "PaperSize": "A4_Landscape",
       "RelationshipViews": [
-         {
-            "Destination": "Software System/Container/Component",
-            "Source": "Software System/Container/Component"
-         },
-         {
-            "Destination": "Software System/Container/Component",
-            "Source": "Software System/Container/Component"
-         },
          {
             "Destination": "Software System/Container/Component",
             "Source": "Software System/Container/Component"
@@ -762,27 +754,17 @@ Example:
          },
          {
             "Element": "Software System/Container/Component"
-         },
-         {
-            "Element": "Software System/Container/Component"
-         },
-         {
-            "Element": "Software System/Container/Component"
          }
       ],
-      "EnterpriseBoundaryVisible": false,
+      "EnterpriseBoundaryVisible": true,
       "Key": "key",
       "Locator": {
          "Dir": "services/my-service/diagram",
          "Filename": "model.go",
          "Repository": "my-repo"
       },
-      "PaperSize": "A2_Landscape",
+      "PaperSize": "A4_Landscape",
       "RelationshipViews": [
-         {
-            "Destination": "Software System/Container/Component",
-            "Source": "Software System/Container/Component"
-         },
          {
             "Destination": "Software System/Container/Component",
             "Source": "Software System/Container/Component"
@@ -817,6 +799,12 @@ Example:
          },
          {
             "Element": "Software System/Container/Component"
+         },
+         {
+            "Element": "Software System/Container/Component"
+         },
+         {
+            "Element": "Software System/Container/Component"
          }
       ],
       "Key": "key",
@@ -825,7 +813,7 @@ Example:
          "Filename": "model.go",
          "Repository": "my-repo"
       },
-      "PaperSize": "A4_Landscape",
+      "PaperSize": "A3_Portrait",
       "RelationshipViews": [
          {
             "Destination": "Software System/Container/Component",
@@ -841,7 +829,7 @@ Example:
          }
       ],
       "SoftwareSystemName": "Software System",
-      "SystemBoundariesVisible": true,
+      "SystemBoundariesVisible": false,
       "Title": "title"
    }'
 `, os.Args[0])
@@ -875,8 +863,12 @@ Example:
          "Filename": "model.go",
          "Repository": "my-repo"
       },
-      "PaperSize": "Letter_Portrait",
+      "PaperSize": "A1_Portrait",
       "RelationshipViews": [
+         {
+            "Destination": "Software System/Container/Component",
+            "Source": "Software System/Container/Component"
+         },
          {
             "Destination": "Software System/Container/Component",
             "Source": "Software System/Container/Component"
@@ -900,17 +892,17 @@ Create or update an element style in the model
 
 Example:
     %[1]s dsl-editor upser-element-style --body '{
-      "Background": "#8aAA88",
+      "Background": "#4b95ba",
       "Border": "BorderDotted",
-      "Color": "#DE3e9e",
+      "Color": "#cBaAaC",
       "Description": false,
       "FontSize": 20,
       "Height": 100,
       "Icon": "https://static.structurizr.com/images/icons/Person.png",
       "Metadata": true,
-      "Opacity": 6,
-      "Shape": "ShapeCircle",
-      "Stroke": "#e3Aee7",
+      "Opacity": 45,
+      "Shape": "ShapePipe",
+      "Stroke": "#9013C2",
       "Tag": "tag",
       "Width": 100
    }'
@@ -925,16 +917,16 @@ Create or update a relationship style in the model
 
 Example:
     %[1]s dsl-editor upsert-relationship-style --body '{
-      "Color": "#3Da7A0",
+      "Color": "#f0fb3c",
       "Dashed": true,
-      "FontSize": 70,
-      "Opacity": 30,
-      "Position": 4,
-      "Routing": "Curved",
-      "Stroke": "#f3b65c",
+      "FontSize": 10,
+      "Opacity": 35,
+      "Position": 25,
+      "Routing": "Direct",
+      "Stroke": "#6a28aB",
       "Tag": "tag",
       "Thickness": 2,
-      "Width": 2457
+      "Width": 272
    }'
 `, os.Args[0])
 }
@@ -951,7 +943,7 @@ Example:
       "Dir": "services/my-service/diagram",
       "Filename": "model.go",
       "Repository": "my-repo"
-   }' --system-name "Inventore deserunt harum a velit quod."
+   }' --system-name "Nemo inventore."
 `, os.Args[0])
 }
 
@@ -1229,26 +1221,30 @@ Additional help:
 `, os.Args[0])
 }
 func sVGLoadUsage() {
-	fmt.Fprintf(os.Stderr, `%[1]s [flags] svg load -filename STRING
+	fmt.Fprintf(os.Stderr, `%[1]s [flags] svg load -filename STRING -repository STRING -dir STRING
 
 Stream the SVG
     -filename STRING: 
+    -repository STRING: 
+    -dir STRING: 
 
 Example:
-    %[1]s svg load --filename "diagram.svg"
+    %[1]s svg load --filename "model.go" --repository "my-repo" --dir "services/my-service/diagram"
 `, os.Args[0])
 }
 
 func sVGSaveUsage() {
-	fmt.Fprintf(os.Stderr, `%[1]s [flags] svg save -body JSON -filename STRING
+	fmt.Fprintf(os.Stderr, `%[1]s [flags] svg save -body JSON
 
 Save the SVG streamed in the request body
     -body JSON: 
-    -filename STRING: 
 
 Example:
     %[1]s svg save --body '{
-      "SVG": "\u003csvg��\u003c/svg\u003e"
-   }' --filename "diagram.svg"
+      "Dir": "services/my-service/diagram",
+      "Filename": "model.go",
+      "Repository": "my-repo",
+      "SVG": "\u003csvg����\u003c/svg\u003e"
+   }'
 `, os.Args[0])
 }

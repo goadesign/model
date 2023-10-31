@@ -113,9 +113,13 @@ type UpsertComponentRequestBody struct {
 type UpsertRelationshipRequestBody struct {
 	// Path to file containing relationship DSL
 	Locator *FileLocatorRequestBody `form:"Locator,omitempty" json:"Locator,omitempty" xml:"Locator,omitempty"`
+	// Kind of source element
+	SourceKind *string `form:"SourceKind,omitempty" json:"SourceKind,omitempty" xml:"SourceKind,omitempty"`
 	// Path to source element consisting of <software system name>[/<container
 	// name>[/<component name>]]
 	SourcePath *string `form:"SourcePath,omitempty" json:"SourcePath,omitempty" xml:"SourcePath,omitempty"`
+	// Kind of destination element
+	DestinationKind *string `form:"DestinationKind,omitempty" json:"DestinationKind,omitempty" xml:"DestinationKind,omitempty"`
 	// Path to destination element, see SourcePath for details.
 	DestinationPath *string `form:"DestinationPath,omitempty" json:"DestinationPath,omitempty" xml:"DestinationPath,omitempty"`
 	// Description of relationship
@@ -406,6 +410,204 @@ type DeleteRelationshipStyleRequestBody struct {
 	Repository *string `form:"Repository,omitempty" json:"Repository,omitempty" xml:"Repository,omitempty"`
 	// Path to directory containing a model package
 	Dir *string `form:"Dir,omitempty" json:"Dir,omitempty" xml:"Dir,omitempty"`
+}
+
+// UpsertSystemResponseBody is the type of the "DSLEditor" service
+// "UpsertSystem" endpoint HTTP response body.
+type UpsertSystemResponseBody struct {
+	// Path to file containing DSL code
+	Locator *FileLocatorResponseBody `form:"Locator" json:"Locator" xml:"Locator"`
+	// DSL code
+	Content string `form:"Content" json:"Content" xml:"Content"`
+}
+
+// UpsertPersonResponseBody is the type of the "DSLEditor" service
+// "UpsertPerson" endpoint HTTP response body.
+type UpsertPersonResponseBody struct {
+	// Path to file containing DSL code
+	Locator *FileLocatorResponseBody `form:"Locator" json:"Locator" xml:"Locator"`
+	// DSL code
+	Content string `form:"Content" json:"Content" xml:"Content"`
+}
+
+// UpsertContainerResponseBody is the type of the "DSLEditor" service
+// "UpsertContainer" endpoint HTTP response body.
+type UpsertContainerResponseBody struct {
+	// Path to file containing DSL code
+	Locator *FileLocatorResponseBody `form:"Locator" json:"Locator" xml:"Locator"`
+	// DSL code
+	Content string `form:"Content" json:"Content" xml:"Content"`
+}
+
+// UpsertComponentResponseBody is the type of the "DSLEditor" service
+// "UpsertComponent" endpoint HTTP response body.
+type UpsertComponentResponseBody struct {
+	// Path to file containing DSL code
+	Locator *FileLocatorResponseBody `form:"Locator" json:"Locator" xml:"Locator"`
+	// DSL code
+	Content string `form:"Content" json:"Content" xml:"Content"`
+}
+
+// UpsertRelationshipResponseBody is the type of the "DSLEditor" service
+// "UpsertRelationship" endpoint HTTP response body.
+type UpsertRelationshipResponseBody struct {
+	// Path to file containing DSL code
+	Locator *FileLocatorResponseBody `form:"Locator" json:"Locator" xml:"Locator"`
+	// DSL code
+	Content string `form:"Content" json:"Content" xml:"Content"`
+}
+
+// UpsertLandscapeViewResponseBody is the type of the "DSLEditor" service
+// "UpsertLandscapeView" endpoint HTTP response body.
+type UpsertLandscapeViewResponseBody struct {
+	// Path to file containing DSL code
+	Locator *FileLocatorResponseBody `form:"Locator" json:"Locator" xml:"Locator"`
+	// DSL code
+	Content string `form:"Content" json:"Content" xml:"Content"`
+}
+
+// UpsertSystemContextViewResponseBody is the type of the "DSLEditor" service
+// "UpsertSystemContextView" endpoint HTTP response body.
+type UpsertSystemContextViewResponseBody struct {
+	// Path to file containing DSL code
+	Locator *FileLocatorResponseBody `form:"Locator" json:"Locator" xml:"Locator"`
+	// DSL code
+	Content string `form:"Content" json:"Content" xml:"Content"`
+}
+
+// UpsertContainerViewResponseBody is the type of the "DSLEditor" service
+// "UpsertContainerView" endpoint HTTP response body.
+type UpsertContainerViewResponseBody struct {
+	// Path to file containing DSL code
+	Locator *FileLocatorResponseBody `form:"Locator" json:"Locator" xml:"Locator"`
+	// DSL code
+	Content string `form:"Content" json:"Content" xml:"Content"`
+}
+
+// UpsertComponentViewResponseBody is the type of the "DSLEditor" service
+// "UpsertComponentView" endpoint HTTP response body.
+type UpsertComponentViewResponseBody struct {
+	// Path to file containing DSL code
+	Locator *FileLocatorResponseBody `form:"Locator" json:"Locator" xml:"Locator"`
+	// DSL code
+	Content string `form:"Content" json:"Content" xml:"Content"`
+}
+
+// UpserElementStyleResponseBody is the type of the "DSLEditor" service
+// "UpserElementStyle" endpoint HTTP response body.
+type UpserElementStyleResponseBody struct {
+	// Path to file containing DSL code
+	Locator *FileLocatorResponseBody `form:"Locator" json:"Locator" xml:"Locator"`
+	// DSL code
+	Content string `form:"Content" json:"Content" xml:"Content"`
+}
+
+// UpsertRelationshipStyleResponseBody is the type of the "DSLEditor" service
+// "UpsertRelationshipStyle" endpoint HTTP response body.
+type UpsertRelationshipStyleResponseBody struct {
+	// Path to file containing DSL code
+	Locator *FileLocatorResponseBody `form:"Locator" json:"Locator" xml:"Locator"`
+	// DSL code
+	Content string `form:"Content" json:"Content" xml:"Content"`
+}
+
+// DeleteSystemResponseBody is the type of the "DSLEditor" service
+// "DeleteSystem" endpoint HTTP response body.
+type DeleteSystemResponseBody struct {
+	// Path to file containing DSL code
+	Locator *FileLocatorResponseBody `form:"Locator" json:"Locator" xml:"Locator"`
+	// DSL code
+	Content string `form:"Content" json:"Content" xml:"Content"`
+}
+
+// DeletePersonResponseBody is the type of the "DSLEditor" service
+// "DeletePerson" endpoint HTTP response body.
+type DeletePersonResponseBody struct {
+	// Path to file containing DSL code
+	Locator *FileLocatorResponseBody `form:"Locator" json:"Locator" xml:"Locator"`
+	// DSL code
+	Content string `form:"Content" json:"Content" xml:"Content"`
+}
+
+// DeleteContainerResponseBody is the type of the "DSLEditor" service
+// "DeleteContainer" endpoint HTTP response body.
+type DeleteContainerResponseBody struct {
+	// Path to file containing DSL code
+	Locator *FileLocatorResponseBody `form:"Locator" json:"Locator" xml:"Locator"`
+	// DSL code
+	Content string `form:"Content" json:"Content" xml:"Content"`
+}
+
+// DeleteComponentResponseBody is the type of the "DSLEditor" service
+// "DeleteComponent" endpoint HTTP response body.
+type DeleteComponentResponseBody struct {
+	// Path to file containing DSL code
+	Locator *FileLocatorResponseBody `form:"Locator" json:"Locator" xml:"Locator"`
+	// DSL code
+	Content string `form:"Content" json:"Content" xml:"Content"`
+}
+
+// DeleteRelationshipResponseBody is the type of the "DSLEditor" service
+// "DeleteRelationship" endpoint HTTP response body.
+type DeleteRelationshipResponseBody struct {
+	// Path to file containing DSL code
+	Locator *FileLocatorResponseBody `form:"Locator" json:"Locator" xml:"Locator"`
+	// DSL code
+	Content string `form:"Content" json:"Content" xml:"Content"`
+}
+
+// DeleteLandscapeViewResponseBody is the type of the "DSLEditor" service
+// "DeleteLandscapeView" endpoint HTTP response body.
+type DeleteLandscapeViewResponseBody struct {
+	// Path to file containing DSL code
+	Locator *FileLocatorResponseBody `form:"Locator" json:"Locator" xml:"Locator"`
+	// DSL code
+	Content string `form:"Content" json:"Content" xml:"Content"`
+}
+
+// DeleteSystemContextViewResponseBody is the type of the "DSLEditor" service
+// "DeleteSystemContextView" endpoint HTTP response body.
+type DeleteSystemContextViewResponseBody struct {
+	// Path to file containing DSL code
+	Locator *FileLocatorResponseBody `form:"Locator" json:"Locator" xml:"Locator"`
+	// DSL code
+	Content string `form:"Content" json:"Content" xml:"Content"`
+}
+
+// DeleteContainerViewResponseBody is the type of the "DSLEditor" service
+// "DeleteContainerView" endpoint HTTP response body.
+type DeleteContainerViewResponseBody struct {
+	// Path to file containing DSL code
+	Locator *FileLocatorResponseBody `form:"Locator" json:"Locator" xml:"Locator"`
+	// DSL code
+	Content string `form:"Content" json:"Content" xml:"Content"`
+}
+
+// DeleteComponentViewResponseBody is the type of the "DSLEditor" service
+// "DeleteComponentView" endpoint HTTP response body.
+type DeleteComponentViewResponseBody struct {
+	// Path to file containing DSL code
+	Locator *FileLocatorResponseBody `form:"Locator" json:"Locator" xml:"Locator"`
+	// DSL code
+	Content string `form:"Content" json:"Content" xml:"Content"`
+}
+
+// DeleteElementStyleResponseBody is the type of the "DSLEditor" service
+// "DeleteElementStyle" endpoint HTTP response body.
+type DeleteElementStyleResponseBody struct {
+	// Path to file containing DSL code
+	Locator *FileLocatorResponseBody `form:"Locator" json:"Locator" xml:"Locator"`
+	// DSL code
+	Content string `form:"Content" json:"Content" xml:"Content"`
+}
+
+// DeleteRelationshipStyleResponseBody is the type of the "DSLEditor" service
+// "DeleteRelationshipStyle" endpoint HTTP response body.
+type DeleteRelationshipStyleResponseBody struct {
+	// Path to file containing DSL code
+	Locator *FileLocatorResponseBody `form:"Locator" json:"Locator" xml:"Locator"`
+	// DSL code
+	Content string `form:"Content" json:"Content" xml:"Content"`
 }
 
 // UpdateDSLCompilationFailedResponseBody is the type of the "DSLEditor"
@@ -1050,6 +1252,16 @@ type DeleteRelationshipStyleCompilationFailedResponseBody struct {
 	Fault bool `form:"fault" json:"fault" xml:"fault"`
 }
 
+// FileLocatorResponseBody is used to define fields on response body types.
+type FileLocatorResponseBody struct {
+	// Name of DSL file
+	Filename string `form:"Filename" json:"Filename" xml:"Filename"`
+	// Path to repository root
+	Repository string `form:"Repository" json:"Repository" xml:"Repository"`
+	// Path to directory containing a model package
+	Dir string `form:"Dir" json:"Dir" xml:"Dir"`
+}
+
 // FileLocatorRequestBody is used to define fields on request body types.
 type FileLocatorRequestBody struct {
 	// Name of DSL file
@@ -1074,6 +1286,274 @@ type RelationshipViewRequestBody struct {
 	Source *string `form:"Source,omitempty" json:"Source,omitempty" xml:"Source,omitempty"`
 	// Path to destination element, see SourcePath for details.
 	Destination *string `form:"Destination,omitempty" json:"Destination,omitempty" xml:"Destination,omitempty"`
+}
+
+// NewUpsertSystemResponseBody builds the HTTP response body from the result of
+// the "UpsertSystem" endpoint of the "DSLEditor" service.
+func NewUpsertSystemResponseBody(res *types.PackageFile) *UpsertSystemResponseBody {
+	body := &UpsertSystemResponseBody{
+		Content: res.Content,
+	}
+	if res.Locator != nil {
+		body.Locator = marshalTypesFileLocatorToFileLocatorResponseBody(res.Locator)
+	}
+	return body
+}
+
+// NewUpsertPersonResponseBody builds the HTTP response body from the result of
+// the "UpsertPerson" endpoint of the "DSLEditor" service.
+func NewUpsertPersonResponseBody(res *types.PackageFile) *UpsertPersonResponseBody {
+	body := &UpsertPersonResponseBody{
+		Content: res.Content,
+	}
+	if res.Locator != nil {
+		body.Locator = marshalTypesFileLocatorToFileLocatorResponseBody(res.Locator)
+	}
+	return body
+}
+
+// NewUpsertContainerResponseBody builds the HTTP response body from the result
+// of the "UpsertContainer" endpoint of the "DSLEditor" service.
+func NewUpsertContainerResponseBody(res *types.PackageFile) *UpsertContainerResponseBody {
+	body := &UpsertContainerResponseBody{
+		Content: res.Content,
+	}
+	if res.Locator != nil {
+		body.Locator = marshalTypesFileLocatorToFileLocatorResponseBody(res.Locator)
+	}
+	return body
+}
+
+// NewUpsertComponentResponseBody builds the HTTP response body from the result
+// of the "UpsertComponent" endpoint of the "DSLEditor" service.
+func NewUpsertComponentResponseBody(res *types.PackageFile) *UpsertComponentResponseBody {
+	body := &UpsertComponentResponseBody{
+		Content: res.Content,
+	}
+	if res.Locator != nil {
+		body.Locator = marshalTypesFileLocatorToFileLocatorResponseBody(res.Locator)
+	}
+	return body
+}
+
+// NewUpsertRelationshipResponseBody builds the HTTP response body from the
+// result of the "UpsertRelationship" endpoint of the "DSLEditor" service.
+func NewUpsertRelationshipResponseBody(res *types.PackageFile) *UpsertRelationshipResponseBody {
+	body := &UpsertRelationshipResponseBody{
+		Content: res.Content,
+	}
+	if res.Locator != nil {
+		body.Locator = marshalTypesFileLocatorToFileLocatorResponseBody(res.Locator)
+	}
+	return body
+}
+
+// NewUpsertLandscapeViewResponseBody builds the HTTP response body from the
+// result of the "UpsertLandscapeView" endpoint of the "DSLEditor" service.
+func NewUpsertLandscapeViewResponseBody(res *types.PackageFile) *UpsertLandscapeViewResponseBody {
+	body := &UpsertLandscapeViewResponseBody{
+		Content: res.Content,
+	}
+	if res.Locator != nil {
+		body.Locator = marshalTypesFileLocatorToFileLocatorResponseBody(res.Locator)
+	}
+	return body
+}
+
+// NewUpsertSystemContextViewResponseBody builds the HTTP response body from
+// the result of the "UpsertSystemContextView" endpoint of the "DSLEditor"
+// service.
+func NewUpsertSystemContextViewResponseBody(res *types.PackageFile) *UpsertSystemContextViewResponseBody {
+	body := &UpsertSystemContextViewResponseBody{
+		Content: res.Content,
+	}
+	if res.Locator != nil {
+		body.Locator = marshalTypesFileLocatorToFileLocatorResponseBody(res.Locator)
+	}
+	return body
+}
+
+// NewUpsertContainerViewResponseBody builds the HTTP response body from the
+// result of the "UpsertContainerView" endpoint of the "DSLEditor" service.
+func NewUpsertContainerViewResponseBody(res *types.PackageFile) *UpsertContainerViewResponseBody {
+	body := &UpsertContainerViewResponseBody{
+		Content: res.Content,
+	}
+	if res.Locator != nil {
+		body.Locator = marshalTypesFileLocatorToFileLocatorResponseBody(res.Locator)
+	}
+	return body
+}
+
+// NewUpsertComponentViewResponseBody builds the HTTP response body from the
+// result of the "UpsertComponentView" endpoint of the "DSLEditor" service.
+func NewUpsertComponentViewResponseBody(res *types.PackageFile) *UpsertComponentViewResponseBody {
+	body := &UpsertComponentViewResponseBody{
+		Content: res.Content,
+	}
+	if res.Locator != nil {
+		body.Locator = marshalTypesFileLocatorToFileLocatorResponseBody(res.Locator)
+	}
+	return body
+}
+
+// NewUpserElementStyleResponseBody builds the HTTP response body from the
+// result of the "UpserElementStyle" endpoint of the "DSLEditor" service.
+func NewUpserElementStyleResponseBody(res *types.PackageFile) *UpserElementStyleResponseBody {
+	body := &UpserElementStyleResponseBody{
+		Content: res.Content,
+	}
+	if res.Locator != nil {
+		body.Locator = marshalTypesFileLocatorToFileLocatorResponseBody(res.Locator)
+	}
+	return body
+}
+
+// NewUpsertRelationshipStyleResponseBody builds the HTTP response body from
+// the result of the "UpsertRelationshipStyle" endpoint of the "DSLEditor"
+// service.
+func NewUpsertRelationshipStyleResponseBody(res *types.PackageFile) *UpsertRelationshipStyleResponseBody {
+	body := &UpsertRelationshipStyleResponseBody{
+		Content: res.Content,
+	}
+	if res.Locator != nil {
+		body.Locator = marshalTypesFileLocatorToFileLocatorResponseBody(res.Locator)
+	}
+	return body
+}
+
+// NewDeleteSystemResponseBody builds the HTTP response body from the result of
+// the "DeleteSystem" endpoint of the "DSLEditor" service.
+func NewDeleteSystemResponseBody(res *types.PackageFile) *DeleteSystemResponseBody {
+	body := &DeleteSystemResponseBody{
+		Content: res.Content,
+	}
+	if res.Locator != nil {
+		body.Locator = marshalTypesFileLocatorToFileLocatorResponseBody(res.Locator)
+	}
+	return body
+}
+
+// NewDeletePersonResponseBody builds the HTTP response body from the result of
+// the "DeletePerson" endpoint of the "DSLEditor" service.
+func NewDeletePersonResponseBody(res *types.PackageFile) *DeletePersonResponseBody {
+	body := &DeletePersonResponseBody{
+		Content: res.Content,
+	}
+	if res.Locator != nil {
+		body.Locator = marshalTypesFileLocatorToFileLocatorResponseBody(res.Locator)
+	}
+	return body
+}
+
+// NewDeleteContainerResponseBody builds the HTTP response body from the result
+// of the "DeleteContainer" endpoint of the "DSLEditor" service.
+func NewDeleteContainerResponseBody(res *types.PackageFile) *DeleteContainerResponseBody {
+	body := &DeleteContainerResponseBody{
+		Content: res.Content,
+	}
+	if res.Locator != nil {
+		body.Locator = marshalTypesFileLocatorToFileLocatorResponseBody(res.Locator)
+	}
+	return body
+}
+
+// NewDeleteComponentResponseBody builds the HTTP response body from the result
+// of the "DeleteComponent" endpoint of the "DSLEditor" service.
+func NewDeleteComponentResponseBody(res *types.PackageFile) *DeleteComponentResponseBody {
+	body := &DeleteComponentResponseBody{
+		Content: res.Content,
+	}
+	if res.Locator != nil {
+		body.Locator = marshalTypesFileLocatorToFileLocatorResponseBody(res.Locator)
+	}
+	return body
+}
+
+// NewDeleteRelationshipResponseBody builds the HTTP response body from the
+// result of the "DeleteRelationship" endpoint of the "DSLEditor" service.
+func NewDeleteRelationshipResponseBody(res *types.PackageFile) *DeleteRelationshipResponseBody {
+	body := &DeleteRelationshipResponseBody{
+		Content: res.Content,
+	}
+	if res.Locator != nil {
+		body.Locator = marshalTypesFileLocatorToFileLocatorResponseBody(res.Locator)
+	}
+	return body
+}
+
+// NewDeleteLandscapeViewResponseBody builds the HTTP response body from the
+// result of the "DeleteLandscapeView" endpoint of the "DSLEditor" service.
+func NewDeleteLandscapeViewResponseBody(res *types.PackageFile) *DeleteLandscapeViewResponseBody {
+	body := &DeleteLandscapeViewResponseBody{
+		Content: res.Content,
+	}
+	if res.Locator != nil {
+		body.Locator = marshalTypesFileLocatorToFileLocatorResponseBody(res.Locator)
+	}
+	return body
+}
+
+// NewDeleteSystemContextViewResponseBody builds the HTTP response body from
+// the result of the "DeleteSystemContextView" endpoint of the "DSLEditor"
+// service.
+func NewDeleteSystemContextViewResponseBody(res *types.PackageFile) *DeleteSystemContextViewResponseBody {
+	body := &DeleteSystemContextViewResponseBody{
+		Content: res.Content,
+	}
+	if res.Locator != nil {
+		body.Locator = marshalTypesFileLocatorToFileLocatorResponseBody(res.Locator)
+	}
+	return body
+}
+
+// NewDeleteContainerViewResponseBody builds the HTTP response body from the
+// result of the "DeleteContainerView" endpoint of the "DSLEditor" service.
+func NewDeleteContainerViewResponseBody(res *types.PackageFile) *DeleteContainerViewResponseBody {
+	body := &DeleteContainerViewResponseBody{
+		Content: res.Content,
+	}
+	if res.Locator != nil {
+		body.Locator = marshalTypesFileLocatorToFileLocatorResponseBody(res.Locator)
+	}
+	return body
+}
+
+// NewDeleteComponentViewResponseBody builds the HTTP response body from the
+// result of the "DeleteComponentView" endpoint of the "DSLEditor" service.
+func NewDeleteComponentViewResponseBody(res *types.PackageFile) *DeleteComponentViewResponseBody {
+	body := &DeleteComponentViewResponseBody{
+		Content: res.Content,
+	}
+	if res.Locator != nil {
+		body.Locator = marshalTypesFileLocatorToFileLocatorResponseBody(res.Locator)
+	}
+	return body
+}
+
+// NewDeleteElementStyleResponseBody builds the HTTP response body from the
+// result of the "DeleteElementStyle" endpoint of the "DSLEditor" service.
+func NewDeleteElementStyleResponseBody(res *types.PackageFile) *DeleteElementStyleResponseBody {
+	body := &DeleteElementStyleResponseBody{
+		Content: res.Content,
+	}
+	if res.Locator != nil {
+		body.Locator = marshalTypesFileLocatorToFileLocatorResponseBody(res.Locator)
+	}
+	return body
+}
+
+// NewDeleteRelationshipStyleResponseBody builds the HTTP response body from
+// the result of the "DeleteRelationshipStyle" endpoint of the "DSLEditor"
+// service.
+func NewDeleteRelationshipStyleResponseBody(res *types.PackageFile) *DeleteRelationshipStyleResponseBody {
+	body := &DeleteRelationshipStyleResponseBody{
+		Content: res.Content,
+	}
+	if res.Locator != nil {
+		body.Locator = marshalTypesFileLocatorToFileLocatorResponseBody(res.Locator)
+	}
+	return body
 }
 
 // NewUpdateDSLCompilationFailedResponseBody builds the HTTP response body from
@@ -1723,7 +2203,9 @@ func NewUpsertComponentComponent(body *UpsertComponentRequestBody) *dsleditor.Co
 // UpsertRelationship endpoint payload.
 func NewUpsertRelationshipRelationship(body *UpsertRelationshipRequestBody) *dsleditor.Relationship {
 	v := &dsleditor.Relationship{
+		SourceKind:      *body.SourceKind,
 		SourcePath:      *body.SourcePath,
+		DestinationKind: *body.DestinationKind,
 		DestinationPath: *body.DestinationPath,
 		Description:     body.Description,
 		Technology:      body.Technology,
@@ -2207,12 +2689,28 @@ func ValidateUpsertRelationshipRequestBody(body *UpsertRelationshipRequestBody) 
 	if body.SourcePath == nil {
 		err = goa.MergeErrors(err, goa.MissingFieldError("SourcePath", "body"))
 	}
+	if body.SourceKind == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("SourceKind", "body"))
+	}
 	if body.DestinationPath == nil {
 		err = goa.MergeErrors(err, goa.MissingFieldError("DestinationPath", "body"))
+	}
+	if body.DestinationKind == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("DestinationKind", "body"))
 	}
 	if body.Locator != nil {
 		if err2 := ValidateFileLocatorRequestBody(body.Locator); err2 != nil {
 			err = goa.MergeErrors(err, err2)
+		}
+	}
+	if body.SourceKind != nil {
+		if !(*body.SourceKind == "Person" || *body.SourceKind == "Software System" || *body.SourceKind == "Container" || *body.SourceKind == "Component") {
+			err = goa.MergeErrors(err, goa.InvalidEnumValueError("body.SourceKind", *body.SourceKind, []any{"Person", "Software System", "Container", "Component"}))
+		}
+	}
+	if body.DestinationKind != nil {
+		if !(*body.DestinationKind == "Person" || *body.DestinationKind == "Software System" || *body.DestinationKind == "Container" || *body.DestinationKind == "Component") {
+			err = goa.MergeErrors(err, goa.InvalidEnumValueError("body.DestinationKind", *body.DestinationKind, []any{"Person", "Software System", "Container", "Component"}))
 		}
 	}
 	if body.InteractionStyle != nil {

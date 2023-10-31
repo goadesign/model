@@ -9,8 +9,10 @@ package server
 
 import (
 	"context"
+	"errors"
 	"io"
 	"net/http"
+	"unicode/utf8"
 
 	goahttp "goa.design/goa/v3/http"
 	goa "goa.design/goa/v3/pkg"
@@ -34,20 +36,65 @@ func EncodeLoadResponse(encoder func(context.Context, http.ResponseWriter) goaht
 func DecodeLoadRequest(mux goahttp.Muxer, decoder func(*http.Request) goahttp.Decoder) func(*http.Request) (any, error) {
 	return func(r *http.Request) (any, error) {
 		var (
-			filename string
-			err      error
+			filename   string
+			repository string
+			dir        string
+			err        error
 		)
-		filename = r.URL.Query().Get("file")
+		filename = r.URL.Query().Get("filename")
 		if filename == "" {
 			err = goa.MergeErrors(err, goa.MissingFieldError("Filename", "query string"))
 		}
-		err = goa.MergeErrors(err, goa.ValidatePattern("Filename", filename, ".*\\.svg"))
+		err = goa.MergeErrors(err, goa.ValidatePattern("Filename", filename, "\\.go$"))
+		repository = r.URL.Query().Get("repo")
+		if repository == "" {
+			err = goa.MergeErrors(err, goa.MissingFieldError("Repository", "query string"))
+		}
+		if utf8.RuneCountInString(repository) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("Repository", repository, utf8.RuneCountInString(repository), 1, true))
+		}
+		dir = r.URL.Query().Get("dir")
+		if dir == "" {
+			err = goa.MergeErrors(err, goa.MissingFieldError("Dir", "query string"))
+		}
+		if utf8.RuneCountInString(dir) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("Dir", dir, utf8.RuneCountInString(dir), 1, true))
+		}
 		if err != nil {
 			return nil, err
 		}
-		payload := NewLoadFilename(filename)
+		payload := NewLoadFileLocator(filename, repository, dir)
 
 		return payload, nil
+	}
+}
+
+// EncodeLoadError returns an encoder for errors returned by the Load SVG
+// endpoint.
+func EncodeLoadError(encoder func(context.Context, http.ResponseWriter) goahttp.Encoder, formatter func(ctx context.Context, err error) goahttp.Statuser) func(context.Context, http.ResponseWriter, error) error {
+	encodeError := goahttp.ErrorEncoder(encoder, formatter)
+	return func(ctx context.Context, w http.ResponseWriter, v error) error {
+		var en goa.GoaErrorNamer
+		if !errors.As(v, &en) {
+			return encodeError(ctx, w, v)
+		}
+		switch en.GoaErrorName() {
+		case "NotFound":
+			var res *goa.ServiceError
+			errors.As(v, &res)
+			enc := encoder(ctx, w)
+			var body any
+			if formatter != nil {
+				body = formatter(ctx, res)
+			} else {
+				body = NewLoadNotFoundResponseBody(res)
+			}
+			w.Header().Set("goa-error", res.GoaErrorName())
+			w.WriteHeader(http.StatusNotFound)
+			return enc.Encode(body)
+		default:
+			return encodeError(ctx, w, v)
+		}
 	}
 }
 
@@ -79,19 +126,7 @@ func DecodeSaveRequest(mux goahttp.Muxer, decoder func(*http.Request) goahttp.De
 		if err != nil {
 			return nil, err
 		}
-
-		var (
-			filename string
-		)
-		filename = r.URL.Query().Get("file")
-		if filename == "" {
-			err = goa.MergeErrors(err, goa.MissingFieldError("Filename", "query string"))
-		}
-		err = goa.MergeErrors(err, goa.ValidatePattern("Filename", filename, ".*\\.svg"))
-		if err != nil {
-			return nil, err
-		}
-		payload := NewSavePayload(&body, filename)
+		payload := NewSavePayload(&body)
 
 		return payload, nil
 	}

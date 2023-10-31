@@ -9,12 +9,15 @@ package svg
 
 import (
 	"context"
+
+	goa "goa.design/goa/v3/pkg"
+	types "goa.design/model/svc/gen/types"
 )
 
 // Service is the SVG service interface.
 type Service interface {
 	// Stream the SVG
-	Load(context.Context, *Filename) (res SVG, err error)
+	Load(context.Context, *types.FileLocator) (res SVG, err error)
 	// Save the SVG streamed in the request body
 	Save(context.Context, *SavePayload) (err error)
 }
@@ -29,12 +32,6 @@ const ServiceName = "SVG"
 // MethodKey key.
 var MethodNames = [2]string{"Load", "Save"}
 
-// Filename is the payload type of the SVG service Load method.
-type Filename struct {
-	// Diagram SVG filename
-	Filename string
-}
-
 // SVG is the result type of the SVG service Load method.
 type SVG string
 
@@ -42,6 +39,15 @@ type SVG string
 type SavePayload struct {
 	// Diagram SVG
 	SVG SVG
-	// Diagram SVG filename
+	// Name of DSL file
 	Filename string
+	// Path to repository root
+	Repository string
+	// Path to directory containing a model package
+	Dir string
+}
+
+// MakeNotFound builds a goa.ServiceError from an error.
+func MakeNotFound(err error) *goa.ServiceError {
+	return goa.NewServiceError(err, "NotFound", false, false, false)
 }

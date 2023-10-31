@@ -11,6 +11,7 @@ import (
 	"context"
 
 	goa "goa.design/goa/v3/pkg"
+	types "goa.design/model/svc/gen/types"
 )
 
 // Endpoints wraps the "SVG" service endpoints.
@@ -37,7 +38,7 @@ func (e *Endpoints) Use(m func(goa.Endpoint) goa.Endpoint) {
 // service "SVG".
 func NewLoadEndpoint(s Service) goa.Endpoint {
 	return func(ctx context.Context, req any) (any, error) {
-		p := req.(*Filename)
+		p := req.(*types.FileLocator)
 		return s.Load(ctx, p)
 	}
 }

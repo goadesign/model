@@ -20,49 +20,49 @@ type Service interface {
 	// corresponding JSON if successful
 	UpdateDSL(context.Context, *types.PackageFile) (err error)
 	// Create or update a software system in the model
-	UpsertSystem(context.Context, *System) (err error)
+	UpsertSystem(context.Context, *System) (res *types.PackageFile, err error)
 	// Create or update a person in the model
-	UpsertPerson(context.Context, *Person) (err error)
+	UpsertPerson(context.Context, *Person) (res *types.PackageFile, err error)
 	// Create or update a container in the model
-	UpsertContainer(context.Context, *Container) (err error)
+	UpsertContainer(context.Context, *Container) (res *types.PackageFile, err error)
 	// Create or update a component in the model
-	UpsertComponent(context.Context, *Component) (err error)
+	UpsertComponent(context.Context, *Component) (res *types.PackageFile, err error)
 	// Create or update a relationship in the model
-	UpsertRelationship(context.Context, *Relationship) (err error)
+	UpsertRelationship(context.Context, *Relationship) (res *types.PackageFile, err error)
 	// Create or update a landscape view in the model
-	UpsertLandscapeView(context.Context, *LandscapeView) (err error)
+	UpsertLandscapeView(context.Context, *LandscapeView) (res *types.PackageFile, err error)
 	// Create or update a system context view in the model
-	UpsertSystemContextView(context.Context, *SystemContextView) (err error)
+	UpsertSystemContextView(context.Context, *SystemContextView) (res *types.PackageFile, err error)
 	// Create or update a container view in the model
-	UpsertContainerView(context.Context, *ContainerView) (err error)
+	UpsertContainerView(context.Context, *ContainerView) (res *types.PackageFile, err error)
 	// Create or update a component view in the model
-	UpsertComponentView(context.Context, *ComponentView) (err error)
+	UpsertComponentView(context.Context, *ComponentView) (res *types.PackageFile, err error)
 	// Create or update an element style in the model
-	UpserElementStyle(context.Context, *ElementStyle) (err error)
+	UpserElementStyle(context.Context, *ElementStyle) (res *types.PackageFile, err error)
 	// Create or update a relationship style in the model
-	UpsertRelationshipStyle(context.Context, *RelationshipStyle) (err error)
+	UpsertRelationshipStyle(context.Context, *RelationshipStyle) (res *types.PackageFile, err error)
 	// Delete an existing software system from the model
-	DeleteSystem(context.Context, *DeleteSystemPayload) (err error)
+	DeleteSystem(context.Context, *DeleteSystemPayload) (res *types.PackageFile, err error)
 	// Delete an existing person from the model
-	DeletePerson(context.Context, *DeletePersonPayload) (err error)
+	DeletePerson(context.Context, *DeletePersonPayload) (res *types.PackageFile, err error)
 	// Delete an existing container from the model
-	DeleteContainer(context.Context, *DeleteContainerPayload) (err error)
+	DeleteContainer(context.Context, *DeleteContainerPayload) (res *types.PackageFile, err error)
 	// Delete an existing component from the model
-	DeleteComponent(context.Context, *DeleteComponentPayload) (err error)
+	DeleteComponent(context.Context, *DeleteComponentPayload) (res *types.PackageFile, err error)
 	// Delete an existing relationship from the model
-	DeleteRelationship(context.Context, *DeleteRelationshipPayload) (err error)
+	DeleteRelationship(context.Context, *DeleteRelationshipPayload) (res *types.PackageFile, err error)
 	// Delete an existing landscape view from the model
-	DeleteLandscapeView(context.Context, *DeleteLandscapeViewPayload) (err error)
+	DeleteLandscapeView(context.Context, *DeleteLandscapeViewPayload) (res *types.PackageFile, err error)
 	// Delete an existing system context view from the model
-	DeleteSystemContextView(context.Context, *DeleteSystemContextViewPayload) (err error)
+	DeleteSystemContextView(context.Context, *DeleteSystemContextViewPayload) (res *types.PackageFile, err error)
 	// Delete an existing container view from the model
-	DeleteContainerView(context.Context, *DeleteContainerViewPayload) (err error)
+	DeleteContainerView(context.Context, *DeleteContainerViewPayload) (res *types.PackageFile, err error)
 	// Delete an existing component view from the model
-	DeleteComponentView(context.Context, *DeleteComponentViewPayload) (err error)
+	DeleteComponentView(context.Context, *DeleteComponentViewPayload) (res *types.PackageFile, err error)
 	// Delete an existing element style from the model
-	DeleteElementStyle(context.Context, *DeleteElementStylePayload) (err error)
+	DeleteElementStyle(context.Context, *DeleteElementStylePayload) (res *types.PackageFile, err error)
 	// Delete an existing relationship style from the model
-	DeleteRelationshipStyle(context.Context, *DeleteRelationshipStylePayload) (err error)
+	DeleteRelationshipStyle(context.Context, *DeleteRelationshipStylePayload) (res *types.PackageFile, err error)
 }
 
 // ServiceName is the name of the service as defined in the design. This is the
@@ -353,6 +353,7 @@ type ElementStyle struct {
 	Border string
 }
 
+// ElementView defines an element in a view
 type ElementView struct {
 	// Path to element consisting of <software system name>[/<container
 	// name>[/<component name>]]
@@ -404,9 +405,13 @@ type Person struct {
 type Relationship struct {
 	// Path to file containing relationship DSL
 	Locator *types.FileLocator
+	// Kind of source element
+	SourceKind string
 	// Path to source element consisting of <software system name>[/<container
 	// name>[/<component name>]]
 	SourcePath string
+	// Kind of destination element
+	DestinationKind string
 	// Path to destination element, see SourcePath for details.
 	DestinationPath string
 	// Description of relationship
@@ -447,6 +452,7 @@ type RelationshipStyle struct {
 	Opacity *int
 }
 
+// RelationshipView defines a relationship in a view
 type RelationshipView struct {
 	// Path to source element consisting of <software system name>[/<container
 	// name>[/<component name>]]

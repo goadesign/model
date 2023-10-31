@@ -20,18 +20,34 @@ paths:
             description: Stream the SVG
             operationId: SVG#Load
             parameters:
-                - name: file
+                - name: filename
                   in: query
-                  description: Diagram SVG filename
+                  description: Name of DSL file
                   required: true
                   type: string
-                  pattern: .*\.svg
+                  pattern: \.go$
+                - name: repo
+                  in: query
+                  description: Path to repository root
+                  required: true
+                  type: string
+                  minLength: 1
+                - name: dir
+                  in: query
+                  description: Path to directory containing a model package
+                  required: true
+                  type: string
+                  minLength: 1
             responses:
                 "200":
                     description: OK response.
                     schema:
                         type: string
                         pattern: <svg.*</svg>$
+                "404":
+                    description: Not Found response.
+                    schema:
+                        $ref: '#/definitions/SVGLoadNotFoundResponseBody'
             schemes:
                 - http
         post:
@@ -41,19 +57,16 @@ paths:
             description: Save the SVG streamed in the request body
             operationId: SVG#Save
             parameters:
-                - name: file
-                  in: query
-                  description: Diagram SVG filename
-                  required: true
-                  type: string
-                  pattern: .*\.svg
                 - name: SaveRequestBody
                   in: body
                   required: true
                   schema:
                     $ref: '#/definitions/SVGSaveRequestBody'
                     required:
+                        - Filename
                         - SVG
+                        - Repository
+                        - Dir
             responses:
                 "204":
                     description: No Content response.
@@ -76,8 +89,8 @@ paths:
                         - Locator
                         - Content
             responses:
-                "204":
-                    description: No Content response.
+                "200":
+                    description: OK response.
                 "400":
                     description: Bad Request response.
                     schema:
@@ -102,8 +115,13 @@ paths:
                         - ContainerName
                         - Name
             responses:
-                "204":
-                    description: No Content response.
+                "200":
+                    description: OK response.
+                    schema:
+                        $ref: '#/definitions/DSLEditorUpsertComponentResponseBody'
+                        required:
+                            - Locator
+                            - Content
                 "400":
                     description: Bad Request response.
                     schema:
@@ -127,8 +145,13 @@ paths:
                         - SystemName
                         - Name
             responses:
-                "204":
-                    description: No Content response.
+                "200":
+                    description: OK response.
+                    schema:
+                        $ref: '#/definitions/DSLEditorUpsertContainerResponseBody'
+                        required:
+                            - Locator
+                            - Content
                 "400":
                     description: Bad Request response.
                     schema:
@@ -151,8 +174,13 @@ paths:
                     required:
                         - Name
             responses:
-                "204":
-                    description: No Content response.
+                "200":
+                    description: OK response.
+                    schema:
+                        $ref: '#/definitions/DSLEditorUpsertPersonResponseBody'
+                        required:
+                            - Locator
+                            - Content
                 "400":
                     description: Bad Request response.
                     schema:
@@ -182,8 +210,13 @@ paths:
                         - Repository
                         - Dir
             responses:
-                "204":
-                    description: No Content response.
+                "200":
+                    description: OK response.
+                    schema:
+                        $ref: '#/definitions/DSLEditorDeletePersonResponseBody'
+                        required:
+                            - Locator
+                            - Content
                 "400":
                     description: Bad Request response.
                     schema:
@@ -209,10 +242,17 @@ paths:
                     $ref: '#/definitions/DSLEditorUpsertRelationshipRequestBody'
                     required:
                         - SourcePath
+                        - SourceKind
                         - DestinationPath
+                        - DestinationKind
             responses:
-                "204":
-                    description: No Content response.
+                "200":
+                    description: OK response.
+                    schema:
+                        $ref: '#/definitions/DSLEditorUpsertRelationshipResponseBody'
+                        required:
+                            - Locator
+                            - Content
                 "400":
                     description: Bad Request response.
                     schema:
@@ -238,8 +278,13 @@ paths:
                         - Repository
                         - Dir
             responses:
-                "204":
-                    description: No Content response.
+                "200":
+                    description: OK response.
+                    schema:
+                        $ref: '#/definitions/DSLEditorDeleteRelationshipResponseBody'
+                        required:
+                            - Locator
+                            - Content
                 "400":
                     description: Bad Request response.
                     schema:
@@ -266,8 +311,13 @@ paths:
                     required:
                         - Name
             responses:
-                "204":
-                    description: No Content response.
+                "200":
+                    description: OK response.
+                    schema:
+                        $ref: '#/definitions/DSLEditorUpsertSystemResponseBody'
+                        required:
+                            - Locator
+                            - Content
                 "400":
                     description: Bad Request response.
                     schema:
@@ -297,8 +347,13 @@ paths:
                         - Repository
                         - Dir
             responses:
-                "204":
-                    description: No Content response.
+                "200":
+                    description: OK response.
+                    schema:
+                        $ref: '#/definitions/DSLEditorDeleteSystemResponseBody'
+                        required:
+                            - Locator
+                            - Content
                 "400":
                     description: Bad Request response.
                     schema:
@@ -337,8 +392,13 @@ paths:
                         - Repository
                         - Dir
             responses:
-                "204":
-                    description: No Content response.
+                "200":
+                    description: OK response.
+                    schema:
+                        $ref: '#/definitions/DSLEditorDeleteContainerResponseBody'
+                        required:
+                            - Locator
+                            - Content
                 "400":
                     description: Bad Request response.
                     schema:
@@ -382,8 +442,13 @@ paths:
                         - Repository
                         - Dir
             responses:
-                "204":
-                    description: No Content response.
+                "200":
+                    description: OK response.
+                    schema:
+                        $ref: '#/definitions/DSLEditorDeleteComponentResponseBody'
+                        required:
+                            - Locator
+                            - Content
                 "400":
                     description: Bad Request response.
                     schema:
@@ -413,8 +478,13 @@ paths:
                         - Key
                         - Title
             responses:
-                "204":
-                    description: No Content response.
+                "200":
+                    description: OK response.
+                    schema:
+                        $ref: '#/definitions/DSLEditorUpsertComponentViewResponseBody'
+                        required:
+                            - Locator
+                            - Content
                 "400":
                     description: Bad Request response.
                     schema:
@@ -444,8 +514,13 @@ paths:
                         - Repository
                         - Dir
             responses:
-                "204":
-                    description: No Content response.
+                "200":
+                    description: OK response.
+                    schema:
+                        $ref: '#/definitions/DSLEditorDeleteComponentViewResponseBody'
+                        required:
+                            - Locator
+                            - Content
                 "400":
                     description: Bad Request response.
                     schema:
@@ -473,8 +548,13 @@ paths:
                         - Key
                         - Title
             responses:
-                "204":
-                    description: No Content response.
+                "200":
+                    description: OK response.
+                    schema:
+                        $ref: '#/definitions/DSLEditorUpsertContainerViewResponseBody'
+                        required:
+                            - Locator
+                            - Content
                 "400":
                     description: Bad Request response.
                     schema:
@@ -504,8 +584,13 @@ paths:
                         - Repository
                         - Dir
             responses:
-                "204":
-                    description: No Content response.
+                "200":
+                    description: OK response.
+                    schema:
+                        $ref: '#/definitions/DSLEditorDeleteContainerViewResponseBody'
+                        required:
+                            - Locator
+                            - Content
                 "400":
                     description: Bad Request response.
                     schema:
@@ -532,8 +617,13 @@ paths:
                     required:
                         - Tag
             responses:
-                "204":
-                    description: No Content response.
+                "200":
+                    description: OK response.
+                    schema:
+                        $ref: '#/definitions/DSLEditorUpserElementStyleResponseBody'
+                        required:
+                            - Locator
+                            - Content
                 "400":
                     description: Bad Request response.
                     schema:
@@ -563,8 +653,13 @@ paths:
                         - Repository
                         - Dir
             responses:
-                "204":
-                    description: No Content response.
+                "200":
+                    description: OK response.
+                    schema:
+                        $ref: '#/definitions/DSLEditorDeleteElementStyleResponseBody'
+                        required:
+                            - Locator
+                            - Content
                 "400":
                     description: Bad Request response.
                     schema:
@@ -592,8 +687,13 @@ paths:
                         - Key
                         - Title
             responses:
-                "204":
-                    description: No Content response.
+                "200":
+                    description: OK response.
+                    schema:
+                        $ref: '#/definitions/DSLEditorUpsertLandscapeViewResponseBody'
+                        required:
+                            - Locator
+                            - Content
                 "400":
                     description: Bad Request response.
                     schema:
@@ -623,8 +723,13 @@ paths:
                         - Repository
                         - Dir
             responses:
-                "204":
-                    description: No Content response.
+                "200":
+                    description: OK response.
+                    schema:
+                        $ref: '#/definitions/DSLEditorDeleteLandscapeViewResponseBody'
+                        required:
+                            - Locator
+                            - Content
                 "400":
                     description: Bad Request response.
                     schema:
@@ -651,8 +756,13 @@ paths:
                     required:
                         - Tag
             responses:
-                "204":
-                    description: No Content response.
+                "200":
+                    description: OK response.
+                    schema:
+                        $ref: '#/definitions/DSLEditorUpsertRelationshipStyleResponseBody'
+                        required:
+                            - Locator
+                            - Content
                 "400":
                     description: Bad Request response.
                     schema:
@@ -682,8 +792,13 @@ paths:
                         - Repository
                         - Dir
             responses:
-                "204":
-                    description: No Content response.
+                "200":
+                    description: OK response.
+                    schema:
+                        $ref: '#/definitions/DSLEditorDeleteRelationshipStyleResponseBody'
+                        required:
+                            - Locator
+                            - Content
                 "400":
                     description: Bad Request response.
                     schema:
@@ -712,8 +827,13 @@ paths:
                         - Key
                         - Title
             responses:
-                "204":
-                    description: No Content response.
+                "200":
+                    description: OK response.
+                    schema:
+                        $ref: '#/definitions/DSLEditorUpsertSystemContextViewResponseBody'
+                        required:
+                            - Locator
+                            - Content
                 "400":
                     description: Bad Request response.
                     schema:
@@ -743,8 +863,13 @@ paths:
                         - Repository
                         - Dir
             responses:
-                "204":
-                    description: No Content response.
+                "200":
+                    description: OK response.
+                    schema:
+                        $ref: '#/definitions/DSLEditorDeleteSystemContextViewResponseBody'
+                        required:
+                            - Locator
+                            - Content
                 "400":
                     description: Bad Request response.
                     schema:
@@ -979,7 +1104,7 @@ definitions:
                 example: true
         description: Compilation failed (default view)
         example:
-            fault: true
+            fault: false
             id: 123abc
             message: parameter 'p' must be an integer
             name: bad_request
@@ -999,7 +1124,7 @@ definitions:
             fault:
                 type: boolean
                 description: Is the error a server-side fault?
-                example: false
+                example: true
             id:
                 type: string
                 description: ID is a unique identifier for this particular occurrence of the problem.
@@ -1019,10 +1144,10 @@ definitions:
             timeout:
                 type: boolean
                 description: Is the error a timeout?
-                example: true
+                example: false
         description: Component not found (default view)
         example:
-            fault: true
+            fault: false
             id: 123abc
             message: parameter 'p' must be an integer
             name: bad_request
@@ -1062,6 +1187,37 @@ definitions:
             - Filename
             - Repository
             - Dir
+    DSLEditorDeleteComponentResponseBody:
+        title: DSLEditorDeleteComponentResponseBody
+        type: object
+        properties:
+            Content:
+                type: string
+                description: DSL code
+                example: |-
+                    package model
+
+                    import . "goa.design/model/dsl"
+
+                    var _ = Design(func() {})
+                pattern: import . "goa.design/model/dsl"
+                minLength: 58
+            Locator:
+                $ref: '#/definitions/FileLocatorResponseBody'
+        example:
+            Content: |-
+                package model
+
+                import . "goa.design/model/dsl"
+
+                var _ = Design(func() {})
+            Locator:
+                Dir: services/my-service/diagram
+                Filename: model.go
+                Repository: my-repo
+        required:
+            - Locator
+            - Content
     DSLEditorDeleteComponentViewCompilationFailedResponseBody:
         title: 'Mediatype identifier: application/vnd.goa.error; view=default'
         type: object
@@ -1069,7 +1225,7 @@ definitions:
             fault:
                 type: boolean
                 description: Is the error a server-side fault?
-                example: true
+                example: false
             id:
                 type: string
                 description: ID is a unique identifier for this particular occurrence of the problem.
@@ -1089,10 +1245,10 @@ definitions:
             timeout:
                 type: boolean
                 description: Is the error a timeout?
-                example: false
+                example: true
         description: Compilation failed (default view)
         example:
-            fault: false
+            fault: true
             id: 123abc
             message: parameter 'p' must be an integer
             name: bad_request
@@ -1112,7 +1268,7 @@ definitions:
             fault:
                 type: boolean
                 description: Is the error a server-side fault?
-                example: true
+                example: false
             id:
                 type: string
                 description: ID is a unique identifier for this particular occurrence of the problem.
@@ -1128,19 +1284,19 @@ definitions:
             temporary:
                 type: boolean
                 description: Is the error temporary?
-                example: true
+                example: false
             timeout:
                 type: boolean
                 description: Is the error a timeout?
                 example: true
         description: Component view not found (default view)
         example:
-            fault: true
+            fault: false
             id: 123abc
             message: parameter 'p' must be an integer
             name: bad_request
-            temporary: true
-            timeout: false
+            temporary: false
+            timeout: true
         required:
             - name
             - id
@@ -1175,6 +1331,37 @@ definitions:
             - Filename
             - Repository
             - Dir
+    DSLEditorDeleteComponentViewResponseBody:
+        title: DSLEditorDeleteComponentViewResponseBody
+        type: object
+        properties:
+            Content:
+                type: string
+                description: DSL code
+                example: |-
+                    package model
+
+                    import . "goa.design/model/dsl"
+
+                    var _ = Design(func() {})
+                pattern: import . "goa.design/model/dsl"
+                minLength: 58
+            Locator:
+                $ref: '#/definitions/FileLocatorResponseBody'
+        example:
+            Content: |-
+                package model
+
+                import . "goa.design/model/dsl"
+
+                var _ = Design(func() {})
+            Locator:
+                Dir: services/my-service/diagram
+                Filename: model.go
+                Repository: my-repo
+        required:
+            - Locator
+            - Content
     DSLEditorDeleteContainerCompilationFailedResponseBody:
         title: 'Mediatype identifier: application/vnd.goa.error; view=default'
         type: object
@@ -1182,7 +1369,7 @@ definitions:
             fault:
                 type: boolean
                 description: Is the error a server-side fault?
-                example: false
+                example: true
             id:
                 type: string
                 description: ID is a unique identifier for this particular occurrence of the problem.
@@ -1198,19 +1385,19 @@ definitions:
             temporary:
                 type: boolean
                 description: Is the error temporary?
-                example: true
+                example: false
             timeout:
                 type: boolean
                 description: Is the error a timeout?
                 example: true
         description: Compilation failed (default view)
         example:
-            fault: true
+            fault: false
             id: 123abc
             message: parameter 'p' must be an integer
             name: bad_request
             temporary: true
-            timeout: false
+            timeout: true
         required:
             - name
             - id
@@ -1245,7 +1432,7 @@ definitions:
             timeout:
                 type: boolean
                 description: Is the error a timeout?
-                example: true
+                example: false
         description: Container not found (default view)
         example:
             fault: true
@@ -1253,7 +1440,7 @@ definitions:
             message: parameter 'p' must be an integer
             name: bad_request
             temporary: true
-            timeout: true
+            timeout: false
         required:
             - name
             - id
@@ -1288,6 +1475,37 @@ definitions:
             - Filename
             - Repository
             - Dir
+    DSLEditorDeleteContainerResponseBody:
+        title: DSLEditorDeleteContainerResponseBody
+        type: object
+        properties:
+            Content:
+                type: string
+                description: DSL code
+                example: |-
+                    package model
+
+                    import . "goa.design/model/dsl"
+
+                    var _ = Design(func() {})
+                pattern: import . "goa.design/model/dsl"
+                minLength: 58
+            Locator:
+                $ref: '#/definitions/FileLocatorResponseBody'
+        example:
+            Content: |-
+                package model
+
+                import . "goa.design/model/dsl"
+
+                var _ = Design(func() {})
+            Locator:
+                Dir: services/my-service/diagram
+                Filename: model.go
+                Repository: my-repo
+        required:
+            - Locator
+            - Content
     DSLEditorDeleteContainerViewCompilationFailedResponseBody:
         title: 'Mediatype identifier: application/vnd.goa.error; view=default'
         type: object
@@ -1311,11 +1529,11 @@ definitions:
             temporary:
                 type: boolean
                 description: Is the error temporary?
-                example: false
+                example: true
             timeout:
                 type: boolean
                 description: Is the error a timeout?
-                example: false
+                example: true
         description: Compilation failed (default view)
         example:
             fault: true
@@ -1338,7 +1556,7 @@ definitions:
             fault:
                 type: boolean
                 description: Is the error a server-side fault?
-                example: true
+                example: false
             id:
                 type: string
                 description: ID is a unique identifier for this particular occurrence of the problem.
@@ -1361,11 +1579,11 @@ definitions:
                 example: true
         description: Container view not found (default view)
         example:
-            fault: true
+            fault: false
             id: 123abc
             message: parameter 'p' must be an integer
             name: bad_request
-            temporary: false
+            temporary: true
             timeout: false
         required:
             - name
@@ -1401,6 +1619,37 @@ definitions:
             - Filename
             - Repository
             - Dir
+    DSLEditorDeleteContainerViewResponseBody:
+        title: DSLEditorDeleteContainerViewResponseBody
+        type: object
+        properties:
+            Content:
+                type: string
+                description: DSL code
+                example: |-
+                    package model
+
+                    import . "goa.design/model/dsl"
+
+                    var _ = Design(func() {})
+                pattern: import . "goa.design/model/dsl"
+                minLength: 58
+            Locator:
+                $ref: '#/definitions/FileLocatorResponseBody'
+        example:
+            Content: |-
+                package model
+
+                import . "goa.design/model/dsl"
+
+                var _ = Design(func() {})
+            Locator:
+                Dir: services/my-service/diagram
+                Filename: model.go
+                Repository: my-repo
+        required:
+            - Locator
+            - Content
     DSLEditorDeleteElementStyleCompilationFailedResponseBody:
         title: 'Mediatype identifier: application/vnd.goa.error; view=default'
         type: object
@@ -1424,19 +1673,19 @@ definitions:
             temporary:
                 type: boolean
                 description: Is the error temporary?
-                example: true
+                example: false
             timeout:
                 type: boolean
                 description: Is the error a timeout?
-                example: false
+                example: true
         description: Compilation failed (default view)
         example:
             fault: true
             id: 123abc
             message: parameter 'p' must be an integer
             name: bad_request
-            temporary: true
-            timeout: false
+            temporary: false
+            timeout: true
         required:
             - name
             - id
@@ -1451,7 +1700,7 @@ definitions:
             fault:
                 type: boolean
                 description: Is the error a server-side fault?
-                example: false
+                example: true
             id:
                 type: string
                 description: ID is a unique identifier for this particular occurrence of the problem.
@@ -1467,19 +1716,19 @@ definitions:
             temporary:
                 type: boolean
                 description: Is the error temporary?
-                example: true
+                example: false
             timeout:
                 type: boolean
                 description: Is the error a timeout?
                 example: true
         description: Element style not found (default view)
         example:
-            fault: false
+            fault: true
             id: 123abc
             message: parameter 'p' must be an integer
             name: bad_request
             temporary: true
-            timeout: false
+            timeout: true
         required:
             - name
             - id
@@ -1514,6 +1763,37 @@ definitions:
             - Filename
             - Repository
             - Dir
+    DSLEditorDeleteElementStyleResponseBody:
+        title: DSLEditorDeleteElementStyleResponseBody
+        type: object
+        properties:
+            Content:
+                type: string
+                description: DSL code
+                example: |-
+                    package model
+
+                    import . "goa.design/model/dsl"
+
+                    var _ = Design(func() {})
+                pattern: import . "goa.design/model/dsl"
+                minLength: 58
+            Locator:
+                $ref: '#/definitions/FileLocatorResponseBody'
+        example:
+            Content: |-
+                package model
+
+                import . "goa.design/model/dsl"
+
+                var _ = Design(func() {})
+            Locator:
+                Dir: services/my-service/diagram
+                Filename: model.go
+                Repository: my-repo
+        required:
+            - Locator
+            - Content
     DSLEditorDeleteLandscapeViewCompilationFailedResponseBody:
         title: 'Mediatype identifier: application/vnd.goa.error; view=default'
         type: object
@@ -1521,7 +1801,7 @@ definitions:
             fault:
                 type: boolean
                 description: Is the error a server-side fault?
-                example: true
+                example: false
             id:
                 type: string
                 description: ID is a unique identifier for this particular occurrence of the problem.
@@ -1537,19 +1817,19 @@ definitions:
             temporary:
                 type: boolean
                 description: Is the error temporary?
-                example: true
+                example: false
             timeout:
                 type: boolean
                 description: Is the error a timeout?
                 example: true
         description: Compilation failed (default view)
         example:
-            fault: false
+            fault: true
             id: 123abc
             message: parameter 'p' must be an integer
             name: bad_request
             temporary: true
-            timeout: false
+            timeout: true
         required:
             - name
             - id
@@ -1564,7 +1844,7 @@ definitions:
             fault:
                 type: boolean
                 description: Is the error a server-side fault?
-                example: true
+                example: false
             id:
                 type: string
                 description: ID is a unique identifier for this particular occurrence of the problem.
@@ -1580,19 +1860,19 @@ definitions:
             temporary:
                 type: boolean
                 description: Is the error temporary?
-                example: true
+                example: false
             timeout:
                 type: boolean
                 description: Is the error a timeout?
                 example: false
         description: Landscape view not found (default view)
         example:
-            fault: false
+            fault: true
             id: 123abc
             message: parameter 'p' must be an integer
             name: bad_request
             temporary: false
-            timeout: true
+            timeout: false
         required:
             - name
             - id
@@ -1627,6 +1907,37 @@ definitions:
             - Filename
             - Repository
             - Dir
+    DSLEditorDeleteLandscapeViewResponseBody:
+        title: DSLEditorDeleteLandscapeViewResponseBody
+        type: object
+        properties:
+            Content:
+                type: string
+                description: DSL code
+                example: |-
+                    package model
+
+                    import . "goa.design/model/dsl"
+
+                    var _ = Design(func() {})
+                pattern: import . "goa.design/model/dsl"
+                minLength: 58
+            Locator:
+                $ref: '#/definitions/FileLocatorResponseBody'
+        example:
+            Content: |-
+                package model
+
+                import . "goa.design/model/dsl"
+
+                var _ = Design(func() {})
+            Locator:
+                Dir: services/my-service/diagram
+                Filename: model.go
+                Repository: my-repo
+        required:
+            - Locator
+            - Content
     DSLEditorDeletePersonCompilationFailedResponseBody:
         title: 'Mediatype identifier: application/vnd.goa.error; view=default'
         type: object
@@ -1634,7 +1945,7 @@ definitions:
             fault:
                 type: boolean
                 description: Is the error a server-side fault?
-                example: true
+                example: false
             id:
                 type: string
                 description: ID is a unique identifier for this particular occurrence of the problem.
@@ -1661,7 +1972,7 @@ definitions:
             id: 123abc
             message: parameter 'p' must be an integer
             name: bad_request
-            temporary: false
+            temporary: true
             timeout: true
         required:
             - name
@@ -1677,7 +1988,7 @@ definitions:
             fault:
                 type: boolean
                 description: Is the error a server-side fault?
-                example: false
+                example: true
             id:
                 type: string
                 description: ID is a unique identifier for this particular occurrence of the problem.
@@ -1700,11 +2011,11 @@ definitions:
                 example: true
         description: Person not found (default view)
         example:
-            fault: false
+            fault: true
             id: 123abc
             message: parameter 'p' must be an integer
             name: bad_request
-            temporary: false
+            temporary: true
             timeout: true
         required:
             - name
@@ -1740,6 +2051,37 @@ definitions:
             - Filename
             - Repository
             - Dir
+    DSLEditorDeletePersonResponseBody:
+        title: DSLEditorDeletePersonResponseBody
+        type: object
+        properties:
+            Content:
+                type: string
+                description: DSL code
+                example: |-
+                    package model
+
+                    import . "goa.design/model/dsl"
+
+                    var _ = Design(func() {})
+                pattern: import . "goa.design/model/dsl"
+                minLength: 58
+            Locator:
+                $ref: '#/definitions/FileLocatorResponseBody'
+        example:
+            Content: |-
+                package model
+
+                import . "goa.design/model/dsl"
+
+                var _ = Design(func() {})
+            Locator:
+                Dir: services/my-service/diagram
+                Filename: model.go
+                Repository: my-repo
+        required:
+            - Locator
+            - Content
     DSLEditorDeleteRelationshipCompilationFailedResponseBody:
         title: 'Mediatype identifier: application/vnd.goa.error; view=default'
         type: object
@@ -1767,14 +2109,14 @@ definitions:
             timeout:
                 type: boolean
                 description: Is the error a timeout?
-                example: false
+                example: true
         description: Compilation failed (default view)
         example:
             fault: true
             id: 123abc
             message: parameter 'p' must be an integer
             name: bad_request
-            temporary: true
+            temporary: false
             timeout: false
         required:
             - name
@@ -1813,7 +2155,7 @@ definitions:
                 example: false
         description: Relationship not found (default view)
         example:
-            fault: false
+            fault: true
             id: 123abc
             message: parameter 'p' must be an integer
             name: bad_request
@@ -1865,6 +2207,37 @@ definitions:
             - Filename
             - Repository
             - Dir
+    DSLEditorDeleteRelationshipResponseBody:
+        title: DSLEditorDeleteRelationshipResponseBody
+        type: object
+        properties:
+            Content:
+                type: string
+                description: DSL code
+                example: |-
+                    package model
+
+                    import . "goa.design/model/dsl"
+
+                    var _ = Design(func() {})
+                pattern: import . "goa.design/model/dsl"
+                minLength: 58
+            Locator:
+                $ref: '#/definitions/FileLocatorResponseBody'
+        example:
+            Content: |-
+                package model
+
+                import . "goa.design/model/dsl"
+
+                var _ = Design(func() {})
+            Locator:
+                Dir: services/my-service/diagram
+                Filename: model.go
+                Repository: my-repo
+        required:
+            - Locator
+            - Content
     DSLEditorDeleteRelationshipStyleCompilationFailedResponseBody:
         title: 'Mediatype identifier: application/vnd.goa.error; view=default'
         type: object
@@ -1888,14 +2261,14 @@ definitions:
             temporary:
                 type: boolean
                 description: Is the error temporary?
-                example: true
+                example: false
             timeout:
                 type: boolean
                 description: Is the error a timeout?
                 example: true
         description: Compilation failed (default view)
         example:
-            fault: false
+            fault: true
             id: 123abc
             message: parameter 'p' must be an integer
             name: bad_request
@@ -1915,7 +2288,7 @@ definitions:
             fault:
                 type: boolean
                 description: Is the error a server-side fault?
-                example: false
+                example: true
             id:
                 type: string
                 description: ID is a unique identifier for this particular occurrence of the problem.
@@ -1931,19 +2304,19 @@ definitions:
             temporary:
                 type: boolean
                 description: Is the error temporary?
-                example: true
+                example: false
             timeout:
                 type: boolean
                 description: Is the error a timeout?
-                example: true
+                example: false
         description: Relationship style not found (default view)
         example:
-            fault: true
+            fault: false
             id: 123abc
             message: parameter 'p' must be an integer
             name: bad_request
-            temporary: true
-            timeout: true
+            temporary: false
+            timeout: false
         required:
             - name
             - id
@@ -1978,6 +2351,37 @@ definitions:
             - Filename
             - Repository
             - Dir
+    DSLEditorDeleteRelationshipStyleResponseBody:
+        title: DSLEditorDeleteRelationshipStyleResponseBody
+        type: object
+        properties:
+            Content:
+                type: string
+                description: DSL code
+                example: |-
+                    package model
+
+                    import . "goa.design/model/dsl"
+
+                    var _ = Design(func() {})
+                pattern: import . "goa.design/model/dsl"
+                minLength: 58
+            Locator:
+                $ref: '#/definitions/FileLocatorResponseBody'
+        example:
+            Content: |-
+                package model
+
+                import . "goa.design/model/dsl"
+
+                var _ = Design(func() {})
+            Locator:
+                Dir: services/my-service/diagram
+                Filename: model.go
+                Repository: my-repo
+        required:
+            - Locator
+            - Content
     DSLEditorDeleteSystemCompilationFailedResponseBody:
         title: 'Mediatype identifier: application/vnd.goa.error; view=default'
         type: object
@@ -2001,18 +2405,18 @@ definitions:
             temporary:
                 type: boolean
                 description: Is the error temporary?
-                example: false
+                example: true
             timeout:
                 type: boolean
                 description: Is the error a timeout?
                 example: false
         description: Compilation failed (default view)
         example:
-            fault: false
+            fault: true
             id: 123abc
             message: parameter 'p' must be an integer
             name: bad_request
-            temporary: false
+            temporary: true
             timeout: false
         required:
             - name
@@ -2028,7 +2432,7 @@ definitions:
             fault:
                 type: boolean
                 description: Is the error a server-side fault?
-                example: false
+                example: true
             id:
                 type: string
                 description: ID is a unique identifier for this particular occurrence of the problem.
@@ -2044,11 +2448,11 @@ definitions:
             temporary:
                 type: boolean
                 description: Is the error temporary?
-                example: false
+                example: true
             timeout:
                 type: boolean
                 description: Is the error a timeout?
-                example: true
+                example: false
         description: Compilation failed (default view)
         example:
             fault: true
@@ -2056,7 +2460,7 @@ definitions:
             message: parameter 'p' must be an integer
             name: bad_request
             temporary: true
-            timeout: false
+            timeout: true
         required:
             - name
             - id
@@ -2087,18 +2491,18 @@ definitions:
             temporary:
                 type: boolean
                 description: Is the error temporary?
-                example: false
+                example: true
             timeout:
                 type: boolean
                 description: Is the error a timeout?
-                example: true
+                example: false
         description: System context view not found (default view)
         example:
             fault: false
             id: 123abc
             message: parameter 'p' must be an integer
             name: bad_request
-            temporary: false
+            temporary: true
             timeout: false
         required:
             - name
@@ -2134,6 +2538,37 @@ definitions:
             - Filename
             - Repository
             - Dir
+    DSLEditorDeleteSystemContextViewResponseBody:
+        title: DSLEditorDeleteSystemContextViewResponseBody
+        type: object
+        properties:
+            Content:
+                type: string
+                description: DSL code
+                example: |-
+                    package model
+
+                    import . "goa.design/model/dsl"
+
+                    var _ = Design(func() {})
+                pattern: import . "goa.design/model/dsl"
+                minLength: 58
+            Locator:
+                $ref: '#/definitions/FileLocatorResponseBody'
+        example:
+            Content: |-
+                package model
+
+                import . "goa.design/model/dsl"
+
+                var _ = Design(func() {})
+            Locator:
+                Dir: services/my-service/diagram
+                Filename: model.go
+                Repository: my-repo
+        required:
+            - Locator
+            - Content
     DSLEditorDeleteSystemNotFoundResponseBody:
         title: 'Mediatype identifier: application/vnd.goa.error; view=default'
         type: object
@@ -2141,7 +2576,7 @@ definitions:
             fault:
                 type: boolean
                 description: Is the error a server-side fault?
-                example: false
+                example: true
             id:
                 type: string
                 description: ID is a unique identifier for this particular occurrence of the problem.
@@ -2164,11 +2599,11 @@ definitions:
                 example: false
         description: Software system not found (default view)
         example:
-            fault: false
+            fault: true
             id: 123abc
             message: parameter 'p' must be an integer
             name: bad_request
-            temporary: true
+            temporary: false
             timeout: false
         required:
             - name
@@ -2204,6 +2639,37 @@ definitions:
             - Filename
             - Repository
             - Dir
+    DSLEditorDeleteSystemResponseBody:
+        title: DSLEditorDeleteSystemResponseBody
+        type: object
+        properties:
+            Content:
+                type: string
+                description: DSL code
+                example: |-
+                    package model
+
+                    import . "goa.design/model/dsl"
+
+                    var _ = Design(func() {})
+                pattern: import . "goa.design/model/dsl"
+                minLength: 58
+            Locator:
+                $ref: '#/definitions/FileLocatorResponseBody'
+        example:
+            Content: |-
+                package model
+
+                import . "goa.design/model/dsl"
+
+                var _ = Design(func() {})
+            Locator:
+                Dir: services/my-service/diagram
+                Filename: model.go
+                Repository: my-repo
+        required:
+            - Locator
+            - Content
     DSLEditorUpdateDSLCompilationFailedResponseBody:
         title: 'Mediatype identifier: application/vnd.goa.error; view=default'
         type: object
@@ -2234,12 +2700,12 @@ definitions:
                 example: true
         description: Compilation failed (default view)
         example:
-            fault: true
+            fault: false
             id: 123abc
             message: parameter 'p' must be an integer
             name: bad_request
-            temporary: true
-            timeout: true
+            temporary: false
+            timeout: false
         required:
             - name
             - id
@@ -2305,14 +2771,14 @@ definitions:
             timeout:
                 type: boolean
                 description: Is the error a timeout?
-                example: true
+                example: false
         description: Compilation failed (default view)
         example:
             fault: false
             id: 123abc
             message: parameter 'p' must be an integer
             name: bad_request
-            temporary: false
+            temporary: true
             timeout: false
         required:
             - name
@@ -2328,13 +2794,13 @@ definitions:
             Background:
                 type: string
                 description: Background color of element
-                example: '#fb8863'
+                example: '#8Ccfe3'
                 pattern: ^#[0-9a-fA-F]{6}$
             Border:
                 type: string
                 description: Type of border to apply to elements
                 default: BorderSolid
-                example: BorderSolid
+                example: BorderDashed
                 enum:
                     - BorderSolid
                     - BorderDashed
@@ -2342,7 +2808,7 @@ definitions:
             Color:
                 type: string
                 description: Text color of element
-                example: '#8eBFC6'
+                example: '#22CaAb'
                 pattern: ^#[0-9a-fA-F]{6}$
             Description:
                 type: boolean
@@ -2367,18 +2833,18 @@ definitions:
             Metadata:
                 type: boolean
                 description: Indicates whether the element metadata should be visible on the resulting diagram
-                example: true
+                example: false
             Opacity:
                 type: integer
                 description: Opacity of element as a percentage
-                example: 41
+                example: 4
                 minimum: 0
                 maximum: 100
             Shape:
                 type: string
                 description: Shape of element
                 default: ShapeBox
-                example: ShapeMobileDevicePortrait
+                example: ShapeEllipse
                 enum:
                     - ShapeBox
                     - ShapeCircle
@@ -2397,7 +2863,7 @@ definitions:
             Stroke:
                 type: string
                 description: Stroke color of element
-                example: '#bb1f6a'
+                example: '#d9EAE8'
                 pattern: ^#[0-9a-fA-F]{6}$
             Tag:
                 type: string
@@ -2409,21 +2875,52 @@ definitions:
                 example: 100
                 format: int64
         example:
-            Background: '#9Bf5A8'
+            Background: '#BcCf5B'
             Border: BorderSolid
-            Color: '#88E2bA'
-            Description: false
+            Color: '#DAA9B5'
+            Description: true
             FontSize: 20
             Height: 100
             Icon: https://static.structurizr.com/images/icons/Person.png
             Metadata: false
-            Opacity: 62
-            Shape: ShapeWebBrowser
-            Stroke: '#D93480'
+            Opacity: 17
+            Shape: ShapePerson
+            Stroke: '#5aAC6F'
             Tag: tag
             Width: 100
         required:
             - Tag
+    DSLEditorUpserElementStyleResponseBody:
+        title: DSLEditorUpserElementStyleResponseBody
+        type: object
+        properties:
+            Content:
+                type: string
+                description: DSL code
+                example: |-
+                    package model
+
+                    import . "goa.design/model/dsl"
+
+                    var _ = Design(func() {})
+                pattern: import . "goa.design/model/dsl"
+                minLength: 58
+            Locator:
+                $ref: '#/definitions/FileLocatorResponseBody'
+        example:
+            Content: |-
+                package model
+
+                import . "goa.design/model/dsl"
+
+                var _ = Design(func() {})
+            Locator:
+                Dir: services/my-service/diagram
+                Filename: model.go
+                Repository: my-repo
+        required:
+            - Locator
+            - Content
     DSLEditorUpsertComponentCompilationFailedResponseBody:
         title: 'Mediatype identifier: application/vnd.goa.error; view=default'
         type: object
@@ -2447,19 +2944,19 @@ definitions:
             temporary:
                 type: boolean
                 description: Is the error temporary?
-                example: true
+                example: false
             timeout:
                 type: boolean
                 description: Is the error a timeout?
                 example: true
         description: Compilation failed (default view)
         example:
-            fault: true
+            fault: false
             id: 123abc
             message: parameter 'p' must be an integer
             name: bad_request
-            temporary: false
-            timeout: true
+            temporary: true
+            timeout: false
         required:
             - name
             - id
@@ -2493,7 +2990,7 @@ definitions:
                     key2: value2
                 additionalProperties:
                     type: string
-                    example: Totam ullam id.
+                    example: Nisi ducimus placeat.
             SystemName:
                 type: string
                 description: Name of parent software system
@@ -2502,7 +2999,7 @@ definitions:
                 type: array
                 items:
                     type: string
-                    example: Culpa earum eos.
+                    example: Libero totam ullam id ipsa reiciendis.
                 description: Attached tags
                 example:
                     - Tag1
@@ -2536,7 +3033,356 @@ definitions:
             - SystemName
             - ContainerName
             - Name
+    DSLEditorUpsertComponentResponseBody:
+        title: DSLEditorUpsertComponentResponseBody
+        type: object
+        properties:
+            Content:
+                type: string
+                description: DSL code
+                example: |-
+                    package model
+
+                    import . "goa.design/model/dsl"
+
+                    var _ = Design(func() {})
+                pattern: import . "goa.design/model/dsl"
+                minLength: 58
+            Locator:
+                $ref: '#/definitions/FileLocatorResponseBody'
+        example:
+            Content: |-
+                package model
+
+                import . "goa.design/model/dsl"
+
+                var _ = Design(func() {})
+            Locator:
+                Dir: services/my-service/diagram
+                Filename: model.go
+                Repository: my-repo
+        required:
+            - Locator
+            - Content
     DSLEditorUpsertComponentViewCompilationFailedResponseBody:
+        title: 'Mediatype identifier: application/vnd.goa.error; view=default'
+        type: object
+        properties:
+            fault:
+                type: boolean
+                description: Is the error a server-side fault?
+                example: false
+            id:
+                type: string
+                description: ID is a unique identifier for this particular occurrence of the problem.
+                example: 123abc
+            message:
+                type: string
+                description: Message is a human-readable explanation specific to this occurrence of the problem.
+                example: parameter 'p' must be an integer
+            name:
+                type: string
+                description: Name is the name of this class of errors.
+                example: bad_request
+            temporary:
+                type: boolean
+                description: Is the error temporary?
+                example: true
+            timeout:
+                type: boolean
+                description: Is the error a timeout?
+                example: true
+        description: Compilation failed (default view)
+        example:
+            fault: false
+            id: 123abc
+            message: parameter 'p' must be an integer
+            name: bad_request
+            temporary: false
+            timeout: false
+        required:
+            - name
+            - id
+            - message
+            - temporary
+            - timeout
+            - fault
+    DSLEditorUpsertComponentViewRequestBody:
+        title: DSLEditorUpsertComponentViewRequestBody
+        type: object
+        properties:
+            ContainerBoundariesVisible:
+                type: boolean
+                description: Indicates whether the container boundaries are visible on the resulting diagram
+                default: true
+                example: false
+            ContainerName:
+                type: string
+                description: Name of container to create view for
+                example: Container
+            Description:
+                type: string
+                description: Description of view
+                example: description
+            ElementViews:
+                type: array
+                items:
+                    $ref: '#/definitions/ElementViewRequestBody'
+                description: Elements in view
+                example:
+                    - Element: Software System/Container/Component
+                    - Element: Software System/Container/Component
+            Key:
+                type: string
+                description: Key of view
+                example: key
+            Locator:
+                $ref: '#/definitions/FileLocatorRequestBody'
+            PaperSize:
+                type: string
+                description: Paper size of view
+                example: A2_Landscape
+                enum:
+                    - A0_Landscape
+                    - A0_Portrait
+                    - A1_Landscape
+                    - A1_Portrait
+                    - A2_Landscape
+                    - A2_Portrait
+                    - A3_Landscape
+                    - A3_Portrait
+                    - A4_Landscape
+                    - A4_Portrait
+                    - A5_Landscape
+                    - A5_Portrait
+                    - A6_Landscape
+                    - A6_Portrait
+                    - Legal_Landscape
+                    - Legal_Portrait
+                    - Letter_Landscape
+                    - Letter_Portrait
+                    - Slide_16x10
+                    - Slide_16x9
+                    - Slide_4x3
+            RelationshipViews:
+                type: array
+                items:
+                    $ref: '#/definitions/RelationshipViewRequestBody'
+                description: Relationships in view
+                example:
+                    - Destination: Software System/Container/Component
+                      Source: Software System/Container/Component
+                    - Destination: Software System/Container/Component
+                      Source: Software System/Container/Component
+                    - Destination: Software System/Container/Component
+                      Source: Software System/Container/Component
+            SoftwareSystemName:
+                type: string
+                description: Name of software system to create view for
+                example: Software System
+            Title:
+                type: string
+                description: Title of view
+                example: title
+        example:
+            ContainerBoundariesVisible: false
+            ContainerName: Container
+            Description: description
+            ElementViews:
+                - Element: Software System/Container/Component
+                - Element: Software System/Container/Component
+                - Element: Software System/Container/Component
+            Key: key
+            Locator:
+                Dir: services/my-service/diagram
+                Filename: model.go
+                Repository: my-repo
+            PaperSize: A3_Landscape
+            RelationshipViews:
+                - Destination: Software System/Container/Component
+                  Source: Software System/Container/Component
+                - Destination: Software System/Container/Component
+                  Source: Software System/Container/Component
+                - Destination: Software System/Container/Component
+                  Source: Software System/Container/Component
+                - Destination: Software System/Container/Component
+                  Source: Software System/Container/Component
+            SoftwareSystemName: Software System
+            Title: title
+        required:
+            - SoftwareSystemName
+            - ContainerName
+            - Key
+            - Title
+    DSLEditorUpsertComponentViewResponseBody:
+        title: DSLEditorUpsertComponentViewResponseBody
+        type: object
+        properties:
+            Content:
+                type: string
+                description: DSL code
+                example: |-
+                    package model
+
+                    import . "goa.design/model/dsl"
+
+                    var _ = Design(func() {})
+                pattern: import . "goa.design/model/dsl"
+                minLength: 58
+            Locator:
+                $ref: '#/definitions/FileLocatorResponseBody'
+        example:
+            Content: |-
+                package model
+
+                import . "goa.design/model/dsl"
+
+                var _ = Design(func() {})
+            Locator:
+                Dir: services/my-service/diagram
+                Filename: model.go
+                Repository: my-repo
+        required:
+            - Locator
+            - Content
+    DSLEditorUpsertContainerCompilationFailedResponseBody:
+        title: 'Mediatype identifier: application/vnd.goa.error; view=default'
+        type: object
+        properties:
+            fault:
+                type: boolean
+                description: Is the error a server-side fault?
+                example: false
+            id:
+                type: string
+                description: ID is a unique identifier for this particular occurrence of the problem.
+                example: 123abc
+            message:
+                type: string
+                description: Message is a human-readable explanation specific to this occurrence of the problem.
+                example: parameter 'p' must be an integer
+            name:
+                type: string
+                description: Name is the name of this class of errors.
+                example: bad_request
+            temporary:
+                type: boolean
+                description: Is the error temporary?
+                example: true
+            timeout:
+                type: boolean
+                description: Is the error a timeout?
+                example: false
+        description: Compilation failed (default view)
+        example:
+            fault: false
+            id: 123abc
+            message: parameter 'p' must be an integer
+            name: bad_request
+            temporary: false
+            timeout: true
+        required:
+            - name
+            - id
+            - message
+            - temporary
+            - timeout
+            - fault
+    DSLEditorUpsertContainerRequestBody:
+        title: DSLEditorUpsertContainerRequestBody
+        type: object
+        properties:
+            Description:
+                type: string
+                description: Description of container
+                example: Container description
+            Locator:
+                $ref: '#/definitions/FileLocatorRequestBody'
+            Name:
+                type: string
+                description: Name of container
+                example: Container
+            Properties:
+                type: object
+                description: Set of arbitrary name-value properties (shown in diagram tooltips)
+                example:
+                    key1: value1
+                    key2: value2
+                additionalProperties:
+                    type: string
+                    example: Vitae quidem aut.
+            SystemName:
+                type: string
+                description: Name of parent software system
+                example: My System
+            Tags:
+                type: array
+                items:
+                    type: string
+                    example: Et repellat voluptatibus architecto tenetur.
+                description: Attached tags
+                example:
+                    - Tag1
+                    - Tag2
+            Technology:
+                type: string
+                description: Technology used by container
+                example: Technology
+            URL:
+                type: string
+                description: Documentation URL
+                example: https://container.com
+        example:
+            Description: Container description
+            Locator:
+                Dir: services/my-service/diagram
+                Filename: model.go
+                Repository: my-repo
+            Name: Container
+            Properties:
+                key1: value1
+                key2: value2
+            SystemName: My System
+            Tags:
+                - Tag1
+                - Tag2
+            Technology: Technology
+            URL: https://container.com
+        required:
+            - SystemName
+            - Name
+    DSLEditorUpsertContainerResponseBody:
+        title: DSLEditorUpsertContainerResponseBody
+        type: object
+        properties:
+            Content:
+                type: string
+                description: DSL code
+                example: |-
+                    package model
+
+                    import . "goa.design/model/dsl"
+
+                    var _ = Design(func() {})
+                pattern: import . "goa.design/model/dsl"
+                minLength: 58
+            Locator:
+                $ref: '#/definitions/FileLocatorResponseBody'
+        example:
+            Content: |-
+                package model
+
+                import . "goa.design/model/dsl"
+
+                var _ = Design(func() {})
+            Locator:
+                Dir: services/my-service/diagram
+                Filename: model.go
+                Repository: my-repo
+        required:
+            - Locator
+            - Content
+    DSLEditorUpsertContainerViewCompilationFailedResponseBody:
         title: 'Mediatype identifier: application/vnd.goa.error; view=default'
         type: object
         properties:
@@ -2579,19 +3425,10 @@ definitions:
             - temporary
             - timeout
             - fault
-    DSLEditorUpsertComponentViewRequestBody:
-        title: DSLEditorUpsertComponentViewRequestBody
+    DSLEditorUpsertContainerViewRequestBody:
+        title: DSLEditorUpsertContainerViewRequestBody
         type: object
         properties:
-            ContainerBoundariesVisible:
-                type: boolean
-                description: Indicates whether the container boundaries are visible on the resulting diagram
-                default: true
-                example: false
-            ContainerName:
-                type: string
-                description: Name of container to create view for
-                example: Container
             Description:
                 type: string
                 description: Description of view
@@ -2652,13 +3489,16 @@ definitions:
                 type: string
                 description: Name of software system to create view for
                 example: Software System
+            SystemBoundariesVisible:
+                type: boolean
+                description: Indicates whether the system boundaries are visible on the resulting diagram
+                default: true
+                example: false
             Title:
                 type: string
                 description: Title of view
                 example: title
         example:
-            ContainerBoundariesVisible: false
-            ContainerName: Container
             Description: description
             ElementViews:
                 - Element: Software System/Container/Component
@@ -2679,260 +3519,42 @@ definitions:
                 - Destination: Software System/Container/Component
                   Source: Software System/Container/Component
             SoftwareSystemName: Software System
-            Title: title
-        required:
-            - SoftwareSystemName
-            - ContainerName
-            - Key
-            - Title
-    DSLEditorUpsertContainerCompilationFailedResponseBody:
-        title: 'Mediatype identifier: application/vnd.goa.error; view=default'
-        type: object
-        properties:
-            fault:
-                type: boolean
-                description: Is the error a server-side fault?
-                example: false
-            id:
-                type: string
-                description: ID is a unique identifier for this particular occurrence of the problem.
-                example: 123abc
-            message:
-                type: string
-                description: Message is a human-readable explanation specific to this occurrence of the problem.
-                example: parameter 'p' must be an integer
-            name:
-                type: string
-                description: Name is the name of this class of errors.
-                example: bad_request
-            temporary:
-                type: boolean
-                description: Is the error temporary?
-                example: false
-            timeout:
-                type: boolean
-                description: Is the error a timeout?
-                example: true
-        description: Compilation failed (default view)
-        example:
-            fault: true
-            id: 123abc
-            message: parameter 'p' must be an integer
-            name: bad_request
-            temporary: false
-            timeout: true
-        required:
-            - name
-            - id
-            - message
-            - temporary
-            - timeout
-            - fault
-    DSLEditorUpsertContainerRequestBody:
-        title: DSLEditorUpsertContainerRequestBody
-        type: object
-        properties:
-            Description:
-                type: string
-                description: Description of container
-                example: Container description
-            Locator:
-                $ref: '#/definitions/FileLocatorRequestBody'
-            Name:
-                type: string
-                description: Name of container
-                example: Container
-            Properties:
-                type: object
-                description: Set of arbitrary name-value properties (shown in diagram tooltips)
-                example:
-                    key1: value1
-                    key2: value2
-                additionalProperties:
-                    type: string
-                    example: Provident et repellat voluptatibus architecto tenetur reprehenderit.
-            SystemName:
-                type: string
-                description: Name of parent software system
-                example: My System
-            Tags:
-                type: array
-                items:
-                    type: string
-                    example: Consequatur commodi ab quam.
-                description: Attached tags
-                example:
-                    - Tag1
-                    - Tag2
-            Technology:
-                type: string
-                description: Technology used by container
-                example: Technology
-            URL:
-                type: string
-                description: Documentation URL
-                example: https://container.com
-        example:
-            Description: Container description
-            Locator:
-                Dir: services/my-service/diagram
-                Filename: model.go
-                Repository: my-repo
-            Name: Container
-            Properties:
-                key1: value1
-                key2: value2
-            SystemName: My System
-            Tags:
-                - Tag1
-                - Tag2
-            Technology: Technology
-            URL: https://container.com
-        required:
-            - SystemName
-            - Name
-    DSLEditorUpsertContainerViewCompilationFailedResponseBody:
-        title: 'Mediatype identifier: application/vnd.goa.error; view=default'
-        type: object
-        properties:
-            fault:
-                type: boolean
-                description: Is the error a server-side fault?
-                example: true
-            id:
-                type: string
-                description: ID is a unique identifier for this particular occurrence of the problem.
-                example: 123abc
-            message:
-                type: string
-                description: Message is a human-readable explanation specific to this occurrence of the problem.
-                example: parameter 'p' must be an integer
-            name:
-                type: string
-                description: Name is the name of this class of errors.
-                example: bad_request
-            temporary:
-                type: boolean
-                description: Is the error temporary?
-                example: true
-            timeout:
-                type: boolean
-                description: Is the error a timeout?
-                example: true
-        description: Compilation failed (default view)
-        example:
-            fault: false
-            id: 123abc
-            message: parameter 'p' must be an integer
-            name: bad_request
-            temporary: false
-            timeout: false
-        required:
-            - name
-            - id
-            - message
-            - temporary
-            - timeout
-            - fault
-    DSLEditorUpsertContainerViewRequestBody:
-        title: DSLEditorUpsertContainerViewRequestBody
-        type: object
-        properties:
-            Description:
-                type: string
-                description: Description of view
-                example: description
-            ElementViews:
-                type: array
-                items:
-                    $ref: '#/definitions/ElementViewRequestBody'
-                description: Elements in view
-                example:
-                    - Element: Software System/Container/Component
-                    - Element: Software System/Container/Component
-            Key:
-                type: string
-                description: Key of view
-                example: key
-            Locator:
-                $ref: '#/definitions/FileLocatorRequestBody'
-            PaperSize:
-                type: string
-                description: Paper size of view
-                example: Legal_Landscape
-                enum:
-                    - A0_Landscape
-                    - A0_Portrait
-                    - A1_Landscape
-                    - A1_Portrait
-                    - A2_Landscape
-                    - A2_Portrait
-                    - A3_Landscape
-                    - A3_Portrait
-                    - A4_Landscape
-                    - A4_Portrait
-                    - A5_Landscape
-                    - A5_Portrait
-                    - A6_Landscape
-                    - A6_Portrait
-                    - Legal_Landscape
-                    - Legal_Portrait
-                    - Letter_Landscape
-                    - Letter_Portrait
-                    - Slide_16x10
-                    - Slide_16x9
-                    - Slide_4x3
-            RelationshipViews:
-                type: array
-                items:
-                    $ref: '#/definitions/RelationshipViewRequestBody'
-                description: Relationships in view
-                example:
-                    - Destination: Software System/Container/Component
-                      Source: Software System/Container/Component
-                    - Destination: Software System/Container/Component
-                      Source: Software System/Container/Component
-            SoftwareSystemName:
-                type: string
-                description: Name of software system to create view for
-                example: Software System
-            SystemBoundariesVisible:
-                type: boolean
-                description: Indicates whether the system boundaries are visible on the resulting diagram
-                default: true
-                example: false
-            Title:
-                type: string
-                description: Title of view
-                example: title
-        example:
-            Description: description
-            ElementViews:
-                - Element: Software System/Container/Component
-                - Element: Software System/Container/Component
-                - Element: Software System/Container/Component
-                - Element: Software System/Container/Component
-            Key: key
-            Locator:
-                Dir: services/my-service/diagram
-                Filename: model.go
-                Repository: my-repo
-            PaperSize: Slide_4x3
-            RelationshipViews:
-                - Destination: Software System/Container/Component
-                  Source: Software System/Container/Component
-                - Destination: Software System/Container/Component
-                  Source: Software System/Container/Component
-                - Destination: Software System/Container/Component
-                  Source: Software System/Container/Component
-                - Destination: Software System/Container/Component
-                  Source: Software System/Container/Component
-            SoftwareSystemName: Software System
             SystemBoundariesVisible: false
             Title: title
         required:
             - Key
             - Title
+    DSLEditorUpsertContainerViewResponseBody:
+        title: DSLEditorUpsertContainerViewResponseBody
+        type: object
+        properties:
+            Content:
+                type: string
+                description: DSL code
+                example: |-
+                    package model
+
+                    import . "goa.design/model/dsl"
+
+                    var _ = Design(func() {})
+                pattern: import . "goa.design/model/dsl"
+                minLength: 58
+            Locator:
+                $ref: '#/definitions/FileLocatorResponseBody'
+        example:
+            Content: |-
+                package model
+
+                import . "goa.design/model/dsl"
+
+                var _ = Design(func() {})
+            Locator:
+                Dir: services/my-service/diagram
+                Filename: model.go
+                Repository: my-repo
+        required:
+            - Locator
+            - Content
     DSLEditorUpsertLandscapeViewCompilationFailedResponseBody:
         title: 'Mediatype identifier: application/vnd.goa.error; view=default'
         type: object
@@ -2960,14 +3582,14 @@ definitions:
             timeout:
                 type: boolean
                 description: Is the error a timeout?
-                example: false
+                example: true
         description: Compilation failed (default view)
         example:
-            fault: true
+            fault: false
             id: 123abc
             message: parameter 'p' must be an integer
             name: bad_request
-            temporary: true
+            temporary: false
             timeout: false
         required:
             - name
@@ -2992,13 +3614,11 @@ definitions:
                 example:
                     - Element: Software System/Container/Component
                     - Element: Software System/Container/Component
-                    - Element: Software System/Container/Component
-                    - Element: Software System/Container/Component
             EnterpriseBoundaryVisible:
                 type: boolean
                 description: Indicates whether the enterprise boundary is visible on the resulting diagram
                 default: true
-                example: true
+                example: false
             Key:
                 type: string
                 description: Key of view
@@ -3052,13 +3672,13 @@ definitions:
                 - Element: Software System/Container/Component
                 - Element: Software System/Container/Component
                 - Element: Software System/Container/Component
-            EnterpriseBoundaryVisible: true
+            EnterpriseBoundaryVisible: false
             Key: key
             Locator:
                 Dir: services/my-service/diagram
                 Filename: model.go
                 Repository: my-repo
-            PaperSize: A1_Landscape
+            PaperSize: A0_Portrait
             RelationshipViews:
                 - Destination: Software System/Container/Component
                   Source: Software System/Container/Component
@@ -3068,6 +3688,37 @@ definitions:
         required:
             - Key
             - Title
+    DSLEditorUpsertLandscapeViewResponseBody:
+        title: DSLEditorUpsertLandscapeViewResponseBody
+        type: object
+        properties:
+            Content:
+                type: string
+                description: DSL code
+                example: |-
+                    package model
+
+                    import . "goa.design/model/dsl"
+
+                    var _ = Design(func() {})
+                pattern: import . "goa.design/model/dsl"
+                minLength: 58
+            Locator:
+                $ref: '#/definitions/FileLocatorResponseBody'
+        example:
+            Content: |-
+                package model
+
+                import . "goa.design/model/dsl"
+
+                var _ = Design(func() {})
+            Locator:
+                Dir: services/my-service/diagram
+                Filename: model.go
+                Repository: my-repo
+        required:
+            - Locator
+            - Content
     DSLEditorUpsertPersonCompilationFailedResponseBody:
         title: 'Mediatype identifier: application/vnd.goa.error; view=default'
         type: object
@@ -3095,14 +3746,14 @@ definitions:
             timeout:
                 type: boolean
                 description: Is the error a timeout?
-                example: true
+                example: false
         description: Compilation failed (default view)
         example:
             fault: false
             id: 123abc
             message: parameter 'p' must be an integer
             name: bad_request
-            temporary: true
+            temporary: false
             timeout: false
         required:
             - name
@@ -3123,7 +3774,7 @@ definitions:
                 type: string
                 description: Indicates whether the person is an employee (Internal) or a third party (External)
                 default: Internal
-                example: External
+                example: Internal
                 enum:
                     - Internal
                     - External
@@ -3141,12 +3792,12 @@ definitions:
                     key2: value2
                 additionalProperties:
                     type: string
-                    example: Ut rerum nostrum accusamus aspernatur.
+                    example: Velit distinctio cupiditate et.
             Tags:
                 type: array
                 items:
                     type: string
-                    example: Odit sit.
+                    example: Ut rerum nostrum accusamus aspernatur.
                 description: Attached tags
                 example:
                     - Tag1
@@ -3172,6 +3823,37 @@ definitions:
             URL: https://person.com
         required:
             - Name
+    DSLEditorUpsertPersonResponseBody:
+        title: DSLEditorUpsertPersonResponseBody
+        type: object
+        properties:
+            Content:
+                type: string
+                description: DSL code
+                example: |-
+                    package model
+
+                    import . "goa.design/model/dsl"
+
+                    var _ = Design(func() {})
+                pattern: import . "goa.design/model/dsl"
+                minLength: 58
+            Locator:
+                $ref: '#/definitions/FileLocatorResponseBody'
+        example:
+            Content: |-
+                package model
+
+                import . "goa.design/model/dsl"
+
+                var _ = Design(func() {})
+            Locator:
+                Dir: services/my-service/diagram
+                Filename: model.go
+                Repository: my-repo
+        required:
+            - Locator
+            - Content
     DSLEditorUpsertRelationshipCompilationFailedResponseBody:
         title: 'Mediatype identifier: application/vnd.goa.error; view=default'
         type: object
@@ -3179,7 +3861,7 @@ definitions:
             fault:
                 type: boolean
                 description: Is the error a server-side fault?
-                example: false
+                example: true
             id:
                 type: string
                 description: ID is a unique identifier for this particular occurrence of the problem.
@@ -3223,6 +3905,15 @@ definitions:
                 type: string
                 description: Description of relationship
                 example: Relationship description
+            DestinationKind:
+                type: string
+                description: Kind of destination element
+                example: Component
+                enum:
+                    - Person
+                    - Software System
+                    - Container
+                    - Component
             DestinationPath:
                 type: string
                 description: Path to destination element, see SourcePath for details.
@@ -3231,12 +3922,21 @@ definitions:
                 type: string
                 description: Indicates whether the relationship is synchronous or asynchronous
                 default: Synchronous
-                example: Synchronous
+                example: Asynchronous
                 enum:
                     - Synchronous
                     - Asynchronous
             Locator:
                 $ref: '#/definitions/FileLocatorRequestBody'
+            SourceKind:
+                type: string
+                description: Kind of source element
+                example: Component
+                enum:
+                    - Person
+                    - Software System
+                    - Container
+                    - Component
             SourcePath:
                 type: string
                 description: Path to source element consisting of <software system name>[/<container name>[/<component name>]]
@@ -3245,7 +3945,7 @@ definitions:
                 type: array
                 items:
                     type: string
-                    example: Et qui dolore.
+                    example: Repellat laboriosam cupiditate numquam nihil ut sunt.
                 description: Attached tags
                 example:
                     - Tag1
@@ -3261,12 +3961,14 @@ definitions:
                 format: uri
         example:
             Description: Relationship description
+            DestinationKind: Software System
             DestinationPath: Software System/Container/Component
-            InteractionStyle: Asynchronous
+            InteractionStyle: Synchronous
             Locator:
                 Dir: services/my-service/diagram
                 Filename: model.go
                 Repository: my-repo
+            SourceKind: Person
             SourcePath: Software System/Container/Component
             Tags:
                 - Tag1
@@ -3275,7 +3977,40 @@ definitions:
             URL: https://relationship.com
         required:
             - SourcePath
+            - SourceKind
             - DestinationPath
+            - DestinationKind
+    DSLEditorUpsertRelationshipResponseBody:
+        title: DSLEditorUpsertRelationshipResponseBody
+        type: object
+        properties:
+            Content:
+                type: string
+                description: DSL code
+                example: |-
+                    package model
+
+                    import . "goa.design/model/dsl"
+
+                    var _ = Design(func() {})
+                pattern: import . "goa.design/model/dsl"
+                minLength: 58
+            Locator:
+                $ref: '#/definitions/FileLocatorResponseBody'
+        example:
+            Content: |-
+                package model
+
+                import . "goa.design/model/dsl"
+
+                var _ = Design(func() {})
+            Locator:
+                Dir: services/my-service/diagram
+                Filename: model.go
+                Repository: my-repo
+        required:
+            - Locator
+            - Content
     DSLEditorUpsertRelationshipStyleCompilationFailedResponseBody:
         title: 'Mediatype identifier: application/vnd.goa.error; view=default'
         type: object
@@ -3299,11 +4034,11 @@ definitions:
             temporary:
                 type: boolean
                 description: Is the error temporary?
-                example: false
+                example: true
             timeout:
                 type: boolean
                 description: Is the error a timeout?
-                example: true
+                example: false
         description: Compilation failed (default view)
         example:
             fault: false
@@ -3326,36 +4061,36 @@ definitions:
             Color:
                 type: string
                 description: Color of label
-                example: '#8C2cD1'
+                example: '#eb72dF'
                 pattern: ^#[0-9a-fA-F]{6}$
             Dashed:
                 type: boolean
                 description: Indicates whether the relationship is dashed
                 default: true
-                example: true
+                example: false
             FontSize:
                 type: integer
                 description: Font size of label on relationship
-                example: 90
+                example: 19
                 minimum: 1
                 maximum: 100
             Opacity:
                 type: integer
                 description: Opacity of relationship as a percentage
-                example: 72
+                example: 33
                 minimum: 0
                 maximum: 100
             Position:
                 type: integer
                 description: Position of label on relationship as a percentage (0 is next to source, 100 next to destination)
-                example: 66
+                example: 25
                 minimum: 0
                 maximum: 100
             Routing:
                 type: string
                 description: Routing of relationship
                 default: Direct
-                example: Direct
+                example: Orthogonal
                 enum:
                     - Direct
                     - Orthogonal
@@ -3363,7 +4098,7 @@ definitions:
             Stroke:
                 type: string
                 description: Stroke color of relationship
-                example: '#C83Ee0'
+                example: '#f4aE7b'
                 pattern: ^#[0-9a-fA-F]{6}$
             Tag:
                 type: string
@@ -3378,22 +4113,53 @@ definitions:
             Width:
                 type: integer
                 description: Width of label on relationship
-                example: 9070
+                example: 9956
                 minimum: 1
                 maximum: 10000
         example:
-            Color: '#DbadAc'
+            Color: '#9f3F9A'
             Dashed: false
-            FontSize: 41
-            Opacity: 63
-            Position: 58
+            FontSize: 20
+            Opacity: 18
+            Position: 85
             Routing: Curved
-            Stroke: '#FA2BB6'
+            Stroke: '#A4c1cA'
             Tag: tag
             Thickness: 2
-            Width: 7111
+            Width: 6228
         required:
             - Tag
+    DSLEditorUpsertRelationshipStyleResponseBody:
+        title: DSLEditorUpsertRelationshipStyleResponseBody
+        type: object
+        properties:
+            Content:
+                type: string
+                description: DSL code
+                example: |-
+                    package model
+
+                    import . "goa.design/model/dsl"
+
+                    var _ = Design(func() {})
+                pattern: import . "goa.design/model/dsl"
+                minLength: 58
+            Locator:
+                $ref: '#/definitions/FileLocatorResponseBody'
+        example:
+            Content: |-
+                package model
+
+                import . "goa.design/model/dsl"
+
+                var _ = Design(func() {})
+            Locator:
+                Dir: services/my-service/diagram
+                Filename: model.go
+                Repository: my-repo
+        required:
+            - Locator
+            - Content
     DSLEditorUpsertSystemCompilationFailedResponseBody:
         title: 'Mediatype identifier: application/vnd.goa.error; view=default'
         type: object
@@ -3401,7 +4167,7 @@ definitions:
             fault:
                 type: boolean
                 description: Is the error a server-side fault?
-                example: false
+                example: true
             id:
                 type: string
                 description: ID is a unique identifier for this particular occurrence of the problem.
@@ -3424,11 +4190,11 @@ definitions:
                 example: false
         description: Compilation failed (default view)
         example:
-            fault: true
+            fault: false
             id: 123abc
             message: parameter 'p' must be an integer
             name: bad_request
-            temporary: false
+            temporary: true
             timeout: false
         required:
             - name
@@ -3444,7 +4210,7 @@ definitions:
             fault:
                 type: boolean
                 description: Is the error a server-side fault?
-                example: false
+                example: true
             id:
                 type: string
                 description: ID is a unique identifier for this particular occurrence of the problem.
@@ -3460,7 +4226,7 @@ definitions:
             temporary:
                 type: boolean
                 description: Is the error temporary?
-                example: false
+                example: true
             timeout:
                 type: boolean
                 description: Is the error a timeout?
@@ -3510,7 +4276,7 @@ definitions:
             PaperSize:
                 type: string
                 description: Paper size of view
-                example: A4_Landscape
+                example: Legal_Landscape
                 enum:
                     - A0_Landscape
                     - A0_Portrait
@@ -3564,8 +4330,12 @@ definitions:
                 Dir: services/my-service/diagram
                 Filename: model.go
                 Repository: my-repo
-            PaperSize: A0_Portrait
+            PaperSize: Slide_4x3
             RelationshipViews:
+                - Destination: Software System/Container/Component
+                  Source: Software System/Container/Component
+                - Destination: Software System/Container/Component
+                  Source: Software System/Container/Component
                 - Destination: Software System/Container/Component
                   Source: Software System/Container/Component
                 - Destination: Software System/Container/Component
@@ -3576,6 +4346,37 @@ definitions:
             - SoftwareSystemName
             - Key
             - Title
+    DSLEditorUpsertSystemContextViewResponseBody:
+        title: DSLEditorUpsertSystemContextViewResponseBody
+        type: object
+        properties:
+            Content:
+                type: string
+                description: DSL code
+                example: |-
+                    package model
+
+                    import . "goa.design/model/dsl"
+
+                    var _ = Design(func() {})
+                pattern: import . "goa.design/model/dsl"
+                minLength: 58
+            Locator:
+                $ref: '#/definitions/FileLocatorResponseBody'
+        example:
+            Content: |-
+                package model
+
+                import . "goa.design/model/dsl"
+
+                var _ = Design(func() {})
+            Locator:
+                Dir: services/my-service/diagram
+                Filename: model.go
+                Repository: my-repo
+        required:
+            - Locator
+            - Content
     DSLEditorUpsertSystemRequestBody:
         title: DSLEditorUpsertSystemRequestBody
         type: object
@@ -3588,7 +4389,7 @@ definitions:
                 type: string
                 description: Indicates whether the system is in-house (Internal) or hosted by a third party (External)
                 default: Internal
-                example: External
+                example: Internal
                 enum:
                     - Internal
                     - External
@@ -3606,12 +4407,12 @@ definitions:
                     key2: value2
                 additionalProperties:
                     type: string
-                    example: Et in.
+                    example: In dignissimos consequatur dolorem voluptatem.
             Tags:
                 type: array
                 items:
                     type: string
-                    example: Molestiae mollitia nesciunt fugiat.
+                    example: Fugiat laborum.
                 description: Attached tags
                 example:
                     - Tag1
@@ -3637,6 +4438,37 @@ definitions:
             URL: https://system.com
         required:
             - Name
+    DSLEditorUpsertSystemResponseBody:
+        title: DSLEditorUpsertSystemResponseBody
+        type: object
+        properties:
+            Content:
+                type: string
+                description: DSL code
+                example: |-
+                    package model
+
+                    import . "goa.design/model/dsl"
+
+                    var _ = Design(func() {})
+                pattern: import . "goa.design/model/dsl"
+                minLength: 58
+            Locator:
+                $ref: '#/definitions/FileLocatorResponseBody'
+        example:
+            Content: |-
+                package model
+
+                import . "goa.design/model/dsl"
+
+                var _ = Design(func() {})
+            Locator:
+                Dir: services/my-service/diagram
+                Filename: model.go
+                Repository: my-repo
+        required:
+            - Locator
+            - Content
     ElementViewRequestBody:
         title: ElementViewRequestBody
         type: object
@@ -3645,6 +4477,7 @@ definitions:
                 type: string
                 description: Path to element consisting of <software system name>[/<container name>[/<component name>]]
                 example: Software System/Container/Component
+        description: ElementView defines an element in a view
         example:
             Element: Software System/Container/Component
     FileLocatorRequestBody:
@@ -3677,6 +4510,34 @@ definitions:
             - Dir
     FileLocatorResponse:
         title: FileLocatorResponse
+        type: object
+        properties:
+            Dir:
+                type: string
+                description: Path to directory containing a model package
+                example: services/my-service/diagram
+                minLength: 1
+            Filename:
+                type: string
+                description: Name of DSL file
+                example: model.go
+                pattern: \.go$
+            Repository:
+                type: string
+                description: Path to repository root
+                example: my-repo
+                minLength: 1
+        description: FileLocator is the location of a DSL file in a model package
+        example:
+            Dir: services/my-service/diagram
+            Filename: model.go
+            Repository: my-repo
+        required:
+            - Filename
+            - Repository
+            - Dir
+    FileLocatorResponseBody:
+        title: FileLocatorResponseBody
         type: object
         properties:
             Dir:
@@ -3766,6 +4627,7 @@ definitions:
                 type: string
                 description: Path to source element consisting of <software system name>[/<container name>[/<component name>]]
                 example: Software System/Container/Component
+        description: RelationshipView defines a relationship in a view
         example:
             Destination: Software System/Container/Component
             Source: Software System/Container/Component
@@ -3776,7 +4638,7 @@ definitions:
             fault:
                 type: boolean
                 description: Is the error a server-side fault?
-                example: false
+                example: true
             id:
                 type: string
                 description: ID is a unique identifier for this particular occurrence of the problem.
@@ -3792,7 +4654,7 @@ definitions:
             temporary:
                 type: boolean
                 description: Is the error temporary?
-                example: true
+                example: false
             timeout:
                 type: boolean
                 description: Is the error a timeout?
@@ -3803,7 +4665,7 @@ definitions:
             id: 123abc
             message: parameter 'p' must be an integer
             name: bad_request
-            temporary: false
+            temporary: true
             timeout: true
         required:
             - name
@@ -3850,7 +4712,7 @@ definitions:
             fault:
                 type: boolean
                 description: Is the error a server-side fault?
-                example: false
+                example: true
             id:
                 type: string
                 description: ID is a unique identifier for this particular occurrence of the problem.
@@ -3877,8 +4739,8 @@ definitions:
             id: 123abc
             message: parameter 'p' must be an integer
             name: bad_request
-            temporary: true
-            timeout: false
+            temporary: false
+            timeout: true
         required:
             - name
             - id
@@ -3913,7 +4775,7 @@ definitions:
             timeout:
                 type: boolean
                 description: Is the error a timeout?
-                example: false
+                example: true
         description: Compilation error (default view)
         example:
             fault: true
@@ -3936,7 +4798,7 @@ definitions:
             fault:
                 type: boolean
                 description: Is the error a server-side fault?
-                example: true
+                example: false
             id:
                 type: string
                 description: ID is a unique identifier for this particular occurrence of the problem.
@@ -3956,14 +4818,14 @@ definitions:
             timeout:
                 type: boolean
                 description: Is the error a timeout?
-                example: true
+                example: false
         description: Package not found (default view)
         example:
-            fault: true
+            fault: false
             id: 123abc
             message: parameter 'p' must be an integer
             name: bad_request
-            temporary: true
+            temporary: false
             timeout: true
         required:
             - name
@@ -3979,7 +4841,7 @@ definitions:
             fault:
                 type: boolean
                 description: Is the error a server-side fault?
-                example: false
+                example: true
             id:
                 type: string
                 description: ID is a unique identifier for this particular occurrence of the problem.
@@ -3995,14 +4857,14 @@ definitions:
             temporary:
                 type: boolean
                 description: Is the error temporary?
-                example: false
+                example: true
             timeout:
                 type: boolean
                 description: Is the error a timeout?
                 example: true
         description: Package not found (default view)
         example:
-            fault: true
+            fault: false
             id: 123abc
             message: parameter 'p' must be an integer
             name: bad_request
@@ -4045,11 +4907,11 @@ definitions:
                 example: false
         description: Package not found (default view)
         example:
-            fault: false
+            fault: true
             id: 123abc
             message: parameter 'p' must be an integer
             name: bad_request
-            temporary: false
+            temporary: true
             timeout: true
         required:
             - name
@@ -4065,7 +4927,7 @@ definitions:
             fault:
                 type: boolean
                 description: Is the error a server-side fault?
-                example: false
+                example: true
             id:
                 type: string
                 description: ID is a unique identifier for this particular occurrence of the problem.
@@ -4092,7 +4954,7 @@ definitions:
             id: 123abc
             message: parameter 'p' must be an integer
             name: bad_request
-            temporary: false
+            temporary: true
             timeout: false
         required:
             - name
@@ -4108,25 +4970,89 @@ definitions:
             Error:
                 type: string
                 description: Compilation error if any
-                example: Quia corrupti.
+                example: Et provident.
             Model:
                 type: string
                 description: Model JSON if compilation succeeded
                 example: '{"name":"example","email":"mail@example.com"}'
                 format: json
         example:
-            Error: Omnis aut officia voluptatem voluptas.
+            Error: Omnis explicabo rerum ut.
             Model: '{"name":"example","email":"mail@example.com"}'
+    SVGLoadNotFoundResponseBody:
+        title: 'Mediatype identifier: application/vnd.goa.error; view=default'
+        type: object
+        properties:
+            fault:
+                type: boolean
+                description: Is the error a server-side fault?
+                example: true
+            id:
+                type: string
+                description: ID is a unique identifier for this particular occurrence of the problem.
+                example: 123abc
+            message:
+                type: string
+                description: Message is a human-readable explanation specific to this occurrence of the problem.
+                example: parameter 'p' must be an integer
+            name:
+                type: string
+                description: Name is the name of this class of errors.
+                example: bad_request
+            temporary:
+                type: boolean
+                description: Is the error temporary?
+                example: true
+            timeout:
+                type: boolean
+                description: Is the error a timeout?
+                example: false
+        description: File not found (default view)
+        example:
+            fault: false
+            id: 123abc
+            message: parameter 'p' must be an integer
+            name: bad_request
+            temporary: true
+            timeout: false
+        required:
+            - name
+            - id
+            - message
+            - temporary
+            - timeout
+            - fault
     SVGSaveRequestBody:
         title: SVGSaveRequestBody
         type: object
         properties:
+            Dir:
+                type: string
+                description: Path to directory containing a model package
+                example: services/my-service/diagram
+                minLength: 1
+            Filename:
+                type: string
+                description: Name of DSL file
+                example: model.go
+                pattern: \.go$
+            Repository:
+                type: string
+                description: Path to repository root
+                example: my-repo
+                minLength: 1
             SVG:
                 type: string
                 description: Diagram SVG
-                example: <svg���</svg>
+                example: <svg����</svg>
                 pattern: <svg.*</svg>$
         example:
-            SVG: <svg����</svg>
+            Dir: services/my-service/diagram
+            Filename: model.go
+            Repository: my-repo
+            SVG: <svg�</svg>
         required:
+            - Filename
             - SVG
+            - Repository
+            - Dir

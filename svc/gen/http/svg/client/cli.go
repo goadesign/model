@@ -10,54 +10,79 @@ package client
 import (
 	"encoding/json"
 	"fmt"
+	"unicode/utf8"
 
 	goa "goa.design/goa/v3/pkg"
 	svg "goa.design/model/svc/gen/svg"
+	types "goa.design/model/svc/gen/types"
 )
 
 // BuildLoadPayload builds the payload for the SVG Load endpoint from CLI flags.
-func BuildLoadPayload(sVGLoadFilename string) (*svg.Filename, error) {
+func BuildLoadPayload(sVGLoadFilename string, sVGLoadRepository string, sVGLoadDir string) (*types.FileLocator, error) {
 	var err error
 	var filename string
 	{
 		filename = sVGLoadFilename
-		err = goa.MergeErrors(err, goa.ValidatePattern("Filename", filename, ".*\\.svg"))
+		err = goa.MergeErrors(err, goa.ValidatePattern("Filename", filename, "\\.go$"))
 		if err != nil {
 			return nil, err
 		}
 	}
-	v := &svg.Filename{}
+	var repository string
+	{
+		repository = sVGLoadRepository
+		if utf8.RuneCountInString(repository) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("Repository", repository, utf8.RuneCountInString(repository), 1, true))
+		}
+		if err != nil {
+			return nil, err
+		}
+	}
+	var dir string
+	{
+		dir = sVGLoadDir
+		if utf8.RuneCountInString(dir) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("Dir", dir, utf8.RuneCountInString(dir), 1, true))
+		}
+		if err != nil {
+			return nil, err
+		}
+	}
+	v := &types.FileLocator{}
 	v.Filename = filename
+	v.Repository = repository
+	v.Dir = dir
 
 	return v, nil
 }
 
 // BuildSavePayload builds the payload for the SVG Save endpoint from CLI flags.
-func BuildSavePayload(sVGSaveBody string, sVGSaveFilename string) (*svg.SavePayload, error) {
+func BuildSavePayload(sVGSaveBody string) (*svg.SavePayload, error) {
 	var err error
 	var body SaveRequestBody
 	{
 		err = json.Unmarshal([]byte(sVGSaveBody), &body)
 		if err != nil {
-			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"SVG\": \"\\u003csvg��\\u003c/svg\\u003e\"\n   }'")
+			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Dir\": \"services/my-service/diagram\",\n      \"Filename\": \"model.go\",\n      \"Repository\": \"my-repo\",\n      \"SVG\": \"\\u003csvg����\\u003c/svg\\u003e\"\n   }'")
 		}
 		err = goa.MergeErrors(err, goa.ValidatePattern("body.SVG", body.SVG, "<svg.*</svg>$"))
-		if err != nil {
-			return nil, err
+		err = goa.MergeErrors(err, goa.ValidatePattern("body.Filename", body.Filename, "\\.go$"))
+		if utf8.RuneCountInString(body.Repository) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Repository", body.Repository, utf8.RuneCountInString(body.Repository), 1, true))
 		}
-	}
-	var filename string
-	{
-		filename = sVGSaveFilename
-		err = goa.MergeErrors(err, goa.ValidatePattern("Filename", filename, ".*\\.svg"))
+		if utf8.RuneCountInString(body.Dir) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Dir", body.Dir, utf8.RuneCountInString(body.Dir), 1, true))
+		}
 		if err != nil {
 			return nil, err
 		}
 	}
 	v := &svg.SavePayload{
-		SVG: svg.SVG(body.SVG),
+		SVG:        svg.SVG(body.SVG),
+		Filename:   body.Filename,
+		Repository: body.Repository,
+		Dir:        body.Dir,
 	}
-	v.Filename = filename
 
 	return v, nil
 }

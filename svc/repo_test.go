@@ -46,7 +46,7 @@ func Test_CreatePackage(t *testing.T) {
 			},
 			result:   fmt.Errorf("create package error"),
 			expected: "",
-			err:      "failed to create package new: create package error",
+			err:      "create package error",
 		},
 	}
 

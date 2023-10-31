@@ -17,95 +17,106 @@ var _ = Service("DSLEditor", func() {
 		Payload(PackageFile)
 		HTTP(func() {
 			POST("/")
-			Response(StatusNoContent)
+			Response(StatusOK)
 		})
 	})
 	Method("UpsertSystem", func() {
 		Description("Create or update a software system in the model")
 		Payload(System)
+		Result(PackageFile)
 		HTTP(func() {
 			PUT("/model/system")
-			Response(StatusNoContent)
+			Response(StatusOK)
 		})
 	})
 	Method("UpsertPerson", func() {
 		Description("Create or update a person in the model")
 		Payload(Person)
+		Result(PackageFile)
 		HTTP(func() {
 			PUT("/model/person")
-			Response(StatusNoContent)
+			Response(StatusOK)
 		})
 	})
 	Method("UpsertContainer", func() {
 		Description("Create or update a container in the model")
 		Payload(Container)
+		Result(PackageFile)
 		HTTP(func() {
 			PUT("/model/container")
-			Response(StatusNoContent)
+			Response(StatusOK)
 		})
 	})
 	Method("UpsertComponent", func() {
 		Description("Create or update a component in the model")
 		Payload(Component)
+		Result(PackageFile)
 		HTTP(func() {
 			PUT("/model/component")
-			Response(StatusNoContent)
+			Response(StatusOK)
 		})
 	})
 	Method("UpsertRelationship", func() {
 		Description("Create or update a relationship in the model")
 		Payload(Relationship)
+		Result(PackageFile)
 		HTTP(func() {
 			PUT("/model/relationship")
-			Response(StatusNoContent)
+			Response(StatusOK)
 		})
 	})
 	Method("UpsertLandscapeView", func() {
 		Description("Create or update a landscape view in the model")
 		Payload(LandscapeView)
+		Result(PackageFile)
 		HTTP(func() {
 			PUT("/views/landscape")
-			Response(StatusNoContent)
+			Response(StatusOK)
 		})
 	})
 	Method("UpsertSystemContextView", func() {
 		Description("Create or update a system context view in the model")
 		Payload(SystemContextView)
+		Result(PackageFile)
 		HTTP(func() {
 			PUT("/views/systemcontext")
-			Response(StatusNoContent)
+			Response(StatusOK)
 		})
 	})
 	Method("UpsertContainerView", func() {
 		Description("Create or update a container view in the model")
 		Payload(ContainerView)
+		Result(PackageFile)
 		HTTP(func() {
 			PUT("/views/container")
-			Response(StatusNoContent)
+			Response(StatusOK)
 		})
 	})
 	Method("UpsertComponentView", func() {
 		Description("Create or update a component view in the model")
 		Payload(ComponentView)
+		Result(PackageFile)
 		HTTP(func() {
 			PUT("/views/component")
-			Response(StatusNoContent)
+			Response(StatusOK)
 		})
 	})
 	Method("UpserElementStyle", func() {
 		Description("Create or update an element style in the model")
 		Payload(ElementStyle)
+		Result(PackageFile)
 		HTTP(func() {
 			PUT("/views/elementstyle")
-			Response(StatusNoContent)
+			Response(StatusOK)
 		})
 	})
 	Method("UpsertRelationshipStyle", func() {
 		Description("Create or update a relationship style in the model")
 		Payload(RelationshipStyle)
+		Result(PackageFile)
 		HTTP(func() {
 			PUT("/views/relationshipstyle")
-			Response(StatusNoContent)
+			Response(StatusOK)
 		})
 	})
 	Method("DeleteSystem", func() {
@@ -115,10 +126,11 @@ var _ = Service("DSLEditor", func() {
 			Attribute("SystemName", String, "Name of software system to delete")
 			Required("SystemName")
 		})
+		Result(PackageFile)
 		Error("NotFound", ErrorResult, "Software system not found")
 		HTTP(func() {
 			DELETE("/model/system/{SystemName}")
-			Response(StatusNoContent)
+			Response(StatusOK)
 			Response("NotFound", StatusNotFound)
 		})
 	})
@@ -129,10 +141,11 @@ var _ = Service("DSLEditor", func() {
 			Attribute("PersonName", String, "Name of person to delete")
 			Required("PersonName")
 		})
+		Result(PackageFile)
 		Error("NotFound", ErrorResult, "Person not found")
 		HTTP(func() {
 			DELETE("/model/person/{PersonName}")
-			Response(StatusNoContent)
+			Response(StatusOK)
 			Response("NotFound", StatusNotFound)
 		})
 	})
@@ -144,10 +157,11 @@ var _ = Service("DSLEditor", func() {
 			Attribute("ContainerName", String, "Name of container to delete")
 			Required("ContainerName")
 		})
+		Result(PackageFile)
 		Error("NotFound", ErrorResult, "Container not found")
 		HTTP(func() {
 			DELETE("/model/system/{SystemName}/container/{ContainerName}")
-			Response(StatusNoContent)
+			Response(StatusOK)
 			Response("NotFound", StatusNotFound)
 		})
 	})
@@ -166,10 +180,11 @@ var _ = Service("DSLEditor", func() {
 			})
 			Required("SystemName", "ContainerName", "ComponentName")
 		})
+		Result(PackageFile)
 		Error("NotFound", ErrorResult, "Component not found")
 		HTTP(func() {
 			DELETE("/model/system/{SystemName}/container/{ContainerName}/component/{ComponentName}")
-			Response(StatusNoContent)
+			Response(StatusOK)
 			Response("NotFound", StatusNotFound)
 		})
 	})
@@ -201,10 +216,11 @@ var _ = Service("DSLEditor", func() {
 			})
 			Required("SourcePath", "DestinationPath")
 		})
+		Result(PackageFile)
 		Error("NotFound", ErrorResult, "Relationship not found")
 		HTTP(func() {
 			DELETE("/model/relationship")
-			Response(StatusNoContent)
+			Response(StatusOK)
 			Response("NotFound", StatusNotFound)
 		})
 	})
@@ -215,10 +231,11 @@ var _ = Service("DSLEditor", func() {
 			Attribute("Key", String, "Key of landscape view to delete")
 			Required("Key")
 		})
+		Result(PackageFile)
 		Error("NotFound", ErrorResult, "Landscape view not found")
 		HTTP(func() {
 			DELETE("/views/landscape/{Key}")
-			Response(StatusNoContent)
+			Response(StatusOK)
 			Response("NotFound", StatusNotFound)
 		})
 	})
@@ -229,10 +246,11 @@ var _ = Service("DSLEditor", func() {
 			Attribute("Key", String, "Key of system context view to delete")
 			Required("Key")
 		})
+		Result(PackageFile)
 		Error("NotFound", ErrorResult, "System context view not found")
 		HTTP(func() {
 			DELETE("/views/systemcontext/{Key}")
-			Response(StatusNoContent)
+			Response(StatusOK)
 			Response("NotFound", StatusNotFound)
 		})
 	})
@@ -243,10 +261,11 @@ var _ = Service("DSLEditor", func() {
 			Attribute("Key", String, "Key of container view to delete")
 			Required("Key")
 		})
+		Result(PackageFile)
 		Error("NotFound", ErrorResult, "Container view not found")
 		HTTP(func() {
 			DELETE("/views/container/{Key}")
-			Response(StatusNoContent)
+			Response(StatusOK)
 			Response("NotFound", StatusNotFound)
 		})
 	})
@@ -257,10 +276,11 @@ var _ = Service("DSLEditor", func() {
 			Attribute("Key", String, "Key of component view to delete")
 			Required("Key")
 		})
+		Result(PackageFile)
 		Error("NotFound", ErrorResult, "Component view not found")
 		HTTP(func() {
 			DELETE("/views/component/{Key}")
-			Response(StatusNoContent)
+			Response(StatusOK)
 			Response("NotFound", StatusNotFound)
 		})
 	})
@@ -271,10 +291,11 @@ var _ = Service("DSLEditor", func() {
 			Attribute("Tag", String, "Tag of element style to delete")
 			Required("Tag")
 		})
+		Result(PackageFile)
 		Error("NotFound", ErrorResult, "Element style not found")
 		HTTP(func() {
 			DELETE("/views/elementstyle/{Tag}")
-			Response(StatusNoContent)
+			Response(StatusOK)
 			Response("NotFound", StatusNotFound)
 		})
 	})
@@ -285,10 +306,11 @@ var _ = Service("DSLEditor", func() {
 			Attribute("Tag", String, "Tag of relationship style to delete")
 			Required("Tag")
 		})
+		Result(PackageFile)
 		Error("NotFound", ErrorResult, "Relationship style not found")
 		HTTP(func() {
 			DELETE("/views/relationshipstyle/{Tag}")
-			Response(StatusNoContent)
+			Response(StatusOK)
 			Response("NotFound", StatusNotFound)
 		})
 	})
@@ -410,15 +432,24 @@ var Relationship = Type("Relationship", func() {
 			Value("Software System/Container/Component")
 		})
 	})
-	Attribute("DestinationPath", String, "Path to destination element, see SourcePath for details.", func() {
+	Attribute("DestinationPath", String, "Relative path to destination element, see SourcePath for details.", func() {
 		Example("Software System", func() {
 			Value("Software System")
 		})
-		Example("Container", func() {
+		Example("Container in different system", func() {
 			Value("Software System/Container")
 		})
-		Example("Component", func() {
+		Example("Container in same system", func() {
+			Value("Container")
+		})
+		Example("Component in different system", func() {
 			Value("Software System/Container/Component")
+		})
+		Example("Component in same system", func() {
+			Value("Container/Component")
+		})
+		Example("Component in same container", func() {
+			Value("Component")
 		})
 	})
 	Attribute("Description", String, "Description of relationship", func() {
@@ -438,7 +469,7 @@ var Relationship = Type("Relationship", func() {
 		Format(FormatURI)
 		Example("https://relationship.com")
 	})
-	Required("SourcePath", "DestinationPath")
+	Required("SourcePath", "SourceKind", "DestinationPath", "DestinationKind")
 })
 
 var ViewBase = Type("ViewBase", func() {

@@ -113,9 +113,13 @@ type UpsertComponentRequestBody struct {
 type UpsertRelationshipRequestBody struct {
 	// Path to file containing relationship DSL
 	Locator *FileLocatorRequestBody `form:"Locator,omitempty" json:"Locator,omitempty" xml:"Locator,omitempty"`
+	// Kind of source element
+	SourceKind string `form:"SourceKind" json:"SourceKind" xml:"SourceKind"`
 	// Path to source element consisting of <software system name>[/<container
 	// name>[/<component name>]]
 	SourcePath string `form:"SourcePath" json:"SourcePath" xml:"SourcePath"`
+	// Kind of destination element
+	DestinationKind string `form:"DestinationKind" json:"DestinationKind" xml:"DestinationKind"`
 	// Path to destination element, see SourcePath for details.
 	DestinationPath string `form:"DestinationPath" json:"DestinationPath" xml:"DestinationPath"`
 	// Description of relationship
@@ -406,6 +410,204 @@ type DeleteRelationshipStyleRequestBody struct {
 	Repository string `form:"Repository" json:"Repository" xml:"Repository"`
 	// Path to directory containing a model package
 	Dir string `form:"Dir" json:"Dir" xml:"Dir"`
+}
+
+// UpsertSystemResponseBody is the type of the "DSLEditor" service
+// "UpsertSystem" endpoint HTTP response body.
+type UpsertSystemResponseBody struct {
+	// Path to file containing DSL code
+	Locator *FileLocatorResponseBody `form:"Locator,omitempty" json:"Locator,omitempty" xml:"Locator,omitempty"`
+	// DSL code
+	Content *string `form:"Content,omitempty" json:"Content,omitempty" xml:"Content,omitempty"`
+}
+
+// UpsertPersonResponseBody is the type of the "DSLEditor" service
+// "UpsertPerson" endpoint HTTP response body.
+type UpsertPersonResponseBody struct {
+	// Path to file containing DSL code
+	Locator *FileLocatorResponseBody `form:"Locator,omitempty" json:"Locator,omitempty" xml:"Locator,omitempty"`
+	// DSL code
+	Content *string `form:"Content,omitempty" json:"Content,omitempty" xml:"Content,omitempty"`
+}
+
+// UpsertContainerResponseBody is the type of the "DSLEditor" service
+// "UpsertContainer" endpoint HTTP response body.
+type UpsertContainerResponseBody struct {
+	// Path to file containing DSL code
+	Locator *FileLocatorResponseBody `form:"Locator,omitempty" json:"Locator,omitempty" xml:"Locator,omitempty"`
+	// DSL code
+	Content *string `form:"Content,omitempty" json:"Content,omitempty" xml:"Content,omitempty"`
+}
+
+// UpsertComponentResponseBody is the type of the "DSLEditor" service
+// "UpsertComponent" endpoint HTTP response body.
+type UpsertComponentResponseBody struct {
+	// Path to file containing DSL code
+	Locator *FileLocatorResponseBody `form:"Locator,omitempty" json:"Locator,omitempty" xml:"Locator,omitempty"`
+	// DSL code
+	Content *string `form:"Content,omitempty" json:"Content,omitempty" xml:"Content,omitempty"`
+}
+
+// UpsertRelationshipResponseBody is the type of the "DSLEditor" service
+// "UpsertRelationship" endpoint HTTP response body.
+type UpsertRelationshipResponseBody struct {
+	// Path to file containing DSL code
+	Locator *FileLocatorResponseBody `form:"Locator,omitempty" json:"Locator,omitempty" xml:"Locator,omitempty"`
+	// DSL code
+	Content *string `form:"Content,omitempty" json:"Content,omitempty" xml:"Content,omitempty"`
+}
+
+// UpsertLandscapeViewResponseBody is the type of the "DSLEditor" service
+// "UpsertLandscapeView" endpoint HTTP response body.
+type UpsertLandscapeViewResponseBody struct {
+	// Path to file containing DSL code
+	Locator *FileLocatorResponseBody `form:"Locator,omitempty" json:"Locator,omitempty" xml:"Locator,omitempty"`
+	// DSL code
+	Content *string `form:"Content,omitempty" json:"Content,omitempty" xml:"Content,omitempty"`
+}
+
+// UpsertSystemContextViewResponseBody is the type of the "DSLEditor" service
+// "UpsertSystemContextView" endpoint HTTP response body.
+type UpsertSystemContextViewResponseBody struct {
+	// Path to file containing DSL code
+	Locator *FileLocatorResponseBody `form:"Locator,omitempty" json:"Locator,omitempty" xml:"Locator,omitempty"`
+	// DSL code
+	Content *string `form:"Content,omitempty" json:"Content,omitempty" xml:"Content,omitempty"`
+}
+
+// UpsertContainerViewResponseBody is the type of the "DSLEditor" service
+// "UpsertContainerView" endpoint HTTP response body.
+type UpsertContainerViewResponseBody struct {
+	// Path to file containing DSL code
+	Locator *FileLocatorResponseBody `form:"Locator,omitempty" json:"Locator,omitempty" xml:"Locator,omitempty"`
+	// DSL code
+	Content *string `form:"Content,omitempty" json:"Content,omitempty" xml:"Content,omitempty"`
+}
+
+// UpsertComponentViewResponseBody is the type of the "DSLEditor" service
+// "UpsertComponentView" endpoint HTTP response body.
+type UpsertComponentViewResponseBody struct {
+	// Path to file containing DSL code
+	Locator *FileLocatorResponseBody `form:"Locator,omitempty" json:"Locator,omitempty" xml:"Locator,omitempty"`
+	// DSL code
+	Content *string `form:"Content,omitempty" json:"Content,omitempty" xml:"Content,omitempty"`
+}
+
+// UpserElementStyleResponseBody is the type of the "DSLEditor" service
+// "UpserElementStyle" endpoint HTTP response body.
+type UpserElementStyleResponseBody struct {
+	// Path to file containing DSL code
+	Locator *FileLocatorResponseBody `form:"Locator,omitempty" json:"Locator,omitempty" xml:"Locator,omitempty"`
+	// DSL code
+	Content *string `form:"Content,omitempty" json:"Content,omitempty" xml:"Content,omitempty"`
+}
+
+// UpsertRelationshipStyleResponseBody is the type of the "DSLEditor" service
+// "UpsertRelationshipStyle" endpoint HTTP response body.
+type UpsertRelationshipStyleResponseBody struct {
+	// Path to file containing DSL code
+	Locator *FileLocatorResponseBody `form:"Locator,omitempty" json:"Locator,omitempty" xml:"Locator,omitempty"`
+	// DSL code
+	Content *string `form:"Content,omitempty" json:"Content,omitempty" xml:"Content,omitempty"`
+}
+
+// DeleteSystemResponseBody is the type of the "DSLEditor" service
+// "DeleteSystem" endpoint HTTP response body.
+type DeleteSystemResponseBody struct {
+	// Path to file containing DSL code
+	Locator *FileLocatorResponseBody `form:"Locator,omitempty" json:"Locator,omitempty" xml:"Locator,omitempty"`
+	// DSL code
+	Content *string `form:"Content,omitempty" json:"Content,omitempty" xml:"Content,omitempty"`
+}
+
+// DeletePersonResponseBody is the type of the "DSLEditor" service
+// "DeletePerson" endpoint HTTP response body.
+type DeletePersonResponseBody struct {
+	// Path to file containing DSL code
+	Locator *FileLocatorResponseBody `form:"Locator,omitempty" json:"Locator,omitempty" xml:"Locator,omitempty"`
+	// DSL code
+	Content *string `form:"Content,omitempty" json:"Content,omitempty" xml:"Content,omitempty"`
+}
+
+// DeleteContainerResponseBody is the type of the "DSLEditor" service
+// "DeleteContainer" endpoint HTTP response body.
+type DeleteContainerResponseBody struct {
+	// Path to file containing DSL code
+	Locator *FileLocatorResponseBody `form:"Locator,omitempty" json:"Locator,omitempty" xml:"Locator,omitempty"`
+	// DSL code
+	Content *string `form:"Content,omitempty" json:"Content,omitempty" xml:"Content,omitempty"`
+}
+
+// DeleteComponentResponseBody is the type of the "DSLEditor" service
+// "DeleteComponent" endpoint HTTP response body.
+type DeleteComponentResponseBody struct {
+	// Path to file containing DSL code
+	Locator *FileLocatorResponseBody `form:"Locator,omitempty" json:"Locator,omitempty" xml:"Locator,omitempty"`
+	// DSL code
+	Content *string `form:"Content,omitempty" json:"Content,omitempty" xml:"Content,omitempty"`
+}
+
+// DeleteRelationshipResponseBody is the type of the "DSLEditor" service
+// "DeleteRelationship" endpoint HTTP response body.
+type DeleteRelationshipResponseBody struct {
+	// Path to file containing DSL code
+	Locator *FileLocatorResponseBody `form:"Locator,omitempty" json:"Locator,omitempty" xml:"Locator,omitempty"`
+	// DSL code
+	Content *string `form:"Content,omitempty" json:"Content,omitempty" xml:"Content,omitempty"`
+}
+
+// DeleteLandscapeViewResponseBody is the type of the "DSLEditor" service
+// "DeleteLandscapeView" endpoint HTTP response body.
+type DeleteLandscapeViewResponseBody struct {
+	// Path to file containing DSL code
+	Locator *FileLocatorResponseBody `form:"Locator,omitempty" json:"Locator,omitempty" xml:"Locator,omitempty"`
+	// DSL code
+	Content *string `form:"Content,omitempty" json:"Content,omitempty" xml:"Content,omitempty"`
+}
+
+// DeleteSystemContextViewResponseBody is the type of the "DSLEditor" service
+// "DeleteSystemContextView" endpoint HTTP response body.
+type DeleteSystemContextViewResponseBody struct {
+	// Path to file containing DSL code
+	Locator *FileLocatorResponseBody `form:"Locator,omitempty" json:"Locator,omitempty" xml:"Locator,omitempty"`
+	// DSL code
+	Content *string `form:"Content,omitempty" json:"Content,omitempty" xml:"Content,omitempty"`
+}
+
+// DeleteContainerViewResponseBody is the type of the "DSLEditor" service
+// "DeleteContainerView" endpoint HTTP response body.
+type DeleteContainerViewResponseBody struct {
+	// Path to file containing DSL code
+	Locator *FileLocatorResponseBody `form:"Locator,omitempty" json:"Locator,omitempty" xml:"Locator,omitempty"`
+	// DSL code
+	Content *string `form:"Content,omitempty" json:"Content,omitempty" xml:"Content,omitempty"`
+}
+
+// DeleteComponentViewResponseBody is the type of the "DSLEditor" service
+// "DeleteComponentView" endpoint HTTP response body.
+type DeleteComponentViewResponseBody struct {
+	// Path to file containing DSL code
+	Locator *FileLocatorResponseBody `form:"Locator,omitempty" json:"Locator,omitempty" xml:"Locator,omitempty"`
+	// DSL code
+	Content *string `form:"Content,omitempty" json:"Content,omitempty" xml:"Content,omitempty"`
+}
+
+// DeleteElementStyleResponseBody is the type of the "DSLEditor" service
+// "DeleteElementStyle" endpoint HTTP response body.
+type DeleteElementStyleResponseBody struct {
+	// Path to file containing DSL code
+	Locator *FileLocatorResponseBody `form:"Locator,omitempty" json:"Locator,omitempty" xml:"Locator,omitempty"`
+	// DSL code
+	Content *string `form:"Content,omitempty" json:"Content,omitempty" xml:"Content,omitempty"`
+}
+
+// DeleteRelationshipStyleResponseBody is the type of the "DSLEditor" service
+// "DeleteRelationshipStyle" endpoint HTTP response body.
+type DeleteRelationshipStyleResponseBody struct {
+	// Path to file containing DSL code
+	Locator *FileLocatorResponseBody `form:"Locator,omitempty" json:"Locator,omitempty" xml:"Locator,omitempty"`
+	// DSL code
+	Content *string `form:"Content,omitempty" json:"Content,omitempty" xml:"Content,omitempty"`
 }
 
 // UpdateDSLCompilationFailedResponseBody is the type of the "DSLEditor"
@@ -1060,6 +1262,16 @@ type FileLocatorRequestBody struct {
 	Dir string `form:"Dir" json:"Dir" xml:"Dir"`
 }
 
+// FileLocatorResponseBody is used to define fields on response body types.
+type FileLocatorResponseBody struct {
+	// Name of DSL file
+	Filename *string `form:"Filename,omitempty" json:"Filename,omitempty" xml:"Filename,omitempty"`
+	// Path to repository root
+	Repository *string `form:"Repository,omitempty" json:"Repository,omitempty" xml:"Repository,omitempty"`
+	// Path to directory containing a model package
+	Dir *string `form:"Dir,omitempty" json:"Dir,omitempty" xml:"Dir,omitempty"`
+}
+
 // ElementViewRequestBody is used to define fields on request body types.
 type ElementViewRequestBody struct {
 	// Path to element consisting of <software system name>[/<container
@@ -1223,7 +1435,9 @@ func NewUpsertComponentRequestBody(p *dsleditor.Component) *UpsertComponentReque
 // payload of the "UpsertRelationship" endpoint of the "DSLEditor" service.
 func NewUpsertRelationshipRequestBody(p *dsleditor.Relationship) *UpsertRelationshipRequestBody {
 	body := &UpsertRelationshipRequestBody{
+		SourceKind:       p.SourceKind,
 		SourcePath:       p.SourcePath,
+		DestinationKind:  p.DestinationKind,
 		DestinationPath:  p.DestinationPath,
 		Description:      p.Description,
 		Technology:       p.Technology,
@@ -1595,6 +1809,17 @@ func NewUpdateDSLCompilationFailed(body *UpdateDSLCompilationFailedResponseBody)
 	return v
 }
 
+// NewUpsertSystemPackageFileOK builds a "DSLEditor" service "UpsertSystem"
+// endpoint result from a HTTP "OK" response.
+func NewUpsertSystemPackageFileOK(body *UpsertSystemResponseBody) *types.PackageFile {
+	v := &types.PackageFile{
+		Content: *body.Content,
+	}
+	v.Locator = unmarshalFileLocatorResponseBodyToTypesFileLocator(body.Locator)
+
+	return v
+}
+
 // NewUpsertSystemCompilationFailed builds a DSLEditor service UpsertSystem
 // endpoint compilation_failed error.
 func NewUpsertSystemCompilationFailed(body *UpsertSystemCompilationFailedResponseBody) *goa.ServiceError {
@@ -1606,6 +1831,17 @@ func NewUpsertSystemCompilationFailed(body *UpsertSystemCompilationFailedRespons
 		Timeout:   *body.Timeout,
 		Fault:     *body.Fault,
 	}
+
+	return v
+}
+
+// NewUpsertPersonPackageFileOK builds a "DSLEditor" service "UpsertPerson"
+// endpoint result from a HTTP "OK" response.
+func NewUpsertPersonPackageFileOK(body *UpsertPersonResponseBody) *types.PackageFile {
+	v := &types.PackageFile{
+		Content: *body.Content,
+	}
+	v.Locator = unmarshalFileLocatorResponseBodyToTypesFileLocator(body.Locator)
 
 	return v
 }
@@ -1625,6 +1861,17 @@ func NewUpsertPersonCompilationFailed(body *UpsertPersonCompilationFailedRespons
 	return v
 }
 
+// NewUpsertContainerPackageFileOK builds a "DSLEditor" service
+// "UpsertContainer" endpoint result from a HTTP "OK" response.
+func NewUpsertContainerPackageFileOK(body *UpsertContainerResponseBody) *types.PackageFile {
+	v := &types.PackageFile{
+		Content: *body.Content,
+	}
+	v.Locator = unmarshalFileLocatorResponseBodyToTypesFileLocator(body.Locator)
+
+	return v
+}
+
 // NewUpsertContainerCompilationFailed builds a DSLEditor service
 // UpsertContainer endpoint compilation_failed error.
 func NewUpsertContainerCompilationFailed(body *UpsertContainerCompilationFailedResponseBody) *goa.ServiceError {
@@ -1636,6 +1883,17 @@ func NewUpsertContainerCompilationFailed(body *UpsertContainerCompilationFailedR
 		Timeout:   *body.Timeout,
 		Fault:     *body.Fault,
 	}
+
+	return v
+}
+
+// NewUpsertComponentPackageFileOK builds a "DSLEditor" service
+// "UpsertComponent" endpoint result from a HTTP "OK" response.
+func NewUpsertComponentPackageFileOK(body *UpsertComponentResponseBody) *types.PackageFile {
+	v := &types.PackageFile{
+		Content: *body.Content,
+	}
+	v.Locator = unmarshalFileLocatorResponseBodyToTypesFileLocator(body.Locator)
 
 	return v
 }
@@ -1655,6 +1913,17 @@ func NewUpsertComponentCompilationFailed(body *UpsertComponentCompilationFailedR
 	return v
 }
 
+// NewUpsertRelationshipPackageFileOK builds a "DSLEditor" service
+// "UpsertRelationship" endpoint result from a HTTP "OK" response.
+func NewUpsertRelationshipPackageFileOK(body *UpsertRelationshipResponseBody) *types.PackageFile {
+	v := &types.PackageFile{
+		Content: *body.Content,
+	}
+	v.Locator = unmarshalFileLocatorResponseBodyToTypesFileLocator(body.Locator)
+
+	return v
+}
+
 // NewUpsertRelationshipCompilationFailed builds a DSLEditor service
 // UpsertRelationship endpoint compilation_failed error.
 func NewUpsertRelationshipCompilationFailed(body *UpsertRelationshipCompilationFailedResponseBody) *goa.ServiceError {
@@ -1666,6 +1935,17 @@ func NewUpsertRelationshipCompilationFailed(body *UpsertRelationshipCompilationF
 		Timeout:   *body.Timeout,
 		Fault:     *body.Fault,
 	}
+
+	return v
+}
+
+// NewUpsertLandscapeViewPackageFileOK builds a "DSLEditor" service
+// "UpsertLandscapeView" endpoint result from a HTTP "OK" response.
+func NewUpsertLandscapeViewPackageFileOK(body *UpsertLandscapeViewResponseBody) *types.PackageFile {
+	v := &types.PackageFile{
+		Content: *body.Content,
+	}
+	v.Locator = unmarshalFileLocatorResponseBodyToTypesFileLocator(body.Locator)
 
 	return v
 }
@@ -1685,6 +1965,17 @@ func NewUpsertLandscapeViewCompilationFailed(body *UpsertLandscapeViewCompilatio
 	return v
 }
 
+// NewUpsertSystemContextViewPackageFileOK builds a "DSLEditor" service
+// "UpsertSystemContextView" endpoint result from a HTTP "OK" response.
+func NewUpsertSystemContextViewPackageFileOK(body *UpsertSystemContextViewResponseBody) *types.PackageFile {
+	v := &types.PackageFile{
+		Content: *body.Content,
+	}
+	v.Locator = unmarshalFileLocatorResponseBodyToTypesFileLocator(body.Locator)
+
+	return v
+}
+
 // NewUpsertSystemContextViewCompilationFailed builds a DSLEditor service
 // UpsertSystemContextView endpoint compilation_failed error.
 func NewUpsertSystemContextViewCompilationFailed(body *UpsertSystemContextViewCompilationFailedResponseBody) *goa.ServiceError {
@@ -1696,6 +1987,17 @@ func NewUpsertSystemContextViewCompilationFailed(body *UpsertSystemContextViewCo
 		Timeout:   *body.Timeout,
 		Fault:     *body.Fault,
 	}
+
+	return v
+}
+
+// NewUpsertContainerViewPackageFileOK builds a "DSLEditor" service
+// "UpsertContainerView" endpoint result from a HTTP "OK" response.
+func NewUpsertContainerViewPackageFileOK(body *UpsertContainerViewResponseBody) *types.PackageFile {
+	v := &types.PackageFile{
+		Content: *body.Content,
+	}
+	v.Locator = unmarshalFileLocatorResponseBodyToTypesFileLocator(body.Locator)
 
 	return v
 }
@@ -1715,6 +2017,17 @@ func NewUpsertContainerViewCompilationFailed(body *UpsertContainerViewCompilatio
 	return v
 }
 
+// NewUpsertComponentViewPackageFileOK builds a "DSLEditor" service
+// "UpsertComponentView" endpoint result from a HTTP "OK" response.
+func NewUpsertComponentViewPackageFileOK(body *UpsertComponentViewResponseBody) *types.PackageFile {
+	v := &types.PackageFile{
+		Content: *body.Content,
+	}
+	v.Locator = unmarshalFileLocatorResponseBodyToTypesFileLocator(body.Locator)
+
+	return v
+}
+
 // NewUpsertComponentViewCompilationFailed builds a DSLEditor service
 // UpsertComponentView endpoint compilation_failed error.
 func NewUpsertComponentViewCompilationFailed(body *UpsertComponentViewCompilationFailedResponseBody) *goa.ServiceError {
@@ -1726,6 +2039,17 @@ func NewUpsertComponentViewCompilationFailed(body *UpsertComponentViewCompilatio
 		Timeout:   *body.Timeout,
 		Fault:     *body.Fault,
 	}
+
+	return v
+}
+
+// NewUpserElementStylePackageFileOK builds a "DSLEditor" service
+// "UpserElementStyle" endpoint result from a HTTP "OK" response.
+func NewUpserElementStylePackageFileOK(body *UpserElementStyleResponseBody) *types.PackageFile {
+	v := &types.PackageFile{
+		Content: *body.Content,
+	}
+	v.Locator = unmarshalFileLocatorResponseBodyToTypesFileLocator(body.Locator)
 
 	return v
 }
@@ -1745,6 +2069,17 @@ func NewUpserElementStyleCompilationFailed(body *UpserElementStyleCompilationFai
 	return v
 }
 
+// NewUpsertRelationshipStylePackageFileOK builds a "DSLEditor" service
+// "UpsertRelationshipStyle" endpoint result from a HTTP "OK" response.
+func NewUpsertRelationshipStylePackageFileOK(body *UpsertRelationshipStyleResponseBody) *types.PackageFile {
+	v := &types.PackageFile{
+		Content: *body.Content,
+	}
+	v.Locator = unmarshalFileLocatorResponseBodyToTypesFileLocator(body.Locator)
+
+	return v
+}
+
 // NewUpsertRelationshipStyleCompilationFailed builds a DSLEditor service
 // UpsertRelationshipStyle endpoint compilation_failed error.
 func NewUpsertRelationshipStyleCompilationFailed(body *UpsertRelationshipStyleCompilationFailedResponseBody) *goa.ServiceError {
@@ -1756,6 +2091,17 @@ func NewUpsertRelationshipStyleCompilationFailed(body *UpsertRelationshipStyleCo
 		Timeout:   *body.Timeout,
 		Fault:     *body.Fault,
 	}
+
+	return v
+}
+
+// NewDeleteSystemPackageFileOK builds a "DSLEditor" service "DeleteSystem"
+// endpoint result from a HTTP "OK" response.
+func NewDeleteSystemPackageFileOK(body *DeleteSystemResponseBody) *types.PackageFile {
+	v := &types.PackageFile{
+		Content: *body.Content,
+	}
+	v.Locator = unmarshalFileLocatorResponseBodyToTypesFileLocator(body.Locator)
 
 	return v
 }
@@ -1790,6 +2136,17 @@ func NewDeleteSystemCompilationFailed(body *DeleteSystemCompilationFailedRespons
 	return v
 }
 
+// NewDeletePersonPackageFileOK builds a "DSLEditor" service "DeletePerson"
+// endpoint result from a HTTP "OK" response.
+func NewDeletePersonPackageFileOK(body *DeletePersonResponseBody) *types.PackageFile {
+	v := &types.PackageFile{
+		Content: *body.Content,
+	}
+	v.Locator = unmarshalFileLocatorResponseBodyToTypesFileLocator(body.Locator)
+
+	return v
+}
+
 // NewDeletePersonNotFound builds a DSLEditor service DeletePerson endpoint
 // NotFound error.
 func NewDeletePersonNotFound(body *DeletePersonNotFoundResponseBody) *goa.ServiceError {
@@ -1816,6 +2173,17 @@ func NewDeletePersonCompilationFailed(body *DeletePersonCompilationFailedRespons
 		Timeout:   *body.Timeout,
 		Fault:     *body.Fault,
 	}
+
+	return v
+}
+
+// NewDeleteContainerPackageFileOK builds a "DSLEditor" service
+// "DeleteContainer" endpoint result from a HTTP "OK" response.
+func NewDeleteContainerPackageFileOK(body *DeleteContainerResponseBody) *types.PackageFile {
+	v := &types.PackageFile{
+		Content: *body.Content,
+	}
+	v.Locator = unmarshalFileLocatorResponseBodyToTypesFileLocator(body.Locator)
 
 	return v
 }
@@ -1850,6 +2218,17 @@ func NewDeleteContainerCompilationFailed(body *DeleteContainerCompilationFailedR
 	return v
 }
 
+// NewDeleteComponentPackageFileOK builds a "DSLEditor" service
+// "DeleteComponent" endpoint result from a HTTP "OK" response.
+func NewDeleteComponentPackageFileOK(body *DeleteComponentResponseBody) *types.PackageFile {
+	v := &types.PackageFile{
+		Content: *body.Content,
+	}
+	v.Locator = unmarshalFileLocatorResponseBodyToTypesFileLocator(body.Locator)
+
+	return v
+}
+
 // NewDeleteComponentNotFound builds a DSLEditor service DeleteComponent
 // endpoint NotFound error.
 func NewDeleteComponentNotFound(body *DeleteComponentNotFoundResponseBody) *goa.ServiceError {
@@ -1876,6 +2255,17 @@ func NewDeleteComponentCompilationFailed(body *DeleteComponentCompilationFailedR
 		Timeout:   *body.Timeout,
 		Fault:     *body.Fault,
 	}
+
+	return v
+}
+
+// NewDeleteRelationshipPackageFileOK builds a "DSLEditor" service
+// "DeleteRelationship" endpoint result from a HTTP "OK" response.
+func NewDeleteRelationshipPackageFileOK(body *DeleteRelationshipResponseBody) *types.PackageFile {
+	v := &types.PackageFile{
+		Content: *body.Content,
+	}
+	v.Locator = unmarshalFileLocatorResponseBodyToTypesFileLocator(body.Locator)
 
 	return v
 }
@@ -1910,6 +2300,17 @@ func NewDeleteRelationshipCompilationFailed(body *DeleteRelationshipCompilationF
 	return v
 }
 
+// NewDeleteLandscapeViewPackageFileOK builds a "DSLEditor" service
+// "DeleteLandscapeView" endpoint result from a HTTP "OK" response.
+func NewDeleteLandscapeViewPackageFileOK(body *DeleteLandscapeViewResponseBody) *types.PackageFile {
+	v := &types.PackageFile{
+		Content: *body.Content,
+	}
+	v.Locator = unmarshalFileLocatorResponseBodyToTypesFileLocator(body.Locator)
+
+	return v
+}
+
 // NewDeleteLandscapeViewNotFound builds a DSLEditor service
 // DeleteLandscapeView endpoint NotFound error.
 func NewDeleteLandscapeViewNotFound(body *DeleteLandscapeViewNotFoundResponseBody) *goa.ServiceError {
@@ -1936,6 +2337,17 @@ func NewDeleteLandscapeViewCompilationFailed(body *DeleteLandscapeViewCompilatio
 		Timeout:   *body.Timeout,
 		Fault:     *body.Fault,
 	}
+
+	return v
+}
+
+// NewDeleteSystemContextViewPackageFileOK builds a "DSLEditor" service
+// "DeleteSystemContextView" endpoint result from a HTTP "OK" response.
+func NewDeleteSystemContextViewPackageFileOK(body *DeleteSystemContextViewResponseBody) *types.PackageFile {
+	v := &types.PackageFile{
+		Content: *body.Content,
+	}
+	v.Locator = unmarshalFileLocatorResponseBodyToTypesFileLocator(body.Locator)
 
 	return v
 }
@@ -1970,6 +2382,17 @@ func NewDeleteSystemContextViewCompilationFailed(body *DeleteSystemContextViewCo
 	return v
 }
 
+// NewDeleteContainerViewPackageFileOK builds a "DSLEditor" service
+// "DeleteContainerView" endpoint result from a HTTP "OK" response.
+func NewDeleteContainerViewPackageFileOK(body *DeleteContainerViewResponseBody) *types.PackageFile {
+	v := &types.PackageFile{
+		Content: *body.Content,
+	}
+	v.Locator = unmarshalFileLocatorResponseBodyToTypesFileLocator(body.Locator)
+
+	return v
+}
+
 // NewDeleteContainerViewNotFound builds a DSLEditor service
 // DeleteContainerView endpoint NotFound error.
 func NewDeleteContainerViewNotFound(body *DeleteContainerViewNotFoundResponseBody) *goa.ServiceError {
@@ -1996,6 +2419,17 @@ func NewDeleteContainerViewCompilationFailed(body *DeleteContainerViewCompilatio
 		Timeout:   *body.Timeout,
 		Fault:     *body.Fault,
 	}
+
+	return v
+}
+
+// NewDeleteComponentViewPackageFileOK builds a "DSLEditor" service
+// "DeleteComponentView" endpoint result from a HTTP "OK" response.
+func NewDeleteComponentViewPackageFileOK(body *DeleteComponentViewResponseBody) *types.PackageFile {
+	v := &types.PackageFile{
+		Content: *body.Content,
+	}
+	v.Locator = unmarshalFileLocatorResponseBodyToTypesFileLocator(body.Locator)
 
 	return v
 }
@@ -2030,6 +2464,17 @@ func NewDeleteComponentViewCompilationFailed(body *DeleteComponentViewCompilatio
 	return v
 }
 
+// NewDeleteElementStylePackageFileOK builds a "DSLEditor" service
+// "DeleteElementStyle" endpoint result from a HTTP "OK" response.
+func NewDeleteElementStylePackageFileOK(body *DeleteElementStyleResponseBody) *types.PackageFile {
+	v := &types.PackageFile{
+		Content: *body.Content,
+	}
+	v.Locator = unmarshalFileLocatorResponseBodyToTypesFileLocator(body.Locator)
+
+	return v
+}
+
 // NewDeleteElementStyleNotFound builds a DSLEditor service DeleteElementStyle
 // endpoint NotFound error.
 func NewDeleteElementStyleNotFound(body *DeleteElementStyleNotFoundResponseBody) *goa.ServiceError {
@@ -2056,6 +2501,17 @@ func NewDeleteElementStyleCompilationFailed(body *DeleteElementStyleCompilationF
 		Timeout:   *body.Timeout,
 		Fault:     *body.Fault,
 	}
+
+	return v
+}
+
+// NewDeleteRelationshipStylePackageFileOK builds a "DSLEditor" service
+// "DeleteRelationshipStyle" endpoint result from a HTTP "OK" response.
+func NewDeleteRelationshipStylePackageFileOK(body *DeleteRelationshipStyleResponseBody) *types.PackageFile {
+	v := &types.PackageFile{
+		Content: *body.Content,
+	}
+	v.Locator = unmarshalFileLocatorResponseBodyToTypesFileLocator(body.Locator)
 
 	return v
 }
@@ -2088,6 +2544,556 @@ func NewDeleteRelationshipStyleCompilationFailed(body *DeleteRelationshipStyleCo
 	}
 
 	return v
+}
+
+// ValidateUpsertSystemResponseBody runs the validations defined on
+// UpsertSystemResponseBody
+func ValidateUpsertSystemResponseBody(body *UpsertSystemResponseBody) (err error) {
+	if body.Locator == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Locator", "body"))
+	}
+	if body.Content == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Content", "body"))
+	}
+	if body.Locator != nil {
+		if err2 := ValidateFileLocatorResponseBody(body.Locator); err2 != nil {
+			err = goa.MergeErrors(err, err2)
+		}
+	}
+	if body.Content != nil {
+		err = goa.MergeErrors(err, goa.ValidatePattern("body.Content", *body.Content, "import . \"goa.design/model/dsl\""))
+	}
+	if body.Content != nil {
+		if utf8.RuneCountInString(*body.Content) < 58 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Content", *body.Content, utf8.RuneCountInString(*body.Content), 58, true))
+		}
+	}
+	return
+}
+
+// ValidateUpsertPersonResponseBody runs the validations defined on
+// UpsertPersonResponseBody
+func ValidateUpsertPersonResponseBody(body *UpsertPersonResponseBody) (err error) {
+	if body.Locator == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Locator", "body"))
+	}
+	if body.Content == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Content", "body"))
+	}
+	if body.Locator != nil {
+		if err2 := ValidateFileLocatorResponseBody(body.Locator); err2 != nil {
+			err = goa.MergeErrors(err, err2)
+		}
+	}
+	if body.Content != nil {
+		err = goa.MergeErrors(err, goa.ValidatePattern("body.Content", *body.Content, "import . \"goa.design/model/dsl\""))
+	}
+	if body.Content != nil {
+		if utf8.RuneCountInString(*body.Content) < 58 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Content", *body.Content, utf8.RuneCountInString(*body.Content), 58, true))
+		}
+	}
+	return
+}
+
+// ValidateUpsertContainerResponseBody runs the validations defined on
+// UpsertContainerResponseBody
+func ValidateUpsertContainerResponseBody(body *UpsertContainerResponseBody) (err error) {
+	if body.Locator == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Locator", "body"))
+	}
+	if body.Content == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Content", "body"))
+	}
+	if body.Locator != nil {
+		if err2 := ValidateFileLocatorResponseBody(body.Locator); err2 != nil {
+			err = goa.MergeErrors(err, err2)
+		}
+	}
+	if body.Content != nil {
+		err = goa.MergeErrors(err, goa.ValidatePattern("body.Content", *body.Content, "import . \"goa.design/model/dsl\""))
+	}
+	if body.Content != nil {
+		if utf8.RuneCountInString(*body.Content) < 58 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Content", *body.Content, utf8.RuneCountInString(*body.Content), 58, true))
+		}
+	}
+	return
+}
+
+// ValidateUpsertComponentResponseBody runs the validations defined on
+// UpsertComponentResponseBody
+func ValidateUpsertComponentResponseBody(body *UpsertComponentResponseBody) (err error) {
+	if body.Locator == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Locator", "body"))
+	}
+	if body.Content == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Content", "body"))
+	}
+	if body.Locator != nil {
+		if err2 := ValidateFileLocatorResponseBody(body.Locator); err2 != nil {
+			err = goa.MergeErrors(err, err2)
+		}
+	}
+	if body.Content != nil {
+		err = goa.MergeErrors(err, goa.ValidatePattern("body.Content", *body.Content, "import . \"goa.design/model/dsl\""))
+	}
+	if body.Content != nil {
+		if utf8.RuneCountInString(*body.Content) < 58 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Content", *body.Content, utf8.RuneCountInString(*body.Content), 58, true))
+		}
+	}
+	return
+}
+
+// ValidateUpsertRelationshipResponseBody runs the validations defined on
+// UpsertRelationshipResponseBody
+func ValidateUpsertRelationshipResponseBody(body *UpsertRelationshipResponseBody) (err error) {
+	if body.Locator == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Locator", "body"))
+	}
+	if body.Content == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Content", "body"))
+	}
+	if body.Locator != nil {
+		if err2 := ValidateFileLocatorResponseBody(body.Locator); err2 != nil {
+			err = goa.MergeErrors(err, err2)
+		}
+	}
+	if body.Content != nil {
+		err = goa.MergeErrors(err, goa.ValidatePattern("body.Content", *body.Content, "import . \"goa.design/model/dsl\""))
+	}
+	if body.Content != nil {
+		if utf8.RuneCountInString(*body.Content) < 58 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Content", *body.Content, utf8.RuneCountInString(*body.Content), 58, true))
+		}
+	}
+	return
+}
+
+// ValidateUpsertLandscapeViewResponseBody runs the validations defined on
+// UpsertLandscapeViewResponseBody
+func ValidateUpsertLandscapeViewResponseBody(body *UpsertLandscapeViewResponseBody) (err error) {
+	if body.Locator == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Locator", "body"))
+	}
+	if body.Content == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Content", "body"))
+	}
+	if body.Locator != nil {
+		if err2 := ValidateFileLocatorResponseBody(body.Locator); err2 != nil {
+			err = goa.MergeErrors(err, err2)
+		}
+	}
+	if body.Content != nil {
+		err = goa.MergeErrors(err, goa.ValidatePattern("body.Content", *body.Content, "import . \"goa.design/model/dsl\""))
+	}
+	if body.Content != nil {
+		if utf8.RuneCountInString(*body.Content) < 58 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Content", *body.Content, utf8.RuneCountInString(*body.Content), 58, true))
+		}
+	}
+	return
+}
+
+// ValidateUpsertSystemContextViewResponseBody runs the validations defined on
+// UpsertSystemContextViewResponseBody
+func ValidateUpsertSystemContextViewResponseBody(body *UpsertSystemContextViewResponseBody) (err error) {
+	if body.Locator == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Locator", "body"))
+	}
+	if body.Content == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Content", "body"))
+	}
+	if body.Locator != nil {
+		if err2 := ValidateFileLocatorResponseBody(body.Locator); err2 != nil {
+			err = goa.MergeErrors(err, err2)
+		}
+	}
+	if body.Content != nil {
+		err = goa.MergeErrors(err, goa.ValidatePattern("body.Content", *body.Content, "import . \"goa.design/model/dsl\""))
+	}
+	if body.Content != nil {
+		if utf8.RuneCountInString(*body.Content) < 58 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Content", *body.Content, utf8.RuneCountInString(*body.Content), 58, true))
+		}
+	}
+	return
+}
+
+// ValidateUpsertContainerViewResponseBody runs the validations defined on
+// UpsertContainerViewResponseBody
+func ValidateUpsertContainerViewResponseBody(body *UpsertContainerViewResponseBody) (err error) {
+	if body.Locator == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Locator", "body"))
+	}
+	if body.Content == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Content", "body"))
+	}
+	if body.Locator != nil {
+		if err2 := ValidateFileLocatorResponseBody(body.Locator); err2 != nil {
+			err = goa.MergeErrors(err, err2)
+		}
+	}
+	if body.Content != nil {
+		err = goa.MergeErrors(err, goa.ValidatePattern("body.Content", *body.Content, "import . \"goa.design/model/dsl\""))
+	}
+	if body.Content != nil {
+		if utf8.RuneCountInString(*body.Content) < 58 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Content", *body.Content, utf8.RuneCountInString(*body.Content), 58, true))
+		}
+	}
+	return
+}
+
+// ValidateUpsertComponentViewResponseBody runs the validations defined on
+// UpsertComponentViewResponseBody
+func ValidateUpsertComponentViewResponseBody(body *UpsertComponentViewResponseBody) (err error) {
+	if body.Locator == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Locator", "body"))
+	}
+	if body.Content == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Content", "body"))
+	}
+	if body.Locator != nil {
+		if err2 := ValidateFileLocatorResponseBody(body.Locator); err2 != nil {
+			err = goa.MergeErrors(err, err2)
+		}
+	}
+	if body.Content != nil {
+		err = goa.MergeErrors(err, goa.ValidatePattern("body.Content", *body.Content, "import . \"goa.design/model/dsl\""))
+	}
+	if body.Content != nil {
+		if utf8.RuneCountInString(*body.Content) < 58 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Content", *body.Content, utf8.RuneCountInString(*body.Content), 58, true))
+		}
+	}
+	return
+}
+
+// ValidateUpserElementStyleResponseBody runs the validations defined on
+// UpserElementStyleResponseBody
+func ValidateUpserElementStyleResponseBody(body *UpserElementStyleResponseBody) (err error) {
+	if body.Locator == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Locator", "body"))
+	}
+	if body.Content == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Content", "body"))
+	}
+	if body.Locator != nil {
+		if err2 := ValidateFileLocatorResponseBody(body.Locator); err2 != nil {
+			err = goa.MergeErrors(err, err2)
+		}
+	}
+	if body.Content != nil {
+		err = goa.MergeErrors(err, goa.ValidatePattern("body.Content", *body.Content, "import . \"goa.design/model/dsl\""))
+	}
+	if body.Content != nil {
+		if utf8.RuneCountInString(*body.Content) < 58 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Content", *body.Content, utf8.RuneCountInString(*body.Content), 58, true))
+		}
+	}
+	return
+}
+
+// ValidateUpsertRelationshipStyleResponseBody runs the validations defined on
+// UpsertRelationshipStyleResponseBody
+func ValidateUpsertRelationshipStyleResponseBody(body *UpsertRelationshipStyleResponseBody) (err error) {
+	if body.Locator == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Locator", "body"))
+	}
+	if body.Content == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Content", "body"))
+	}
+	if body.Locator != nil {
+		if err2 := ValidateFileLocatorResponseBody(body.Locator); err2 != nil {
+			err = goa.MergeErrors(err, err2)
+		}
+	}
+	if body.Content != nil {
+		err = goa.MergeErrors(err, goa.ValidatePattern("body.Content", *body.Content, "import . \"goa.design/model/dsl\""))
+	}
+	if body.Content != nil {
+		if utf8.RuneCountInString(*body.Content) < 58 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Content", *body.Content, utf8.RuneCountInString(*body.Content), 58, true))
+		}
+	}
+	return
+}
+
+// ValidateDeleteSystemResponseBody runs the validations defined on
+// DeleteSystemResponseBody
+func ValidateDeleteSystemResponseBody(body *DeleteSystemResponseBody) (err error) {
+	if body.Locator == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Locator", "body"))
+	}
+	if body.Content == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Content", "body"))
+	}
+	if body.Locator != nil {
+		if err2 := ValidateFileLocatorResponseBody(body.Locator); err2 != nil {
+			err = goa.MergeErrors(err, err2)
+		}
+	}
+	if body.Content != nil {
+		err = goa.MergeErrors(err, goa.ValidatePattern("body.Content", *body.Content, "import . \"goa.design/model/dsl\""))
+	}
+	if body.Content != nil {
+		if utf8.RuneCountInString(*body.Content) < 58 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Content", *body.Content, utf8.RuneCountInString(*body.Content), 58, true))
+		}
+	}
+	return
+}
+
+// ValidateDeletePersonResponseBody runs the validations defined on
+// DeletePersonResponseBody
+func ValidateDeletePersonResponseBody(body *DeletePersonResponseBody) (err error) {
+	if body.Locator == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Locator", "body"))
+	}
+	if body.Content == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Content", "body"))
+	}
+	if body.Locator != nil {
+		if err2 := ValidateFileLocatorResponseBody(body.Locator); err2 != nil {
+			err = goa.MergeErrors(err, err2)
+		}
+	}
+	if body.Content != nil {
+		err = goa.MergeErrors(err, goa.ValidatePattern("body.Content", *body.Content, "import . \"goa.design/model/dsl\""))
+	}
+	if body.Content != nil {
+		if utf8.RuneCountInString(*body.Content) < 58 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Content", *body.Content, utf8.RuneCountInString(*body.Content), 58, true))
+		}
+	}
+	return
+}
+
+// ValidateDeleteContainerResponseBody runs the validations defined on
+// DeleteContainerResponseBody
+func ValidateDeleteContainerResponseBody(body *DeleteContainerResponseBody) (err error) {
+	if body.Locator == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Locator", "body"))
+	}
+	if body.Content == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Content", "body"))
+	}
+	if body.Locator != nil {
+		if err2 := ValidateFileLocatorResponseBody(body.Locator); err2 != nil {
+			err = goa.MergeErrors(err, err2)
+		}
+	}
+	if body.Content != nil {
+		err = goa.MergeErrors(err, goa.ValidatePattern("body.Content", *body.Content, "import . \"goa.design/model/dsl\""))
+	}
+	if body.Content != nil {
+		if utf8.RuneCountInString(*body.Content) < 58 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Content", *body.Content, utf8.RuneCountInString(*body.Content), 58, true))
+		}
+	}
+	return
+}
+
+// ValidateDeleteComponentResponseBody runs the validations defined on
+// DeleteComponentResponseBody
+func ValidateDeleteComponentResponseBody(body *DeleteComponentResponseBody) (err error) {
+	if body.Locator == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Locator", "body"))
+	}
+	if body.Content == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Content", "body"))
+	}
+	if body.Locator != nil {
+		if err2 := ValidateFileLocatorResponseBody(body.Locator); err2 != nil {
+			err = goa.MergeErrors(err, err2)
+		}
+	}
+	if body.Content != nil {
+		err = goa.MergeErrors(err, goa.ValidatePattern("body.Content", *body.Content, "import . \"goa.design/model/dsl\""))
+	}
+	if body.Content != nil {
+		if utf8.RuneCountInString(*body.Content) < 58 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Content", *body.Content, utf8.RuneCountInString(*body.Content), 58, true))
+		}
+	}
+	return
+}
+
+// ValidateDeleteRelationshipResponseBody runs the validations defined on
+// DeleteRelationshipResponseBody
+func ValidateDeleteRelationshipResponseBody(body *DeleteRelationshipResponseBody) (err error) {
+	if body.Locator == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Locator", "body"))
+	}
+	if body.Content == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Content", "body"))
+	}
+	if body.Locator != nil {
+		if err2 := ValidateFileLocatorResponseBody(body.Locator); err2 != nil {
+			err = goa.MergeErrors(err, err2)
+		}
+	}
+	if body.Content != nil {
+		err = goa.MergeErrors(err, goa.ValidatePattern("body.Content", *body.Content, "import . \"goa.design/model/dsl\""))
+	}
+	if body.Content != nil {
+		if utf8.RuneCountInString(*body.Content) < 58 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Content", *body.Content, utf8.RuneCountInString(*body.Content), 58, true))
+		}
+	}
+	return
+}
+
+// ValidateDeleteLandscapeViewResponseBody runs the validations defined on
+// DeleteLandscapeViewResponseBody
+func ValidateDeleteLandscapeViewResponseBody(body *DeleteLandscapeViewResponseBody) (err error) {
+	if body.Locator == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Locator", "body"))
+	}
+	if body.Content == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Content", "body"))
+	}
+	if body.Locator != nil {
+		if err2 := ValidateFileLocatorResponseBody(body.Locator); err2 != nil {
+			err = goa.MergeErrors(err, err2)
+		}
+	}
+	if body.Content != nil {
+		err = goa.MergeErrors(err, goa.ValidatePattern("body.Content", *body.Content, "import . \"goa.design/model/dsl\""))
+	}
+	if body.Content != nil {
+		if utf8.RuneCountInString(*body.Content) < 58 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Content", *body.Content, utf8.RuneCountInString(*body.Content), 58, true))
+		}
+	}
+	return
+}
+
+// ValidateDeleteSystemContextViewResponseBody runs the validations defined on
+// DeleteSystemContextViewResponseBody
+func ValidateDeleteSystemContextViewResponseBody(body *DeleteSystemContextViewResponseBody) (err error) {
+	if body.Locator == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Locator", "body"))
+	}
+	if body.Content == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Content", "body"))
+	}
+	if body.Locator != nil {
+		if err2 := ValidateFileLocatorResponseBody(body.Locator); err2 != nil {
+			err = goa.MergeErrors(err, err2)
+		}
+	}
+	if body.Content != nil {
+		err = goa.MergeErrors(err, goa.ValidatePattern("body.Content", *body.Content, "import . \"goa.design/model/dsl\""))
+	}
+	if body.Content != nil {
+		if utf8.RuneCountInString(*body.Content) < 58 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Content", *body.Content, utf8.RuneCountInString(*body.Content), 58, true))
+		}
+	}
+	return
+}
+
+// ValidateDeleteContainerViewResponseBody runs the validations defined on
+// DeleteContainerViewResponseBody
+func ValidateDeleteContainerViewResponseBody(body *DeleteContainerViewResponseBody) (err error) {
+	if body.Locator == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Locator", "body"))
+	}
+	if body.Content == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Content", "body"))
+	}
+	if body.Locator != nil {
+		if err2 := ValidateFileLocatorResponseBody(body.Locator); err2 != nil {
+			err = goa.MergeErrors(err, err2)
+		}
+	}
+	if body.Content != nil {
+		err = goa.MergeErrors(err, goa.ValidatePattern("body.Content", *body.Content, "import . \"goa.design/model/dsl\""))
+	}
+	if body.Content != nil {
+		if utf8.RuneCountInString(*body.Content) < 58 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Content", *body.Content, utf8.RuneCountInString(*body.Content), 58, true))
+		}
+	}
+	return
+}
+
+// ValidateDeleteComponentViewResponseBody runs the validations defined on
+// DeleteComponentViewResponseBody
+func ValidateDeleteComponentViewResponseBody(body *DeleteComponentViewResponseBody) (err error) {
+	if body.Locator == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Locator", "body"))
+	}
+	if body.Content == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Content", "body"))
+	}
+	if body.Locator != nil {
+		if err2 := ValidateFileLocatorResponseBody(body.Locator); err2 != nil {
+			err = goa.MergeErrors(err, err2)
+		}
+	}
+	if body.Content != nil {
+		err = goa.MergeErrors(err, goa.ValidatePattern("body.Content", *body.Content, "import . \"goa.design/model/dsl\""))
+	}
+	if body.Content != nil {
+		if utf8.RuneCountInString(*body.Content) < 58 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Content", *body.Content, utf8.RuneCountInString(*body.Content), 58, true))
+		}
+	}
+	return
+}
+
+// ValidateDeleteElementStyleResponseBody runs the validations defined on
+// DeleteElementStyleResponseBody
+func ValidateDeleteElementStyleResponseBody(body *DeleteElementStyleResponseBody) (err error) {
+	if body.Locator == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Locator", "body"))
+	}
+	if body.Content == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Content", "body"))
+	}
+	if body.Locator != nil {
+		if err2 := ValidateFileLocatorResponseBody(body.Locator); err2 != nil {
+			err = goa.MergeErrors(err, err2)
+		}
+	}
+	if body.Content != nil {
+		err = goa.MergeErrors(err, goa.ValidatePattern("body.Content", *body.Content, "import . \"goa.design/model/dsl\""))
+	}
+	if body.Content != nil {
+		if utf8.RuneCountInString(*body.Content) < 58 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Content", *body.Content, utf8.RuneCountInString(*body.Content), 58, true))
+		}
+	}
+	return
+}
+
+// ValidateDeleteRelationshipStyleResponseBody runs the validations defined on
+// DeleteRelationshipStyleResponseBody
+func ValidateDeleteRelationshipStyleResponseBody(body *DeleteRelationshipStyleResponseBody) (err error) {
+	if body.Locator == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Locator", "body"))
+	}
+	if body.Content == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Content", "body"))
+	}
+	if body.Locator != nil {
+		if err2 := ValidateFileLocatorResponseBody(body.Locator); err2 != nil {
+			err = goa.MergeErrors(err, err2)
+		}
+	}
+	if body.Content != nil {
+		err = goa.MergeErrors(err, goa.ValidatePattern("body.Content", *body.Content, "import . \"goa.design/model/dsl\""))
+	}
+	if body.Content != nil {
+		if utf8.RuneCountInString(*body.Content) < 58 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Content", *body.Content, utf8.RuneCountInString(*body.Content), 58, true))
+		}
+	}
+	return
 }
 
 // ValidateUpdateDSLCompilationFailedResponseBody runs the validations defined
@@ -2919,6 +3925,34 @@ func ValidateFileLocatorRequestBody(body *FileLocatorRequestBody) (err error) {
 	}
 	if utf8.RuneCountInString(body.Dir) < 1 {
 		err = goa.MergeErrors(err, goa.InvalidLengthError("body.Dir", body.Dir, utf8.RuneCountInString(body.Dir), 1, true))
+	}
+	return
+}
+
+// ValidateFileLocatorResponseBody runs the validations defined on
+// FileLocatorResponseBody
+func ValidateFileLocatorResponseBody(body *FileLocatorResponseBody) (err error) {
+	if body.Filename == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Filename", "body"))
+	}
+	if body.Repository == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Repository", "body"))
+	}
+	if body.Dir == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Dir", "body"))
+	}
+	if body.Filename != nil {
+		err = goa.MergeErrors(err, goa.ValidatePattern("body.Filename", *body.Filename, "\\.go$"))
+	}
+	if body.Repository != nil {
+		if utf8.RuneCountInString(*body.Repository) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Repository", *body.Repository, utf8.RuneCountInString(*body.Repository), 1, true))
+		}
+	}
+	if body.Dir != nil {
+		if utf8.RuneCountInString(*body.Dir) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Dir", *body.Dir, utf8.RuneCountInString(*body.Dir), 1, true))
+		}
 	}
 	return
 }

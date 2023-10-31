@@ -71,7 +71,7 @@ func DecodeUpdateDSLResponse(decoder func(*http.Response) goahttp.Decoder, resto
 			defer resp.Body.Close()
 		}
 		switch resp.StatusCode {
-		case http.StatusNoContent:
+		case http.StatusOK:
 			return nil, nil
 		case http.StatusBadRequest:
 			var (
@@ -146,8 +146,21 @@ func DecodeUpsertSystemResponse(decoder func(*http.Response) goahttp.Decoder, re
 			defer resp.Body.Close()
 		}
 		switch resp.StatusCode {
-		case http.StatusNoContent:
-			return nil, nil
+		case http.StatusOK:
+			var (
+				body UpsertSystemResponseBody
+				err  error
+			)
+			err = decoder(resp).Decode(&body)
+			if err != nil {
+				return nil, goahttp.ErrDecodingError("DSLEditor", "UpsertSystem", err)
+			}
+			err = ValidateUpsertSystemResponseBody(&body)
+			if err != nil {
+				return nil, goahttp.ErrValidationError("DSLEditor", "UpsertSystem", err)
+			}
+			res := NewUpsertSystemPackageFileOK(&body)
+			return res, nil
 		case http.StatusBadRequest:
 			var (
 				body UpsertSystemCompilationFailedResponseBody
@@ -221,8 +234,21 @@ func DecodeUpsertPersonResponse(decoder func(*http.Response) goahttp.Decoder, re
 			defer resp.Body.Close()
 		}
 		switch resp.StatusCode {
-		case http.StatusNoContent:
-			return nil, nil
+		case http.StatusOK:
+			var (
+				body UpsertPersonResponseBody
+				err  error
+			)
+			err = decoder(resp).Decode(&body)
+			if err != nil {
+				return nil, goahttp.ErrDecodingError("DSLEditor", "UpsertPerson", err)
+			}
+			err = ValidateUpsertPersonResponseBody(&body)
+			if err != nil {
+				return nil, goahttp.ErrValidationError("DSLEditor", "UpsertPerson", err)
+			}
+			res := NewUpsertPersonPackageFileOK(&body)
+			return res, nil
 		case http.StatusBadRequest:
 			var (
 				body UpsertPersonCompilationFailedResponseBody
@@ -296,8 +322,21 @@ func DecodeUpsertContainerResponse(decoder func(*http.Response) goahttp.Decoder,
 			defer resp.Body.Close()
 		}
 		switch resp.StatusCode {
-		case http.StatusNoContent:
-			return nil, nil
+		case http.StatusOK:
+			var (
+				body UpsertContainerResponseBody
+				err  error
+			)
+			err = decoder(resp).Decode(&body)
+			if err != nil {
+				return nil, goahttp.ErrDecodingError("DSLEditor", "UpsertContainer", err)
+			}
+			err = ValidateUpsertContainerResponseBody(&body)
+			if err != nil {
+				return nil, goahttp.ErrValidationError("DSLEditor", "UpsertContainer", err)
+			}
+			res := NewUpsertContainerPackageFileOK(&body)
+			return res, nil
 		case http.StatusBadRequest:
 			var (
 				body UpsertContainerCompilationFailedResponseBody
@@ -371,8 +410,21 @@ func DecodeUpsertComponentResponse(decoder func(*http.Response) goahttp.Decoder,
 			defer resp.Body.Close()
 		}
 		switch resp.StatusCode {
-		case http.StatusNoContent:
-			return nil, nil
+		case http.StatusOK:
+			var (
+				body UpsertComponentResponseBody
+				err  error
+			)
+			err = decoder(resp).Decode(&body)
+			if err != nil {
+				return nil, goahttp.ErrDecodingError("DSLEditor", "UpsertComponent", err)
+			}
+			err = ValidateUpsertComponentResponseBody(&body)
+			if err != nil {
+				return nil, goahttp.ErrValidationError("DSLEditor", "UpsertComponent", err)
+			}
+			res := NewUpsertComponentPackageFileOK(&body)
+			return res, nil
 		case http.StatusBadRequest:
 			var (
 				body UpsertComponentCompilationFailedResponseBody
@@ -447,8 +499,21 @@ func DecodeUpsertRelationshipResponse(decoder func(*http.Response) goahttp.Decod
 			defer resp.Body.Close()
 		}
 		switch resp.StatusCode {
-		case http.StatusNoContent:
-			return nil, nil
+		case http.StatusOK:
+			var (
+				body UpsertRelationshipResponseBody
+				err  error
+			)
+			err = decoder(resp).Decode(&body)
+			if err != nil {
+				return nil, goahttp.ErrDecodingError("DSLEditor", "UpsertRelationship", err)
+			}
+			err = ValidateUpsertRelationshipResponseBody(&body)
+			if err != nil {
+				return nil, goahttp.ErrValidationError("DSLEditor", "UpsertRelationship", err)
+			}
+			res := NewUpsertRelationshipPackageFileOK(&body)
+			return res, nil
 		case http.StatusBadRequest:
 			var (
 				body UpsertRelationshipCompilationFailedResponseBody
@@ -523,8 +588,21 @@ func DecodeUpsertLandscapeViewResponse(decoder func(*http.Response) goahttp.Deco
 			defer resp.Body.Close()
 		}
 		switch resp.StatusCode {
-		case http.StatusNoContent:
-			return nil, nil
+		case http.StatusOK:
+			var (
+				body UpsertLandscapeViewResponseBody
+				err  error
+			)
+			err = decoder(resp).Decode(&body)
+			if err != nil {
+				return nil, goahttp.ErrDecodingError("DSLEditor", "UpsertLandscapeView", err)
+			}
+			err = ValidateUpsertLandscapeViewResponseBody(&body)
+			if err != nil {
+				return nil, goahttp.ErrValidationError("DSLEditor", "UpsertLandscapeView", err)
+			}
+			res := NewUpsertLandscapeViewPackageFileOK(&body)
+			return res, nil
 		case http.StatusBadRequest:
 			var (
 				body UpsertLandscapeViewCompilationFailedResponseBody
@@ -599,8 +677,21 @@ func DecodeUpsertSystemContextViewResponse(decoder func(*http.Response) goahttp.
 			defer resp.Body.Close()
 		}
 		switch resp.StatusCode {
-		case http.StatusNoContent:
-			return nil, nil
+		case http.StatusOK:
+			var (
+				body UpsertSystemContextViewResponseBody
+				err  error
+			)
+			err = decoder(resp).Decode(&body)
+			if err != nil {
+				return nil, goahttp.ErrDecodingError("DSLEditor", "UpsertSystemContextView", err)
+			}
+			err = ValidateUpsertSystemContextViewResponseBody(&body)
+			if err != nil {
+				return nil, goahttp.ErrValidationError("DSLEditor", "UpsertSystemContextView", err)
+			}
+			res := NewUpsertSystemContextViewPackageFileOK(&body)
+			return res, nil
 		case http.StatusBadRequest:
 			var (
 				body UpsertSystemContextViewCompilationFailedResponseBody
@@ -675,8 +766,21 @@ func DecodeUpsertContainerViewResponse(decoder func(*http.Response) goahttp.Deco
 			defer resp.Body.Close()
 		}
 		switch resp.StatusCode {
-		case http.StatusNoContent:
-			return nil, nil
+		case http.StatusOK:
+			var (
+				body UpsertContainerViewResponseBody
+				err  error
+			)
+			err = decoder(resp).Decode(&body)
+			if err != nil {
+				return nil, goahttp.ErrDecodingError("DSLEditor", "UpsertContainerView", err)
+			}
+			err = ValidateUpsertContainerViewResponseBody(&body)
+			if err != nil {
+				return nil, goahttp.ErrValidationError("DSLEditor", "UpsertContainerView", err)
+			}
+			res := NewUpsertContainerViewPackageFileOK(&body)
+			return res, nil
 		case http.StatusBadRequest:
 			var (
 				body UpsertContainerViewCompilationFailedResponseBody
@@ -751,8 +855,21 @@ func DecodeUpsertComponentViewResponse(decoder func(*http.Response) goahttp.Deco
 			defer resp.Body.Close()
 		}
 		switch resp.StatusCode {
-		case http.StatusNoContent:
-			return nil, nil
+		case http.StatusOK:
+			var (
+				body UpsertComponentViewResponseBody
+				err  error
+			)
+			err = decoder(resp).Decode(&body)
+			if err != nil {
+				return nil, goahttp.ErrDecodingError("DSLEditor", "UpsertComponentView", err)
+			}
+			err = ValidateUpsertComponentViewResponseBody(&body)
+			if err != nil {
+				return nil, goahttp.ErrValidationError("DSLEditor", "UpsertComponentView", err)
+			}
+			res := NewUpsertComponentViewPackageFileOK(&body)
+			return res, nil
 		case http.StatusBadRequest:
 			var (
 				body UpsertComponentViewCompilationFailedResponseBody
@@ -826,8 +943,21 @@ func DecodeUpserElementStyleResponse(decoder func(*http.Response) goahttp.Decode
 			defer resp.Body.Close()
 		}
 		switch resp.StatusCode {
-		case http.StatusNoContent:
-			return nil, nil
+		case http.StatusOK:
+			var (
+				body UpserElementStyleResponseBody
+				err  error
+			)
+			err = decoder(resp).Decode(&body)
+			if err != nil {
+				return nil, goahttp.ErrDecodingError("DSLEditor", "UpserElementStyle", err)
+			}
+			err = ValidateUpserElementStyleResponseBody(&body)
+			if err != nil {
+				return nil, goahttp.ErrValidationError("DSLEditor", "UpserElementStyle", err)
+			}
+			res := NewUpserElementStylePackageFileOK(&body)
+			return res, nil
 		case http.StatusBadRequest:
 			var (
 				body UpserElementStyleCompilationFailedResponseBody
@@ -902,8 +1032,21 @@ func DecodeUpsertRelationshipStyleResponse(decoder func(*http.Response) goahttp.
 			defer resp.Body.Close()
 		}
 		switch resp.StatusCode {
-		case http.StatusNoContent:
-			return nil, nil
+		case http.StatusOK:
+			var (
+				body UpsertRelationshipStyleResponseBody
+				err  error
+			)
+			err = decoder(resp).Decode(&body)
+			if err != nil {
+				return nil, goahttp.ErrDecodingError("DSLEditor", "UpsertRelationshipStyle", err)
+			}
+			err = ValidateUpsertRelationshipStyleResponseBody(&body)
+			if err != nil {
+				return nil, goahttp.ErrValidationError("DSLEditor", "UpsertRelationshipStyle", err)
+			}
+			res := NewUpsertRelationshipStylePackageFileOK(&body)
+			return res, nil
 		case http.StatusBadRequest:
 			var (
 				body UpsertRelationshipStyleCompilationFailedResponseBody
@@ -988,8 +1131,21 @@ func DecodeDeleteSystemResponse(decoder func(*http.Response) goahttp.Decoder, re
 			defer resp.Body.Close()
 		}
 		switch resp.StatusCode {
-		case http.StatusNoContent:
-			return nil, nil
+		case http.StatusOK:
+			var (
+				body DeleteSystemResponseBody
+				err  error
+			)
+			err = decoder(resp).Decode(&body)
+			if err != nil {
+				return nil, goahttp.ErrDecodingError("DSLEditor", "DeleteSystem", err)
+			}
+			err = ValidateDeleteSystemResponseBody(&body)
+			if err != nil {
+				return nil, goahttp.ErrValidationError("DSLEditor", "DeleteSystem", err)
+			}
+			res := NewDeleteSystemPackageFileOK(&body)
+			return res, nil
 		case http.StatusNotFound:
 			var (
 				body DeleteSystemNotFoundResponseBody
@@ -1088,8 +1244,21 @@ func DecodeDeletePersonResponse(decoder func(*http.Response) goahttp.Decoder, re
 			defer resp.Body.Close()
 		}
 		switch resp.StatusCode {
-		case http.StatusNoContent:
-			return nil, nil
+		case http.StatusOK:
+			var (
+				body DeletePersonResponseBody
+				err  error
+			)
+			err = decoder(resp).Decode(&body)
+			if err != nil {
+				return nil, goahttp.ErrDecodingError("DSLEditor", "DeletePerson", err)
+			}
+			err = ValidateDeletePersonResponseBody(&body)
+			if err != nil {
+				return nil, goahttp.ErrValidationError("DSLEditor", "DeletePerson", err)
+			}
+			res := NewDeletePersonPackageFileOK(&body)
+			return res, nil
 		case http.StatusNotFound:
 			var (
 				body DeletePersonNotFoundResponseBody
@@ -1192,8 +1361,21 @@ func DecodeDeleteContainerResponse(decoder func(*http.Response) goahttp.Decoder,
 			defer resp.Body.Close()
 		}
 		switch resp.StatusCode {
-		case http.StatusNoContent:
-			return nil, nil
+		case http.StatusOK:
+			var (
+				body DeleteContainerResponseBody
+				err  error
+			)
+			err = decoder(resp).Decode(&body)
+			if err != nil {
+				return nil, goahttp.ErrDecodingError("DSLEditor", "DeleteContainer", err)
+			}
+			err = ValidateDeleteContainerResponseBody(&body)
+			if err != nil {
+				return nil, goahttp.ErrValidationError("DSLEditor", "DeleteContainer", err)
+			}
+			res := NewDeleteContainerPackageFileOK(&body)
+			return res, nil
 		case http.StatusNotFound:
 			var (
 				body DeleteContainerNotFoundResponseBody
@@ -1296,8 +1478,21 @@ func DecodeDeleteComponentResponse(decoder func(*http.Response) goahttp.Decoder,
 			defer resp.Body.Close()
 		}
 		switch resp.StatusCode {
-		case http.StatusNoContent:
-			return nil, nil
+		case http.StatusOK:
+			var (
+				body DeleteComponentResponseBody
+				err  error
+			)
+			err = decoder(resp).Decode(&body)
+			if err != nil {
+				return nil, goahttp.ErrDecodingError("DSLEditor", "DeleteComponent", err)
+			}
+			err = ValidateDeleteComponentResponseBody(&body)
+			if err != nil {
+				return nil, goahttp.ErrValidationError("DSLEditor", "DeleteComponent", err)
+			}
+			res := NewDeleteComponentPackageFileOK(&body)
+			return res, nil
 		case http.StatusNotFound:
 			var (
 				body DeleteComponentNotFoundResponseBody
@@ -1387,8 +1582,21 @@ func DecodeDeleteRelationshipResponse(decoder func(*http.Response) goahttp.Decod
 			defer resp.Body.Close()
 		}
 		switch resp.StatusCode {
-		case http.StatusNoContent:
-			return nil, nil
+		case http.StatusOK:
+			var (
+				body DeleteRelationshipResponseBody
+				err  error
+			)
+			err = decoder(resp).Decode(&body)
+			if err != nil {
+				return nil, goahttp.ErrDecodingError("DSLEditor", "DeleteRelationship", err)
+			}
+			err = ValidateDeleteRelationshipResponseBody(&body)
+			if err != nil {
+				return nil, goahttp.ErrValidationError("DSLEditor", "DeleteRelationship", err)
+			}
+			res := NewDeleteRelationshipPackageFileOK(&body)
+			return res, nil
 		case http.StatusNotFound:
 			var (
 				body DeleteRelationshipNotFoundResponseBody
@@ -1488,8 +1696,21 @@ func DecodeDeleteLandscapeViewResponse(decoder func(*http.Response) goahttp.Deco
 			defer resp.Body.Close()
 		}
 		switch resp.StatusCode {
-		case http.StatusNoContent:
-			return nil, nil
+		case http.StatusOK:
+			var (
+				body DeleteLandscapeViewResponseBody
+				err  error
+			)
+			err = decoder(resp).Decode(&body)
+			if err != nil {
+				return nil, goahttp.ErrDecodingError("DSLEditor", "DeleteLandscapeView", err)
+			}
+			err = ValidateDeleteLandscapeViewResponseBody(&body)
+			if err != nil {
+				return nil, goahttp.ErrValidationError("DSLEditor", "DeleteLandscapeView", err)
+			}
+			res := NewDeleteLandscapeViewPackageFileOK(&body)
+			return res, nil
 		case http.StatusNotFound:
 			var (
 				body DeleteLandscapeViewNotFoundResponseBody
@@ -1589,8 +1810,21 @@ func DecodeDeleteSystemContextViewResponse(decoder func(*http.Response) goahttp.
 			defer resp.Body.Close()
 		}
 		switch resp.StatusCode {
-		case http.StatusNoContent:
-			return nil, nil
+		case http.StatusOK:
+			var (
+				body DeleteSystemContextViewResponseBody
+				err  error
+			)
+			err = decoder(resp).Decode(&body)
+			if err != nil {
+				return nil, goahttp.ErrDecodingError("DSLEditor", "DeleteSystemContextView", err)
+			}
+			err = ValidateDeleteSystemContextViewResponseBody(&body)
+			if err != nil {
+				return nil, goahttp.ErrValidationError("DSLEditor", "DeleteSystemContextView", err)
+			}
+			res := NewDeleteSystemContextViewPackageFileOK(&body)
+			return res, nil
 		case http.StatusNotFound:
 			var (
 				body DeleteSystemContextViewNotFoundResponseBody
@@ -1690,8 +1924,21 @@ func DecodeDeleteContainerViewResponse(decoder func(*http.Response) goahttp.Deco
 			defer resp.Body.Close()
 		}
 		switch resp.StatusCode {
-		case http.StatusNoContent:
-			return nil, nil
+		case http.StatusOK:
+			var (
+				body DeleteContainerViewResponseBody
+				err  error
+			)
+			err = decoder(resp).Decode(&body)
+			if err != nil {
+				return nil, goahttp.ErrDecodingError("DSLEditor", "DeleteContainerView", err)
+			}
+			err = ValidateDeleteContainerViewResponseBody(&body)
+			if err != nil {
+				return nil, goahttp.ErrValidationError("DSLEditor", "DeleteContainerView", err)
+			}
+			res := NewDeleteContainerViewPackageFileOK(&body)
+			return res, nil
 		case http.StatusNotFound:
 			var (
 				body DeleteContainerViewNotFoundResponseBody
@@ -1791,8 +2038,21 @@ func DecodeDeleteComponentViewResponse(decoder func(*http.Response) goahttp.Deco
 			defer resp.Body.Close()
 		}
 		switch resp.StatusCode {
-		case http.StatusNoContent:
-			return nil, nil
+		case http.StatusOK:
+			var (
+				body DeleteComponentViewResponseBody
+				err  error
+			)
+			err = decoder(resp).Decode(&body)
+			if err != nil {
+				return nil, goahttp.ErrDecodingError("DSLEditor", "DeleteComponentView", err)
+			}
+			err = ValidateDeleteComponentViewResponseBody(&body)
+			if err != nil {
+				return nil, goahttp.ErrValidationError("DSLEditor", "DeleteComponentView", err)
+			}
+			res := NewDeleteComponentViewPackageFileOK(&body)
+			return res, nil
 		case http.StatusNotFound:
 			var (
 				body DeleteComponentViewNotFoundResponseBody
@@ -1892,8 +2152,21 @@ func DecodeDeleteElementStyleResponse(decoder func(*http.Response) goahttp.Decod
 			defer resp.Body.Close()
 		}
 		switch resp.StatusCode {
-		case http.StatusNoContent:
-			return nil, nil
+		case http.StatusOK:
+			var (
+				body DeleteElementStyleResponseBody
+				err  error
+			)
+			err = decoder(resp).Decode(&body)
+			if err != nil {
+				return nil, goahttp.ErrDecodingError("DSLEditor", "DeleteElementStyle", err)
+			}
+			err = ValidateDeleteElementStyleResponseBody(&body)
+			if err != nil {
+				return nil, goahttp.ErrValidationError("DSLEditor", "DeleteElementStyle", err)
+			}
+			res := NewDeleteElementStylePackageFileOK(&body)
+			return res, nil
 		case http.StatusNotFound:
 			var (
 				body DeleteElementStyleNotFoundResponseBody
@@ -1993,8 +2266,21 @@ func DecodeDeleteRelationshipStyleResponse(decoder func(*http.Response) goahttp.
 			defer resp.Body.Close()
 		}
 		switch resp.StatusCode {
-		case http.StatusNoContent:
-			return nil, nil
+		case http.StatusOK:
+			var (
+				body DeleteRelationshipStyleResponseBody
+				err  error
+			)
+			err = decoder(resp).Decode(&body)
+			if err != nil {
+				return nil, goahttp.ErrDecodingError("DSLEditor", "DeleteRelationshipStyle", err)
+			}
+			err = ValidateDeleteRelationshipStyleResponseBody(&body)
+			if err != nil {
+				return nil, goahttp.ErrValidationError("DSLEditor", "DeleteRelationshipStyle", err)
+			}
+			res := NewDeleteRelationshipStylePackageFileOK(&body)
+			return res, nil
 		case http.StatusNotFound:
 			var (
 				body DeleteRelationshipStyleNotFoundResponseBody
@@ -2049,6 +2335,18 @@ func marshalFileLocatorRequestBodyToTypesFileLocator(v *FileLocatorRequestBody) 
 		Filename:   v.Filename,
 		Repository: v.Repository,
 		Dir:        v.Dir,
+	}
+
+	return res
+}
+
+// unmarshalFileLocatorResponseBodyToTypesFileLocator builds a value of type
+// *types.FileLocator from a value of type *FileLocatorResponseBody.
+func unmarshalFileLocatorResponseBodyToTypesFileLocator(v *FileLocatorResponseBody) *types.FileLocator {
+	res := &types.FileLocator{
+		Filename:   *v.Filename,
+		Repository: *v.Repository,
+		Dir:        *v.Dir,
 	}
 
 	return res

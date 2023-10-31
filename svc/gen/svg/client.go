@@ -11,6 +11,7 @@ import (
 	"context"
 
 	goa "goa.design/goa/v3/pkg"
+	types "goa.design/model/svc/gen/types"
 )
 
 // Client is the "SVG" service client.
@@ -28,7 +29,10 @@ func NewClient(load, save goa.Endpoint) *Client {
 }
 
 // Load calls the "Load" endpoint of the "SVG" service.
-func (c *Client) Load(ctx context.Context, p *Filename) (res SVG, err error) {
+// Load may return the following errors:
+//   - "NotFound" (type *goa.ServiceError): File not found
+//   - error: internal error
+func (c *Client) Load(ctx context.Context, p *types.FileLocator) (res SVG, err error) {
 	var ires any
 	ires, err = c.LoadEndpoint(ctx, p)
 	if err != nil {

@@ -111,7 +111,7 @@ func NewUpdateDSLEndpoint(s Service) goa.Endpoint {
 func NewUpsertSystemEndpoint(s Service) goa.Endpoint {
 	return func(ctx context.Context, req any) (any, error) {
 		p := req.(*System)
-		return nil, s.UpsertSystem(ctx, p)
+		return s.UpsertSystem(ctx, p)
 	}
 }
 
@@ -120,7 +120,7 @@ func NewUpsertSystemEndpoint(s Service) goa.Endpoint {
 func NewUpsertPersonEndpoint(s Service) goa.Endpoint {
 	return func(ctx context.Context, req any) (any, error) {
 		p := req.(*Person)
-		return nil, s.UpsertPerson(ctx, p)
+		return s.UpsertPerson(ctx, p)
 	}
 }
 
@@ -129,7 +129,7 @@ func NewUpsertPersonEndpoint(s Service) goa.Endpoint {
 func NewUpsertContainerEndpoint(s Service) goa.Endpoint {
 	return func(ctx context.Context, req any) (any, error) {
 		p := req.(*Container)
-		return nil, s.UpsertContainer(ctx, p)
+		return s.UpsertContainer(ctx, p)
 	}
 }
 
@@ -138,7 +138,7 @@ func NewUpsertContainerEndpoint(s Service) goa.Endpoint {
 func NewUpsertComponentEndpoint(s Service) goa.Endpoint {
 	return func(ctx context.Context, req any) (any, error) {
 		p := req.(*Component)
-		return nil, s.UpsertComponent(ctx, p)
+		return s.UpsertComponent(ctx, p)
 	}
 }
 
@@ -147,7 +147,7 @@ func NewUpsertComponentEndpoint(s Service) goa.Endpoint {
 func NewUpsertRelationshipEndpoint(s Service) goa.Endpoint {
 	return func(ctx context.Context, req any) (any, error) {
 		p := req.(*Relationship)
-		return nil, s.UpsertRelationship(ctx, p)
+		return s.UpsertRelationship(ctx, p)
 	}
 }
 
@@ -156,7 +156,7 @@ func NewUpsertRelationshipEndpoint(s Service) goa.Endpoint {
 func NewUpsertLandscapeViewEndpoint(s Service) goa.Endpoint {
 	return func(ctx context.Context, req any) (any, error) {
 		p := req.(*LandscapeView)
-		return nil, s.UpsertLandscapeView(ctx, p)
+		return s.UpsertLandscapeView(ctx, p)
 	}
 }
 
@@ -165,7 +165,7 @@ func NewUpsertLandscapeViewEndpoint(s Service) goa.Endpoint {
 func NewUpsertSystemContextViewEndpoint(s Service) goa.Endpoint {
 	return func(ctx context.Context, req any) (any, error) {
 		p := req.(*SystemContextView)
-		return nil, s.UpsertSystemContextView(ctx, p)
+		return s.UpsertSystemContextView(ctx, p)
 	}
 }
 
@@ -174,7 +174,7 @@ func NewUpsertSystemContextViewEndpoint(s Service) goa.Endpoint {
 func NewUpsertContainerViewEndpoint(s Service) goa.Endpoint {
 	return func(ctx context.Context, req any) (any, error) {
 		p := req.(*ContainerView)
-		return nil, s.UpsertContainerView(ctx, p)
+		return s.UpsertContainerView(ctx, p)
 	}
 }
 
@@ -183,7 +183,7 @@ func NewUpsertContainerViewEndpoint(s Service) goa.Endpoint {
 func NewUpsertComponentViewEndpoint(s Service) goa.Endpoint {
 	return func(ctx context.Context, req any) (any, error) {
 		p := req.(*ComponentView)
-		return nil, s.UpsertComponentView(ctx, p)
+		return s.UpsertComponentView(ctx, p)
 	}
 }
 
@@ -192,7 +192,7 @@ func NewUpsertComponentViewEndpoint(s Service) goa.Endpoint {
 func NewUpserElementStyleEndpoint(s Service) goa.Endpoint {
 	return func(ctx context.Context, req any) (any, error) {
 		p := req.(*ElementStyle)
-		return nil, s.UpserElementStyle(ctx, p)
+		return s.UpserElementStyle(ctx, p)
 	}
 }
 
@@ -201,7 +201,7 @@ func NewUpserElementStyleEndpoint(s Service) goa.Endpoint {
 func NewUpsertRelationshipStyleEndpoint(s Service) goa.Endpoint {
 	return func(ctx context.Context, req any) (any, error) {
 		p := req.(*RelationshipStyle)
-		return nil, s.UpsertRelationshipStyle(ctx, p)
+		return s.UpsertRelationshipStyle(ctx, p)
 	}
 }
 
@@ -210,7 +210,7 @@ func NewUpsertRelationshipStyleEndpoint(s Service) goa.Endpoint {
 func NewDeleteSystemEndpoint(s Service) goa.Endpoint {
 	return func(ctx context.Context, req any) (any, error) {
 		p := req.(*DeleteSystemPayload)
-		return nil, s.DeleteSystem(ctx, p)
+		return s.DeleteSystem(ctx, p)
 	}
 }
 
@@ -219,7 +219,7 @@ func NewDeleteSystemEndpoint(s Service) goa.Endpoint {
 func NewDeletePersonEndpoint(s Service) goa.Endpoint {
 	return func(ctx context.Context, req any) (any, error) {
 		p := req.(*DeletePersonPayload)
-		return nil, s.DeletePerson(ctx, p)
+		return s.DeletePerson(ctx, p)
 	}
 }
 
@@ -228,7 +228,7 @@ func NewDeletePersonEndpoint(s Service) goa.Endpoint {
 func NewDeleteContainerEndpoint(s Service) goa.Endpoint {
 	return func(ctx context.Context, req any) (any, error) {
 		p := req.(*DeleteContainerPayload)
-		return nil, s.DeleteContainer(ctx, p)
+		return s.DeleteContainer(ctx, p)
 	}
 }
 
@@ -237,7 +237,7 @@ func NewDeleteContainerEndpoint(s Service) goa.Endpoint {
 func NewDeleteComponentEndpoint(s Service) goa.Endpoint {
 	return func(ctx context.Context, req any) (any, error) {
 		p := req.(*DeleteComponentPayload)
-		return nil, s.DeleteComponent(ctx, p)
+		return s.DeleteComponent(ctx, p)
 	}
 }
 
@@ -246,7 +246,7 @@ func NewDeleteComponentEndpoint(s Service) goa.Endpoint {
 func NewDeleteRelationshipEndpoint(s Service) goa.Endpoint {
 	return func(ctx context.Context, req any) (any, error) {
 		p := req.(*DeleteRelationshipPayload)
-		return nil, s.DeleteRelationship(ctx, p)
+		return s.DeleteRelationship(ctx, p)
 	}
 }
 
@@ -255,7 +255,7 @@ func NewDeleteRelationshipEndpoint(s Service) goa.Endpoint {
 func NewDeleteLandscapeViewEndpoint(s Service) goa.Endpoint {
 	return func(ctx context.Context, req any) (any, error) {
 		p := req.(*DeleteLandscapeViewPayload)
-		return nil, s.DeleteLandscapeView(ctx, p)
+		return s.DeleteLandscapeView(ctx, p)
 	}
 }
 
@@ -264,7 +264,7 @@ func NewDeleteLandscapeViewEndpoint(s Service) goa.Endpoint {
 func NewDeleteSystemContextViewEndpoint(s Service) goa.Endpoint {
 	return func(ctx context.Context, req any) (any, error) {
 		p := req.(*DeleteSystemContextViewPayload)
-		return nil, s.DeleteSystemContextView(ctx, p)
+		return s.DeleteSystemContextView(ctx, p)
 	}
 }
 
@@ -273,7 +273,7 @@ func NewDeleteSystemContextViewEndpoint(s Service) goa.Endpoint {
 func NewDeleteContainerViewEndpoint(s Service) goa.Endpoint {
 	return func(ctx context.Context, req any) (any, error) {
 		p := req.(*DeleteContainerViewPayload)
-		return nil, s.DeleteContainerView(ctx, p)
+		return s.DeleteContainerView(ctx, p)
 	}
 }
 
@@ -282,7 +282,7 @@ func NewDeleteContainerViewEndpoint(s Service) goa.Endpoint {
 func NewDeleteComponentViewEndpoint(s Service) goa.Endpoint {
 	return func(ctx context.Context, req any) (any, error) {
 		p := req.(*DeleteComponentViewPayload)
-		return nil, s.DeleteComponentView(ctx, p)
+		return s.DeleteComponentView(ctx, p)
 	}
 }
 
@@ -291,7 +291,7 @@ func NewDeleteComponentViewEndpoint(s Service) goa.Endpoint {
 func NewDeleteElementStyleEndpoint(s Service) goa.Endpoint {
 	return func(ctx context.Context, req any) (any, error) {
 		p := req.(*DeleteElementStylePayload)
-		return nil, s.DeleteElementStyle(ctx, p)
+		return s.DeleteElementStyle(ctx, p)
 	}
 }
 
@@ -300,6 +300,6 @@ func NewDeleteElementStyleEndpoint(s Service) goa.Endpoint {
 func NewDeleteRelationshipStyleEndpoint(s Service) goa.Endpoint {
 	return func(ctx context.Context, req any) (any, error) {
 		p := req.(*DeleteRelationshipStylePayload)
-		return nil, s.DeleteRelationshipStyle(ctx, p)
+		return s.DeleteRelationshipStyle(ctx, p)
 	}
 }

@@ -23,7 +23,7 @@ import (
 // DSLEditor UpdateDSL endpoint.
 func EncodeUpdateDSLResponse(encoder func(context.Context, http.ResponseWriter) goahttp.Encoder) func(context.Context, http.ResponseWriter, any) error {
 	return func(ctx context.Context, w http.ResponseWriter, v any) error {
-		w.WriteHeader(http.StatusNoContent)
+		w.WriteHeader(http.StatusOK)
 		return nil
 	}
 }
@@ -86,8 +86,11 @@ func EncodeUpdateDSLError(encoder func(context.Context, http.ResponseWriter) goa
 // DSLEditor UpsertSystem endpoint.
 func EncodeUpsertSystemResponse(encoder func(context.Context, http.ResponseWriter) goahttp.Encoder) func(context.Context, http.ResponseWriter, any) error {
 	return func(ctx context.Context, w http.ResponseWriter, v any) error {
-		w.WriteHeader(http.StatusNoContent)
-		return nil
+		res, _ := v.(*types.PackageFile)
+		enc := encoder(ctx, w)
+		body := NewUpsertSystemResponseBody(res)
+		w.WriteHeader(http.StatusOK)
+		return enc.Encode(body)
 	}
 }
 
@@ -149,8 +152,11 @@ func EncodeUpsertSystemError(encoder func(context.Context, http.ResponseWriter) 
 // DSLEditor UpsertPerson endpoint.
 func EncodeUpsertPersonResponse(encoder func(context.Context, http.ResponseWriter) goahttp.Encoder) func(context.Context, http.ResponseWriter, any) error {
 	return func(ctx context.Context, w http.ResponseWriter, v any) error {
-		w.WriteHeader(http.StatusNoContent)
-		return nil
+		res, _ := v.(*types.PackageFile)
+		enc := encoder(ctx, w)
+		body := NewUpsertPersonResponseBody(res)
+		w.WriteHeader(http.StatusOK)
+		return enc.Encode(body)
 	}
 }
 
@@ -212,8 +218,11 @@ func EncodeUpsertPersonError(encoder func(context.Context, http.ResponseWriter) 
 // the DSLEditor UpsertContainer endpoint.
 func EncodeUpsertContainerResponse(encoder func(context.Context, http.ResponseWriter) goahttp.Encoder) func(context.Context, http.ResponseWriter, any) error {
 	return func(ctx context.Context, w http.ResponseWriter, v any) error {
-		w.WriteHeader(http.StatusNoContent)
-		return nil
+		res, _ := v.(*types.PackageFile)
+		enc := encoder(ctx, w)
+		body := NewUpsertContainerResponseBody(res)
+		w.WriteHeader(http.StatusOK)
+		return enc.Encode(body)
 	}
 }
 
@@ -275,8 +284,11 @@ func EncodeUpsertContainerError(encoder func(context.Context, http.ResponseWrite
 // the DSLEditor UpsertComponent endpoint.
 func EncodeUpsertComponentResponse(encoder func(context.Context, http.ResponseWriter) goahttp.Encoder) func(context.Context, http.ResponseWriter, any) error {
 	return func(ctx context.Context, w http.ResponseWriter, v any) error {
-		w.WriteHeader(http.StatusNoContent)
-		return nil
+		res, _ := v.(*types.PackageFile)
+		enc := encoder(ctx, w)
+		body := NewUpsertComponentResponseBody(res)
+		w.WriteHeader(http.StatusOK)
+		return enc.Encode(body)
 	}
 }
 
@@ -338,8 +350,11 @@ func EncodeUpsertComponentError(encoder func(context.Context, http.ResponseWrite
 // by the DSLEditor UpsertRelationship endpoint.
 func EncodeUpsertRelationshipResponse(encoder func(context.Context, http.ResponseWriter) goahttp.Encoder) func(context.Context, http.ResponseWriter, any) error {
 	return func(ctx context.Context, w http.ResponseWriter, v any) error {
-		w.WriteHeader(http.StatusNoContent)
-		return nil
+		res, _ := v.(*types.PackageFile)
+		enc := encoder(ctx, w)
+		body := NewUpsertRelationshipResponseBody(res)
+		w.WriteHeader(http.StatusOK)
+		return enc.Encode(body)
 	}
 }
 
@@ -401,8 +416,11 @@ func EncodeUpsertRelationshipError(encoder func(context.Context, http.ResponseWr
 // by the DSLEditor UpsertLandscapeView endpoint.
 func EncodeUpsertLandscapeViewResponse(encoder func(context.Context, http.ResponseWriter) goahttp.Encoder) func(context.Context, http.ResponseWriter, any) error {
 	return func(ctx context.Context, w http.ResponseWriter, v any) error {
-		w.WriteHeader(http.StatusNoContent)
-		return nil
+		res, _ := v.(*types.PackageFile)
+		enc := encoder(ctx, w)
+		body := NewUpsertLandscapeViewResponseBody(res)
+		w.WriteHeader(http.StatusOK)
+		return enc.Encode(body)
 	}
 }
 
@@ -464,8 +482,11 @@ func EncodeUpsertLandscapeViewError(encoder func(context.Context, http.ResponseW
 // returned by the DSLEditor UpsertSystemContextView endpoint.
 func EncodeUpsertSystemContextViewResponse(encoder func(context.Context, http.ResponseWriter) goahttp.Encoder) func(context.Context, http.ResponseWriter, any) error {
 	return func(ctx context.Context, w http.ResponseWriter, v any) error {
-		w.WriteHeader(http.StatusNoContent)
-		return nil
+		res, _ := v.(*types.PackageFile)
+		enc := encoder(ctx, w)
+		body := NewUpsertSystemContextViewResponseBody(res)
+		w.WriteHeader(http.StatusOK)
+		return enc.Encode(body)
 	}
 }
 
@@ -527,8 +548,11 @@ func EncodeUpsertSystemContextViewError(encoder func(context.Context, http.Respo
 // by the DSLEditor UpsertContainerView endpoint.
 func EncodeUpsertContainerViewResponse(encoder func(context.Context, http.ResponseWriter) goahttp.Encoder) func(context.Context, http.ResponseWriter, any) error {
 	return func(ctx context.Context, w http.ResponseWriter, v any) error {
-		w.WriteHeader(http.StatusNoContent)
-		return nil
+		res, _ := v.(*types.PackageFile)
+		enc := encoder(ctx, w)
+		body := NewUpsertContainerViewResponseBody(res)
+		w.WriteHeader(http.StatusOK)
+		return enc.Encode(body)
 	}
 }
 
@@ -590,8 +614,11 @@ func EncodeUpsertContainerViewError(encoder func(context.Context, http.ResponseW
 // by the DSLEditor UpsertComponentView endpoint.
 func EncodeUpsertComponentViewResponse(encoder func(context.Context, http.ResponseWriter) goahttp.Encoder) func(context.Context, http.ResponseWriter, any) error {
 	return func(ctx context.Context, w http.ResponseWriter, v any) error {
-		w.WriteHeader(http.StatusNoContent)
-		return nil
+		res, _ := v.(*types.PackageFile)
+		enc := encoder(ctx, w)
+		body := NewUpsertComponentViewResponseBody(res)
+		w.WriteHeader(http.StatusOK)
+		return enc.Encode(body)
 	}
 }
 
@@ -653,8 +680,11 @@ func EncodeUpsertComponentViewError(encoder func(context.Context, http.ResponseW
 // the DSLEditor UpserElementStyle endpoint.
 func EncodeUpserElementStyleResponse(encoder func(context.Context, http.ResponseWriter) goahttp.Encoder) func(context.Context, http.ResponseWriter, any) error {
 	return func(ctx context.Context, w http.ResponseWriter, v any) error {
-		w.WriteHeader(http.StatusNoContent)
-		return nil
+		res, _ := v.(*types.PackageFile)
+		enc := encoder(ctx, w)
+		body := NewUpserElementStyleResponseBody(res)
+		w.WriteHeader(http.StatusOK)
+		return enc.Encode(body)
 	}
 }
 
@@ -716,8 +746,11 @@ func EncodeUpserElementStyleError(encoder func(context.Context, http.ResponseWri
 // returned by the DSLEditor UpsertRelationshipStyle endpoint.
 func EncodeUpsertRelationshipStyleResponse(encoder func(context.Context, http.ResponseWriter) goahttp.Encoder) func(context.Context, http.ResponseWriter, any) error {
 	return func(ctx context.Context, w http.ResponseWriter, v any) error {
-		w.WriteHeader(http.StatusNoContent)
-		return nil
+		res, _ := v.(*types.PackageFile)
+		enc := encoder(ctx, w)
+		body := NewUpsertRelationshipStyleResponseBody(res)
+		w.WriteHeader(http.StatusOK)
+		return enc.Encode(body)
 	}
 }
 
@@ -779,8 +812,11 @@ func EncodeUpsertRelationshipStyleError(encoder func(context.Context, http.Respo
 // DSLEditor DeleteSystem endpoint.
 func EncodeDeleteSystemResponse(encoder func(context.Context, http.ResponseWriter) goahttp.Encoder) func(context.Context, http.ResponseWriter, any) error {
 	return func(ctx context.Context, w http.ResponseWriter, v any) error {
-		w.WriteHeader(http.StatusNoContent)
-		return nil
+		res, _ := v.(*types.PackageFile)
+		enc := encoder(ctx, w)
+		body := NewDeleteSystemResponseBody(res)
+		w.WriteHeader(http.StatusOK)
+		return enc.Encode(body)
 	}
 }
 
@@ -862,8 +898,11 @@ func EncodeDeleteSystemError(encoder func(context.Context, http.ResponseWriter) 
 // DSLEditor DeletePerson endpoint.
 func EncodeDeletePersonResponse(encoder func(context.Context, http.ResponseWriter) goahttp.Encoder) func(context.Context, http.ResponseWriter, any) error {
 	return func(ctx context.Context, w http.ResponseWriter, v any) error {
-		w.WriteHeader(http.StatusNoContent)
-		return nil
+		res, _ := v.(*types.PackageFile)
+		enc := encoder(ctx, w)
+		body := NewDeletePersonResponseBody(res)
+		w.WriteHeader(http.StatusOK)
+		return enc.Encode(body)
 	}
 }
 
@@ -945,8 +984,11 @@ func EncodeDeletePersonError(encoder func(context.Context, http.ResponseWriter) 
 // the DSLEditor DeleteContainer endpoint.
 func EncodeDeleteContainerResponse(encoder func(context.Context, http.ResponseWriter) goahttp.Encoder) func(context.Context, http.ResponseWriter, any) error {
 	return func(ctx context.Context, w http.ResponseWriter, v any) error {
-		w.WriteHeader(http.StatusNoContent)
-		return nil
+		res, _ := v.(*types.PackageFile)
+		enc := encoder(ctx, w)
+		body := NewDeleteContainerResponseBody(res)
+		w.WriteHeader(http.StatusOK)
+		return enc.Encode(body)
 	}
 }
 
@@ -1030,8 +1072,11 @@ func EncodeDeleteContainerError(encoder func(context.Context, http.ResponseWrite
 // the DSLEditor DeleteComponent endpoint.
 func EncodeDeleteComponentResponse(encoder func(context.Context, http.ResponseWriter) goahttp.Encoder) func(context.Context, http.ResponseWriter, any) error {
 	return func(ctx context.Context, w http.ResponseWriter, v any) error {
-		w.WriteHeader(http.StatusNoContent)
-		return nil
+		res, _ := v.(*types.PackageFile)
+		enc := encoder(ctx, w)
+		body := NewDeleteComponentResponseBody(res)
+		w.WriteHeader(http.StatusOK)
+		return enc.Encode(body)
 	}
 }
 
@@ -1117,8 +1162,11 @@ func EncodeDeleteComponentError(encoder func(context.Context, http.ResponseWrite
 // by the DSLEditor DeleteRelationship endpoint.
 func EncodeDeleteRelationshipResponse(encoder func(context.Context, http.ResponseWriter) goahttp.Encoder) func(context.Context, http.ResponseWriter, any) error {
 	return func(ctx context.Context, w http.ResponseWriter, v any) error {
-		w.WriteHeader(http.StatusNoContent)
-		return nil
+		res, _ := v.(*types.PackageFile)
+		enc := encoder(ctx, w)
+		body := NewDeleteRelationshipResponseBody(res)
+		w.WriteHeader(http.StatusOK)
+		return enc.Encode(body)
 	}
 }
 
@@ -1193,8 +1241,11 @@ func EncodeDeleteRelationshipError(encoder func(context.Context, http.ResponseWr
 // by the DSLEditor DeleteLandscapeView endpoint.
 func EncodeDeleteLandscapeViewResponse(encoder func(context.Context, http.ResponseWriter) goahttp.Encoder) func(context.Context, http.ResponseWriter, any) error {
 	return func(ctx context.Context, w http.ResponseWriter, v any) error {
-		w.WriteHeader(http.StatusNoContent)
-		return nil
+		res, _ := v.(*types.PackageFile)
+		enc := encoder(ctx, w)
+		body := NewDeleteLandscapeViewResponseBody(res)
+		w.WriteHeader(http.StatusOK)
+		return enc.Encode(body)
 	}
 }
 
@@ -1276,8 +1327,11 @@ func EncodeDeleteLandscapeViewError(encoder func(context.Context, http.ResponseW
 // returned by the DSLEditor DeleteSystemContextView endpoint.
 func EncodeDeleteSystemContextViewResponse(encoder func(context.Context, http.ResponseWriter) goahttp.Encoder) func(context.Context, http.ResponseWriter, any) error {
 	return func(ctx context.Context, w http.ResponseWriter, v any) error {
-		w.WriteHeader(http.StatusNoContent)
-		return nil
+		res, _ := v.(*types.PackageFile)
+		enc := encoder(ctx, w)
+		body := NewDeleteSystemContextViewResponseBody(res)
+		w.WriteHeader(http.StatusOK)
+		return enc.Encode(body)
 	}
 }
 
@@ -1359,8 +1413,11 @@ func EncodeDeleteSystemContextViewError(encoder func(context.Context, http.Respo
 // by the DSLEditor DeleteContainerView endpoint.
 func EncodeDeleteContainerViewResponse(encoder func(context.Context, http.ResponseWriter) goahttp.Encoder) func(context.Context, http.ResponseWriter, any) error {
 	return func(ctx context.Context, w http.ResponseWriter, v any) error {
-		w.WriteHeader(http.StatusNoContent)
-		return nil
+		res, _ := v.(*types.PackageFile)
+		enc := encoder(ctx, w)
+		body := NewDeleteContainerViewResponseBody(res)
+		w.WriteHeader(http.StatusOK)
+		return enc.Encode(body)
 	}
 }
 
@@ -1442,8 +1499,11 @@ func EncodeDeleteContainerViewError(encoder func(context.Context, http.ResponseW
 // by the DSLEditor DeleteComponentView endpoint.
 func EncodeDeleteComponentViewResponse(encoder func(context.Context, http.ResponseWriter) goahttp.Encoder) func(context.Context, http.ResponseWriter, any) error {
 	return func(ctx context.Context, w http.ResponseWriter, v any) error {
-		w.WriteHeader(http.StatusNoContent)
-		return nil
+		res, _ := v.(*types.PackageFile)
+		enc := encoder(ctx, w)
+		body := NewDeleteComponentViewResponseBody(res)
+		w.WriteHeader(http.StatusOK)
+		return enc.Encode(body)
 	}
 }
 
@@ -1525,8 +1585,11 @@ func EncodeDeleteComponentViewError(encoder func(context.Context, http.ResponseW
 // by the DSLEditor DeleteElementStyle endpoint.
 func EncodeDeleteElementStyleResponse(encoder func(context.Context, http.ResponseWriter) goahttp.Encoder) func(context.Context, http.ResponseWriter, any) error {
 	return func(ctx context.Context, w http.ResponseWriter, v any) error {
-		w.WriteHeader(http.StatusNoContent)
-		return nil
+		res, _ := v.(*types.PackageFile)
+		enc := encoder(ctx, w)
+		body := NewDeleteElementStyleResponseBody(res)
+		w.WriteHeader(http.StatusOK)
+		return enc.Encode(body)
 	}
 }
 
@@ -1608,8 +1671,11 @@ func EncodeDeleteElementStyleError(encoder func(context.Context, http.ResponseWr
 // returned by the DSLEditor DeleteRelationshipStyle endpoint.
 func EncodeDeleteRelationshipStyleResponse(encoder func(context.Context, http.ResponseWriter) goahttp.Encoder) func(context.Context, http.ResponseWriter, any) error {
 	return func(ctx context.Context, w http.ResponseWriter, v any) error {
-		w.WriteHeader(http.StatusNoContent)
-		return nil
+		res, _ := v.(*types.PackageFile)
+		enc := encoder(ctx, w)
+		body := NewDeleteRelationshipStyleResponseBody(res)
+		w.WriteHeader(http.StatusOK)
+		return enc.Encode(body)
 	}
 }
 
@@ -1694,6 +1760,18 @@ func unmarshalFileLocatorRequestBodyToTypesFileLocator(v *FileLocatorRequestBody
 		Filename:   *v.Filename,
 		Repository: *v.Repository,
 		Dir:        *v.Dir,
+	}
+
+	return res
+}
+
+// marshalTypesFileLocatorToFileLocatorResponseBody builds a value of type
+// *FileLocatorResponseBody from a value of type *types.FileLocator.
+func marshalTypesFileLocatorToFileLocatorResponseBody(v *types.FileLocator) *FileLocatorResponseBody {
+	res := &FileLocatorResponseBody{
+		Filename:   v.Filename,
+		Repository: v.Repository,
+		Dir:        v.Dir,
 	}
 
 	return res
