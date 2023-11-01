@@ -50,6 +50,10 @@ endif
 test:
 	go test ./...
 
+serve:
+	@go build -o ./cmd/mdl goa.design/model/cmd/mdl
+	@cmd/mdl/mdl serve
+
 release:
 # First make sure all is clean
 	@git diff-index --quiet HEAD

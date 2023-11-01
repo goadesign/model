@@ -88,11 +88,8 @@ func main() {
 			err = os.WriteFile(*out, b, 0644)
 		}
 	case "serve":
-		if pkg == "" {
-			fail(`missing MODEL_DIR argument, use "--help" for usage`)
-		}
 		store := repo.NewHandler(*root, devmode)
-		err = serve(pkg, store, *port, devmode, *debug)
+		err = serve(store, *port, devmode, *debug)
 	case "version":
 		fmt.Printf("%s %s\n", os.Args[0], model.Version())
 	case "", "help":

@@ -30,7 +30,7 @@ import (
 //go:embed webapp/dist
 var webapp embed.FS
 
-func serve(dir string, store repo.RepoHandler, port int, devmode, debugf bool) error {
+func serve(store repo.RepoHandler, port int, devmode, debugf bool) error {
 	format := log.FormatJSON
 	if log.IsTerminal() {
 		format = log.FormatTerminal
@@ -42,7 +42,7 @@ func serve(dir string, store repo.RepoHandler, port int, devmode, debugf bool) e
 		log.Debugf(ctx, "debug logs enabled")
 	}
 
-	svc, err := svc.New(ctx, dir, store, debugf)
+	svc, err := svc.New(ctx, store, debugf)
 	if err != nil {
 		return err
 	}

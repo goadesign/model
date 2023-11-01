@@ -60,7 +60,7 @@ func Test_CreatePackage(t *testing.T) {
 				assert.Equal(t, content, pf.Content)
 				return tc.result
 			})
-			svc := &Service{dir: tc.name, handler: handler}
+			svc := &Service{handler: handler}
 			err := svc.CreatePackage(context.Background(), tc.payload)
 			if tc.err != "" {
 				assert.EqualError(t, err, tc.err)
