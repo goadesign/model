@@ -32,57 +32,71 @@ func (svc *Service) UpdateDSL(ctx context.Context, p *gentypes.PackageFile) erro
 
 // UpsertSystem updates the DSL for the given system or adds the DSL if it does not exist.
 func (svc *Service) UpsertSystem(ctx context.Context, p *geneditor.System) (*gentypes.PackageFile, error) {
-	return upsertElement(ctx, p.Locator.Repository, p.Locator.Dir, editor.SoftwareSystemKind, p.Name, systemDSL(p))
+	return upsertElementByPath(ctx, p.Locator.Repository, p.Locator.Dir, editor.SoftwareSystemKind, p.Name, systemDSL(p))
 }
 
-// UpsertPerson implements UpsertPerson.
+// Create or update a person in the model
 func (svc *Service) UpsertPerson(ctx context.Context, p *geneditor.Person) (*gentypes.PackageFile, error) {
-	return upsertElement(ctx, p.Locator.Repository, p.Locator.Dir, editor.PersonKind, p.Name, personDSL(p))
+	return upsertElementByPath(ctx, p.Locator.Repository, p.Locator.Dir, editor.PersonKind, p.Name, personDSL(p))
 }
 
-// UpsertContainer implements UpsertContainer.
+// Create or update a container in the model
 func (svc *Service) UpsertContainer(ctx context.Context, p *geneditor.Container) (*gentypes.PackageFile, error) {
-	return upsertElement(ctx, p.Locator.Repository, p.Locator.Dir, editor.ContainerKind, p.Name, containerDSL(p))
+	return upsertElementByPath(ctx, p.Locator.Repository, p.Locator.Dir, editor.ContainerKind, p.Name, containerDSL(p))
 }
 
-// UpsertComponent implements UpsertComponent.
+// Create or update a component in the model
 func (svc *Service) UpsertComponent(ctx context.Context, p *geneditor.Component) (*gentypes.PackageFile, error) {
-	return upsertElement(ctx, p.Locator.Repository, p.Locator.Dir, editor.ComponentKind, p.Name, componentDSL(p))
+	return upsertElementByPath(ctx, p.Locator.Repository, p.Locator.Dir, editor.ComponentKind, p.Name, componentDSL(p))
 }
 
-// UpsertRelationship implements UpsertRelationship.
+// Create or update a relationship in the model
 func (svc *Service) UpsertRelationship(ctx context.Context, p *geneditor.Relationship) (*gentypes.PackageFile, error) {
-	panic("not implemented")
+	name := "Uses"
+	if p.SourceKind == "Person" {
+		if p.DestinationKind == "Person" {
+			name = "InteractsWith"
+		}
+	} else if p.DestinationKind == "Person" {
+		name = "Delivers"
+	}
+	data := &RelationshipData{Relationship: p, RelationName: name}
+	editor := editor.NewEditor(p.Locator.Repository, p.Locator.Dir)
+	f, err := editor.UpsertRelationship(p.SourcePath, p.DestinationPath, relationshipDSL(data))
+	if err != nil {
+		return nil, logAndReturn(ctx, err)
+	}
+	return f, nil
 }
 
 // Create or update a landscape view in the model
 func (svc *Service) UpsertLandscapeView(ctx context.Context, v *geneditor.LandscapeView) (*gentypes.PackageFile, error) {
-	panic("not implemented")
+	return upsertElementByID(ctx, v.Locator.Repository, v.Locator.Dir, editor.LandscapeViewKind, v.Key, landscapeViewDSL(v))
 }
 
 // Create or update a system context view in the model
 func (svc *Service) UpsertSystemContextView(ctx context.Context, v *geneditor.SystemContextView) (*gentypes.PackageFile, error) {
-	panic("not implemented")
+	return upsertElementByID(ctx, v.Locator.Repository, v.Locator.Dir, editor.SystemContextViewKind, v.Key, systemContextViewDSL(v))
 }
 
 // Create or update a container view in the model
 func (svc *Service) UpsertContainerView(ctx context.Context, v *geneditor.ContainerView) (*gentypes.PackageFile, error) {
-	panic("not implemented")
+	return upsertElementByID(ctx, v.Locator.Repository, v.Locator.Dir, editor.ContainerViewKind, v.Key, containerViewDSL(v))
 }
 
 // Create or update a component view in the model
 func (svc *Service) UpsertComponentView(ctx context.Context, v *geneditor.ComponentView) (*gentypes.PackageFile, error) {
-	panic("not implemented")
+	return upsertElementByID(ctx, v.Locator.Repository, v.Locator.Dir, editor.ComponentViewKind, v.Key, componentViewDSL(v))
 }
 
 // Create or update an element style in the model
-func (svc *Service) UpserElementStyle(ctx context.Context, v *geneditor.ElementStyle) (*gentypes.PackageFile, error) {
-	panic("not implemented")
+func (svc *Service) UpserElementStyle(ctx context.Context, e *geneditor.ElementStyle) (*gentypes.PackageFile, error) {
+	return upsertElementByID(ctx, e.Locator.Repository, e.Locator.Dir, editor.ElementStyleKind, e.Tag, elementStyleDSL(e))
 }
 
 // Create or update a relationship style in the model
-func (svc *Service) UpsertRelationshipStyle(ctx context.Context, v *geneditor.RelationshipStyle) (*gentypes.PackageFile, error) {
-	panic("not implemented")
+func (svc *Service) UpsertRelationshipStyle(ctx context.Context, r *geneditor.RelationshipStyle) (*gentypes.PackageFile, error) {
+	return upsertElementByID(ctx, r.Locator.Repository, r.Locator.Dir, editor.RelationshipStyleKind, r.Tag, relationshipStyleDSL(r))
 }
 
 // DeleteSystem implements DeleteSystem.
@@ -140,9 +154,18 @@ func (svc *Service) DeleteRelationshipStyle(ctx context.Context, p *geneditor.De
 	panic("not implemented")
 }
 
-func upsertElement(ctx context.Context, repo, dir string, kind editor.ElementKind, elementPath, code string) (*gentypes.PackageFile, error) {
+func upsertElementByPath(ctx context.Context, repo, dir string, kind editor.ElementKind, elementPath, code string) (*gentypes.PackageFile, error) {
 	edit := editor.NewEditor(repo, dir)
-	f, err := edit.UpsertElement(kind, elementPath, code)
+	f, err := edit.UpsertElementByPath(kind, elementPath, code)
+	if err != nil {
+		return nil, logAndReturn(ctx, err)
+	}
+	return f, nil
+}
+
+func upsertElementByID(ctx context.Context, repo, dir string, kind editor.ElementKind, key, code string) (*gentypes.PackageFile, error) {
+	edit := editor.NewEditor(repo, dir)
+	f, err := edit.UpsertElementByID(kind, key, code)
 	if err != nil {
 		return nil, logAndReturn(ctx, err)
 	}

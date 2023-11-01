@@ -107,7 +107,7 @@ type ComponentView struct {
 	ContainerName string
 	// Indicates whether the container boundaries are visible on the resulting
 	// diagram
-	ContainerBoundariesVisible bool
+	ContainerBoundaryVisible bool
 	// Path to file containing view DSL
 	Locator *types.FileLocator
 	// Key of view
@@ -323,6 +323,8 @@ type DeleteSystemPayload struct {
 // ElementStyle is the payload type of the DSLEditor service UpserElementStyle
 // method.
 type ElementStyle struct {
+	// Path to file containing style DSL
+	Locator *types.FileLocator
 	// Tag of elements to apply style onto
 	Tag string
 	// Shape of element
@@ -410,10 +412,10 @@ type Relationship struct {
 	// Path to source element consisting of <software system name>[/<container
 	// name>[/<component name>]]
 	SourcePath string
+	// Relative path to destination element, see SourcePath for details.
+	DestinationPath string
 	// Kind of destination element
 	DestinationKind string
-	// Path to destination element, see SourcePath for details.
-	DestinationPath string
 	// Description of relationship
 	Description *string
 	// Technology used by relationship
@@ -429,6 +431,8 @@ type Relationship struct {
 // RelationshipStyle is the payload type of the DSLEditor service
 // UpsertRelationshipStyle method.
 type RelationshipStyle struct {
+	// Path to file containing style DSL
+	Locator *types.FileLocator
 	// Tag of relationships to apply style onto
 	Tag string
 	// Thickness of relationship in pixels

@@ -118,10 +118,10 @@ type UpsertRelationshipRequestBody struct {
 	// Path to source element consisting of <software system name>[/<container
 	// name>[/<component name>]]
 	SourcePath *string `form:"SourcePath,omitempty" json:"SourcePath,omitempty" xml:"SourcePath,omitempty"`
+	// Relative path to destination element, see SourcePath for details.
+	DestinationPath *string `form:"DestinationPath,omitempty" json:"DestinationPath,omitempty" xml:"DestinationPath,omitempty"`
 	// Kind of destination element
 	DestinationKind *string `form:"DestinationKind,omitempty" json:"DestinationKind,omitempty" xml:"DestinationKind,omitempty"`
-	// Path to destination element, see SourcePath for details.
-	DestinationPath *string `form:"DestinationPath,omitempty" json:"DestinationPath,omitempty" xml:"DestinationPath,omitempty"`
 	// Description of relationship
 	Description *string `form:"Description,omitempty" json:"Description,omitempty" xml:"Description,omitempty"`
 	// Technology used by relationship
@@ -210,7 +210,7 @@ type UpsertComponentViewRequestBody struct {
 	ContainerName *string `form:"ContainerName,omitempty" json:"ContainerName,omitempty" xml:"ContainerName,omitempty"`
 	// Indicates whether the container boundaries are visible on the resulting
 	// diagram
-	ContainerBoundariesVisible *bool `form:"ContainerBoundariesVisible,omitempty" json:"ContainerBoundariesVisible,omitempty" xml:"ContainerBoundariesVisible,omitempty"`
+	ContainerBoundaryVisible *bool `form:"ContainerBoundaryVisible,omitempty" json:"ContainerBoundaryVisible,omitempty" xml:"ContainerBoundaryVisible,omitempty"`
 	// Path to file containing view DSL
 	Locator *FileLocatorRequestBody `form:"Locator,omitempty" json:"Locator,omitempty" xml:"Locator,omitempty"`
 	// Key of view
@@ -230,6 +230,8 @@ type UpsertComponentViewRequestBody struct {
 // UpserElementStyleRequestBody is the type of the "DSLEditor" service
 // "UpserElementStyle" endpoint HTTP request body.
 type UpserElementStyleRequestBody struct {
+	// Path to file containing style DSL
+	Locator *FileLocatorRequestBody `form:"Locator,omitempty" json:"Locator,omitempty" xml:"Locator,omitempty"`
 	// Tag of elements to apply style onto
 	Tag *string `form:"Tag,omitempty" json:"Tag,omitempty" xml:"Tag,omitempty"`
 	// Shape of element
@@ -263,6 +265,8 @@ type UpserElementStyleRequestBody struct {
 // UpsertRelationshipStyleRequestBody is the type of the "DSLEditor" service
 // "UpsertRelationshipStyle" endpoint HTTP request body.
 type UpsertRelationshipStyleRequestBody struct {
+	// Path to file containing style DSL
+	Locator *FileLocatorRequestBody `form:"Locator,omitempty" json:"Locator,omitempty" xml:"Locator,omitempty"`
 	// Tag of relationships to apply style onto
 	Tag *string `form:"Tag,omitempty" json:"Tag,omitempty" xml:"Tag,omitempty"`
 	// Thickness of relationship in pixels
@@ -2205,8 +2209,8 @@ func NewUpsertRelationshipRelationship(body *UpsertRelationshipRequestBody) *dsl
 	v := &dsleditor.Relationship{
 		SourceKind:      *body.SourceKind,
 		SourcePath:      *body.SourcePath,
-		DestinationKind: *body.DestinationKind,
 		DestinationPath: *body.DestinationPath,
+		DestinationKind: *body.DestinationKind,
 		Description:     body.Description,
 		Technology:      body.Technology,
 		URL:             body.URL,
@@ -2345,11 +2349,11 @@ func NewUpsertComponentViewComponentView(body *UpsertComponentViewRequestBody) *
 		Description:        body.Description,
 		PaperSize:          body.PaperSize,
 	}
-	if body.ContainerBoundariesVisible != nil {
-		v.ContainerBoundariesVisible = *body.ContainerBoundariesVisible
+	if body.ContainerBoundaryVisible != nil {
+		v.ContainerBoundaryVisible = *body.ContainerBoundaryVisible
 	}
-	if body.ContainerBoundariesVisible == nil {
-		v.ContainerBoundariesVisible = true
+	if body.ContainerBoundaryVisible == nil {
+		v.ContainerBoundaryVisible = true
 	}
 	if body.Locator != nil {
 		v.Locator = unmarshalFileLocatorRequestBodyToTypesFileLocator(body.Locator)
@@ -2394,6 +2398,7 @@ func NewUpserElementStyleElementStyle(body *UpserElementStyleRequestBody) *dsled
 	if body.Border != nil {
 		v.Border = *body.Border
 	}
+	v.Locator = unmarshalFileLocatorRequestBodyToTypesFileLocator(body.Locator)
 	if body.Shape == nil {
 		v.Shape = "ShapeBox"
 	}
@@ -2426,6 +2431,7 @@ func NewUpsertRelationshipStyleRelationshipStyle(body *UpsertRelationshipStyleRe
 	if body.Routing != nil {
 		v.Routing = *body.Routing
 	}
+	v.Locator = unmarshalFileLocatorRequestBodyToTypesFileLocator(body.Locator)
 	if body.Dashed == nil {
 		v.Dashed = true
 	}
@@ -2704,13 +2710,13 @@ func ValidateUpsertRelationshipRequestBody(body *UpsertRelationshipRequestBody) 
 		}
 	}
 	if body.SourceKind != nil {
-		if !(*body.SourceKind == "Person" || *body.SourceKind == "Software System" || *body.SourceKind == "Container" || *body.SourceKind == "Component") {
-			err = goa.MergeErrors(err, goa.InvalidEnumValueError("body.SourceKind", *body.SourceKind, []any{"Person", "Software System", "Container", "Component"}))
+		if !(*body.SourceKind == "SoftwareSystem" || *body.SourceKind == "Person" || *body.SourceKind == "Container" || *body.SourceKind == "Component") {
+			err = goa.MergeErrors(err, goa.InvalidEnumValueError("body.SourceKind", *body.SourceKind, []any{"SoftwareSystem", "Person", "Container", "Component"}))
 		}
 	}
 	if body.DestinationKind != nil {
-		if !(*body.DestinationKind == "Person" || *body.DestinationKind == "Software System" || *body.DestinationKind == "Container" || *body.DestinationKind == "Component") {
-			err = goa.MergeErrors(err, goa.InvalidEnumValueError("body.DestinationKind", *body.DestinationKind, []any{"Person", "Software System", "Container", "Component"}))
+		if !(*body.DestinationKind == "SoftwareSystem" || *body.DestinationKind == "Person" || *body.DestinationKind == "Container" || *body.DestinationKind == "Component") {
+			err = goa.MergeErrors(err, goa.InvalidEnumValueError("body.DestinationKind", *body.DestinationKind, []any{"SoftwareSystem", "Person", "Container", "Component"}))
 		}
 	}
 	if body.InteractionStyle != nil {
@@ -2824,8 +2830,16 @@ func ValidateUpsertComponentViewRequestBody(body *UpsertComponentViewRequestBody
 // ValidateUpserElementStyleRequestBody runs the validations defined on
 // UpserElementStyleRequestBody
 func ValidateUpserElementStyleRequestBody(body *UpserElementStyleRequestBody) (err error) {
+	if body.Locator == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Locator", "body"))
+	}
 	if body.Tag == nil {
 		err = goa.MergeErrors(err, goa.MissingFieldError("Tag", "body"))
+	}
+	if body.Locator != nil {
+		if err2 := ValidateFileLocatorRequestBody(body.Locator); err2 != nil {
+			err = goa.MergeErrors(err, err2)
+		}
 	}
 	if body.Shape != nil {
 		if !(*body.Shape == "ShapeBox" || *body.Shape == "ShapeCircle" || *body.Shape == "ShapeCylinder" || *body.Shape == "ShapeEllipse" || *body.Shape == "ShapeHexagon" || *body.Shape == "ShapeRoundedBox" || *body.Shape == "ShapeComponent" || *body.Shape == "ShapeFolder" || *body.Shape == "ShapeMobileDeviceLandscape" || *body.Shape == "ShapeMobileDevicePortrait" || *body.Shape == "ShapePerson" || *body.Shape == "ShapePipe" || *body.Shape == "ShapeRobot" || *body.Shape == "ShapeWebBrowser") {
@@ -2865,8 +2879,16 @@ func ValidateUpserElementStyleRequestBody(body *UpserElementStyleRequestBody) (e
 // ValidateUpsertRelationshipStyleRequestBody runs the validations defined on
 // UpsertRelationshipStyleRequestBody
 func ValidateUpsertRelationshipStyleRequestBody(body *UpsertRelationshipStyleRequestBody) (err error) {
+	if body.Locator == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Locator", "body"))
+	}
 	if body.Tag == nil {
 		err = goa.MergeErrors(err, goa.MissingFieldError("Tag", "body"))
+	}
+	if body.Locator != nil {
+		if err2 := ValidateFileLocatorRequestBody(body.Locator); err2 != nil {
+			err = goa.MergeErrors(err, err2)
+		}
 	}
 	if body.Thickness != nil {
 		if *body.Thickness < 0 {

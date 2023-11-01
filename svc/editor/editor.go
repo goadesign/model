@@ -23,31 +23,33 @@ type (
 
 	// ElementKind is the kind of a DSL element.
 	ElementKind string
-
-	// ViewKind is the kind of a DSL view.
-	ViewKind string
 )
 
 const (
+	// DesignKind is the kind of a DSL design.
+	DesignKind ElementKind = "Design"
 	// PersonKind is the kind of a person.
-	PersonKind ElementKind = "Person"
+	PersonKind = "Person"
 	// SoftwareSystemKind is the kind of a software system.
 	SoftwareSystemKind = "SoftwareSystem"
 	// ContainerKind is the kind of a container.
 	ContainerKind = "Container"
 	// ComponentKind is the kind of a component.
 	ComponentKind = "Component"
-)
-
-const (
+	// ViewsKind is the kind of a DSL view.
+	ViewsKind = "Views"
 	// LandscapeViewKind is the kind of a landscape view.
-	LandscapeViewKind ViewKind = "SystemLandscapeView"
+	LandscapeViewKind = "SystemLandscapeView"
 	// SystemContextViewKind is the kind of a system context view.
 	SystemContextViewKind = "SystemContextView"
 	// ContainerViewKind is the kind of a container view.
 	ContainerViewKind = "ContainerView"
 	// ComponentViewKind is the kind of a component view.
 	ComponentViewKind = "ComponentView"
+	// ElementStyleKind is the kind of a DSL element style.
+	ElementStyleKind = "ElementStyle"
+	// RelationshipStyleKind is the kind of a DSL relationship style.
+	RelationshipStyleKind = "RelationshipStyle"
 )
 
 // DefaultModelFilename is the name of the DSL file used by default (e.g. when
@@ -59,32 +61,19 @@ func NewEditor(repo, dir string) *Editor {
 	return &Editor{repo: repo, dir: dir}
 }
 
-// UpsertElement updates the code for the given element if there's a match
+// UpsertElementByPath updates the code for the person, software system ,
+// container or component with the given kind and path, if there's a match
 // otherwise it adds a new element. The elementPath is the path to the element
 // in the DSL file, e.g. "Person1" or "SoftwareSystem1/Container1/Component1".
-func (e *Editor) UpsertElement(kind ElementKind, elementPath, code string) (*gentypes.PackageFile, error) {
-	fset := token.NewFileSet()
-	pkgs, err := parser.ParseDir(fset, filepath.Join(e.repo, e.dir), nil, 0)
+func (e *Editor) UpsertElementByPath(kind ElementKind, elementPath, code string) (*gentypes.PackageFile, error) {
+	res, parsed, fset, err := e.parseDir()
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse DSL in %s: %w", e.dir, err)
+		return nil, err
 	}
-	if len(pkgs) > 1 {
-		return nil, fmt.Errorf("found %d packages in %s, expected 1", len(pkgs), e.dir)
-	}
-	res := gentypes.PackageFile{
-		Locator: &gentypes.FileLocator{
-			Repository: e.repo,
-			Dir:        e.dir,
-		},
-	}
-	if len(pkgs) == 0 {
+	if parsed == nil {
 		res.Locator.Filename = DefaultModelFilename
 		modelFile := filepath.Join(e.repo, e.dir, DefaultModelFilename)
 		return setContent(modelFile, res, newDesign(code))
-	}
-	var parsed *ast.Package
-	for _, pkg := range pkgs {
-		parsed = pkg
 	}
 	for _, file := range parsed.Files {
 		tokFile := fset.File(file.Pos())
@@ -95,37 +84,28 @@ func (e *Editor) UpsertElement(kind ElementKind, elementPath, code string) (*gen
 			return nil, fmt.Errorf("failed to read DSL file %s: %w", tokFile.Name(), err)
 		}
 		src := string(srcBytes)
-		pathStack := strings.Split(elementPath, "/")
-		var pos, end, prevPos, prevEnd token.Pos
-		recurse := true
-		var elemNode ast.Node
-		ast.Inspect(file, func(node ast.Node) bool {
-			if elemNode != nil {
-				return false
-			}
-			pos, end, pathStack, recurse = findElement(node, kind, pathStack)
-			if pos != token.NoPos {
-				prevPos = pos
-				prevEnd = end
-			}
-			if !recurse {
-				elemNode = node
-			}
-			return recurse
-		})
+		elemNode, pos, end := findDSL(file, kind, elementPath)
 		if elemNode != nil {
 			// Found the element, so replace it.
 			code, err := copyRelationships(tokFile, elemNode, src, code)
 			if err != nil {
 				return nil, err
 			}
-			newContent := concat(src[:tokFile.Offset(prevPos)], code, src[tokFile.Offset(prevEnd):])
+			newContent := concat(
+				src[:tokFile.Offset(pos)],
+				code,
+				src[tokFile.Offset(end):],
+			)
 			return setContent(filename, res, newContent)
 		}
-		if prevEnd != token.NoPos && pos == token.NoPos {
+		if end != token.NoPos {
 			// We found the parent, but not the child, so add the child in the parent.
-			endOffset := tokFile.Offset(prevEnd)
-			newContent := concat(src[:endOffset-2], code, src[endOffset-2:])
+			endOffset := tokFile.Offset(end)
+			newContent := concat(
+				src[:endOffset-2], // -2 to account for `})`
+				code,
+				src[endOffset-2:],
+			)
 			return setContent(filename, res, newContent)
 		}
 	}
@@ -145,30 +125,16 @@ func (e *Editor) UpsertElement(kind ElementKind, elementPath, code string) (*gen
 	}
 	tokFile := fset.File(f.Pos())
 	var viewsCallOffset int
-	ast.Inspect(f, func(node ast.Node) bool {
-		if callExpr, ok := node.(*ast.CallExpr); ok {
-			if ident, ok := callExpr.Fun.(*ast.Ident); ok {
-				if ident.Name == "Views" {
-					viewsCallOffset = tokFile.Offset(callExpr.Pos())
-					return false
-				}
-			}
-		}
-		return true
-	})
+	n, _, _ := findDSL(f, ViewsKind, "")
+	if n != nil {
+		viewsCallOffset = tokFile.Offset(n.Pos())
+	}
 	if viewsCallOffset == 0 {
-		// Find end of Design DSL and insert before ending brackets.
-		ast.Inspect(f, func(node ast.Node) bool {
-			if callExpr, ok := node.(*ast.CallExpr); ok {
-				if ident, ok := callExpr.Fun.(*ast.Ident); ok {
-					if ident.Name == "Design" {
-						viewsCallOffset = tokFile.Offset(callExpr.End()) - 2
-						return false
-					}
-				}
-			}
-			return true
-		})
+		_, _, end := findDSL(f, DesignKind, "")
+		if end == token.NoPos {
+			return nil, fmt.Errorf("failed to find Design() call in DSL file %s", modelFile)
+		}
+		viewsCallOffset = tokFile.Offset(end) - 2
 	}
 	data, err := os.ReadFile(modelFile)
 	if err != nil {
@@ -185,37 +151,23 @@ func (e *Editor) UpsertElement(kind ElementKind, elementPath, code string) (*gen
 // "SoftwareSystem1/Container1/Component1". The destinationPath is the path to
 // the destination element.
 func (e *Editor) UpsertRelationship(sourcePath, destinationPath, code string) (*gentypes.PackageFile, error) {
-	fset := token.NewFileSet()
-	pkgs, err := parser.ParseDir(fset, filepath.Join(e.repo, e.dir), nil, 0)
+	res, parsed, fset, err := e.parseDir()
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse DSL in %s: %w", e.dir, err)
-	}
-	if len(pkgs) != 1 {
-		return nil, fmt.Errorf("found %d packages in %s, expected 1", len(pkgs), e.dir)
-	}
-	res := gentypes.PackageFile{
-		Locator: &gentypes.FileLocator{
-			Repository: e.repo,
-			Dir:        e.dir,
-		},
-	}
-	var parsed *ast.Package
-	for _, pkg := range pkgs {
-		parsed = pkg
+		return nil, err
 	}
 	var sourceNode, destinationNode ast.Node
 	var sourceFile *ast.File
 	var existingRel ast.Node
 	for _, file := range parsed.Files {
 		if sourceNode == nil {
-			sourceNode = findNode(file, sourcePath)
+			sourceNode = findElement(file, sourcePath)
 			if sourceNode != nil {
 				sourceFile = file
 				existingRel = findRelationship(sourceNode, destinationPath)
 			}
 		}
 		if destinationNode == nil {
-			destinationNode = findNode(file, destinationPath)
+			destinationNode = findElement(file, destinationPath)
 		}
 		if sourceNode != nil && destinationNode != nil {
 			break
@@ -239,9 +191,11 @@ func (e *Editor) UpsertRelationship(sourcePath, destinationPath, code string) (*
 
 	// Case 1: relationship already exists, replace it
 	if existingRel != nil {
-		start := tokFile.Offset(existingRel.Pos())
-		end := tokFile.Offset(existingRel.End())
-		newContent := concat(src[:start], code, src[end:])
+		newContent := concat(
+			src[:tokFile.Offset(existingRel.Pos())],
+			code,
+			src[tokFile.Offset(existingRel.End()):],
+		)
 		return setContent(srcFilename, res, newContent)
 	}
 
@@ -255,12 +209,124 @@ func (e *Editor) UpsertRelationship(sourcePath, destinationPath, code string) (*
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("sourceSrc:", sourceSrc)
-	fmt.Println("code:", code)
-	fmt.Println("updated:", updated)
-	newContent := concat(src[:tokFile.Offset(sourceNode.Pos())], updated, src[tokFile.Offset(sourceNode.End()):])
-	fmt.Println("newContent:", newContent)
+	newContent := concat(
+		src[:tokFile.Offset(sourceNode.Pos())],
+		updated,
+		src[tokFile.Offset(sourceNode.End()):],
+	)
 	return setContent(srcFilename, res, newContent)
+}
+
+// UpsertElementByID updates the code for the view, element style or
+// relationship style with the given kind and identified with the given ID if
+// there's a match otherwise it adds new DSL.  The ID corresponds to the first
+// argument of the DSL function, e.g. the ID of a view is the key.
+func (e *Editor) UpsertElementByID(kind ElementKind, id, code string) (*gentypes.PackageFile, error) {
+	res, parsed, fset, err := e.parseDir()
+	if err != nil {
+		return nil, err
+	}
+	var node ast.Node
+	var file *ast.File
+	for _, f := range parsed.Files {
+		node, _, _ = findDSL(file, kind, id)
+		if node != nil {
+			file = f
+			break
+		}
+	}
+	if node != nil {
+		// Found the element, so replace it.
+		srcFilename := fset.File(node.Pos()).Name()
+		srcBytes, err := os.ReadFile(srcFilename)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read DSL file %s: %w", srcFilename, err)
+		}
+		src := string(srcBytes)
+		res.Locator.Filename = filepath.Base(srcFilename)
+		tokFile := fset.File(file.Pos())
+
+		newContent := concat(
+			src[:tokFile.Offset(node.Pos())],
+			code,
+			src[tokFile.Offset(node.End()):],
+		)
+		return setContent(srcFilename, res, newContent)
+	}
+	// We didn't find the element, so add it
+	modelFile := filepath.Join(e.repo, e.dir, DefaultModelFilename)
+	res.Locator.Filename = DefaultModelFilename
+	if _, err := os.Stat(modelFile); err != nil {
+		if !errors.Is(err, os.ErrNotExist) {
+			return nil, fmt.Errorf("failed to stat DSL file %s: %w", modelFile, err)
+		}
+		return setContent(modelFile, res, newDesign(code))
+	}
+	// Where to insert the code depends on the kind:
+	//  - Views: insert last in the Views DSL
+	//  - Styles: insert last in the Styles DSL
+	var insertOffset int
+	switch kind {
+	case LandscapeViewKind, SystemContextViewKind, ContainerViewKind, ComponentViewKind:
+		n, _, _ := findDSL(file, ViewsKind, "")
+		if n != nil {
+			insertOffset = fset.File(file.Pos()).Offset(n.Pos()) - 2 // -2 to account for `})`
+		} else {
+			dn, _, _ := findDSL(file, DesignKind, "")
+			if dn == nil {
+				return nil, fmt.Errorf("failed to find Design() call in DSL file %s", modelFile)
+			}
+			insertOffset = fset.File(file.Pos()).Offset(dn.End()) - 2
+			code = concat("Views(func() {", code, "})")
+		}
+	case ElementStyleKind, RelationshipStyleKind:
+		n, _, _ := findDSL(file, "Styles", "")
+		if n != nil {
+			insertOffset = fset.File(file.Pos()).Offset(n.End()) - 2 // -2 to account for `})`
+		} else {
+			vn, _, _ := findDSL(file, ViewsKind, "")
+			if vn != nil {
+				insertOffset = fset.File(file.Pos()).Offset(vn.Pos()) - 2
+				code = concat("Styles(func() {", code, "})")
+			} else {
+				dn, _, _ := findDSL(file, DesignKind, "")
+				if dn == nil {
+					return nil, fmt.Errorf("failed to find Design() call in DSL file %s", modelFile)
+				}
+				insertOffset = fset.File(file.Pos()).Offset(dn.End()) - 2
+				code = concat("Views(func() {", "Styles(func() {", code, "})", "})")
+			}
+		}
+	default:
+		return nil, fmt.Errorf("invalid element kind %s", kind)
+	}
+	data, err := os.ReadFile(modelFile)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read DSL file %s: %w", modelFile, err)
+	}
+	content := string(data)
+	newContent := concat(content[:insertOffset], code, content[insertOffset:])
+	return setContent(modelFile, res, newContent)
+}
+
+// parseDir parses the DSL in the editor directory and returns the parsed AST.
+func (e *Editor) parseDir() (*gentypes.PackageFile, *ast.Package, *token.FileSet, error) {
+	fset := token.NewFileSet()
+	pkgs, err := parser.ParseDir(fset, filepath.Join(e.repo, e.dir), nil, 0)
+	if err != nil {
+		return nil, nil, nil, fmt.Errorf("failed to parse DSL in %s: %w", e.dir, err)
+	}
+	res := gentypes.PackageFile{
+		Locator: &gentypes.FileLocator{
+			Repository: e.repo,
+			Dir:        e.dir,
+		},
+	}
+	var parsed *ast.Package
+	for _, pkg := range pkgs {
+		parsed = pkg
+	}
+	return &res, parsed, fset, nil
 }
 
 // findRelationship looks for a relationship DSL with the given destination
@@ -403,8 +469,9 @@ func isInside(target, start, end token.Pos) bool {
 	return target >= start && target <= end
 }
 
-// findNode looks for a ast Node with the given path.
-func findNode(file *ast.File, path string) ast.Node {
+// findElement looks for a software system, container or component with the
+// given path.
+func findElement(file *ast.File, path string) ast.Node {
 	stack := strings.Split(path, "/")
 	var elemKind ElementKind
 	switch len(stack) {
@@ -415,37 +482,17 @@ func findNode(file *ast.File, path string) ast.Node {
 	case 3:
 		elemKind = ComponentKind
 	}
-	recurse := true
-	var n ast.Node
-	ast.Inspect(file, func(node ast.Node) bool {
-		if n != nil {
-			return false
-		}
-		_, _, stack, recurse = findElement(node, elemKind, stack)
-		if !recurse {
-			n = node
-		}
-		return recurse
-	})
+	n, _, _ := findDSL(file, elemKind, path)
 	if n == nil && elemKind == SoftwareSystemKind {
 		// Try person
-		ast.Inspect(file, func(node ast.Node) bool {
-			if n != nil {
-				return false
-			}
-			_, _, stack, recurse = findElement(node, PersonKind, stack)
-			if !recurse {
-				n = node
-			}
-			return recurse
-		})
+		n, _, _ = findDSL(file, PersonKind, path)
 	}
 	return n
 }
 
 // setContent replaces the content of the DSL file with newContent and returns
 // the updated file. It first formats the new content using the Go formatter.
-func setContent(filename string, res gentypes.PackageFile, newContent string) (*gentypes.PackageFile, error) {
+func setContent(filename string, res *gentypes.PackageFile, newContent string) (*gentypes.PackageFile, error) {
 	contentBytes, err := format.Source([]byte(newContent))
 	if err != nil {
 		return nil, fmt.Errorf("failed to format DSL file %s: %w, original content:\n%s", filename, err, newContent)
@@ -454,52 +501,82 @@ func setContent(filename string, res gentypes.PackageFile, newContent string) (*
 		return nil, fmt.Errorf("failed to write DSL file %s: %w", filename, err)
 	}
 	res.Content = string(contentBytes)
-	return &res, nil
+	return res, nil
 }
 
-// findElement looks for a call expression with a first argument that matches the first element of pathStack.
-// If found there are two cases:
+// findDSL looks for a DSL node (ast.CallExpr) with the given kind, path and
+// first argument. If found it returns the node and its position in file. If
+// it finds a parent DSL function but not the actual DSL it returns the position
+// of the parent DSL function and a nil node.
+func findDSL(file *ast.File, kind ElementKind, path string) (node ast.Node, pos, end token.Pos) {
+	pathStack := strings.Split(path, "/")
+	var curPos, curEnd, prevPos, prevEnd token.Pos
+	recurse := true
+	ast.Inspect(file, func(n ast.Node) bool {
+		if n != nil {
+			return false
+		}
+		curPos, curEnd, pathStack, recurse = parseNode(n, kind, pathStack)
+		if curPos != token.NoPos {
+			prevPos = curPos
+			prevEnd = curEnd
+		}
+		if !recurse {
+			node = n
+		}
+		return recurse
+	})
+	pos = prevPos
+	end = prevEnd
+	return
+}
+
+// parseNode checks if node is a call expression with a first argument that
+// matches the first element of pathStack. If so there are two cases:
 //
-//  1. The function matches ElementKind and the pathStack has only one element: return the position of the call
-//     expression and an empty pathStack.
-//  2. The function matches ContainerViewKind or ComponentViewKind and the pathStack has more than one element:
-//     return the position of the call expression and the remaining pathStack.
+//  1. The function matches ElementKind and the pathStack has only one element:
+//     return the position of the call expression and an empty pathStack.
+//  2. The function matches SoftwareSystemKind or ContainerKind and the
+//     pathStack has more than one element: return the position of the call
+//     expression and the remaining pathStack so the caller can recurse.
 //
 // The last returned value is true if the search should continue.
-func findElement(node ast.Node, kind ElementKind, pathStack []string) (pos, end token.Pos, stack []string, recurse bool) {
+func parseNode(node ast.Node, kind ElementKind, pathStack []string) (pos, end token.Pos, stack []string, recurse bool) {
 	stack = pathStack
 	recurse = true
-	if callExpr, ok := node.(*ast.CallExpr); ok {
-		if callExpr.Args == nil || len(callExpr.Args) == 0 {
-			return
-		}
-		arg, ok := callExpr.Args[0].(*ast.BasicLit)
-		if !ok {
-			return
-		}
-		if arg.Value != fmt.Sprintf("%q", pathStack[0]) {
-			return
-		}
-		switch len(pathStack) {
-		case 1:
-			if ident, ok := callExpr.Fun.(*ast.Ident); ok {
-				if ident.Name == string(kind) {
-					return callExpr.Pos(), callExpr.End(), nil, false
-				}
+	callExpr, ok := node.(*ast.CallExpr)
+	if !ok {
+		return
+	}
+	if callExpr.Args == nil || len(callExpr.Args) == 0 {
+		return
+	}
+	arg, ok := callExpr.Args[0].(*ast.BasicLit)
+	if !ok {
+		return
+	}
+	if arg.Value != fmt.Sprintf("%q", pathStack[0]) {
+		return
+	}
+	switch len(pathStack) {
+	case 1:
+		if ident, ok := callExpr.Fun.(*ast.Ident); ok {
+			if ident.Name == string(kind) {
+				return callExpr.Pos(), callExpr.End(), nil, false
 			}
-		case 2:
-			// We must be in a system or a container for a match
-			if ident, ok := callExpr.Fun.(*ast.Ident); ok {
-				if ident.Name == string(SoftwareSystemKind) && kind == ContainerKind || ident.Name == string(ContainerKind) && kind == ComponentKind {
-					return callExpr.Pos(), callExpr.End(), pathStack[1:], true
-				}
+		}
+	case 2:
+		// We must be in a system or a container for a match
+		if ident, ok := callExpr.Fun.(*ast.Ident); ok {
+			if ident.Name == string(SoftwareSystemKind) && kind == ContainerKind || ident.Name == string(ContainerKind) && kind == ComponentKind {
+				return callExpr.Pos(), callExpr.End(), pathStack[1:], true
 			}
-		case 3:
-			// We must be in a system for a match
-			if ident, ok := callExpr.Fun.(*ast.Ident); ok {
-				if ident.Name == string(SoftwareSystemKind) {
-					return callExpr.Pos(), callExpr.End(), pathStack[1:], true
-				}
+		}
+	case 3:
+		// We must be in a system for a match
+		if ident, ok := callExpr.Fun.(*ast.Ident); ok {
+			if ident.Name == string(SoftwareSystemKind) {
+				return callExpr.Pos(), callExpr.End(), pathStack[1:], true
 			}
 		}
 	}

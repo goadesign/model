@@ -677,14 +677,14 @@ Example:
     %[1]s dsl-editor upsert-relationship --body '{
       "Description": "Relationship description",
       "DestinationKind": "Component",
-      "DestinationPath": "Software System/Container/Component",
+      "DestinationPath": "Component",
       "InteractionStyle": "Synchronous",
       "Locator": {
          "Dir": "services/my-service/diagram",
          "Filename": "model.go",
          "Repository": "my-repo"
       },
-      "SourceKind": "Person",
+      "SourceKind": "SoftwareSystem",
       "SourcePath": "Software System/Container/Component",
       "Tags": [
          "Tag1",
@@ -843,7 +843,7 @@ Create or update a component view in the model
 
 Example:
     %[1]s dsl-editor upsert-component-view --body '{
-      "ContainerBoundariesVisible": true,
+      "ContainerBoundaryVisible": true,
       "ContainerName": "Container",
       "Description": "description",
       "ElementViews": [
@@ -892,17 +892,22 @@ Create or update an element style in the model
 
 Example:
     %[1]s dsl-editor upser-element-style --body '{
-      "Background": "#4b95ba",
+      "Background": "#Ebfc7e",
       "Border": "BorderDotted",
-      "Color": "#cBaAaC",
+      "Color": "#De5E9e",
       "Description": false,
       "FontSize": 20,
       "Height": 100,
       "Icon": "https://static.structurizr.com/images/icons/Person.png",
+      "Locator": {
+         "Dir": "services/my-service/diagram",
+         "Filename": "model.go",
+         "Repository": "my-repo"
+      },
       "Metadata": true,
       "Opacity": 45,
       "Shape": "ShapePipe",
-      "Stroke": "#9013C2",
+      "Stroke": "#C83c50",
       "Tag": "tag",
       "Width": 100
    }'
@@ -917,13 +922,18 @@ Create or update a relationship style in the model
 
 Example:
     %[1]s dsl-editor upsert-relationship-style --body '{
-      "Color": "#f0fb3c",
+      "Color": "#2c41ad",
       "Dashed": true,
       "FontSize": 10,
+      "Locator": {
+         "Dir": "services/my-service/diagram",
+         "Filename": "model.go",
+         "Repository": "my-repo"
+      },
       "Opacity": 35,
       "Position": 25,
       "Routing": "Direct",
-      "Stroke": "#6a28aB",
+      "Stroke": "#bAE427",
       "Tag": "tag",
       "Thickness": 2,
       "Width": 272
@@ -1244,7 +1254,7 @@ Example:
       "Dir": "services/my-service/diagram",
       "Filename": "model.go",
       "Repository": "my-repo",
-      "SVG": "\u003csvg����\u003c/svg\u003e"
+      "SVG": "\u003csvg������\u003c/svg\u003e"
    }'
 `, os.Args[0])
 }

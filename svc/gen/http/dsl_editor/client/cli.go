@@ -266,18 +266,18 @@ func BuildUpsertRelationshipPayload(dSLEditorUpsertRelationshipBody string) (*ds
 	{
 		err = json.Unmarshal([]byte(dSLEditorUpsertRelationshipBody), &body)
 		if err != nil {
-			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Description\": \"Relationship description\",\n      \"DestinationKind\": \"Component\",\n      \"DestinationPath\": \"Software System/Container/Component\",\n      \"InteractionStyle\": \"Synchronous\",\n      \"Locator\": {\n         \"Dir\": \"services/my-service/diagram\",\n         \"Filename\": \"model.go\",\n         \"Repository\": \"my-repo\"\n      },\n      \"SourceKind\": \"Person\",\n      \"SourcePath\": \"Software System/Container/Component\",\n      \"Tags\": [\n         \"Tag1\",\n         \"Tag2\"\n      ],\n      \"Technology\": \"Technology\",\n      \"URL\": \"https://relationship.com\"\n   }'")
+			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Description\": \"Relationship description\",\n      \"DestinationKind\": \"Component\",\n      \"DestinationPath\": \"Component\",\n      \"InteractionStyle\": \"Synchronous\",\n      \"Locator\": {\n         \"Dir\": \"services/my-service/diagram\",\n         \"Filename\": \"model.go\",\n         \"Repository\": \"my-repo\"\n      },\n      \"SourceKind\": \"SoftwareSystem\",\n      \"SourcePath\": \"Software System/Container/Component\",\n      \"Tags\": [\n         \"Tag1\",\n         \"Tag2\"\n      ],\n      \"Technology\": \"Technology\",\n      \"URL\": \"https://relationship.com\"\n   }'")
 		}
 		if body.Locator != nil {
 			if err2 := ValidateFileLocatorRequestBody(body.Locator); err2 != nil {
 				err = goa.MergeErrors(err, err2)
 			}
 		}
-		if !(body.SourceKind == "Person" || body.SourceKind == "Software System" || body.SourceKind == "Container" || body.SourceKind == "Component") {
-			err = goa.MergeErrors(err, goa.InvalidEnumValueError("body.SourceKind", body.SourceKind, []any{"Person", "Software System", "Container", "Component"}))
+		if !(body.SourceKind == "SoftwareSystem" || body.SourceKind == "Person" || body.SourceKind == "Container" || body.SourceKind == "Component") {
+			err = goa.MergeErrors(err, goa.InvalidEnumValueError("body.SourceKind", body.SourceKind, []any{"SoftwareSystem", "Person", "Container", "Component"}))
 		}
-		if !(body.DestinationKind == "Person" || body.DestinationKind == "Software System" || body.DestinationKind == "Container" || body.DestinationKind == "Component") {
-			err = goa.MergeErrors(err, goa.InvalidEnumValueError("body.DestinationKind", body.DestinationKind, []any{"Person", "Software System", "Container", "Component"}))
+		if !(body.DestinationKind == "SoftwareSystem" || body.DestinationKind == "Person" || body.DestinationKind == "Container" || body.DestinationKind == "Component") {
+			err = goa.MergeErrors(err, goa.InvalidEnumValueError("body.DestinationKind", body.DestinationKind, []any{"SoftwareSystem", "Person", "Container", "Component"}))
 		}
 		if !(body.InteractionStyle == "Synchronous" || body.InteractionStyle == "Asynchronous") {
 			err = goa.MergeErrors(err, goa.InvalidEnumValueError("body.InteractionStyle", body.InteractionStyle, []any{"Synchronous", "Asynchronous"}))
@@ -292,8 +292,8 @@ func BuildUpsertRelationshipPayload(dSLEditorUpsertRelationshipBody string) (*ds
 	v := &dsleditor.Relationship{
 		SourceKind:       body.SourceKind,
 		SourcePath:       body.SourcePath,
-		DestinationKind:  body.DestinationKind,
 		DestinationPath:  body.DestinationPath,
+		DestinationKind:  body.DestinationKind,
 		Description:      body.Description,
 		Technology:       body.Technology,
 		InteractionStyle: body.InteractionStyle,
@@ -496,7 +496,7 @@ func BuildUpsertComponentViewPayload(dSLEditorUpsertComponentViewBody string) (*
 	{
 		err = json.Unmarshal([]byte(dSLEditorUpsertComponentViewBody), &body)
 		if err != nil {
-			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"ContainerBoundariesVisible\": true,\n      \"ContainerName\": \"Container\",\n      \"Description\": \"description\",\n      \"ElementViews\": [\n         {\n            \"Element\": \"Software System/Container/Component\"\n         },\n         {\n            \"Element\": \"Software System/Container/Component\"\n         },\n         {\n            \"Element\": \"Software System/Container/Component\"\n         }\n      ],\n      \"Key\": \"key\",\n      \"Locator\": {\n         \"Dir\": \"services/my-service/diagram\",\n         \"Filename\": \"model.go\",\n         \"Repository\": \"my-repo\"\n      },\n      \"PaperSize\": \"A1_Portrait\",\n      \"RelationshipViews\": [\n         {\n            \"Destination\": \"Software System/Container/Component\",\n            \"Source\": \"Software System/Container/Component\"\n         },\n         {\n            \"Destination\": \"Software System/Container/Component\",\n            \"Source\": \"Software System/Container/Component\"\n         },\n         {\n            \"Destination\": \"Software System/Container/Component\",\n            \"Source\": \"Software System/Container/Component\"\n         }\n      ],\n      \"SoftwareSystemName\": \"Software System\",\n      \"Title\": \"title\"\n   }'")
+			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"ContainerBoundaryVisible\": true,\n      \"ContainerName\": \"Container\",\n      \"Description\": \"description\",\n      \"ElementViews\": [\n         {\n            \"Element\": \"Software System/Container/Component\"\n         },\n         {\n            \"Element\": \"Software System/Container/Component\"\n         },\n         {\n            \"Element\": \"Software System/Container/Component\"\n         }\n      ],\n      \"Key\": \"key\",\n      \"Locator\": {\n         \"Dir\": \"services/my-service/diagram\",\n         \"Filename\": \"model.go\",\n         \"Repository\": \"my-repo\"\n      },\n      \"PaperSize\": \"A1_Portrait\",\n      \"RelationshipViews\": [\n         {\n            \"Destination\": \"Software System/Container/Component\",\n            \"Source\": \"Software System/Container/Component\"\n         },\n         {\n            \"Destination\": \"Software System/Container/Component\",\n            \"Source\": \"Software System/Container/Component\"\n         },\n         {\n            \"Destination\": \"Software System/Container/Component\",\n            \"Source\": \"Software System/Container/Component\"\n         }\n      ],\n      \"SoftwareSystemName\": \"Software System\",\n      \"Title\": \"title\"\n   }'")
 		}
 		if body.Locator != nil {
 			if err2 := ValidateFileLocatorRequestBody(body.Locator); err2 != nil {
@@ -513,18 +513,18 @@ func BuildUpsertComponentViewPayload(dSLEditorUpsertComponentViewBody string) (*
 		}
 	}
 	v := &dsleditor.ComponentView{
-		SoftwareSystemName:         body.SoftwareSystemName,
-		ContainerName:              body.ContainerName,
-		ContainerBoundariesVisible: body.ContainerBoundariesVisible,
-		Key:                        body.Key,
-		Title:                      body.Title,
-		Description:                body.Description,
-		PaperSize:                  body.PaperSize,
+		SoftwareSystemName:       body.SoftwareSystemName,
+		ContainerName:            body.ContainerName,
+		ContainerBoundaryVisible: body.ContainerBoundaryVisible,
+		Key:                      body.Key,
+		Title:                    body.Title,
+		Description:              body.Description,
+		PaperSize:                body.PaperSize,
 	}
 	{
 		var zero bool
-		if v.ContainerBoundariesVisible == zero {
-			v.ContainerBoundariesVisible = true
+		if v.ContainerBoundaryVisible == zero {
+			v.ContainerBoundaryVisible = true
 		}
 	}
 	if body.Locator != nil {
@@ -554,7 +554,15 @@ func BuildUpserElementStylePayload(dSLEditorUpserElementStyleBody string) (*dsle
 	{
 		err = json.Unmarshal([]byte(dSLEditorUpserElementStyleBody), &body)
 		if err != nil {
-			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Background\": \"#4b95ba\",\n      \"Border\": \"BorderDotted\",\n      \"Color\": \"#cBaAaC\",\n      \"Description\": false,\n      \"FontSize\": 20,\n      \"Height\": 100,\n      \"Icon\": \"https://static.structurizr.com/images/icons/Person.png\",\n      \"Metadata\": true,\n      \"Opacity\": 45,\n      \"Shape\": \"ShapePipe\",\n      \"Stroke\": \"#9013C2\",\n      \"Tag\": \"tag\",\n      \"Width\": 100\n   }'")
+			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Background\": \"#Ebfc7e\",\n      \"Border\": \"BorderDotted\",\n      \"Color\": \"#De5E9e\",\n      \"Description\": false,\n      \"FontSize\": 20,\n      \"Height\": 100,\n      \"Icon\": \"https://static.structurizr.com/images/icons/Person.png\",\n      \"Locator\": {\n         \"Dir\": \"services/my-service/diagram\",\n         \"Filename\": \"model.go\",\n         \"Repository\": \"my-repo\"\n      },\n      \"Metadata\": true,\n      \"Opacity\": 45,\n      \"Shape\": \"ShapePipe\",\n      \"Stroke\": \"#C83c50\",\n      \"Tag\": \"tag\",\n      \"Width\": 100\n   }'")
+		}
+		if body.Locator == nil {
+			err = goa.MergeErrors(err, goa.MissingFieldError("Locator", "body"))
+		}
+		if body.Locator != nil {
+			if err2 := ValidateFileLocatorRequestBody(body.Locator); err2 != nil {
+				err = goa.MergeErrors(err, err2)
+			}
 		}
 		if !(body.Shape == "ShapeBox" || body.Shape == "ShapeCircle" || body.Shape == "ShapeCylinder" || body.Shape == "ShapeEllipse" || body.Shape == "ShapeHexagon" || body.Shape == "ShapeRoundedBox" || body.Shape == "ShapeComponent" || body.Shape == "ShapeFolder" || body.Shape == "ShapeMobileDeviceLandscape" || body.Shape == "ShapeMobileDevicePortrait" || body.Shape == "ShapePerson" || body.Shape == "ShapePipe" || body.Shape == "ShapeRobot" || body.Shape == "ShapeWebBrowser") {
 			err = goa.MergeErrors(err, goa.InvalidEnumValueError("body.Shape", body.Shape, []any{"ShapeBox", "ShapeCircle", "ShapeCylinder", "ShapeEllipse", "ShapeHexagon", "ShapeRoundedBox", "ShapeComponent", "ShapeFolder", "ShapeMobileDeviceLandscape", "ShapeMobileDevicePortrait", "ShapePerson", "ShapePipe", "ShapeRobot", "ShapeWebBrowser"}))
@@ -603,6 +611,9 @@ func BuildUpserElementStylePayload(dSLEditorUpserElementStyleBody string) (*dsle
 		Opacity:     body.Opacity,
 		Border:      body.Border,
 	}
+	if body.Locator != nil {
+		v.Locator = marshalFileLocatorRequestBodyToTypesFileLocator(body.Locator)
+	}
 	{
 		var zero string
 		if v.Shape == zero {
@@ -633,7 +644,15 @@ func BuildUpsertRelationshipStylePayload(dSLEditorUpsertRelationshipStyleBody st
 	{
 		err = json.Unmarshal([]byte(dSLEditorUpsertRelationshipStyleBody), &body)
 		if err != nil {
-			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Color\": \"#f0fb3c\",\n      \"Dashed\": true,\n      \"FontSize\": 10,\n      \"Opacity\": 35,\n      \"Position\": 25,\n      \"Routing\": \"Direct\",\n      \"Stroke\": \"#6a28aB\",\n      \"Tag\": \"tag\",\n      \"Thickness\": 2,\n      \"Width\": 272\n   }'")
+			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Color\": \"#2c41ad\",\n      \"Dashed\": true,\n      \"FontSize\": 10,\n      \"Locator\": {\n         \"Dir\": \"services/my-service/diagram\",\n         \"Filename\": \"model.go\",\n         \"Repository\": \"my-repo\"\n      },\n      \"Opacity\": 35,\n      \"Position\": 25,\n      \"Routing\": \"Direct\",\n      \"Stroke\": \"#bAE427\",\n      \"Tag\": \"tag\",\n      \"Thickness\": 2,\n      \"Width\": 272\n   }'")
+		}
+		if body.Locator == nil {
+			err = goa.MergeErrors(err, goa.MissingFieldError("Locator", "body"))
+		}
+		if body.Locator != nil {
+			if err2 := ValidateFileLocatorRequestBody(body.Locator); err2 != nil {
+				err = goa.MergeErrors(err, err2)
+			}
 		}
 		if body.Thickness != nil {
 			if *body.Thickness < 0 {
@@ -709,6 +728,9 @@ func BuildUpsertRelationshipStylePayload(dSLEditorUpsertRelationshipStyleBody st
 		Dashed:    body.Dashed,
 		Routing:   body.Routing,
 		Opacity:   body.Opacity,
+	}
+	if body.Locator != nil {
+		v.Locator = marshalFileLocatorRequestBodyToTypesFileLocator(body.Locator)
 	}
 	{
 		var zero bool

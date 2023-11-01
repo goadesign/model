@@ -54,9 +54,9 @@ paths:
                         application/json:
                             schema:
                                 type: string
-                                example: <svg</svg>
+                                example: <svg���</svg>
                                 pattern: <svg.*</svg>$
-                            example: <svg�����</svg>
+                            example: <svg���</svg>
                 "404":
                     description: 'NotFound: File not found'
                     content:
@@ -79,7 +79,7 @@ paths:
                             Dir: services/my-service/diagram
                             Filename: model.go
                             Repository: my-repo
-                            SVG: <svg����</svg>
+                            SVG: <svg������</svg>
             responses:
                 "204":
                     description: No Content response.
@@ -396,13 +396,13 @@ paths:
                         example:
                             Description: Relationship description
                             DestinationKind: Component
-                            DestinationPath: Software System/Container/Component
+                            DestinationPath: Component
                             InteractionStyle: Synchronous
                             Locator:
                                 Dir: services/my-service/diagram
                                 Filename: model.go
                                 Repository: my-repo
-                            SourceKind: Person
+                            SourceKind: SoftwareSystem
                             SourcePath: Software System/Container/Component
                             Tags:
                                 - Tag1
@@ -697,7 +697,7 @@ paths:
                         schema:
                             $ref: '#/components/schemas/UpsertComponentViewRequestBody'
                         example:
-                            ContainerBoundariesVisible: true
+                            ContainerBoundaryVisible: true
                             ContainerName: Container
                             Description: description
                             ElementViews:
@@ -931,17 +931,21 @@ paths:
                         schema:
                             $ref: '#/components/schemas/UpserElementStyleRequestBody'
                         example:
-                            Background: '#4b95ba'
+                            Background: '#Ebfc7e'
                             Border: BorderDotted
-                            Color: '#cBaAaC'
+                            Color: '#De5E9e'
                             Description: false
                             FontSize: 20
                             Height: 100
                             Icon: https://static.structurizr.com/images/icons/Person.png
+                            Locator:
+                                Dir: services/my-service/diagram
+                                Filename: model.go
+                                Repository: my-repo
                             Metadata: true
                             Opacity: 45
                             Shape: ShapePipe
-                            Stroke: '#9013C2'
+                            Stroke: '#C83c50'
                             Tag: tag
                             Width: 100
             responses:
@@ -1152,13 +1156,17 @@ paths:
                         schema:
                             $ref: '#/components/schemas/UpsertRelationshipStyleRequestBody'
                         example:
-                            Color: '#f0fb3c'
+                            Color: '#2c41ad'
                             Dashed: true
                             FontSize: 10
+                            Locator:
+                                Dir: services/my-service/diagram
+                                Filename: model.go
+                                Repository: my-repo
                             Opacity: 35
                             Position: 25
                             Routing: Direct
-                            Stroke: '#6a28aB'
+                            Stroke: '#bAE427'
                             Tag: tag
                             Thickness: 2
                             Width: 272
@@ -1870,13 +1878,13 @@ components:
                 SVG:
                     type: string
                     description: Diagram SVG
-                    example: <svg����</svg>
+                    example: <svg�</svg>
                     pattern: <svg.*</svg>$
             example:
                 Dir: services/my-service/diagram
                 Filename: model.go
                 Repository: my-repo
-                SVG: <svg������</svg>
+                SVG: <svg�</svg>
             required:
                 - Filename
                 - SVG
@@ -1918,7 +1926,7 @@ components:
                 Background:
                     type: string
                     description: Background color of element
-                    example: '#9Ba895'
+                    example: '#53c096'
                     pattern: ^#[0-9a-fA-F]{6}$
                 Border:
                     type: string
@@ -1932,7 +1940,7 @@ components:
                 Color:
                     type: string
                     description: Text color of element
-                    example: '#ca54EC'
+                    example: '#Eb7a5c'
                     pattern: ^#[0-9a-fA-F]{6}$
                 Description:
                     type: boolean
@@ -1954,6 +1962,8 @@ components:
                     description: URL to icon of element
                     example: https://static.structurizr.com/images/icons/Person.png
                     format: uri
+                Locator:
+                    $ref: '#/components/schemas/FileLocator'
                 Metadata:
                     type: boolean
                     description: Indicates whether the element metadata should be visible on the resulting diagram
@@ -1987,7 +1997,7 @@ components:
                 Stroke:
                     type: string
                     description: Stroke color of element
-                    example: '#13A26c'
+                    example: '#0bCcBA'
                     pattern: ^#[0-9a-fA-F]{6}$
                 Tag:
                     type: string
@@ -1999,20 +2009,25 @@ components:
                     example: 100
                     format: int64
             example:
-                Background: '#EA0c07'
+                Background: '#25696C'
                 Border: BorderSolid
-                Color: '#07f0Fc'
+                Color: '#36BDEE'
                 Description: true
                 FontSize: 20
                 Height: 100
                 Icon: https://static.structurizr.com/images/icons/Person.png
+                Locator:
+                    Dir: services/my-service/diagram
+                    Filename: model.go
+                    Repository: my-repo
                 Metadata: true
                 Opacity: 13
                 Shape: ShapeRoundedBox
-                Stroke: '#284F06'
+                Stroke: '#FC5803'
                 Tag: tag
                 Width: 100
             required:
+                - Locator
                 - Tag
         UpsertComponentRequestBody:
             type: object
@@ -2085,7 +2100,7 @@ components:
         UpsertComponentViewRequestBody:
             type: object
             properties:
-                ContainerBoundariesVisible:
+                ContainerBoundaryVisible:
                     type: boolean
                     description: Indicates whether the container boundaries are visible on the resulting diagram
                     default: true
@@ -2162,7 +2177,7 @@ components:
                     description: Title of view
                     example: title
             example:
-                ContainerBoundariesVisible: true
+                ContainerBoundaryVisible: true
                 ContainerName: Container
                 Description: description
                 ElementViews:
@@ -2456,14 +2471,14 @@ components:
                     description: Kind of destination element
                     example: Component
                     enum:
+                        - SoftwareSystem
                         - Person
-                        - Software System
                         - Container
                         - Component
                 DestinationPath:
                     type: string
-                    description: Path to destination element, see SourcePath for details.
-                    example: Software System/Container/Component
+                    description: Relative path to destination element, see SourcePath for details.
+                    example: Component
                 InteractionStyle:
                     type: string
                     description: Indicates whether the relationship is synchronous or asynchronous
@@ -2477,10 +2492,10 @@ components:
                 SourceKind:
                     type: string
                     description: Kind of source element
-                    example: Software System
+                    example: Person
                     enum:
+                        - SoftwareSystem
                         - Person
-                        - Software System
                         - Container
                         - Component
                 SourcePath:
@@ -2507,8 +2522,8 @@ components:
                     format: uri
             example:
                 Description: Relationship description
-                DestinationKind: Software System
-                DestinationPath: Software System/Container/Component
+                DestinationKind: Person
+                DestinationPath: Component
                 InteractionStyle: Asynchronous
                 Locator:
                     Dir: services/my-service/diagram
@@ -2532,7 +2547,7 @@ components:
                 Color:
                     type: string
                     description: Color of label
-                    example: '#8acBB1'
+                    example: '#9f5b2B'
                     pattern: ^#[0-9a-fA-F]{6}$
                 Dashed:
                     type: boolean
@@ -2545,6 +2560,8 @@ components:
                     example: 68
                     minimum: 1
                     maximum: 100
+                Locator:
+                    $ref: '#/components/schemas/FileLocator'
                 Opacity:
                     type: integer
                     description: Opacity of relationship as a percentage
@@ -2569,7 +2586,7 @@ components:
                 Stroke:
                     type: string
                     description: Stroke color of relationship
-                    example: '#af80a2'
+                    example: '#C4bd6F'
                     pattern: ^#[0-9a-fA-F]{6}$
                 Tag:
                     type: string
@@ -2588,17 +2605,22 @@ components:
                     minimum: 1
                     maximum: 10000
             example:
-                Color: '#8E078B'
+                Color: '#fbfa45'
                 Dashed: true
                 FontSize: 57
+                Locator:
+                    Dir: services/my-service/diagram
+                    Filename: model.go
+                    Repository: my-repo
                 Opacity: 15
                 Position: 93
                 Routing: Orthogonal
-                Stroke: '#647d12'
+                Stroke: '#dc1DAE'
                 Tag: tag
                 Thickness: 2
                 Width: 1379
             required:
+                - Locator
                 - Tag
         UpsertSystemContextViewRequestBody:
             type: object

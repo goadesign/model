@@ -63,7 +63,7 @@ func BuildSavePayload(sVGSaveBody string) (*svg.SavePayload, error) {
 	{
 		err = json.Unmarshal([]byte(sVGSaveBody), &body)
 		if err != nil {
-			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Dir\": \"services/my-service/diagram\",\n      \"Filename\": \"model.go\",\n      \"Repository\": \"my-repo\",\n      \"SVG\": \"\\u003csvg����\\u003c/svg\\u003e\"\n   }'")
+			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Dir\": \"services/my-service/diagram\",\n      \"Filename\": \"model.go\",\n      \"Repository\": \"my-repo\",\n      \"SVG\": \"\\u003csvg������\\u003c/svg\\u003e\"\n   }'")
 		}
 		err = goa.MergeErrors(err, goa.ValidatePattern("body.SVG", body.SVG, "<svg.*</svg>$"))
 		err = goa.MergeErrors(err, goa.ValidatePattern("body.Filename", body.Filename, "\\.go$"))

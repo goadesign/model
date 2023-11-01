@@ -421,6 +421,9 @@ var Component = Type("Component", func() {
 
 var Relationship = Type("Relationship", func() {
 	Attribute("Locator", FileLocator, "Path to file containing relationship DSL")
+	Attribute("SourceKind", String, "Kind of source element", func() {
+		Enum("SoftwareSystem", "Person", "Container", "Component")
+	})
 	Attribute("SourcePath", String, "Path to source element consisting of <software system name>[/<container name>[/<component name>]]", func() {
 		Example("Software System", func() {
 			Value("Software System")
@@ -451,6 +454,9 @@ var Relationship = Type("Relationship", func() {
 		Example("Component in same container", func() {
 			Value("Component")
 		})
+	})
+	Attribute("DestinationKind", String, "Kind of destination element", func() {
+		Enum("SoftwareSystem", "Person", "Container", "Component")
 	})
 	Attribute("Description", String, "Description of relationship", func() {
 		Example("Relationship description")
@@ -591,13 +597,14 @@ var ComponentView = Type("ComponentView", func() {
 	Attribute("ContainerName", String, "Name of container to create view for", func() {
 		Example("Container")
 	})
-	Attribute("ContainerBoundariesVisible", Boolean, "Indicates whether the container boundaries are visible on the resulting diagram", func() {
+	Attribute("ContainerBoundaryVisible", Boolean, "Indicates whether the container boundaries are visible on the resulting diagram", func() {
 		Default(true)
 	})
 	Required("SoftwareSystemName", "ContainerName")
 })
 
 var ElementStyle = Type("ElementStyle", func() {
+	Attribute("Locator", FileLocator, "Path to file containing style DSL")
 	Attribute("Tag", String, "Tag of elements to apply style onto", func() {
 		Example("tag")
 	})
@@ -658,10 +665,11 @@ var ElementStyle = Type("ElementStyle", func() {
 		)
 		Default(expr.BorderSolid.Name())
 	})
-	Required("Tag")
+	Required("Locator", "Tag")
 })
 
 var RelationshipStyle = Type("RelationshipStyle", func() {
+	Attribute("Locator", FileLocator, "Path to file containing style DSL")
 	Attribute("Tag", String, "Tag of relationships to apply style onto", func() {
 		Example("tag")
 	})
@@ -703,5 +711,5 @@ var RelationshipStyle = Type("RelationshipStyle", func() {
 		Minimum(0)
 		Maximum(100)
 	})
-	Required("Tag")
+	Required("Locator", "Tag")
 })

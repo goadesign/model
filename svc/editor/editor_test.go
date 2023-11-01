@@ -194,7 +194,7 @@ func TestParser_UpsertElement(t *testing.T) {
 			}
 			tt.expected.Locator.Repository = tmpdir
 			p := NewEditor(tmpdir, pkgdir)
-			res, err := p.UpsertElement(tt.kind, tt.path, tt.code)
+			res, err := p.UpsertElementByPath(tt.kind, tt.path, tt.code)
 			require.NoError(t, err)
 			assert.Equal(t, tt.expected.Locator, res.Locator, "locator")
 			assert.Equal(t, tt.expected.Content, res.Content, "content")

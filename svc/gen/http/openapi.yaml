@@ -615,6 +615,7 @@ paths:
                   schema:
                     $ref: '#/definitions/DSLEditorUpserElementStyleRequestBody'
                     required:
+                        - Locator
                         - Tag
             responses:
                 "200":
@@ -754,6 +755,7 @@ paths:
                   schema:
                     $ref: '#/definitions/DSLEditorUpsertRelationshipStyleRequestBody'
                     required:
+                        - Locator
                         - Tag
             responses:
                 "200":
@@ -2794,7 +2796,7 @@ definitions:
             Background:
                 type: string
                 description: Background color of element
-                example: '#8Ccfe3'
+                example: '#C4C522'
                 pattern: ^#[0-9a-fA-F]{6}$
             Border:
                 type: string
@@ -2808,7 +2810,7 @@ definitions:
             Color:
                 type: string
                 description: Text color of element
-                example: '#22CaAb'
+                example: '#BE4e54'
                 pattern: ^#[0-9a-fA-F]{6}$
             Description:
                 type: boolean
@@ -2830,6 +2832,8 @@ definitions:
                 description: URL to icon of element
                 example: https://static.structurizr.com/images/icons/Person.png
                 format: uri
+            Locator:
+                $ref: '#/definitions/FileLocatorRequestBody'
             Metadata:
                 type: boolean
                 description: Indicates whether the element metadata should be visible on the resulting diagram
@@ -2863,7 +2867,7 @@ definitions:
             Stroke:
                 type: string
                 description: Stroke color of element
-                example: '#d9EAE8'
+                example: '#150Bab'
                 pattern: ^#[0-9a-fA-F]{6}$
             Tag:
                 type: string
@@ -2875,20 +2879,25 @@ definitions:
                 example: 100
                 format: int64
         example:
-            Background: '#BcCf5B'
+            Background: '#acCcC9'
             Border: BorderSolid
-            Color: '#DAA9B5'
+            Color: '#0e6dA8'
             Description: true
             FontSize: 20
             Height: 100
             Icon: https://static.structurizr.com/images/icons/Person.png
+            Locator:
+                Dir: services/my-service/diagram
+                Filename: model.go
+                Repository: my-repo
             Metadata: false
             Opacity: 17
             Shape: ShapePerson
-            Stroke: '#5aAC6F'
+            Stroke: '#e31fAA'
             Tag: tag
             Width: 100
         required:
+            - Locator
             - Tag
     DSLEditorUpserElementStyleResponseBody:
         title: DSLEditorUpserElementStyleResponseBody
@@ -3111,7 +3120,7 @@ definitions:
         title: DSLEditorUpsertComponentViewRequestBody
         type: object
         properties:
-            ContainerBoundariesVisible:
+            ContainerBoundaryVisible:
                 type: boolean
                 description: Indicates whether the container boundaries are visible on the resulting diagram
                 default: true
@@ -3185,7 +3194,7 @@ definitions:
                 description: Title of view
                 example: title
         example:
-            ContainerBoundariesVisible: false
+            ContainerBoundaryVisible: false
             ContainerName: Container
             Description: description
             ElementViews:
@@ -3910,14 +3919,14 @@ definitions:
                 description: Kind of destination element
                 example: Component
                 enum:
+                    - SoftwareSystem
                     - Person
-                    - Software System
                     - Container
                     - Component
             DestinationPath:
                 type: string
-                description: Path to destination element, see SourcePath for details.
-                example: Software System/Container/Component
+                description: Relative path to destination element, see SourcePath for details.
+                example: Component
             InteractionStyle:
                 type: string
                 description: Indicates whether the relationship is synchronous or asynchronous
@@ -3933,8 +3942,8 @@ definitions:
                 description: Kind of source element
                 example: Component
                 enum:
+                    - SoftwareSystem
                     - Person
-                    - Software System
                     - Container
                     - Component
             SourcePath:
@@ -3961,14 +3970,14 @@ definitions:
                 format: uri
         example:
             Description: Relationship description
-            DestinationKind: Software System
-            DestinationPath: Software System/Container/Component
+            DestinationKind: Person
+            DestinationPath: Component
             InteractionStyle: Synchronous
             Locator:
                 Dir: services/my-service/diagram
                 Filename: model.go
                 Repository: my-repo
-            SourceKind: Person
+            SourceKind: SoftwareSystem
             SourcePath: Software System/Container/Component
             Tags:
                 - Tag1
@@ -4061,7 +4070,7 @@ definitions:
             Color:
                 type: string
                 description: Color of label
-                example: '#eb72dF'
+                example: '#Fcefee'
                 pattern: ^#[0-9a-fA-F]{6}$
             Dashed:
                 type: boolean
@@ -4074,6 +4083,8 @@ definitions:
                 example: 19
                 minimum: 1
                 maximum: 100
+            Locator:
+                $ref: '#/definitions/FileLocatorRequestBody'
             Opacity:
                 type: integer
                 description: Opacity of relationship as a percentage
@@ -4098,7 +4109,7 @@ definitions:
             Stroke:
                 type: string
                 description: Stroke color of relationship
-                example: '#f4aE7b'
+                example: '#fC3fc0'
                 pattern: ^#[0-9a-fA-F]{6}$
             Tag:
                 type: string
@@ -4117,17 +4128,22 @@ definitions:
                 minimum: 1
                 maximum: 10000
         example:
-            Color: '#9f3F9A'
+            Color: '#C9c71b'
             Dashed: false
             FontSize: 20
+            Locator:
+                Dir: services/my-service/diagram
+                Filename: model.go
+                Repository: my-repo
             Opacity: 18
             Position: 85
             Routing: Curved
-            Stroke: '#A4c1cA'
+            Stroke: '#6223d5'
             Tag: tag
             Thickness: 2
             Width: 6228
         required:
+            - Locator
             - Tag
     DSLEditorUpsertRelationshipStyleResponseBody:
         title: DSLEditorUpsertRelationshipStyleResponseBody
@@ -5044,13 +5060,13 @@ definitions:
             SVG:
                 type: string
                 description: Diagram SVG
-                example: <svg����</svg>
+                example: <svg���</svg>
                 pattern: <svg.*</svg>$
         example:
             Dir: services/my-service/diagram
             Filename: model.go
             Repository: my-repo
-            SVG: <svg�</svg>
+            SVG: <svg��</svg>
         required:
             - Filename
             - SVG
