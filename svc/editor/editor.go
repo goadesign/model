@@ -128,8 +128,7 @@ func (e *Editor) UpsertElementByPath(kind ElementKind, elementPath, code string)
 	n, _, _ := findDSL(f, ViewsKind, "")
 	if n != nil {
 		viewsCallOffset = tokFile.Offset(n.Pos())
-	}
-	if viewsCallOffset == 0 {
+	} else {
 		_, _, end := findDSL(f, DesignKind, "")
 		if end == token.NoPos {
 			return nil, fmt.Errorf("failed to find Design() call in DSL file %s", modelFile)
@@ -307,6 +306,73 @@ func (e *Editor) UpsertElementByID(kind ElementKind, id, code string) (*gentypes
 	content := string(data)
 	newContent := concat(content[:insertOffset], code, content[insertOffset:])
 	return setContent(modelFile, res, newContent)
+}
+
+// DeleteElement deletes the element with the given kind and path. The
+// elementPath is the path to the element in the DSL file, e.g. "Person1" or
+// "SoftwareSystem1/Container1/Component1".
+func (e *Editor) DeleteElement(kind ElementKind, elementPath string) (*gentypes.PackageFile, error) {
+	res, parsed, fset, err := e.parseDir()
+	if err != nil {
+		return nil, err
+	}
+	for _, file := range parsed.Files {
+		tokFile := fset.File(file.Pos())
+		filename := tokFile.Name()
+		res.Locator.Filename = filepath.Base(filename)
+		srcBytes, err := os.ReadFile(filename)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read DSL file %s: %w", tokFile.Name(), err)
+		}
+		src := string(srcBytes)
+		elemNode, pos, end := findDSL(file, kind, elementPath)
+		if elemNode != nil {
+			// Found the element, so delete it.
+			newContent := concat(
+				src[:tokFile.Offset(pos)],
+				src[tokFile.Offset(end):],
+			)
+			return setContent(filename, res, newContent)
+		}
+	}
+	return res, nil
+}
+
+// DeleteRelationship deletes the relationship between the given source and
+// destination elements.
+func (e *Editor) DeleteRelationship(sourcePath, destinationPath string) (*gentypes.PackageFile, error) {
+	res, parsed, fset, err := e.parseDir()
+	if err != nil {
+		return nil, err
+	}
+	var sourceNode ast.Node
+	var sourceFile *ast.File
+	var existingRel ast.Node
+	for _, file := range parsed.Files {
+		sourceNode = findElement(file, sourcePath)
+		if sourceNode != nil {
+			sourceFile = file
+			existingRel = findRelationship(sourceNode, destinationPath)
+			break
+		}
+	}
+	if existingRel == nil {
+		return nil, fmt.Errorf("failed to find relationship between %s and %s", sourcePath, destinationPath)
+	}
+	srcFilename := fset.File(sourceNode.Pos()).Name()
+	srcBytes, err := os.ReadFile(srcFilename)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read DSL file %s: %w", srcFilename, err)
+	}
+	src := string(srcBytes)
+	res.Locator.Filename = filepath.Base(srcFilename)
+	tokFile := fset.File(sourceFile.Pos())
+
+	newContent := concat(
+		src[:tokFile.Offset(existingRel.Pos())],
+		src[tokFile.Offset(existingRel.End()):],
+	)
+	return setContent(srcFilename, res, newContent)
 }
 
 // parseDir parses the DSL in the editor directory and returns the parsed AST.
@@ -509,11 +575,14 @@ func setContent(filename string, res *gentypes.PackageFile, newContent string) (
 // it finds a parent DSL function but not the actual DSL it returns the position
 // of the parent DSL function and a nil node.
 func findDSL(file *ast.File, kind ElementKind, path string) (node ast.Node, pos, end token.Pos) {
-	pathStack := strings.Split(path, "/")
+	var pathStack []string
+	if path != "" {
+		pathStack = strings.Split(path, "/")
+	}
 	var curPos, curEnd, prevPos, prevEnd token.Pos
 	recurse := true
 	ast.Inspect(file, func(n ast.Node) bool {
-		if n != nil {
+		if node != nil {
 			return false
 		}
 		curPos, curEnd, pathStack, recurse = parseNode(n, kind, pathStack)
@@ -548,7 +617,15 @@ func parseNode(node ast.Node, kind ElementKind, pathStack []string) (pos, end to
 	if !ok {
 		return
 	}
-	if callExpr.Args == nil || len(callExpr.Args) == 0 {
+	if len(pathStack) == 0 {
+		if ident, ok := callExpr.Fun.(*ast.Ident); ok {
+			if ident.Name == string(kind) {
+				return callExpr.Pos(), callExpr.End(), nil, false
+			}
+		}
+		return
+	}
+	if len(callExpr.Args) == 0 {
 		return
 	}
 	arg, ok := callExpr.Args[0].(*ast.BasicLit)

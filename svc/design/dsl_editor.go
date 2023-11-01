@@ -122,7 +122,7 @@ var _ = Service("DSLEditor", func() {
 	Method("DeleteSystem", func() {
 		Description("Delete an existing software system from the model")
 		Payload(func() {
-			Extend(FileLocator)
+			Extend(PackageLocator)
 			Attribute("SystemName", String, "Name of software system to delete")
 			Required("SystemName")
 		})
@@ -137,7 +137,7 @@ var _ = Service("DSLEditor", func() {
 	Method("DeletePerson", func() {
 		Description("Delete an existing person from the model")
 		Payload(func() {
-			Extend(FileLocator)
+			Extend(PackageLocator)
 			Attribute("PersonName", String, "Name of person to delete")
 			Required("PersonName")
 		})
@@ -152,10 +152,10 @@ var _ = Service("DSLEditor", func() {
 	Method("DeleteContainer", func() {
 		Description("Delete an existing container from the model")
 		Payload(func() {
-			Extend(FileLocator)
+			Extend(PackageLocator)
 			Attribute("SystemName", String, "Name of container software system")
 			Attribute("ContainerName", String, "Name of container to delete")
-			Required("ContainerName")
+			Required("SystemName", "ContainerName")
 		})
 		Result(PackageFile)
 		Error("NotFound", ErrorResult, "Container not found")
@@ -168,7 +168,7 @@ var _ = Service("DSLEditor", func() {
 	Method("DeleteComponent", func() {
 		Description("Delete an existing component from the model")
 		Payload(func() {
-			Extend(FileLocator)
+			Extend(PackageLocator)
 			Attribute("SystemName", String, "Name of component software system", func() {
 				Example("My System")
 			})
@@ -191,7 +191,7 @@ var _ = Service("DSLEditor", func() {
 	Method("DeleteRelationship", func() {
 		Description("Delete an existing relationship from the model")
 		Payload(func() {
-			Extend(FileLocator)
+			Extend(PackageLocator)
 			Attribute("SourcePath", String, "Path to source element consisting of <software system name>[/<container name>[/<component name>]]", func() {
 				Example("Software System", func() {
 					Value("Software System")
@@ -227,7 +227,7 @@ var _ = Service("DSLEditor", func() {
 	Method("DeleteLandscapeView", func() {
 		Description("Delete an existing landscape view from the model")
 		Payload(func() {
-			Extend(FileLocator)
+			Extend(PackageLocator)
 			Attribute("Key", String, "Key of landscape view to delete")
 			Required("Key")
 		})
@@ -242,7 +242,7 @@ var _ = Service("DSLEditor", func() {
 	Method("DeleteSystemContextView", func() {
 		Description("Delete an existing system context view from the model")
 		Payload(func() {
-			Extend(FileLocator)
+			Extend(PackageLocator)
 			Attribute("Key", String, "Key of system context view to delete")
 			Required("Key")
 		})
@@ -257,7 +257,7 @@ var _ = Service("DSLEditor", func() {
 	Method("DeleteContainerView", func() {
 		Description("Delete an existing container view from the model")
 		Payload(func() {
-			Extend(FileLocator)
+			Extend(PackageLocator)
 			Attribute("Key", String, "Key of container view to delete")
 			Required("Key")
 		})
@@ -272,7 +272,7 @@ var _ = Service("DSLEditor", func() {
 	Method("DeleteComponentView", func() {
 		Description("Delete an existing component view from the model")
 		Payload(func() {
-			Extend(FileLocator)
+			Extend(PackageLocator)
 			Attribute("Key", String, "Key of component view to delete")
 			Required("Key")
 		})
@@ -287,7 +287,7 @@ var _ = Service("DSLEditor", func() {
 	Method("DeleteElementStyle", func() {
 		Description("Delete an existing element style from the model")
 		Payload(func() {
-			Extend(FileLocator)
+			Extend(PackageLocator)
 			Attribute("Tag", String, "Tag of element style to delete")
 			Required("Tag")
 		})
@@ -302,7 +302,7 @@ var _ = Service("DSLEditor", func() {
 	Method("DeleteRelationshipStyle", func() {
 		Description("Delete an existing relationship style from the model")
 		Payload(func() {
-			Extend(FileLocator)
+			Extend(PackageLocator)
 			Attribute("Tag", String, "Tag of relationship style to delete")
 			Required("Tag")
 		})

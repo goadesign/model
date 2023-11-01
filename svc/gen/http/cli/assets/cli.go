@@ -892,9 +892,9 @@ Create or update an element style in the model
 
 Example:
     %[1]s dsl-editor upser-element-style --body '{
-      "Background": "#Ebfc7e",
+      "Background": "#1dF376",
       "Border": "BorderDotted",
-      "Color": "#De5E9e",
+      "Color": "#E1ccfa",
       "Description": false,
       "FontSize": 20,
       "Height": 100,
@@ -907,7 +907,7 @@ Example:
       "Metadata": true,
       "Opacity": 45,
       "Shape": "ShapePipe",
-      "Stroke": "#C83c50",
+      "Stroke": "#9D0155",
       "Tag": "tag",
       "Width": 100
    }'
@@ -922,7 +922,7 @@ Create or update a relationship style in the model
 
 Example:
     %[1]s dsl-editor upsert-relationship-style --body '{
-      "Color": "#2c41ad",
+      "Color": "#F77f19",
       "Dashed": true,
       "FontSize": 10,
       "Locator": {
@@ -933,7 +933,7 @@ Example:
       "Opacity": 35,
       "Position": 25,
       "Routing": "Direct",
-      "Stroke": "#bAE427",
+      "Stroke": "#5EA24B",
       "Tag": "tag",
       "Thickness": 2,
       "Width": 272
@@ -951,7 +951,6 @@ Delete an existing software system from the model
 Example:
     %[1]s dsl-editor delete-system --body '{
       "Dir": "services/my-service/diagram",
-      "Filename": "model.go",
       "Repository": "my-repo"
    }' --system-name "Nemo inventore."
 `, os.Args[0])
@@ -967,7 +966,6 @@ Delete an existing person from the model
 Example:
     %[1]s dsl-editor delete-person --body '{
       "Dir": "services/my-service/diagram",
-      "Filename": "model.go",
       "Repository": "my-repo"
    }' --person-name "Mollitia consequatur sed."
 `, os.Args[0])
@@ -984,7 +982,6 @@ Delete an existing container from the model
 Example:
     %[1]s dsl-editor delete-container --body '{
       "Dir": "services/my-service/diagram",
-      "Filename": "model.go",
       "Repository": "my-repo"
    }' --system-name "Debitis sed vel accusantium." --container-name "Aliquam ipsa."
 `, os.Args[0])
@@ -1002,7 +999,6 @@ Delete an existing component from the model
 Example:
     %[1]s dsl-editor delete-component --body '{
       "Dir": "services/my-service/diagram",
-      "Filename": "model.go",
       "Repository": "my-repo"
    }' --system-name "My System" --container-name "My Container" --component-name "My Component"
 `, os.Args[0])
@@ -1018,7 +1014,6 @@ Example:
     %[1]s dsl-editor delete-relationship --body '{
       "DestinationPath": "Software System/Container/Component",
       "Dir": "services/my-service/diagram",
-      "Filename": "model.go",
       "Repository": "my-repo",
       "SourcePath": "Software System/Container/Component"
    }'
@@ -1035,7 +1030,6 @@ Delete an existing landscape view from the model
 Example:
     %[1]s dsl-editor delete-landscape-view --body '{
       "Dir": "services/my-service/diagram",
-      "Filename": "model.go",
       "Repository": "my-repo"
    }' --key "Accusantium id nemo."
 `, os.Args[0])
@@ -1051,7 +1045,6 @@ Delete an existing system context view from the model
 Example:
     %[1]s dsl-editor delete-system-context-view --body '{
       "Dir": "services/my-service/diagram",
-      "Filename": "model.go",
       "Repository": "my-repo"
    }' --key "Perferendis nostrum aut debitis sint quibusdam eum."
 `, os.Args[0])
@@ -1067,7 +1060,6 @@ Delete an existing container view from the model
 Example:
     %[1]s dsl-editor delete-container-view --body '{
       "Dir": "services/my-service/diagram",
-      "Filename": "model.go",
       "Repository": "my-repo"
    }' --key "Illum est."
 `, os.Args[0])
@@ -1083,7 +1075,6 @@ Delete an existing component view from the model
 Example:
     %[1]s dsl-editor delete-component-view --body '{
       "Dir": "services/my-service/diagram",
-      "Filename": "model.go",
       "Repository": "my-repo"
    }' --key "Cupiditate velit non architecto voluptas."
 `, os.Args[0])
@@ -1099,7 +1090,6 @@ Delete an existing element style from the model
 Example:
     %[1]s dsl-editor delete-element-style --body '{
       "Dir": "services/my-service/diagram",
-      "Filename": "model.go",
       "Repository": "my-repo"
    }' --tag "In voluptatem."
 `, os.Args[0])
@@ -1115,7 +1105,6 @@ Delete an existing relationship style from the model
 Example:
     %[1]s dsl-editor delete-relationship-style --body '{
       "Dir": "services/my-service/diagram",
-      "Filename": "model.go",
       "Repository": "my-repo"
    }' --tag "Eaque et enim repellat voluptates eum distinctio."
 `, os.Args[0])
@@ -1254,7 +1243,7 @@ Example:
       "Dir": "services/my-service/diagram",
       "Filename": "model.go",
       "Repository": "my-repo",
-      "SVG": "\u003csvg������\u003c/svg\u003e"
+      "SVG": "\u003csvg\u003c/svg\u003e"
    }'
 `, os.Args[0])
 }

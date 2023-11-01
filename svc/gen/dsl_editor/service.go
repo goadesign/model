@@ -177,8 +177,6 @@ type DeleteComponentPayload struct {
 	ContainerName string
 	// Name of component to delete
 	ComponentName string
-	// Name of DSL file
-	Filename string
 	// Path to repository root
 	Repository string
 	// Path to directory containing a model package
@@ -190,8 +188,6 @@ type DeleteComponentPayload struct {
 type DeleteComponentViewPayload struct {
 	// Key of component view to delete
 	Key string
-	// Name of DSL file
-	Filename string
 	// Path to repository root
 	Repository string
 	// Path to directory containing a model package
@@ -202,11 +198,9 @@ type DeleteComponentViewPayload struct {
 // DeleteContainer method.
 type DeleteContainerPayload struct {
 	// Name of container software system
-	SystemName *string
+	SystemName string
 	// Name of container to delete
 	ContainerName string
-	// Name of DSL file
-	Filename string
 	// Path to repository root
 	Repository string
 	// Path to directory containing a model package
@@ -218,8 +212,6 @@ type DeleteContainerPayload struct {
 type DeleteContainerViewPayload struct {
 	// Key of container view to delete
 	Key string
-	// Name of DSL file
-	Filename string
 	// Path to repository root
 	Repository string
 	// Path to directory containing a model package
@@ -231,8 +223,6 @@ type DeleteContainerViewPayload struct {
 type DeleteElementStylePayload struct {
 	// Tag of element style to delete
 	Tag string
-	// Name of DSL file
-	Filename string
 	// Path to repository root
 	Repository string
 	// Path to directory containing a model package
@@ -244,8 +234,6 @@ type DeleteElementStylePayload struct {
 type DeleteLandscapeViewPayload struct {
 	// Key of landscape view to delete
 	Key string
-	// Name of DSL file
-	Filename string
 	// Path to repository root
 	Repository string
 	// Path to directory containing a model package
@@ -257,8 +245,6 @@ type DeleteLandscapeViewPayload struct {
 type DeletePersonPayload struct {
 	// Name of person to delete
 	PersonName string
-	// Name of DSL file
-	Filename string
 	// Path to repository root
 	Repository string
 	// Path to directory containing a model package
@@ -273,8 +259,6 @@ type DeleteRelationshipPayload struct {
 	SourcePath string
 	// Path to destination element, see SourcePath for details.
 	DestinationPath string
-	// Name of DSL file
-	Filename string
 	// Path to repository root
 	Repository string
 	// Path to directory containing a model package
@@ -286,8 +270,6 @@ type DeleteRelationshipPayload struct {
 type DeleteRelationshipStylePayload struct {
 	// Tag of relationship style to delete
 	Tag string
-	// Name of DSL file
-	Filename string
 	// Path to repository root
 	Repository string
 	// Path to directory containing a model package
@@ -299,8 +281,6 @@ type DeleteRelationshipStylePayload struct {
 type DeleteSystemContextViewPayload struct {
 	// Key of system context view to delete
 	Key string
-	// Name of DSL file
-	Filename string
 	// Path to repository root
 	Repository string
 	// Path to directory containing a model package
@@ -312,8 +292,6 @@ type DeleteSystemContextViewPayload struct {
 type DeleteSystemPayload struct {
 	// Name of software system to delete
 	SystemName string
-	// Name of DSL file
-	Filename string
 	// Path to repository root
 	Repository string
 	// Path to directory containing a model package

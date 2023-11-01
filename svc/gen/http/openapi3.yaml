@@ -54,7 +54,7 @@ paths:
                         application/json:
                             schema:
                                 type: string
-                                example: <svg���</svg>
+                                example: <svg����</svg>
                                 pattern: <svg.*</svg>$
                             example: <svg���</svg>
                 "404":
@@ -79,7 +79,7 @@ paths:
                             Dir: services/my-service/diagram
                             Filename: model.go
                             Repository: my-repo
-                            SVG: <svg������</svg>
+                            SVG: <svg</svg>
             responses:
                 "204":
                     description: No Content response.
@@ -297,10 +297,9 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/FileLocator'
+                            $ref: '#/components/schemas/DeleteSystemRequestBody'
                         example:
                             Dir: services/my-service/diagram
-                            Filename: model.go
                             Repository: my-repo
             responses:
                 "200":
@@ -348,7 +347,6 @@ paths:
                         example:
                             DestinationPath: Software System/Container/Component
                             Dir: services/my-service/diagram
-                            Filename: model.go
                             Repository: my-repo
                             SourcePath: Software System/Container/Component
             responses:
@@ -507,10 +505,9 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/FileLocator'
+                            $ref: '#/components/schemas/DeleteSystemRequestBody'
                         example:
                             Dir: services/my-service/diagram
-                            Filename: model.go
                             Repository: my-repo
             responses:
                 "200":
@@ -573,10 +570,9 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/FileLocator'
+                            $ref: '#/components/schemas/DeleteSystemRequestBody'
                         example:
                             Dir: services/my-service/diagram
-                            Filename: model.go
                             Repository: my-repo
             responses:
                 "200":
@@ -648,10 +644,9 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/FileLocator'
+                            $ref: '#/components/schemas/DeleteSystemRequestBody'
                         example:
                             Dir: services/my-service/diagram
-                            Filename: model.go
                             Repository: my-repo
             responses:
                 "200":
@@ -765,10 +760,9 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/FileLocator'
+                            $ref: '#/components/schemas/DeleteSystemRequestBody'
                         example:
                             Dir: services/my-service/diagram
-                            Filename: model.go
                             Repository: my-repo
             responses:
                 "200":
@@ -882,10 +876,9 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/FileLocator'
+                            $ref: '#/components/schemas/DeleteSystemRequestBody'
                         example:
                             Dir: services/my-service/diagram
-                            Filename: model.go
                             Repository: my-repo
             responses:
                 "200":
@@ -931,9 +924,9 @@ paths:
                         schema:
                             $ref: '#/components/schemas/UpserElementStyleRequestBody'
                         example:
-                            Background: '#Ebfc7e'
+                            Background: '#1dF376'
                             Border: BorderDotted
-                            Color: '#De5E9e'
+                            Color: '#E1ccfa'
                             Description: false
                             FontSize: 20
                             Height: 100
@@ -945,7 +938,7 @@ paths:
                             Metadata: true
                             Opacity: 45
                             Shape: ShapePipe
-                            Stroke: '#C83c50'
+                            Stroke: '#9D0155'
                             Tag: tag
                             Width: 100
             responses:
@@ -994,10 +987,9 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/FileLocator'
+                            $ref: '#/components/schemas/DeleteSystemRequestBody'
                         example:
                             Dir: services/my-service/diagram
-                            Filename: model.go
                             Repository: my-repo
             responses:
                 "200":
@@ -1107,10 +1099,9 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/FileLocator'
+                            $ref: '#/components/schemas/DeleteSystemRequestBody'
                         example:
                             Dir: services/my-service/diagram
-                            Filename: model.go
                             Repository: my-repo
             responses:
                 "200":
@@ -1156,7 +1147,7 @@ paths:
                         schema:
                             $ref: '#/components/schemas/UpsertRelationshipStyleRequestBody'
                         example:
-                            Color: '#2c41ad'
+                            Color: '#F77f19'
                             Dashed: true
                             FontSize: 10
                             Locator:
@@ -1166,7 +1157,7 @@ paths:
                             Opacity: 35
                             Position: 25
                             Routing: Direct
-                            Stroke: '#bAE427'
+                            Stroke: '#5EA24B'
                             Tag: tag
                             Thickness: 2
                             Width: 272
@@ -1216,10 +1207,9 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/FileLocator'
+                            $ref: '#/components/schemas/DeleteSystemRequestBody'
                         example:
                             Dir: services/my-service/diagram
-                            Filename: model.go
                             Repository: my-repo
             responses:
                 "200":
@@ -1331,10 +1321,9 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/FileLocator'
+                            $ref: '#/components/schemas/DeleteSystemRequestBody'
                         example:
                             Dir: services/my-service/diagram
-                            Filename: model.go
                             Repository: my-repo
             responses:
                 "200":
@@ -1718,11 +1707,6 @@ components:
                     description: Path to directory containing a model package
                     example: services/my-service/diagram
                     minLength: 1
-                Filename:
-                    type: string
-                    description: Name of DSL file
-                    example: model.go
-                    pattern: \.go$
                 Repository:
                     type: string
                     description: Path to repository root
@@ -1735,13 +1719,30 @@ components:
             example:
                 DestinationPath: Software System/Container/Component
                 Dir: services/my-service/diagram
-                Filename: model.go
                 Repository: my-repo
                 SourcePath: Software System/Container/Component
             required:
                 - SourcePath
                 - DestinationPath
-                - Filename
+                - Repository
+                - Dir
+        DeleteSystemRequestBody:
+            type: object
+            properties:
+                Dir:
+                    type: string
+                    description: Path to directory containing a model package
+                    example: services/my-service/diagram
+                    minLength: 1
+                Repository:
+                    type: string
+                    description: Path to repository root
+                    example: my-repo
+                    minLength: 1
+            example:
+                Dir: services/my-service/diagram
+                Repository: my-repo
+            required:
                 - Repository
                 - Dir
         ElementView:
@@ -1878,13 +1879,13 @@ components:
                 SVG:
                     type: string
                     description: Diagram SVG
-                    example: <svg�</svg>
+                    example: <svg���</svg>
                     pattern: <svg.*</svg>$
             example:
                 Dir: services/my-service/diagram
                 Filename: model.go
                 Repository: my-repo
-                SVG: <svg�</svg>
+                SVG: <svg������</svg>
             required:
                 - Filename
                 - SVG
@@ -1926,7 +1927,7 @@ components:
                 Background:
                     type: string
                     description: Background color of element
-                    example: '#53c096'
+                    example: '#A6bb02'
                     pattern: ^#[0-9a-fA-F]{6}$
                 Border:
                     type: string
@@ -1940,7 +1941,7 @@ components:
                 Color:
                     type: string
                     description: Text color of element
-                    example: '#Eb7a5c'
+                    example: '#E9D8b7'
                     pattern: ^#[0-9a-fA-F]{6}$
                 Description:
                     type: boolean
@@ -1997,7 +1998,7 @@ components:
                 Stroke:
                     type: string
                     description: Stroke color of element
-                    example: '#0bCcBA'
+                    example: '#86F4be'
                     pattern: ^#[0-9a-fA-F]{6}$
                 Tag:
                     type: string
@@ -2009,9 +2010,9 @@ components:
                     example: 100
                     format: int64
             example:
-                Background: '#25696C'
+                Background: '#3C8e1A'
                 Border: BorderSolid
-                Color: '#36BDEE'
+                Color: '#0e59aF'
                 Description: true
                 FontSize: 20
                 Height: 100
@@ -2023,7 +2024,7 @@ components:
                 Metadata: true
                 Opacity: 13
                 Shape: ShapeRoundedBox
-                Stroke: '#FC5803'
+                Stroke: '#5c789a'
                 Tag: tag
                 Width: 100
             required:
@@ -2547,7 +2548,7 @@ components:
                 Color:
                     type: string
                     description: Color of label
-                    example: '#9f5b2B'
+                    example: '#eDB061'
                     pattern: ^#[0-9a-fA-F]{6}$
                 Dashed:
                     type: boolean
@@ -2586,7 +2587,7 @@ components:
                 Stroke:
                     type: string
                     description: Stroke color of relationship
-                    example: '#C4bd6F'
+                    example: '#f30AeB'
                     pattern: ^#[0-9a-fA-F]{6}$
                 Tag:
                     type: string
@@ -2605,7 +2606,7 @@ components:
                     minimum: 1
                     maximum: 10000
             example:
-                Color: '#fbfa45'
+                Color: '#Eb446f'
                 Dashed: true
                 FontSize: 57
                 Locator:
@@ -2615,7 +2616,7 @@ components:
                 Opacity: 15
                 Position: 93
                 Routing: Orthogonal
-                Stroke: '#dc1DAE'
+                Stroke: '#2BbaCF'
                 Tag: tag
                 Thickness: 2
                 Width: 1379

@@ -206,7 +206,6 @@ paths:
                   schema:
                     $ref: '#/definitions/DSLEditorDeletePersonRequestBody'
                     required:
-                        - Filename
                         - Repository
                         - Dir
             responses:
@@ -274,7 +273,6 @@ paths:
                     required:
                         - SourcePath
                         - DestinationPath
-                        - Filename
                         - Repository
                         - Dir
             responses:
@@ -343,7 +341,6 @@ paths:
                   schema:
                     $ref: '#/definitions/DSLEditorDeleteSystemRequestBody'
                     required:
-                        - Filename
                         - Repository
                         - Dir
             responses:
@@ -388,7 +385,6 @@ paths:
                   schema:
                     $ref: '#/definitions/DSLEditorDeleteContainerRequestBody'
                     required:
-                        - Filename
                         - Repository
                         - Dir
             responses:
@@ -438,7 +434,6 @@ paths:
                   schema:
                     $ref: '#/definitions/DSLEditorDeleteComponentRequestBody'
                     required:
-                        - Filename
                         - Repository
                         - Dir
             responses:
@@ -510,7 +505,6 @@ paths:
                   schema:
                     $ref: '#/definitions/DSLEditorDeleteComponentViewRequestBody'
                     required:
-                        - Filename
                         - Repository
                         - Dir
             responses:
@@ -580,7 +574,6 @@ paths:
                   schema:
                     $ref: '#/definitions/DSLEditorDeleteContainerViewRequestBody'
                     required:
-                        - Filename
                         - Repository
                         - Dir
             responses:
@@ -650,7 +643,6 @@ paths:
                   schema:
                     $ref: '#/definitions/DSLEditorDeleteElementStyleRequestBody'
                     required:
-                        - Filename
                         - Repository
                         - Dir
             responses:
@@ -720,7 +712,6 @@ paths:
                   schema:
                     $ref: '#/definitions/DSLEditorDeleteLandscapeViewRequestBody'
                     required:
-                        - Filename
                         - Repository
                         - Dir
             responses:
@@ -790,7 +781,6 @@ paths:
                   schema:
                     $ref: '#/definitions/DSLEditorDeleteRelationshipStyleRequestBody'
                     required:
-                        - Filename
                         - Repository
                         - Dir
             responses:
@@ -861,7 +851,6 @@ paths:
                   schema:
                     $ref: '#/definitions/DSLEditorDeleteSystemContextViewRequestBody'
                     required:
-                        - Filename
                         - Repository
                         - Dir
             responses:
@@ -1171,11 +1160,6 @@ definitions:
                 description: Path to directory containing a model package
                 example: services/my-service/diagram
                 minLength: 1
-            Filename:
-                type: string
-                description: Name of DSL file
-                example: model.go
-                pattern: \.go$
             Repository:
                 type: string
                 description: Path to repository root
@@ -1183,10 +1167,8 @@ definitions:
                 minLength: 1
         example:
             Dir: services/my-service/diagram
-            Filename: model.go
             Repository: my-repo
         required:
-            - Filename
             - Repository
             - Dir
     DSLEditorDeleteComponentResponseBody:
@@ -1315,11 +1297,6 @@ definitions:
                 description: Path to directory containing a model package
                 example: services/my-service/diagram
                 minLength: 1
-            Filename:
-                type: string
-                description: Name of DSL file
-                example: model.go
-                pattern: \.go$
             Repository:
                 type: string
                 description: Path to repository root
@@ -1327,10 +1304,8 @@ definitions:
                 minLength: 1
         example:
             Dir: services/my-service/diagram
-            Filename: model.go
             Repository: my-repo
         required:
-            - Filename
             - Repository
             - Dir
     DSLEditorDeleteComponentViewResponseBody:
@@ -1459,11 +1434,6 @@ definitions:
                 description: Path to directory containing a model package
                 example: services/my-service/diagram
                 minLength: 1
-            Filename:
-                type: string
-                description: Name of DSL file
-                example: model.go
-                pattern: \.go$
             Repository:
                 type: string
                 description: Path to repository root
@@ -1471,10 +1441,8 @@ definitions:
                 minLength: 1
         example:
             Dir: services/my-service/diagram
-            Filename: model.go
             Repository: my-repo
         required:
-            - Filename
             - Repository
             - Dir
     DSLEditorDeleteContainerResponseBody:
@@ -1603,11 +1571,6 @@ definitions:
                 description: Path to directory containing a model package
                 example: services/my-service/diagram
                 minLength: 1
-            Filename:
-                type: string
-                description: Name of DSL file
-                example: model.go
-                pattern: \.go$
             Repository:
                 type: string
                 description: Path to repository root
@@ -1615,10 +1578,8 @@ definitions:
                 minLength: 1
         example:
             Dir: services/my-service/diagram
-            Filename: model.go
             Repository: my-repo
         required:
-            - Filename
             - Repository
             - Dir
     DSLEditorDeleteContainerViewResponseBody:
@@ -1747,11 +1708,6 @@ definitions:
                 description: Path to directory containing a model package
                 example: services/my-service/diagram
                 minLength: 1
-            Filename:
-                type: string
-                description: Name of DSL file
-                example: model.go
-                pattern: \.go$
             Repository:
                 type: string
                 description: Path to repository root
@@ -1759,10 +1715,8 @@ definitions:
                 minLength: 1
         example:
             Dir: services/my-service/diagram
-            Filename: model.go
             Repository: my-repo
         required:
-            - Filename
             - Repository
             - Dir
     DSLEditorDeleteElementStyleResponseBody:
@@ -1891,11 +1845,6 @@ definitions:
                 description: Path to directory containing a model package
                 example: services/my-service/diagram
                 minLength: 1
-            Filename:
-                type: string
-                description: Name of DSL file
-                example: model.go
-                pattern: \.go$
             Repository:
                 type: string
                 description: Path to repository root
@@ -1903,10 +1852,8 @@ definitions:
                 minLength: 1
         example:
             Dir: services/my-service/diagram
-            Filename: model.go
             Repository: my-repo
         required:
-            - Filename
             - Repository
             - Dir
     DSLEditorDeleteLandscapeViewResponseBody:
@@ -2035,11 +1982,6 @@ definitions:
                 description: Path to directory containing a model package
                 example: services/my-service/diagram
                 minLength: 1
-            Filename:
-                type: string
-                description: Name of DSL file
-                example: model.go
-                pattern: \.go$
             Repository:
                 type: string
                 description: Path to repository root
@@ -2047,10 +1989,8 @@ definitions:
                 minLength: 1
         example:
             Dir: services/my-service/diagram
-            Filename: model.go
             Repository: my-repo
         required:
-            - Filename
             - Repository
             - Dir
     DSLEditorDeletePersonResponseBody:
@@ -2183,11 +2123,6 @@ definitions:
                 description: Path to directory containing a model package
                 example: services/my-service/diagram
                 minLength: 1
-            Filename:
-                type: string
-                description: Name of DSL file
-                example: model.go
-                pattern: \.go$
             Repository:
                 type: string
                 description: Path to repository root
@@ -2200,13 +2135,11 @@ definitions:
         example:
             DestinationPath: Software System/Container/Component
             Dir: services/my-service/diagram
-            Filename: model.go
             Repository: my-repo
             SourcePath: Software System/Container/Component
         required:
             - SourcePath
             - DestinationPath
-            - Filename
             - Repository
             - Dir
     DSLEditorDeleteRelationshipResponseBody:
@@ -2335,11 +2268,6 @@ definitions:
                 description: Path to directory containing a model package
                 example: services/my-service/diagram
                 minLength: 1
-            Filename:
-                type: string
-                description: Name of DSL file
-                example: model.go
-                pattern: \.go$
             Repository:
                 type: string
                 description: Path to repository root
@@ -2347,10 +2275,8 @@ definitions:
                 minLength: 1
         example:
             Dir: services/my-service/diagram
-            Filename: model.go
             Repository: my-repo
         required:
-            - Filename
             - Repository
             - Dir
     DSLEditorDeleteRelationshipStyleResponseBody:
@@ -2522,11 +2448,6 @@ definitions:
                 description: Path to directory containing a model package
                 example: services/my-service/diagram
                 minLength: 1
-            Filename:
-                type: string
-                description: Name of DSL file
-                example: model.go
-                pattern: \.go$
             Repository:
                 type: string
                 description: Path to repository root
@@ -2534,10 +2455,8 @@ definitions:
                 minLength: 1
         example:
             Dir: services/my-service/diagram
-            Filename: model.go
             Repository: my-repo
         required:
-            - Filename
             - Repository
             - Dir
     DSLEditorDeleteSystemContextViewResponseBody:
@@ -2623,11 +2542,6 @@ definitions:
                 description: Path to directory containing a model package
                 example: services/my-service/diagram
                 minLength: 1
-            Filename:
-                type: string
-                description: Name of DSL file
-                example: model.go
-                pattern: \.go$
             Repository:
                 type: string
                 description: Path to repository root
@@ -2635,10 +2549,8 @@ definitions:
                 minLength: 1
         example:
             Dir: services/my-service/diagram
-            Filename: model.go
             Repository: my-repo
         required:
-            - Filename
             - Repository
             - Dir
     DSLEditorDeleteSystemResponseBody:
@@ -2796,7 +2708,7 @@ definitions:
             Background:
                 type: string
                 description: Background color of element
-                example: '#C4C522'
+                example: '#55aaFb'
                 pattern: ^#[0-9a-fA-F]{6}$
             Border:
                 type: string
@@ -2810,7 +2722,7 @@ definitions:
             Color:
                 type: string
                 description: Text color of element
-                example: '#BE4e54'
+                example: '#6b58Cd'
                 pattern: ^#[0-9a-fA-F]{6}$
             Description:
                 type: boolean
@@ -2867,7 +2779,7 @@ definitions:
             Stroke:
                 type: string
                 description: Stroke color of element
-                example: '#150Bab'
+                example: '#43aE3F'
                 pattern: ^#[0-9a-fA-F]{6}$
             Tag:
                 type: string
@@ -2879,9 +2791,9 @@ definitions:
                 example: 100
                 format: int64
         example:
-            Background: '#acCcC9'
+            Background: '#fFc414'
             Border: BorderSolid
-            Color: '#0e6dA8'
+            Color: '#A7FDCc'
             Description: true
             FontSize: 20
             Height: 100
@@ -2893,7 +2805,7 @@ definitions:
             Metadata: false
             Opacity: 17
             Shape: ShapePerson
-            Stroke: '#e31fAA'
+            Stroke: '#4aC1a8'
             Tag: tag
             Width: 100
         required:
@@ -4070,7 +3982,7 @@ definitions:
             Color:
                 type: string
                 description: Color of label
-                example: '#Fcefee'
+                example: '#39BBe7'
                 pattern: ^#[0-9a-fA-F]{6}$
             Dashed:
                 type: boolean
@@ -4109,7 +4021,7 @@ definitions:
             Stroke:
                 type: string
                 description: Stroke color of relationship
-                example: '#fC3fc0'
+                example: '#6BEC0A'
                 pattern: ^#[0-9a-fA-F]{6}$
             Tag:
                 type: string
@@ -4128,7 +4040,7 @@ definitions:
                 minimum: 1
                 maximum: 10000
         example:
-            Color: '#C9c71b'
+            Color: '#5bBbfC'
             Dashed: false
             FontSize: 20
             Locator:
@@ -4138,7 +4050,7 @@ definitions:
             Opacity: 18
             Position: 85
             Routing: Curved
-            Stroke: '#6223d5'
+            Stroke: '#fDb29A'
             Tag: tag
             Thickness: 2
             Width: 6228
@@ -5066,7 +4978,7 @@ definitions:
             Dir: services/my-service/diagram
             Filename: model.go
             Repository: my-repo
-            SVG: <svg��</svg>
+            SVG: <svg�</svg>
         required:
             - Filename
             - SVG

@@ -293,8 +293,6 @@ type UpsertRelationshipStyleRequestBody struct {
 // DeleteSystemRequestBody is the type of the "DSLEditor" service
 // "DeleteSystem" endpoint HTTP request body.
 type DeleteSystemRequestBody struct {
-	// Name of DSL file
-	Filename *string `form:"Filename,omitempty" json:"Filename,omitempty" xml:"Filename,omitempty"`
 	// Path to repository root
 	Repository *string `form:"Repository,omitempty" json:"Repository,omitempty" xml:"Repository,omitempty"`
 	// Path to directory containing a model package
@@ -304,8 +302,6 @@ type DeleteSystemRequestBody struct {
 // DeletePersonRequestBody is the type of the "DSLEditor" service
 // "DeletePerson" endpoint HTTP request body.
 type DeletePersonRequestBody struct {
-	// Name of DSL file
-	Filename *string `form:"Filename,omitempty" json:"Filename,omitempty" xml:"Filename,omitempty"`
 	// Path to repository root
 	Repository *string `form:"Repository,omitempty" json:"Repository,omitempty" xml:"Repository,omitempty"`
 	// Path to directory containing a model package
@@ -315,8 +311,6 @@ type DeletePersonRequestBody struct {
 // DeleteContainerRequestBody is the type of the "DSLEditor" service
 // "DeleteContainer" endpoint HTTP request body.
 type DeleteContainerRequestBody struct {
-	// Name of DSL file
-	Filename *string `form:"Filename,omitempty" json:"Filename,omitempty" xml:"Filename,omitempty"`
 	// Path to repository root
 	Repository *string `form:"Repository,omitempty" json:"Repository,omitempty" xml:"Repository,omitempty"`
 	// Path to directory containing a model package
@@ -326,8 +320,6 @@ type DeleteContainerRequestBody struct {
 // DeleteComponentRequestBody is the type of the "DSLEditor" service
 // "DeleteComponent" endpoint HTTP request body.
 type DeleteComponentRequestBody struct {
-	// Name of DSL file
-	Filename *string `form:"Filename,omitempty" json:"Filename,omitempty" xml:"Filename,omitempty"`
 	// Path to repository root
 	Repository *string `form:"Repository,omitempty" json:"Repository,omitempty" xml:"Repository,omitempty"`
 	// Path to directory containing a model package
@@ -342,8 +334,6 @@ type DeleteRelationshipRequestBody struct {
 	SourcePath *string `form:"SourcePath,omitempty" json:"SourcePath,omitempty" xml:"SourcePath,omitempty"`
 	// Path to destination element, see SourcePath for details.
 	DestinationPath *string `form:"DestinationPath,omitempty" json:"DestinationPath,omitempty" xml:"DestinationPath,omitempty"`
-	// Name of DSL file
-	Filename *string `form:"Filename,omitempty" json:"Filename,omitempty" xml:"Filename,omitempty"`
 	// Path to repository root
 	Repository *string `form:"Repository,omitempty" json:"Repository,omitempty" xml:"Repository,omitempty"`
 	// Path to directory containing a model package
@@ -353,8 +343,6 @@ type DeleteRelationshipRequestBody struct {
 // DeleteLandscapeViewRequestBody is the type of the "DSLEditor" service
 // "DeleteLandscapeView" endpoint HTTP request body.
 type DeleteLandscapeViewRequestBody struct {
-	// Name of DSL file
-	Filename *string `form:"Filename,omitempty" json:"Filename,omitempty" xml:"Filename,omitempty"`
 	// Path to repository root
 	Repository *string `form:"Repository,omitempty" json:"Repository,omitempty" xml:"Repository,omitempty"`
 	// Path to directory containing a model package
@@ -364,8 +352,6 @@ type DeleteLandscapeViewRequestBody struct {
 // DeleteSystemContextViewRequestBody is the type of the "DSLEditor" service
 // "DeleteSystemContextView" endpoint HTTP request body.
 type DeleteSystemContextViewRequestBody struct {
-	// Name of DSL file
-	Filename *string `form:"Filename,omitempty" json:"Filename,omitempty" xml:"Filename,omitempty"`
 	// Path to repository root
 	Repository *string `form:"Repository,omitempty" json:"Repository,omitempty" xml:"Repository,omitempty"`
 	// Path to directory containing a model package
@@ -375,8 +361,6 @@ type DeleteSystemContextViewRequestBody struct {
 // DeleteContainerViewRequestBody is the type of the "DSLEditor" service
 // "DeleteContainerView" endpoint HTTP request body.
 type DeleteContainerViewRequestBody struct {
-	// Name of DSL file
-	Filename *string `form:"Filename,omitempty" json:"Filename,omitempty" xml:"Filename,omitempty"`
 	// Path to repository root
 	Repository *string `form:"Repository,omitempty" json:"Repository,omitempty" xml:"Repository,omitempty"`
 	// Path to directory containing a model package
@@ -386,8 +370,6 @@ type DeleteContainerViewRequestBody struct {
 // DeleteComponentViewRequestBody is the type of the "DSLEditor" service
 // "DeleteComponentView" endpoint HTTP request body.
 type DeleteComponentViewRequestBody struct {
-	// Name of DSL file
-	Filename *string `form:"Filename,omitempty" json:"Filename,omitempty" xml:"Filename,omitempty"`
 	// Path to repository root
 	Repository *string `form:"Repository,omitempty" json:"Repository,omitempty" xml:"Repository,omitempty"`
 	// Path to directory containing a model package
@@ -397,8 +379,6 @@ type DeleteComponentViewRequestBody struct {
 // DeleteElementStyleRequestBody is the type of the "DSLEditor" service
 // "DeleteElementStyle" endpoint HTTP request body.
 type DeleteElementStyleRequestBody struct {
-	// Name of DSL file
-	Filename *string `form:"Filename,omitempty" json:"Filename,omitempty" xml:"Filename,omitempty"`
 	// Path to repository root
 	Repository *string `form:"Repository,omitempty" json:"Repository,omitempty" xml:"Repository,omitempty"`
 	// Path to directory containing a model package
@@ -408,8 +388,6 @@ type DeleteElementStyleRequestBody struct {
 // DeleteRelationshipStyleRequestBody is the type of the "DSLEditor" service
 // "DeleteRelationshipStyle" endpoint HTTP request body.
 type DeleteRelationshipStyleRequestBody struct {
-	// Name of DSL file
-	Filename *string `form:"Filename,omitempty" json:"Filename,omitempty" xml:"Filename,omitempty"`
 	// Path to repository root
 	Repository *string `form:"Repository,omitempty" json:"Repository,omitempty" xml:"Repository,omitempty"`
 	// Path to directory containing a model package
@@ -2446,7 +2424,6 @@ func NewUpsertRelationshipStyleRelationshipStyle(body *UpsertRelationshipStyleRe
 // payload.
 func NewDeleteSystemPayload(body *DeleteSystemRequestBody, systemName string) *dsleditor.DeleteSystemPayload {
 	v := &dsleditor.DeleteSystemPayload{
-		Filename:   *body.Filename,
 		Repository: *body.Repository,
 		Dir:        *body.Dir,
 	}
@@ -2459,7 +2436,6 @@ func NewDeleteSystemPayload(body *DeleteSystemRequestBody, systemName string) *d
 // payload.
 func NewDeletePersonPayload(body *DeletePersonRequestBody, personName string) *dsleditor.DeletePersonPayload {
 	v := &dsleditor.DeletePersonPayload{
-		Filename:   *body.Filename,
 		Repository: *body.Repository,
 		Dir:        *body.Dir,
 	}
@@ -2472,11 +2448,10 @@ func NewDeletePersonPayload(body *DeletePersonRequestBody, personName string) *d
 // endpoint payload.
 func NewDeleteContainerPayload(body *DeleteContainerRequestBody, systemName string, containerName string) *dsleditor.DeleteContainerPayload {
 	v := &dsleditor.DeleteContainerPayload{
-		Filename:   *body.Filename,
 		Repository: *body.Repository,
 		Dir:        *body.Dir,
 	}
-	v.SystemName = &systemName
+	v.SystemName = systemName
 	v.ContainerName = containerName
 
 	return v
@@ -2486,7 +2461,6 @@ func NewDeleteContainerPayload(body *DeleteContainerRequestBody, systemName stri
 // endpoint payload.
 func NewDeleteComponentPayload(body *DeleteComponentRequestBody, systemName string, containerName string, componentName string) *dsleditor.DeleteComponentPayload {
 	v := &dsleditor.DeleteComponentPayload{
-		Filename:   *body.Filename,
 		Repository: *body.Repository,
 		Dir:        *body.Dir,
 	}
@@ -2503,7 +2477,6 @@ func NewDeleteRelationshipPayload(body *DeleteRelationshipRequestBody) *dsledito
 	v := &dsleditor.DeleteRelationshipPayload{
 		SourcePath:      *body.SourcePath,
 		DestinationPath: *body.DestinationPath,
-		Filename:        *body.Filename,
 		Repository:      *body.Repository,
 		Dir:             *body.Dir,
 	}
@@ -2515,7 +2488,6 @@ func NewDeleteRelationshipPayload(body *DeleteRelationshipRequestBody) *dsledito
 // endpoint payload.
 func NewDeleteLandscapeViewPayload(body *DeleteLandscapeViewRequestBody, key string) *dsleditor.DeleteLandscapeViewPayload {
 	v := &dsleditor.DeleteLandscapeViewPayload{
-		Filename:   *body.Filename,
 		Repository: *body.Repository,
 		Dir:        *body.Dir,
 	}
@@ -2528,7 +2500,6 @@ func NewDeleteLandscapeViewPayload(body *DeleteLandscapeViewRequestBody, key str
 // DeleteSystemContextView endpoint payload.
 func NewDeleteSystemContextViewPayload(body *DeleteSystemContextViewRequestBody, key string) *dsleditor.DeleteSystemContextViewPayload {
 	v := &dsleditor.DeleteSystemContextViewPayload{
-		Filename:   *body.Filename,
 		Repository: *body.Repository,
 		Dir:        *body.Dir,
 	}
@@ -2541,7 +2512,6 @@ func NewDeleteSystemContextViewPayload(body *DeleteSystemContextViewRequestBody,
 // endpoint payload.
 func NewDeleteContainerViewPayload(body *DeleteContainerViewRequestBody, key string) *dsleditor.DeleteContainerViewPayload {
 	v := &dsleditor.DeleteContainerViewPayload{
-		Filename:   *body.Filename,
 		Repository: *body.Repository,
 		Dir:        *body.Dir,
 	}
@@ -2554,7 +2524,6 @@ func NewDeleteContainerViewPayload(body *DeleteContainerViewRequestBody, key str
 // endpoint payload.
 func NewDeleteComponentViewPayload(body *DeleteComponentViewRequestBody, key string) *dsleditor.DeleteComponentViewPayload {
 	v := &dsleditor.DeleteComponentViewPayload{
-		Filename:   *body.Filename,
 		Repository: *body.Repository,
 		Dir:        *body.Dir,
 	}
@@ -2567,7 +2536,6 @@ func NewDeleteComponentViewPayload(body *DeleteComponentViewRequestBody, key str
 // endpoint payload.
 func NewDeleteElementStylePayload(body *DeleteElementStyleRequestBody, tag string) *dsleditor.DeleteElementStylePayload {
 	v := &dsleditor.DeleteElementStylePayload{
-		Filename:   *body.Filename,
 		Repository: *body.Repository,
 		Dir:        *body.Dir,
 	}
@@ -2580,7 +2548,6 @@ func NewDeleteElementStylePayload(body *DeleteElementStyleRequestBody, tag strin
 // DeleteRelationshipStyle endpoint payload.
 func NewDeleteRelationshipStylePayload(body *DeleteRelationshipStyleRequestBody, tag string) *dsleditor.DeleteRelationshipStylePayload {
 	v := &dsleditor.DeleteRelationshipStylePayload{
-		Filename:   *body.Filename,
 		Repository: *body.Repository,
 		Dir:        *body.Dir,
 	}
@@ -2957,17 +2924,11 @@ func ValidateUpsertRelationshipStyleRequestBody(body *UpsertRelationshipStyleReq
 // ValidateDeleteSystemRequestBody runs the validations defined on
 // DeleteSystemRequestBody
 func ValidateDeleteSystemRequestBody(body *DeleteSystemRequestBody) (err error) {
-	if body.Filename == nil {
-		err = goa.MergeErrors(err, goa.MissingFieldError("Filename", "body"))
-	}
 	if body.Repository == nil {
 		err = goa.MergeErrors(err, goa.MissingFieldError("Repository", "body"))
 	}
 	if body.Dir == nil {
 		err = goa.MergeErrors(err, goa.MissingFieldError("Dir", "body"))
-	}
-	if body.Filename != nil {
-		err = goa.MergeErrors(err, goa.ValidatePattern("body.Filename", *body.Filename, "\\.go$"))
 	}
 	if body.Repository != nil {
 		if utf8.RuneCountInString(*body.Repository) < 1 {
@@ -2985,17 +2946,11 @@ func ValidateDeleteSystemRequestBody(body *DeleteSystemRequestBody) (err error) 
 // ValidateDeletePersonRequestBody runs the validations defined on
 // DeletePersonRequestBody
 func ValidateDeletePersonRequestBody(body *DeletePersonRequestBody) (err error) {
-	if body.Filename == nil {
-		err = goa.MergeErrors(err, goa.MissingFieldError("Filename", "body"))
-	}
 	if body.Repository == nil {
 		err = goa.MergeErrors(err, goa.MissingFieldError("Repository", "body"))
 	}
 	if body.Dir == nil {
 		err = goa.MergeErrors(err, goa.MissingFieldError("Dir", "body"))
-	}
-	if body.Filename != nil {
-		err = goa.MergeErrors(err, goa.ValidatePattern("body.Filename", *body.Filename, "\\.go$"))
 	}
 	if body.Repository != nil {
 		if utf8.RuneCountInString(*body.Repository) < 1 {
@@ -3013,17 +2968,11 @@ func ValidateDeletePersonRequestBody(body *DeletePersonRequestBody) (err error) 
 // ValidateDeleteContainerRequestBody runs the validations defined on
 // DeleteContainerRequestBody
 func ValidateDeleteContainerRequestBody(body *DeleteContainerRequestBody) (err error) {
-	if body.Filename == nil {
-		err = goa.MergeErrors(err, goa.MissingFieldError("Filename", "body"))
-	}
 	if body.Repository == nil {
 		err = goa.MergeErrors(err, goa.MissingFieldError("Repository", "body"))
 	}
 	if body.Dir == nil {
 		err = goa.MergeErrors(err, goa.MissingFieldError("Dir", "body"))
-	}
-	if body.Filename != nil {
-		err = goa.MergeErrors(err, goa.ValidatePattern("body.Filename", *body.Filename, "\\.go$"))
 	}
 	if body.Repository != nil {
 		if utf8.RuneCountInString(*body.Repository) < 1 {
@@ -3041,17 +2990,11 @@ func ValidateDeleteContainerRequestBody(body *DeleteContainerRequestBody) (err e
 // ValidateDeleteComponentRequestBody runs the validations defined on
 // DeleteComponentRequestBody
 func ValidateDeleteComponentRequestBody(body *DeleteComponentRequestBody) (err error) {
-	if body.Filename == nil {
-		err = goa.MergeErrors(err, goa.MissingFieldError("Filename", "body"))
-	}
 	if body.Repository == nil {
 		err = goa.MergeErrors(err, goa.MissingFieldError("Repository", "body"))
 	}
 	if body.Dir == nil {
 		err = goa.MergeErrors(err, goa.MissingFieldError("Dir", "body"))
-	}
-	if body.Filename != nil {
-		err = goa.MergeErrors(err, goa.ValidatePattern("body.Filename", *body.Filename, "\\.go$"))
 	}
 	if body.Repository != nil {
 		if utf8.RuneCountInString(*body.Repository) < 1 {
@@ -3075,17 +3018,11 @@ func ValidateDeleteRelationshipRequestBody(body *DeleteRelationshipRequestBody) 
 	if body.DestinationPath == nil {
 		err = goa.MergeErrors(err, goa.MissingFieldError("DestinationPath", "body"))
 	}
-	if body.Filename == nil {
-		err = goa.MergeErrors(err, goa.MissingFieldError("Filename", "body"))
-	}
 	if body.Repository == nil {
 		err = goa.MergeErrors(err, goa.MissingFieldError("Repository", "body"))
 	}
 	if body.Dir == nil {
 		err = goa.MergeErrors(err, goa.MissingFieldError("Dir", "body"))
-	}
-	if body.Filename != nil {
-		err = goa.MergeErrors(err, goa.ValidatePattern("body.Filename", *body.Filename, "\\.go$"))
 	}
 	if body.Repository != nil {
 		if utf8.RuneCountInString(*body.Repository) < 1 {
@@ -3103,17 +3040,11 @@ func ValidateDeleteRelationshipRequestBody(body *DeleteRelationshipRequestBody) 
 // ValidateDeleteLandscapeViewRequestBody runs the validations defined on
 // DeleteLandscapeViewRequestBody
 func ValidateDeleteLandscapeViewRequestBody(body *DeleteLandscapeViewRequestBody) (err error) {
-	if body.Filename == nil {
-		err = goa.MergeErrors(err, goa.MissingFieldError("Filename", "body"))
-	}
 	if body.Repository == nil {
 		err = goa.MergeErrors(err, goa.MissingFieldError("Repository", "body"))
 	}
 	if body.Dir == nil {
 		err = goa.MergeErrors(err, goa.MissingFieldError("Dir", "body"))
-	}
-	if body.Filename != nil {
-		err = goa.MergeErrors(err, goa.ValidatePattern("body.Filename", *body.Filename, "\\.go$"))
 	}
 	if body.Repository != nil {
 		if utf8.RuneCountInString(*body.Repository) < 1 {
@@ -3131,17 +3062,11 @@ func ValidateDeleteLandscapeViewRequestBody(body *DeleteLandscapeViewRequestBody
 // ValidateDeleteSystemContextViewRequestBody runs the validations defined on
 // DeleteSystemContextViewRequestBody
 func ValidateDeleteSystemContextViewRequestBody(body *DeleteSystemContextViewRequestBody) (err error) {
-	if body.Filename == nil {
-		err = goa.MergeErrors(err, goa.MissingFieldError("Filename", "body"))
-	}
 	if body.Repository == nil {
 		err = goa.MergeErrors(err, goa.MissingFieldError("Repository", "body"))
 	}
 	if body.Dir == nil {
 		err = goa.MergeErrors(err, goa.MissingFieldError("Dir", "body"))
-	}
-	if body.Filename != nil {
-		err = goa.MergeErrors(err, goa.ValidatePattern("body.Filename", *body.Filename, "\\.go$"))
 	}
 	if body.Repository != nil {
 		if utf8.RuneCountInString(*body.Repository) < 1 {
@@ -3159,17 +3084,11 @@ func ValidateDeleteSystemContextViewRequestBody(body *DeleteSystemContextViewReq
 // ValidateDeleteContainerViewRequestBody runs the validations defined on
 // DeleteContainerViewRequestBody
 func ValidateDeleteContainerViewRequestBody(body *DeleteContainerViewRequestBody) (err error) {
-	if body.Filename == nil {
-		err = goa.MergeErrors(err, goa.MissingFieldError("Filename", "body"))
-	}
 	if body.Repository == nil {
 		err = goa.MergeErrors(err, goa.MissingFieldError("Repository", "body"))
 	}
 	if body.Dir == nil {
 		err = goa.MergeErrors(err, goa.MissingFieldError("Dir", "body"))
-	}
-	if body.Filename != nil {
-		err = goa.MergeErrors(err, goa.ValidatePattern("body.Filename", *body.Filename, "\\.go$"))
 	}
 	if body.Repository != nil {
 		if utf8.RuneCountInString(*body.Repository) < 1 {
@@ -3187,17 +3106,11 @@ func ValidateDeleteContainerViewRequestBody(body *DeleteContainerViewRequestBody
 // ValidateDeleteComponentViewRequestBody runs the validations defined on
 // DeleteComponentViewRequestBody
 func ValidateDeleteComponentViewRequestBody(body *DeleteComponentViewRequestBody) (err error) {
-	if body.Filename == nil {
-		err = goa.MergeErrors(err, goa.MissingFieldError("Filename", "body"))
-	}
 	if body.Repository == nil {
 		err = goa.MergeErrors(err, goa.MissingFieldError("Repository", "body"))
 	}
 	if body.Dir == nil {
 		err = goa.MergeErrors(err, goa.MissingFieldError("Dir", "body"))
-	}
-	if body.Filename != nil {
-		err = goa.MergeErrors(err, goa.ValidatePattern("body.Filename", *body.Filename, "\\.go$"))
 	}
 	if body.Repository != nil {
 		if utf8.RuneCountInString(*body.Repository) < 1 {
@@ -3215,17 +3128,11 @@ func ValidateDeleteComponentViewRequestBody(body *DeleteComponentViewRequestBody
 // ValidateDeleteElementStyleRequestBody runs the validations defined on
 // DeleteElementStyleRequestBody
 func ValidateDeleteElementStyleRequestBody(body *DeleteElementStyleRequestBody) (err error) {
-	if body.Filename == nil {
-		err = goa.MergeErrors(err, goa.MissingFieldError("Filename", "body"))
-	}
 	if body.Repository == nil {
 		err = goa.MergeErrors(err, goa.MissingFieldError("Repository", "body"))
 	}
 	if body.Dir == nil {
 		err = goa.MergeErrors(err, goa.MissingFieldError("Dir", "body"))
-	}
-	if body.Filename != nil {
-		err = goa.MergeErrors(err, goa.ValidatePattern("body.Filename", *body.Filename, "\\.go$"))
 	}
 	if body.Repository != nil {
 		if utf8.RuneCountInString(*body.Repository) < 1 {
@@ -3243,17 +3150,11 @@ func ValidateDeleteElementStyleRequestBody(body *DeleteElementStyleRequestBody) 
 // ValidateDeleteRelationshipStyleRequestBody runs the validations defined on
 // DeleteRelationshipStyleRequestBody
 func ValidateDeleteRelationshipStyleRequestBody(body *DeleteRelationshipStyleRequestBody) (err error) {
-	if body.Filename == nil {
-		err = goa.MergeErrors(err, goa.MissingFieldError("Filename", "body"))
-	}
 	if body.Repository == nil {
 		err = goa.MergeErrors(err, goa.MissingFieldError("Repository", "body"))
 	}
 	if body.Dir == nil {
 		err = goa.MergeErrors(err, goa.MissingFieldError("Dir", "body"))
-	}
-	if body.Filename != nil {
-		err = goa.MergeErrors(err, goa.ValidatePattern("body.Filename", *body.Filename, "\\.go$"))
 	}
 	if body.Repository != nil {
 		if utf8.RuneCountInString(*body.Repository) < 1 {

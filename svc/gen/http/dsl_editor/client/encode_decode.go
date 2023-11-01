@@ -1306,9 +1306,7 @@ func (c *Client) BuildDeleteContainerRequest(ctx context.Context, v any) (*http.
 		if !ok {
 			return nil, goahttp.ErrInvalidType("DSLEditor", "DeleteContainer", "*dsleditor.DeleteContainerPayload", v)
 		}
-		if p.SystemName != nil {
-			systemName = *p.SystemName
-		}
+		systemName = p.SystemName
 		containerName = p.ContainerName
 	}
 	u := &url.URL{Scheme: c.scheme, Host: c.host, Path: DeleteContainerDSLEditorPath(systemName, containerName)}

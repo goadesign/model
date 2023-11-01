@@ -554,7 +554,7 @@ func BuildUpserElementStylePayload(dSLEditorUpserElementStyleBody string) (*dsle
 	{
 		err = json.Unmarshal([]byte(dSLEditorUpserElementStyleBody), &body)
 		if err != nil {
-			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Background\": \"#Ebfc7e\",\n      \"Border\": \"BorderDotted\",\n      \"Color\": \"#De5E9e\",\n      \"Description\": false,\n      \"FontSize\": 20,\n      \"Height\": 100,\n      \"Icon\": \"https://static.structurizr.com/images/icons/Person.png\",\n      \"Locator\": {\n         \"Dir\": \"services/my-service/diagram\",\n         \"Filename\": \"model.go\",\n         \"Repository\": \"my-repo\"\n      },\n      \"Metadata\": true,\n      \"Opacity\": 45,\n      \"Shape\": \"ShapePipe\",\n      \"Stroke\": \"#C83c50\",\n      \"Tag\": \"tag\",\n      \"Width\": 100\n   }'")
+			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Background\": \"#1dF376\",\n      \"Border\": \"BorderDotted\",\n      \"Color\": \"#E1ccfa\",\n      \"Description\": false,\n      \"FontSize\": 20,\n      \"Height\": 100,\n      \"Icon\": \"https://static.structurizr.com/images/icons/Person.png\",\n      \"Locator\": {\n         \"Dir\": \"services/my-service/diagram\",\n         \"Filename\": \"model.go\",\n         \"Repository\": \"my-repo\"\n      },\n      \"Metadata\": true,\n      \"Opacity\": 45,\n      \"Shape\": \"ShapePipe\",\n      \"Stroke\": \"#9D0155\",\n      \"Tag\": \"tag\",\n      \"Width\": 100\n   }'")
 		}
 		if body.Locator == nil {
 			err = goa.MergeErrors(err, goa.MissingFieldError("Locator", "body"))
@@ -644,7 +644,7 @@ func BuildUpsertRelationshipStylePayload(dSLEditorUpsertRelationshipStyleBody st
 	{
 		err = json.Unmarshal([]byte(dSLEditorUpsertRelationshipStyleBody), &body)
 		if err != nil {
-			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Color\": \"#2c41ad\",\n      \"Dashed\": true,\n      \"FontSize\": 10,\n      \"Locator\": {\n         \"Dir\": \"services/my-service/diagram\",\n         \"Filename\": \"model.go\",\n         \"Repository\": \"my-repo\"\n      },\n      \"Opacity\": 35,\n      \"Position\": 25,\n      \"Routing\": \"Direct\",\n      \"Stroke\": \"#bAE427\",\n      \"Tag\": \"tag\",\n      \"Thickness\": 2,\n      \"Width\": 272\n   }'")
+			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Color\": \"#F77f19\",\n      \"Dashed\": true,\n      \"FontSize\": 10,\n      \"Locator\": {\n         \"Dir\": \"services/my-service/diagram\",\n         \"Filename\": \"model.go\",\n         \"Repository\": \"my-repo\"\n      },\n      \"Opacity\": 35,\n      \"Position\": 25,\n      \"Routing\": \"Direct\",\n      \"Stroke\": \"#5EA24B\",\n      \"Tag\": \"tag\",\n      \"Thickness\": 2,\n      \"Width\": 272\n   }'")
 		}
 		if body.Locator == nil {
 			err = goa.MergeErrors(err, goa.MissingFieldError("Locator", "body"))
@@ -756,9 +756,8 @@ func BuildDeleteSystemPayload(dSLEditorDeleteSystemBody string, dSLEditorDeleteS
 	{
 		err = json.Unmarshal([]byte(dSLEditorDeleteSystemBody), &body)
 		if err != nil {
-			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Dir\": \"services/my-service/diagram\",\n      \"Filename\": \"model.go\",\n      \"Repository\": \"my-repo\"\n   }'")
+			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Dir\": \"services/my-service/diagram\",\n      \"Repository\": \"my-repo\"\n   }'")
 		}
-		err = goa.MergeErrors(err, goa.ValidatePattern("body.Filename", body.Filename, "\\.go$"))
 		if utf8.RuneCountInString(body.Repository) < 1 {
 			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Repository", body.Repository, utf8.RuneCountInString(body.Repository), 1, true))
 		}
@@ -774,7 +773,6 @@ func BuildDeleteSystemPayload(dSLEditorDeleteSystemBody string, dSLEditorDeleteS
 		systemName = dSLEditorDeleteSystemSystemName
 	}
 	v := &dsleditor.DeleteSystemPayload{
-		Filename:   body.Filename,
 		Repository: body.Repository,
 		Dir:        body.Dir,
 	}
@@ -791,9 +789,8 @@ func BuildDeletePersonPayload(dSLEditorDeletePersonBody string, dSLEditorDeleteP
 	{
 		err = json.Unmarshal([]byte(dSLEditorDeletePersonBody), &body)
 		if err != nil {
-			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Dir\": \"services/my-service/diagram\",\n      \"Filename\": \"model.go\",\n      \"Repository\": \"my-repo\"\n   }'")
+			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Dir\": \"services/my-service/diagram\",\n      \"Repository\": \"my-repo\"\n   }'")
 		}
-		err = goa.MergeErrors(err, goa.ValidatePattern("body.Filename", body.Filename, "\\.go$"))
 		if utf8.RuneCountInString(body.Repository) < 1 {
 			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Repository", body.Repository, utf8.RuneCountInString(body.Repository), 1, true))
 		}
@@ -809,7 +806,6 @@ func BuildDeletePersonPayload(dSLEditorDeletePersonBody string, dSLEditorDeleteP
 		personName = dSLEditorDeletePersonPersonName
 	}
 	v := &dsleditor.DeletePersonPayload{
-		Filename:   body.Filename,
 		Repository: body.Repository,
 		Dir:        body.Dir,
 	}
@@ -826,9 +822,8 @@ func BuildDeleteContainerPayload(dSLEditorDeleteContainerBody string, dSLEditorD
 	{
 		err = json.Unmarshal([]byte(dSLEditorDeleteContainerBody), &body)
 		if err != nil {
-			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Dir\": \"services/my-service/diagram\",\n      \"Filename\": \"model.go\",\n      \"Repository\": \"my-repo\"\n   }'")
+			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Dir\": \"services/my-service/diagram\",\n      \"Repository\": \"my-repo\"\n   }'")
 		}
-		err = goa.MergeErrors(err, goa.ValidatePattern("body.Filename", body.Filename, "\\.go$"))
 		if utf8.RuneCountInString(body.Repository) < 1 {
 			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Repository", body.Repository, utf8.RuneCountInString(body.Repository), 1, true))
 		}
@@ -848,11 +843,10 @@ func BuildDeleteContainerPayload(dSLEditorDeleteContainerBody string, dSLEditorD
 		containerName = dSLEditorDeleteContainerContainerName
 	}
 	v := &dsleditor.DeleteContainerPayload{
-		Filename:   body.Filename,
 		Repository: body.Repository,
 		Dir:        body.Dir,
 	}
-	v.SystemName = &systemName
+	v.SystemName = systemName
 	v.ContainerName = containerName
 
 	return v, nil
@@ -866,9 +860,8 @@ func BuildDeleteComponentPayload(dSLEditorDeleteComponentBody string, dSLEditorD
 	{
 		err = json.Unmarshal([]byte(dSLEditorDeleteComponentBody), &body)
 		if err != nil {
-			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Dir\": \"services/my-service/diagram\",\n      \"Filename\": \"model.go\",\n      \"Repository\": \"my-repo\"\n   }'")
+			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Dir\": \"services/my-service/diagram\",\n      \"Repository\": \"my-repo\"\n   }'")
 		}
-		err = goa.MergeErrors(err, goa.ValidatePattern("body.Filename", body.Filename, "\\.go$"))
 		if utf8.RuneCountInString(body.Repository) < 1 {
 			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Repository", body.Repository, utf8.RuneCountInString(body.Repository), 1, true))
 		}
@@ -892,7 +885,6 @@ func BuildDeleteComponentPayload(dSLEditorDeleteComponentBody string, dSLEditorD
 		componentName = dSLEditorDeleteComponentComponentName
 	}
 	v := &dsleditor.DeleteComponentPayload{
-		Filename:   body.Filename,
 		Repository: body.Repository,
 		Dir:        body.Dir,
 	}
@@ -911,9 +903,8 @@ func BuildDeleteRelationshipPayload(dSLEditorDeleteRelationshipBody string) (*ds
 	{
 		err = json.Unmarshal([]byte(dSLEditorDeleteRelationshipBody), &body)
 		if err != nil {
-			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"DestinationPath\": \"Software System/Container/Component\",\n      \"Dir\": \"services/my-service/diagram\",\n      \"Filename\": \"model.go\",\n      \"Repository\": \"my-repo\",\n      \"SourcePath\": \"Software System/Container/Component\"\n   }'")
+			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"DestinationPath\": \"Software System/Container/Component\",\n      \"Dir\": \"services/my-service/diagram\",\n      \"Repository\": \"my-repo\",\n      \"SourcePath\": \"Software System/Container/Component\"\n   }'")
 		}
-		err = goa.MergeErrors(err, goa.ValidatePattern("body.Filename", body.Filename, "\\.go$"))
 		if utf8.RuneCountInString(body.Repository) < 1 {
 			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Repository", body.Repository, utf8.RuneCountInString(body.Repository), 1, true))
 		}
@@ -927,7 +918,6 @@ func BuildDeleteRelationshipPayload(dSLEditorDeleteRelationshipBody string) (*ds
 	v := &dsleditor.DeleteRelationshipPayload{
 		SourcePath:      body.SourcePath,
 		DestinationPath: body.DestinationPath,
-		Filename:        body.Filename,
 		Repository:      body.Repository,
 		Dir:             body.Dir,
 	}
@@ -943,9 +933,8 @@ func BuildDeleteLandscapeViewPayload(dSLEditorDeleteLandscapeViewBody string, dS
 	{
 		err = json.Unmarshal([]byte(dSLEditorDeleteLandscapeViewBody), &body)
 		if err != nil {
-			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Dir\": \"services/my-service/diagram\",\n      \"Filename\": \"model.go\",\n      \"Repository\": \"my-repo\"\n   }'")
+			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Dir\": \"services/my-service/diagram\",\n      \"Repository\": \"my-repo\"\n   }'")
 		}
-		err = goa.MergeErrors(err, goa.ValidatePattern("body.Filename", body.Filename, "\\.go$"))
 		if utf8.RuneCountInString(body.Repository) < 1 {
 			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Repository", body.Repository, utf8.RuneCountInString(body.Repository), 1, true))
 		}
@@ -961,7 +950,6 @@ func BuildDeleteLandscapeViewPayload(dSLEditorDeleteLandscapeViewBody string, dS
 		key = dSLEditorDeleteLandscapeViewKey
 	}
 	v := &dsleditor.DeleteLandscapeViewPayload{
-		Filename:   body.Filename,
 		Repository: body.Repository,
 		Dir:        body.Dir,
 	}
@@ -978,9 +966,8 @@ func BuildDeleteSystemContextViewPayload(dSLEditorDeleteSystemContextViewBody st
 	{
 		err = json.Unmarshal([]byte(dSLEditorDeleteSystemContextViewBody), &body)
 		if err != nil {
-			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Dir\": \"services/my-service/diagram\",\n      \"Filename\": \"model.go\",\n      \"Repository\": \"my-repo\"\n   }'")
+			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Dir\": \"services/my-service/diagram\",\n      \"Repository\": \"my-repo\"\n   }'")
 		}
-		err = goa.MergeErrors(err, goa.ValidatePattern("body.Filename", body.Filename, "\\.go$"))
 		if utf8.RuneCountInString(body.Repository) < 1 {
 			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Repository", body.Repository, utf8.RuneCountInString(body.Repository), 1, true))
 		}
@@ -996,7 +983,6 @@ func BuildDeleteSystemContextViewPayload(dSLEditorDeleteSystemContextViewBody st
 		key = dSLEditorDeleteSystemContextViewKey
 	}
 	v := &dsleditor.DeleteSystemContextViewPayload{
-		Filename:   body.Filename,
 		Repository: body.Repository,
 		Dir:        body.Dir,
 	}
@@ -1013,9 +999,8 @@ func BuildDeleteContainerViewPayload(dSLEditorDeleteContainerViewBody string, dS
 	{
 		err = json.Unmarshal([]byte(dSLEditorDeleteContainerViewBody), &body)
 		if err != nil {
-			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Dir\": \"services/my-service/diagram\",\n      \"Filename\": \"model.go\",\n      \"Repository\": \"my-repo\"\n   }'")
+			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Dir\": \"services/my-service/diagram\",\n      \"Repository\": \"my-repo\"\n   }'")
 		}
-		err = goa.MergeErrors(err, goa.ValidatePattern("body.Filename", body.Filename, "\\.go$"))
 		if utf8.RuneCountInString(body.Repository) < 1 {
 			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Repository", body.Repository, utf8.RuneCountInString(body.Repository), 1, true))
 		}
@@ -1031,7 +1016,6 @@ func BuildDeleteContainerViewPayload(dSLEditorDeleteContainerViewBody string, dS
 		key = dSLEditorDeleteContainerViewKey
 	}
 	v := &dsleditor.DeleteContainerViewPayload{
-		Filename:   body.Filename,
 		Repository: body.Repository,
 		Dir:        body.Dir,
 	}
@@ -1048,9 +1032,8 @@ func BuildDeleteComponentViewPayload(dSLEditorDeleteComponentViewBody string, dS
 	{
 		err = json.Unmarshal([]byte(dSLEditorDeleteComponentViewBody), &body)
 		if err != nil {
-			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Dir\": \"services/my-service/diagram\",\n      \"Filename\": \"model.go\",\n      \"Repository\": \"my-repo\"\n   }'")
+			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Dir\": \"services/my-service/diagram\",\n      \"Repository\": \"my-repo\"\n   }'")
 		}
-		err = goa.MergeErrors(err, goa.ValidatePattern("body.Filename", body.Filename, "\\.go$"))
 		if utf8.RuneCountInString(body.Repository) < 1 {
 			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Repository", body.Repository, utf8.RuneCountInString(body.Repository), 1, true))
 		}
@@ -1066,7 +1049,6 @@ func BuildDeleteComponentViewPayload(dSLEditorDeleteComponentViewBody string, dS
 		key = dSLEditorDeleteComponentViewKey
 	}
 	v := &dsleditor.DeleteComponentViewPayload{
-		Filename:   body.Filename,
 		Repository: body.Repository,
 		Dir:        body.Dir,
 	}
@@ -1083,9 +1065,8 @@ func BuildDeleteElementStylePayload(dSLEditorDeleteElementStyleBody string, dSLE
 	{
 		err = json.Unmarshal([]byte(dSLEditorDeleteElementStyleBody), &body)
 		if err != nil {
-			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Dir\": \"services/my-service/diagram\",\n      \"Filename\": \"model.go\",\n      \"Repository\": \"my-repo\"\n   }'")
+			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Dir\": \"services/my-service/diagram\",\n      \"Repository\": \"my-repo\"\n   }'")
 		}
-		err = goa.MergeErrors(err, goa.ValidatePattern("body.Filename", body.Filename, "\\.go$"))
 		if utf8.RuneCountInString(body.Repository) < 1 {
 			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Repository", body.Repository, utf8.RuneCountInString(body.Repository), 1, true))
 		}
@@ -1101,7 +1082,6 @@ func BuildDeleteElementStylePayload(dSLEditorDeleteElementStyleBody string, dSLE
 		tag = dSLEditorDeleteElementStyleTag
 	}
 	v := &dsleditor.DeleteElementStylePayload{
-		Filename:   body.Filename,
 		Repository: body.Repository,
 		Dir:        body.Dir,
 	}
@@ -1118,9 +1098,8 @@ func BuildDeleteRelationshipStylePayload(dSLEditorDeleteRelationshipStyleBody st
 	{
 		err = json.Unmarshal([]byte(dSLEditorDeleteRelationshipStyleBody), &body)
 		if err != nil {
-			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Dir\": \"services/my-service/diagram\",\n      \"Filename\": \"model.go\",\n      \"Repository\": \"my-repo\"\n   }'")
+			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Dir\": \"services/my-service/diagram\",\n      \"Repository\": \"my-repo\"\n   }'")
 		}
-		err = goa.MergeErrors(err, goa.ValidatePattern("body.Filename", body.Filename, "\\.go$"))
 		if utf8.RuneCountInString(body.Repository) < 1 {
 			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Repository", body.Repository, utf8.RuneCountInString(body.Repository), 1, true))
 		}
@@ -1136,7 +1115,6 @@ func BuildDeleteRelationshipStylePayload(dSLEditorDeleteRelationshipStyleBody st
 		tag = dSLEditorDeleteRelationshipStyleTag
 	}
 	v := &dsleditor.DeleteRelationshipStylePayload{
-		Filename:   body.Filename,
 		Repository: body.Repository,
 		Dir:        body.Dir,
 	}

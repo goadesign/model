@@ -293,8 +293,6 @@ type UpsertRelationshipStyleRequestBody struct {
 // DeleteSystemRequestBody is the type of the "DSLEditor" service
 // "DeleteSystem" endpoint HTTP request body.
 type DeleteSystemRequestBody struct {
-	// Name of DSL file
-	Filename string `form:"Filename" json:"Filename" xml:"Filename"`
 	// Path to repository root
 	Repository string `form:"Repository" json:"Repository" xml:"Repository"`
 	// Path to directory containing a model package
@@ -304,8 +302,6 @@ type DeleteSystemRequestBody struct {
 // DeletePersonRequestBody is the type of the "DSLEditor" service
 // "DeletePerson" endpoint HTTP request body.
 type DeletePersonRequestBody struct {
-	// Name of DSL file
-	Filename string `form:"Filename" json:"Filename" xml:"Filename"`
 	// Path to repository root
 	Repository string `form:"Repository" json:"Repository" xml:"Repository"`
 	// Path to directory containing a model package
@@ -315,8 +311,6 @@ type DeletePersonRequestBody struct {
 // DeleteContainerRequestBody is the type of the "DSLEditor" service
 // "DeleteContainer" endpoint HTTP request body.
 type DeleteContainerRequestBody struct {
-	// Name of DSL file
-	Filename string `form:"Filename" json:"Filename" xml:"Filename"`
 	// Path to repository root
 	Repository string `form:"Repository" json:"Repository" xml:"Repository"`
 	// Path to directory containing a model package
@@ -326,8 +320,6 @@ type DeleteContainerRequestBody struct {
 // DeleteComponentRequestBody is the type of the "DSLEditor" service
 // "DeleteComponent" endpoint HTTP request body.
 type DeleteComponentRequestBody struct {
-	// Name of DSL file
-	Filename string `form:"Filename" json:"Filename" xml:"Filename"`
 	// Path to repository root
 	Repository string `form:"Repository" json:"Repository" xml:"Repository"`
 	// Path to directory containing a model package
@@ -342,8 +334,6 @@ type DeleteRelationshipRequestBody struct {
 	SourcePath string `form:"SourcePath" json:"SourcePath" xml:"SourcePath"`
 	// Path to destination element, see SourcePath for details.
 	DestinationPath string `form:"DestinationPath" json:"DestinationPath" xml:"DestinationPath"`
-	// Name of DSL file
-	Filename string `form:"Filename" json:"Filename" xml:"Filename"`
 	// Path to repository root
 	Repository string `form:"Repository" json:"Repository" xml:"Repository"`
 	// Path to directory containing a model package
@@ -353,8 +343,6 @@ type DeleteRelationshipRequestBody struct {
 // DeleteLandscapeViewRequestBody is the type of the "DSLEditor" service
 // "DeleteLandscapeView" endpoint HTTP request body.
 type DeleteLandscapeViewRequestBody struct {
-	// Name of DSL file
-	Filename string `form:"Filename" json:"Filename" xml:"Filename"`
 	// Path to repository root
 	Repository string `form:"Repository" json:"Repository" xml:"Repository"`
 	// Path to directory containing a model package
@@ -364,8 +352,6 @@ type DeleteLandscapeViewRequestBody struct {
 // DeleteSystemContextViewRequestBody is the type of the "DSLEditor" service
 // "DeleteSystemContextView" endpoint HTTP request body.
 type DeleteSystemContextViewRequestBody struct {
-	// Name of DSL file
-	Filename string `form:"Filename" json:"Filename" xml:"Filename"`
 	// Path to repository root
 	Repository string `form:"Repository" json:"Repository" xml:"Repository"`
 	// Path to directory containing a model package
@@ -375,8 +361,6 @@ type DeleteSystemContextViewRequestBody struct {
 // DeleteContainerViewRequestBody is the type of the "DSLEditor" service
 // "DeleteContainerView" endpoint HTTP request body.
 type DeleteContainerViewRequestBody struct {
-	// Name of DSL file
-	Filename string `form:"Filename" json:"Filename" xml:"Filename"`
 	// Path to repository root
 	Repository string `form:"Repository" json:"Repository" xml:"Repository"`
 	// Path to directory containing a model package
@@ -386,8 +370,6 @@ type DeleteContainerViewRequestBody struct {
 // DeleteComponentViewRequestBody is the type of the "DSLEditor" service
 // "DeleteComponentView" endpoint HTTP request body.
 type DeleteComponentViewRequestBody struct {
-	// Name of DSL file
-	Filename string `form:"Filename" json:"Filename" xml:"Filename"`
 	// Path to repository root
 	Repository string `form:"Repository" json:"Repository" xml:"Repository"`
 	// Path to directory containing a model package
@@ -397,8 +379,6 @@ type DeleteComponentViewRequestBody struct {
 // DeleteElementStyleRequestBody is the type of the "DSLEditor" service
 // "DeleteElementStyle" endpoint HTTP request body.
 type DeleteElementStyleRequestBody struct {
-	// Name of DSL file
-	Filename string `form:"Filename" json:"Filename" xml:"Filename"`
 	// Path to repository root
 	Repository string `form:"Repository" json:"Repository" xml:"Repository"`
 	// Path to directory containing a model package
@@ -408,8 +388,6 @@ type DeleteElementStyleRequestBody struct {
 // DeleteRelationshipStyleRequestBody is the type of the "DSLEditor" service
 // "DeleteRelationshipStyle" endpoint HTTP request body.
 type DeleteRelationshipStyleRequestBody struct {
-	// Name of DSL file
-	Filename string `form:"Filename" json:"Filename" xml:"Filename"`
 	// Path to repository root
 	Repository string `form:"Repository" json:"Repository" xml:"Repository"`
 	// Path to directory containing a model package
@@ -1685,7 +1663,6 @@ func NewUpsertRelationshipStyleRequestBody(p *dsleditor.RelationshipStyle) *Upse
 // the "DeleteSystem" endpoint of the "DSLEditor" service.
 func NewDeleteSystemRequestBody(p *dsleditor.DeleteSystemPayload) *DeleteSystemRequestBody {
 	body := &DeleteSystemRequestBody{
-		Filename:   p.Filename,
 		Repository: p.Repository,
 		Dir:        p.Dir,
 	}
@@ -1696,7 +1673,6 @@ func NewDeleteSystemRequestBody(p *dsleditor.DeleteSystemPayload) *DeleteSystemR
 // the "DeletePerson" endpoint of the "DSLEditor" service.
 func NewDeletePersonRequestBody(p *dsleditor.DeletePersonPayload) *DeletePersonRequestBody {
 	body := &DeletePersonRequestBody{
-		Filename:   p.Filename,
 		Repository: p.Repository,
 		Dir:        p.Dir,
 	}
@@ -1707,7 +1683,6 @@ func NewDeletePersonRequestBody(p *dsleditor.DeletePersonPayload) *DeletePersonR
 // of the "DeleteContainer" endpoint of the "DSLEditor" service.
 func NewDeleteContainerRequestBody(p *dsleditor.DeleteContainerPayload) *DeleteContainerRequestBody {
 	body := &DeleteContainerRequestBody{
-		Filename:   p.Filename,
 		Repository: p.Repository,
 		Dir:        p.Dir,
 	}
@@ -1718,7 +1693,6 @@ func NewDeleteContainerRequestBody(p *dsleditor.DeleteContainerPayload) *DeleteC
 // of the "DeleteComponent" endpoint of the "DSLEditor" service.
 func NewDeleteComponentRequestBody(p *dsleditor.DeleteComponentPayload) *DeleteComponentRequestBody {
 	body := &DeleteComponentRequestBody{
-		Filename:   p.Filename,
 		Repository: p.Repository,
 		Dir:        p.Dir,
 	}
@@ -1731,7 +1705,6 @@ func NewDeleteRelationshipRequestBody(p *dsleditor.DeleteRelationshipPayload) *D
 	body := &DeleteRelationshipRequestBody{
 		SourcePath:      p.SourcePath,
 		DestinationPath: p.DestinationPath,
-		Filename:        p.Filename,
 		Repository:      p.Repository,
 		Dir:             p.Dir,
 	}
@@ -1742,7 +1715,6 @@ func NewDeleteRelationshipRequestBody(p *dsleditor.DeleteRelationshipPayload) *D
 // payload of the "DeleteLandscapeView" endpoint of the "DSLEditor" service.
 func NewDeleteLandscapeViewRequestBody(p *dsleditor.DeleteLandscapeViewPayload) *DeleteLandscapeViewRequestBody {
 	body := &DeleteLandscapeViewRequestBody{
-		Filename:   p.Filename,
 		Repository: p.Repository,
 		Dir:        p.Dir,
 	}
@@ -1753,7 +1725,6 @@ func NewDeleteLandscapeViewRequestBody(p *dsleditor.DeleteLandscapeViewPayload) 
 // payload of the "DeleteSystemContextView" endpoint of the "DSLEditor" service.
 func NewDeleteSystemContextViewRequestBody(p *dsleditor.DeleteSystemContextViewPayload) *DeleteSystemContextViewRequestBody {
 	body := &DeleteSystemContextViewRequestBody{
-		Filename:   p.Filename,
 		Repository: p.Repository,
 		Dir:        p.Dir,
 	}
@@ -1764,7 +1735,6 @@ func NewDeleteSystemContextViewRequestBody(p *dsleditor.DeleteSystemContextViewP
 // payload of the "DeleteContainerView" endpoint of the "DSLEditor" service.
 func NewDeleteContainerViewRequestBody(p *dsleditor.DeleteContainerViewPayload) *DeleteContainerViewRequestBody {
 	body := &DeleteContainerViewRequestBody{
-		Filename:   p.Filename,
 		Repository: p.Repository,
 		Dir:        p.Dir,
 	}
@@ -1775,7 +1745,6 @@ func NewDeleteContainerViewRequestBody(p *dsleditor.DeleteContainerViewPayload) 
 // payload of the "DeleteComponentView" endpoint of the "DSLEditor" service.
 func NewDeleteComponentViewRequestBody(p *dsleditor.DeleteComponentViewPayload) *DeleteComponentViewRequestBody {
 	body := &DeleteComponentViewRequestBody{
-		Filename:   p.Filename,
 		Repository: p.Repository,
 		Dir:        p.Dir,
 	}
@@ -1786,7 +1755,6 @@ func NewDeleteComponentViewRequestBody(p *dsleditor.DeleteComponentViewPayload) 
 // payload of the "DeleteElementStyle" endpoint of the "DSLEditor" service.
 func NewDeleteElementStyleRequestBody(p *dsleditor.DeleteElementStylePayload) *DeleteElementStyleRequestBody {
 	body := &DeleteElementStyleRequestBody{
-		Filename:   p.Filename,
 		Repository: p.Repository,
 		Dir:        p.Dir,
 	}
@@ -1797,7 +1765,6 @@ func NewDeleteElementStyleRequestBody(p *dsleditor.DeleteElementStylePayload) *D
 // payload of the "DeleteRelationshipStyle" endpoint of the "DSLEditor" service.
 func NewDeleteRelationshipStyleRequestBody(p *dsleditor.DeleteRelationshipStylePayload) *DeleteRelationshipStyleRequestBody {
 	body := &DeleteRelationshipStyleRequestBody{
-		Filename:   p.Filename,
 		Repository: p.Repository,
 		Dir:        p.Dir,
 	}

@@ -101,57 +101,57 @@ func (svc *Service) UpsertRelationshipStyle(ctx context.Context, r *geneditor.Re
 
 // DeleteSystem implements DeleteSystem.
 func (svc *Service) DeleteSystem(ctx context.Context, p *geneditor.DeleteSystemPayload) (*gentypes.PackageFile, error) {
-	panic("not implemented")
+	return deleteElement(ctx, p.Repository, p.Dir, editor.SoftwareSystemKind, p.SystemName)
 }
 
 // DeletePerson implements DeletePerson.
 func (svc *Service) DeletePerson(ctx context.Context, p *geneditor.DeletePersonPayload) (*gentypes.PackageFile, error) {
-	panic("not implemented")
+	return deleteElement(ctx, p.Repository, p.Dir, editor.PersonKind, p.PersonName)
 }
 
 // DeleteContainer implements DeleteContainer.
 func (svc *Service) DeleteContainer(ctx context.Context, p *geneditor.DeleteContainerPayload) (*gentypes.PackageFile, error) {
-	panic("not implemented")
+	return deleteElement(ctx, p.Repository, p.Dir, editor.ContainerKind, p.SystemName+"/"+p.ContainerName)
 }
 
 // DeleteComponent implements DeleteComponent.
 func (svc *Service) DeleteComponent(ctx context.Context, p *geneditor.DeleteComponentPayload) (*gentypes.PackageFile, error) {
-	panic("not implemented")
+	return deleteElement(ctx, p.Repository, p.Dir, editor.ComponentKind, p.SystemName+"/"+p.ContainerName+"/"+p.ComponentName)
 }
 
 // DeleteRelationship implements DeleteRelationship.
 func (svc *Service) DeleteRelationship(ctx context.Context, p *geneditor.DeleteRelationshipPayload) (*gentypes.PackageFile, error) {
-	panic("not implemented")
+	return deleteRelationship(ctx, p.Repository, p.Dir, p.SourcePath, p.DestinationPath)
 }
 
 // Delete an existing landscape view from the model
 func (svc *Service) DeleteLandscapeView(ctx context.Context, p *geneditor.DeleteLandscapeViewPayload) (*gentypes.PackageFile, error) {
-	panic("not implemented")
+	return deleteElement(ctx, p.Repository, p.Dir, editor.LandscapeViewKind, p.Key)
 }
 
 // Delete an existing system context view from the model
 func (svc *Service) DeleteSystemContextView(ctx context.Context, p *geneditor.DeleteSystemContextViewPayload) (*gentypes.PackageFile, error) {
-	panic("not implemented")
+	return deleteElement(ctx, p.Repository, p.Dir, editor.SystemContextViewKind, p.Key)
 }
 
 // Delete an existing container view from the model
 func (svc *Service) DeleteContainerView(ctx context.Context, p *geneditor.DeleteContainerViewPayload) (*gentypes.PackageFile, error) {
-	panic("not implemented")
+	return deleteElement(ctx, p.Repository, p.Dir, editor.ContainerViewKind, p.Key)
 }
 
 // Delete an existing component view from the model
 func (svc *Service) DeleteComponentView(ctx context.Context, p *geneditor.DeleteComponentViewPayload) (*gentypes.PackageFile, error) {
-	panic("not implemented")
+	return deleteElement(ctx, p.Repository, p.Dir, editor.ComponentViewKind, p.Key)
 }
 
 // Delete an existing element style from the model
 func (svc *Service) DeleteElementStyle(ctx context.Context, p *geneditor.DeleteElementStylePayload) (*gentypes.PackageFile, error) {
-	panic("not implemented")
+	return deleteElement(ctx, p.Repository, p.Dir, editor.ElementStyleKind, p.Tag)
 }
 
 // Delete an existing relationship style from the model
 func (svc *Service) DeleteRelationshipStyle(ctx context.Context, p *geneditor.DeleteRelationshipStylePayload) (*gentypes.PackageFile, error) {
-	panic("not implemented")
+	return deleteElement(ctx, p.Repository, p.Dir, editor.RelationshipStyleKind, p.Tag)
 }
 
 func upsertElementByPath(ctx context.Context, repo, dir string, kind editor.ElementKind, elementPath, code string) (*gentypes.PackageFile, error) {
@@ -166,6 +166,24 @@ func upsertElementByPath(ctx context.Context, repo, dir string, kind editor.Elem
 func upsertElementByID(ctx context.Context, repo, dir string, kind editor.ElementKind, key, code string) (*gentypes.PackageFile, error) {
 	edit := editor.NewEditor(repo, dir)
 	f, err := edit.UpsertElementByID(kind, key, code)
+	if err != nil {
+		return nil, logAndReturn(ctx, err)
+	}
+	return f, nil
+}
+
+func deleteElement(ctx context.Context, repo, dir string, kind editor.ElementKind, key string) (*gentypes.PackageFile, error) {
+	edit := editor.NewEditor(repo, dir)
+	f, err := edit.DeleteElement(kind, key)
+	if err != nil {
+		return nil, logAndReturn(ctx, err)
+	}
+	return f, nil
+}
+
+func deleteRelationship(ctx context.Context, repo, dir, sourcePath, destinationPath string) (*gentypes.PackageFile, error) {
+	edit := editor.NewEditor(repo, dir)
+	f, err := edit.DeleteRelationship(sourcePath, destinationPath)
 	if err != nil {
 		return nil, logAndReturn(ctx, err)
 	}
