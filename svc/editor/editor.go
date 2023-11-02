@@ -61,14 +61,23 @@ func NewEditor(repo, dir string) *Editor {
 	return &Editor{repo: repo, dir: dir}
 }
 
-// UpsertElementByPath updates the code for the person, software system ,
-// container or component with the given kind and path, if there's a match
-// otherwise it adds a new element. The elementPath is the path to the element
-// in the DSL file, e.g. "Person1" or "SoftwareSystem1/Container1/Component1".
-func (e *Editor) UpsertElementByPath(kind ElementKind, elementPath, code string) (*gentypes.PackageFile, error) {
+// UpsertCode updates the code for the DSL element with the given kind, path and
+// arguments if there's a match otherwise it adds the element. The path is the
+// path to the element in the DSL file, e.g. "Person1" or
+// "SoftwareSystem1/Container1/Component1".
+func (e *Editor) UpsertCode(code string, kind ElementKind, path string, args ...string) (*gentypes.PackageFile, error) {
 	res, parsed, fset, err := e.parseDir()
 	if err != nil {
 		return nil, err
+	}
+	var node, parent ast.Node
+	var file *ast.File
+	for _, f := range parsed.Files {
+		node, parent = findDSL(file, kind, id)
+		if node != nil {
+			file = f
+			break
+		}
 	}
 	if parsed == nil {
 		res.Locator.Filename = DefaultModelFilename
@@ -84,7 +93,7 @@ func (e *Editor) UpsertElementByPath(kind ElementKind, elementPath, code string)
 			return nil, fmt.Errorf("failed to read DSL file %s: %w", tokFile.Name(), err)
 		}
 		src := string(srcBytes)
-		elemNode, pos, end := findDSL(file, kind, elementPath)
+		elemNode, pos, end := findDSL(file, kind, path)
 		if elemNode != nil {
 			// Found the element, so replace it.
 			code, err := copyRelationships(tokFile, elemNode, src, code)
@@ -570,95 +579,122 @@ func setContent(filename string, res *gentypes.PackageFile, newContent string) (
 	return res, nil
 }
 
-// findDSL looks for a DSL node (ast.CallExpr) with the given kind, path and
-// first argument. If found it returns the node and its position in file. If
-// it finds a parent DSL function but not the actual DSL it returns the position
-// of the parent DSL function and a nil node.
-func findDSL(file *ast.File, kind ElementKind, path string) (node ast.Node, pos, end token.Pos) {
-	var pathStack []string
+// findDSL searches the AST for a CallExpr node representing a DSL with the
+// specified kind, path, and arguments.  If the desired DSL node is found, it
+// returns the node alongside its parent (a function containing an anonymous
+// function argument that calls the found node).  If only the parent DSL
+// function is located without the actual DSL node, it returns (nil,
+// parentNode).
+func findDSL(file *ast.File, kind ElementKind, path string, args ...string) (node, parent ast.Node) {
+	var stack []string
 	if path != "" {
-		pathStack = strings.Split(path, "/")
+		stack = strings.Split(path, "/")
+		args = append([]string{stack[0]}, args...)
 	}
-	var curPos, curEnd, prevPos, prevEnd token.Pos
-	recurse := true
 	ast.Inspect(file, func(n ast.Node) bool {
 		if node != nil {
 			return false
 		}
-		curPos, curEnd, pathStack, recurse = parseNode(n, kind, pathStack)
-		if curPos != token.NoPos {
-			prevPos = curPos
-			prevEnd = curEnd
+		if checkNode(n, kind, args...) {
+			if len(stack) == 0 {
+				node = n
+			} else {
+				parent = n
+				stack = stack[1:]
+			}
 		}
-		if !recurse {
-			node = n
-		}
-		return recurse
+		return node == nil
 	})
-	pos = prevPos
-	end = prevEnd
 	return
 }
 
-// parseNode checks if node is a call expression with a first argument that
-// matches the first element of pathStack. If so there are two cases:
+// checkNode checks if node is a call expression with a name that
+// matches the first element of pathStack and arguments that match args in order
+// (note: not all the call expression arguments need to match, just the first n
+// where n is the size of args). If so there are two cases:
 //
-//  1. The function matches ElementKind and the pathStack has only one element:
-//     return the position of the call expression and an empty pathStack.
+//  1. The function matches and pathStack has no or one element: return true and
+//     an empty pathStack.
 //  2. The function matches SoftwareSystemKind or ContainerKind and the
-//     pathStack has more than one element: return the position of the call
-//     expression and the remaining pathStack so the caller can recurse.
-//
-// The last returned value is true if the search should continue.
-func parseNode(node ast.Node, kind ElementKind, pathStack []string) (pos, end token.Pos, stack []string, recurse bool) {
-	stack = pathStack
-	recurse = true
+//     pathStack has more than one element: return true and the remaining
+//     pathStack so the caller can recurse.
+func checkNode(node ast.Node, kind ElementKind, args ...string) bool {
 	callExpr, ok := node.(*ast.CallExpr)
 	if !ok {
-		return
+		return false
 	}
-	if len(pathStack) == 0 {
-		if ident, ok := callExpr.Fun.(*ast.Ident); ok {
-			if ident.Name == string(kind) {
-				return callExpr.Pos(), callExpr.End(), nil, false
-			}
-		}
-		return
-	}
-	if len(callExpr.Args) == 0 {
-		return
-	}
-	arg, ok := callExpr.Args[0].(*ast.BasicLit)
+	ident, ok := callExpr.Fun.(*ast.Ident)
 	if !ok {
-		return
+		return false
 	}
-	if arg.Value != fmt.Sprintf("%q", pathStack[0]) {
-		return
+	if ident.Name != string(kind) {
+		return false
 	}
-	switch len(pathStack) {
-	case 1:
-		if ident, ok := callExpr.Fun.(*ast.Ident); ok {
-			if ident.Name == string(kind) {
-				return callExpr.Pos(), callExpr.End(), nil, false
-			}
+	if len(callExpr.Args) < len(args) {
+		return false
+	}
+	for i, arg := range args {
+		val, ok := callExpr.Args[i].(*ast.BasicLit)
+		if !ok {
+			return false
 		}
-	case 2:
-		// We must be in a system or a container for a match
-		if ident, ok := callExpr.Fun.(*ast.Ident); ok {
-			if ident.Name == string(SoftwareSystemKind) && kind == ContainerKind || ident.Name == string(ContainerKind) && kind == ComponentKind {
-				return callExpr.Pos(), callExpr.End(), pathStack[1:], true
-			}
-		}
-	case 3:
-		// We must be in a system for a match
-		if ident, ok := callExpr.Fun.(*ast.Ident); ok {
-			if ident.Name == string(SoftwareSystemKind) {
-				return callExpr.Pos(), callExpr.End(), pathStack[1:], true
-			}
+		if fmt.Sprintf("%q", arg) != val.Value {
+			return false
 		}
 	}
-	return
+	return true
 }
+
+// if len(pathStack) == 0 {
+// 	if ident, ok := callExpr.Fun.(*ast.Ident); ok {
+// 		if ident.Name == string(kind) {
+// 			return callExpr.Pos(), callExpr.End(), nil, false
+// 		}
+// 	}
+// 	return
+// }
+// if len(callExpr.Args) == 0 {
+// 	return
+// }
+// arg, ok := callExpr.Args[0].(*ast.BasicLit)
+// if !ok {
+// 	return
+// }
+// if arg.Value != fmt.Sprintf("%q", pathStack[0]) {
+// 	return
+// }
+// switch len(pathStack) {
+// case 1:
+// 	if ident, ok := callExpr.Fun.(*ast.Ident); ok {
+// 		if len(callExpr.Args) < len(args) {
+// 			return
+// 		}
+// 		for i, arg := range args {
+// 			if fmt.Sprintf("%q", arg) != callExpr.Args[i].(*ast.BasicLit).Value {
+// 				return
+// 			}
+// 		}
+// 		if ident.Name == string(kind) {
+// 			return callExpr.Pos(), callExpr.End(), nil, false
+// 		}
+// 	}
+// case 2:
+// 	// We must be in a system or a container for a match
+// 	if ident, ok := callExpr.Fun.(*ast.Ident); ok {
+// 		if ident.Name == string(SoftwareSystemKind) && kind == ContainerKind || ident.Name == string(ContainerKind) && kind == ComponentKind {
+// 			return callExpr.Pos(), callExpr.End(), pathStack[1:], true
+// 		}
+// 	}
+// case 3:
+// 	// We must be in a system for a match
+// 	if ident, ok := callExpr.Fun.(*ast.Ident); ok {
+// 		if ident.Name == string(SoftwareSystemKind) {
+// 			return callExpr.Pos(), callExpr.End(), pathStack[1:], true
+// 		}
+// 	}
+// }
+// return
+// }
 
 // newDesign returns the DSL code for a new design with the given code.
 func newDesign(code string) string {

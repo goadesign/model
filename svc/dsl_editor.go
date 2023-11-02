@@ -156,7 +156,7 @@ func (svc *Service) DeleteRelationshipStyle(ctx context.Context, p *geneditor.De
 
 func upsertElementByPath(ctx context.Context, repo, dir string, kind editor.ElementKind, elementPath, code string) (*gentypes.PackageFile, error) {
 	edit := editor.NewEditor(repo, dir)
-	f, err := edit.UpsertElementByPath(kind, elementPath, code)
+	f, err := edit.UpsertElement(kind, elementPath, code)
 	if err != nil {
 		return nil, logAndReturn(ctx, err)
 	}
