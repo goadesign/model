@@ -1472,31 +1472,31 @@ var DefaultEdgeSeparation = 200
 // AutoLayout must appear in SystemLandscapeView, SystemContextView,
 // ContainerView, ComponentView, DynamicView or DeploymentView.
 //
-// AutoLayout accepts two or three arguments: the layout rank direction and
+// AutoLayout accepts one or two arguments: the layout rank direction and
 // an optional function DSL that describes the layout properties.
 //
 // Example:
 //
-//		var _ = Design(func() {
-//		    var System = SoftwareSystem("Software System", "My software system.")
-//		    var OtherSystem = SoftwareSystem("Other software System")
-//		    var Customer = Person("Customer", func() {
-//		        External()
-//		        Uses(System, "Sends emails", "SMTP")
-//		    })
-//		    Views(func() {
-//		        SystemContextView(SoftwareSystem, "context", "An overview diagram.", func() {
-//		            AddDefault()
-//		            AutoLayout(RankTopBottom, ImplementationDagre, func() {
-//	                 Implementation(ImplementationGraphviz)
-//		                RankSeparation(200)
-//		                NodeSeparation(100)
-//		                EdgeSeparation(10)
-//		                Vertices()
-//		            })
-//		        })
-//		    })
-//		})
+//	var _ = Design(func() {
+//	    var System = SoftwareSystem("Software System", "My software system.")
+//	    var OtherSystem = SoftwareSystem("Other software System")
+//	    var Customer = Person("Customer", func() {
+//	        External()
+//	        Uses(System, "Sends emails", "SMTP")
+//	    })
+//	    Views(func() {
+//	        SystemContextView(SoftwareSystem, "context", "An overview diagram.", func() {
+//	            AddDefault()
+//	            AutoLayout(RankTopBottom, func() {
+//	                Implementation(ImplementationGraphviz)
+//	                RankSeparation(200)
+//	                NodeSeparation(100)
+//	                EdgeSeparation(10)
+//	                Vertices()
+//	            })
+//	        })
+//	    })
+//	})
 func AutoLayout(rank RankDirectionKind, args ...func()) {
 	v, ok := eval.Current().(expr.View)
 	if !ok {
@@ -1506,7 +1506,7 @@ func AutoLayout(rank RankDirectionKind, args ...func()) {
 	var dsl func()
 	if len(args) > 0 {
 		dsl = args[0]
-		if len(args) > 2 {
+		if len(args) > 1 {
 			eval.ReportError("AutoLayout: too many arguments")
 		}
 	}
