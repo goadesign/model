@@ -57,11 +57,12 @@ type (
 
 	// AutoLayout describes an automatic layout.
 	AutoLayout struct {
-		RankDirection RankDirectionKind
-		RankSep       *int
-		NodeSep       *int
-		EdgeSep       *int
-		Vertices      *bool
+		Implementation ImplementationKind
+		RankDirection  RankDirectionKind
+		RankSep        *int
+		NodeSep        *int
+		EdgeSep        *int
+		Vertices       *bool
 	}
 
 	// Vertex describes the x and y coordinate of a bend in a line.
@@ -82,6 +83,9 @@ type (
 
 	// RoutingKind is the enum for possible routing algorithms.
 	RoutingKind int
+
+	// ImplementationKind is the enum for possible automatic layout implementations
+	ImplementationKind int
 
 	// RankDirectionKind is the enum for possible automatic layout rank
 	// directions.
@@ -118,6 +122,12 @@ const (
 	RoutingDirect
 	RoutingOrthogonal
 	RoutingCurved
+)
+
+const (
+	ImplementationUndefined ImplementationKind = iota
+	ImplementationGraphviz
+	ImplementationDagre
 )
 
 const (
