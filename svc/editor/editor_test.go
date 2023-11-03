@@ -1,7 +1,11 @@
 package editor
 
 import (
+	"fmt"
+	"go/ast"
 	"go/format"
+	"go/parser"
+	"go/token"
 	"os"
 	"path/filepath"
 	"testing"
@@ -11,6 +15,153 @@ import (
 
 	gentypes "goa.design/model/svc/gen/types"
 )
+
+func Test_checkNode(t *testing.T) {
+	tests := []struct {
+		name     string
+		src      string // Source code representing the DSL output.
+		kind     ElementKind
+		args     []string
+		expected bool
+	}{
+		{
+			name:     "NonCallExprNode",
+			src:      `foo`,
+			kind:     SoftwareSystemKind,
+			expected: false,
+		},
+		{
+			name:     "CallExprWithPersonKind",
+			src:      `Person("John Doe")`,
+			kind:     PersonKind,
+			args:     []string{"John Doe"},
+			expected: true,
+		},
+		{
+			name:     "CallExprWithSoftwareSystemKind",
+			src:      `SoftwareSystem("SystemX")`,
+			kind:     SoftwareSystemKind,
+			args:     []string{"SystemX"},
+			expected: true,
+		},
+		{
+			name:     "CallExprWithContainerKind",
+			src:      `Container("WebApp")`,
+			kind:     ContainerKind,
+			args:     []string{"WebApp"},
+			expected: true,
+		},
+		{
+			name:     "CallExprWithComponentKind",
+			src:      `Component("Database")`,
+			kind:     ComponentKind,
+			args:     []string{"Database"},
+			expected: true,
+		},
+		{
+			name:     "CallExprWithMismatchedKind",
+			src:      `Component("Database")`,
+			kind:     SoftwareSystemKind, // Mismatch here
+			args:     []string{"Database"},
+			expected: false,
+		},
+		{
+			name:     "CallExprWithExtraUnmatchedArguments",
+			src:      `SoftwareSystem("SystemX")`,
+			kind:     SoftwareSystemKind,
+			args:     []string{"SystemX", "ExtraArg"},
+			expected: false,
+		},
+		{
+			name:     "CallExprWithEmptyStringArgument",
+			src:      `SoftwareSystem("")`,
+			kind:     SoftwareSystemKind,
+			args:     []string{""}, // Empty argument should be skipped
+			expected: true,
+		},
+		{
+			name:     "CallExprWithMismatchingArguments",
+			src:      `SoftwareSystem("SystemX")`,
+			kind:     SoftwareSystemKind,
+			args:     []string{"SystemY"},
+			expected: false,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			expr, err := parser.ParseExpr(tc.src)
+			require.NoError(t, err)
+			result := checkNode(expr, tc.kind, tc.args...)
+			assert.Equal(t, tc.expected, result)
+		})
+	}
+}
+
+func Test_findDSL(t *testing.T) {
+	tests := []struct {
+		name       string
+		src        string // Source code representing the DSL output.
+		kind       ElementKind
+		path       string
+		args       []string
+		wantNode   *ast.CallExpr
+		wantParent *ast.CallExpr
+	}{
+		{
+			name: "NonCallExprNode",
+			src:  `foo`,
+			kind: SoftwareSystemKind,
+		},
+		{
+			name:     "CallExprWithPersonKind",
+			src:      `Person("John Doe")`,
+			kind:     PersonKind,
+			path:     "John Doe",
+			wantNode: callNode(t, "Person", "John Doe"),
+		},
+		{
+			name:     "CallExprWithSoftwareSystemKind",
+			src:      `SoftwareSystem("SystemX")`,
+			kind:     SoftwareSystemKind,
+			path:     "SystemX",
+			wantNode: callNode(t, "SoftwareSystem", "SystemX"),
+		},
+		{
+			name:       "CallExprWithContainerKind",
+			src:        `SoftwareSystem("SystemX", func() { Container("WebApp") })`,
+			kind:       ContainerKind,
+			path:       "SystemX/WebApp",
+			wantNode:   callNode(t, "Container", "WebApp"),
+			wantParent: callNode(t, "SoftwareSystem", "SystemX", "func()"),
+		},
+		{
+			name:       "CallExprWithComponentKind",
+			src:        `SoftwareSystem("SystemX", func() { Container("WebApp", func() { Component("Database") }) })`,
+			kind:       ComponentKind,
+			path:       "SystemX/WebApp/Database",
+			wantNode:   callNode(t, "Component", "Database"),
+			wantParent: callNode(t, "Container", "WebApp", "func()"),
+		},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			file, err := parser.ParseFile(token.NewFileSet(), "test.go", wrapDSL(t, tc.src), 0)
+			require.NoError(t, err)
+			gotNode, gotParent := findDSL(file, tc.kind, tc.path, tc.args...)
+			if tc.wantNode == nil {
+				assert.Nil(t, gotNode)
+				assert.Nil(t, gotParent)
+				return
+			}
+			assertEqualCallExpr(t, tc.wantNode, gotNode)
+			if tc.wantParent != nil {
+				require.NotNil(t, gotParent)
+				assertEqualCallExpr(t, tc.wantParent, gotParent)
+			}
+		})
+	}
+}
 
 func TestParser_UpsertElement(t *testing.T) {
 	pkgdir := "model"
@@ -194,7 +345,7 @@ func TestParser_UpsertElement(t *testing.T) {
 			}
 			tt.expected.Locator.Repository = tmpdir
 			p := NewEditor(tmpdir, pkgdir)
-			res, err := p.UpsertElement(tt.kind, tt.path, tt.code)
+			res, err := p.UpsertElement(tt.code, tt.kind, tt.path)
 			require.NoError(t, err)
 			assert.Equal(t, tt.expected.Locator, res.Locator, "locator")
 			assert.Equal(t, tt.expected.Content, res.Content, "content")
@@ -210,6 +361,7 @@ func Test_UpsertRelationship(t *testing.T) {
 	}
 	tests := []struct {
 		name     string
+		srcKind  ElementKind
 		srcPath  string
 		destPath string
 		existing map[string]string // existing code by filename
@@ -218,6 +370,7 @@ func Test_UpsertRelationship(t *testing.T) {
 	}{
 		{
 			name:     "Add relationship to system",
+			srcKind:  SoftwareSystemKind,
 			srcPath:  "ExistingSystem",
 			destPath: "AnotherSystem",
 			existing: map[string]string{DefaultModelFilename: contentHeader + existingTwoSystems + endBrackets},
@@ -229,6 +382,7 @@ func Test_UpsertRelationship(t *testing.T) {
 		},
 		{
 			name:     "Add relationship to container",
+			srcKind:  ContainerKind,
 			srcPath:  "ExistingSystem/ExistingContainer",
 			destPath: "AnotherSystem",
 			existing: map[string]string{DefaultModelFilename: contentHeader + existingTwoSystems + endBrackets},
@@ -240,6 +394,7 @@ func Test_UpsertRelationship(t *testing.T) {
 		},
 		{
 			name:     "Update relationship to system",
+			srcKind:  SoftwareSystemKind,
 			srcPath:  "ExistingSystem",
 			destPath: "AnotherSystem",
 			existing: map[string]string{DefaultModelFilename: contentHeader + existingTwoSystemsWithRel + endBrackets},
@@ -263,11 +418,33 @@ func Test_UpsertRelationship(t *testing.T) {
 			}
 			tt.expected.Locator.Repository = tmpdir
 			p := NewEditor(tmpdir, pkgdir)
-			res, err := p.UpsertRelationship(tt.srcPath, tt.destPath, tt.code)
+			res, err := p.UpsertRelationship(tt.srcKind, tt.srcPath, tt.destPath, tt.code)
 			require.NoError(t, err)
 			assert.Equal(t, tt.expected.Locator, res.Locator, "locator")
 			assert.Equal(t, tt.expected.Content, res.Content, "content")
 		})
+	}
+}
+
+func assertEqualCallExpr(t *testing.T, want *ast.CallExpr, got ast.Node) {
+	t.Helper()
+	if want == nil {
+		assert.Nil(t, got)
+		return
+	}
+	require.NotNil(t, got)
+	gotce, ok := got.(*ast.CallExpr)
+	require.True(t, ok)
+	assert.Equal(t, want.Fun.(*ast.Ident).Name, gotce.Fun.(*ast.Ident).Name)
+	require.Equal(t, len(want.Args), len(gotce.Args))
+	for i, wantArg := range want.Args {
+		gotArg := gotce.Args[i]
+		wantLit, wantok := wantArg.(*ast.BasicLit)
+		gotLit, gotok := gotArg.(*ast.BasicLit)
+		require.Equal(t, wantok, gotok)
+		if wantok {
+			assert.Equal(t, wantLit.Value, gotLit.Value)
+		}
 	}
 }
 
@@ -276,6 +453,36 @@ func formatted(t *testing.T, code string) string {
 	bytes, err := format.Source([]byte(code))
 	require.NoError(t, err, "failed to format code:\n%s", code)
 	return string(bytes)
+}
+
+func callNode(t *testing.T, fname string, args ...string) *ast.CallExpr {
+	t.Helper()
+	astargs := make([]ast.Expr, len(args))
+	for i, arg := range args {
+		if arg == "func()" {
+			astargs[i] = &ast.FuncLit{}
+			continue
+		}
+		astargs[i] = &ast.BasicLit{
+			Kind:  token.STRING,
+			Value: fmt.Sprintf("%q", arg),
+		}
+	}
+	return &ast.CallExpr{
+		Fun: &ast.Ident{
+			Name: fname,
+		},
+		Args: astargs,
+	}
+}
+
+func wrapDSL(t *testing.T, src string) string {
+	t.Helper()
+	return fmt.Sprintf(`package model
+import . "goa.design/model/dsl"
+var _ = Design(func() {
+%s
+})`, src)
 }
 
 const (

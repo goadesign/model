@@ -118,10 +118,10 @@ type UpsertRelationshipRequestBody struct {
 	// Path to source element consisting of <software system name>[/<container
 	// name>[/<component name>]]
 	SourcePath *string `form:"SourcePath,omitempty" json:"SourcePath,omitempty" xml:"SourcePath,omitempty"`
-	// Relative path to destination element, see SourcePath for details.
-	DestinationPath *string `form:"DestinationPath,omitempty" json:"DestinationPath,omitempty" xml:"DestinationPath,omitempty"`
 	// Kind of destination element
 	DestinationKind *string `form:"DestinationKind,omitempty" json:"DestinationKind,omitempty" xml:"DestinationKind,omitempty"`
+	// Relative path to destination element, see SourcePath for details.
+	DestinationPath *string `form:"DestinationPath,omitempty" json:"DestinationPath,omitempty" xml:"DestinationPath,omitempty"`
 	// Description of relationship
 	Description *string `form:"Description,omitempty" json:"Description,omitempty" xml:"Description,omitempty"`
 	// Technology used by relationship
@@ -329,6 +329,8 @@ type DeleteComponentRequestBody struct {
 // DeleteRelationshipRequestBody is the type of the "DSLEditor" service
 // "DeleteRelationship" endpoint HTTP request body.
 type DeleteRelationshipRequestBody struct {
+	// Kind of source element
+	SourceKind *string `form:"SourceKind,omitempty" json:"SourceKind,omitempty" xml:"SourceKind,omitempty"`
 	// Path to source element consisting of <software system name>[/<container
 	// name>[/<component name>]]
 	SourcePath *string `form:"SourcePath,omitempty" json:"SourcePath,omitempty" xml:"SourcePath,omitempty"`
@@ -2187,8 +2189,8 @@ func NewUpsertRelationshipRelationship(body *UpsertRelationshipRequestBody) *dsl
 	v := &dsleditor.Relationship{
 		SourceKind:      *body.SourceKind,
 		SourcePath:      *body.SourcePath,
-		DestinationPath: *body.DestinationPath,
 		DestinationKind: *body.DestinationKind,
+		DestinationPath: *body.DestinationPath,
 		Description:     body.Description,
 		Technology:      body.Technology,
 		URL:             body.URL,
@@ -2475,6 +2477,7 @@ func NewDeleteComponentPayload(body *DeleteComponentRequestBody, systemName stri
 // endpoint payload.
 func NewDeleteRelationshipPayload(body *DeleteRelationshipRequestBody) *dsleditor.DeleteRelationshipPayload {
 	v := &dsleditor.DeleteRelationshipPayload{
+		SourceKind:      *body.SourceKind,
 		SourcePath:      *body.SourcePath,
 		DestinationPath: *body.DestinationPath,
 		Repository:      *body.Repository,
@@ -2659,17 +2662,17 @@ func ValidateUpsertComponentRequestBody(body *UpsertComponentRequestBody) (err e
 // ValidateUpsertRelationshipRequestBody runs the validations defined on
 // UpsertRelationshipRequestBody
 func ValidateUpsertRelationshipRequestBody(body *UpsertRelationshipRequestBody) (err error) {
-	if body.SourcePath == nil {
-		err = goa.MergeErrors(err, goa.MissingFieldError("SourcePath", "body"))
-	}
 	if body.SourceKind == nil {
 		err = goa.MergeErrors(err, goa.MissingFieldError("SourceKind", "body"))
 	}
-	if body.DestinationPath == nil {
-		err = goa.MergeErrors(err, goa.MissingFieldError("DestinationPath", "body"))
+	if body.SourcePath == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("SourcePath", "body"))
 	}
 	if body.DestinationKind == nil {
 		err = goa.MergeErrors(err, goa.MissingFieldError("DestinationKind", "body"))
+	}
+	if body.DestinationPath == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("DestinationPath", "body"))
 	}
 	if body.Locator != nil {
 		if err2 := ValidateFileLocatorRequestBody(body.Locator); err2 != nil {
@@ -3012,6 +3015,9 @@ func ValidateDeleteComponentRequestBody(body *DeleteComponentRequestBody) (err e
 // ValidateDeleteRelationshipRequestBody runs the validations defined on
 // DeleteRelationshipRequestBody
 func ValidateDeleteRelationshipRequestBody(body *DeleteRelationshipRequestBody) (err error) {
+	if body.SourceKind == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("SourceKind", "body"))
+	}
 	if body.SourcePath == nil {
 		err = goa.MergeErrors(err, goa.MissingFieldError("SourcePath", "body"))
 	}
@@ -3023,6 +3029,11 @@ func ValidateDeleteRelationshipRequestBody(body *DeleteRelationshipRequestBody) 
 	}
 	if body.Dir == nil {
 		err = goa.MergeErrors(err, goa.MissingFieldError("Dir", "body"))
+	}
+	if body.SourceKind != nil {
+		if !(*body.SourceKind == "SoftwareSystem" || *body.SourceKind == "Person" || *body.SourceKind == "Container" || *body.SourceKind == "Component") {
+			err = goa.MergeErrors(err, goa.InvalidEnumValueError("body.SourceKind", *body.SourceKind, []any{"SoftwareSystem", "Person", "Container", "Component"}))
+		}
 	}
 	if body.Repository != nil {
 		if utf8.RuneCountInString(*body.Repository) < 1 {

@@ -118,10 +118,10 @@ type UpsertRelationshipRequestBody struct {
 	// Path to source element consisting of <software system name>[/<container
 	// name>[/<component name>]]
 	SourcePath string `form:"SourcePath" json:"SourcePath" xml:"SourcePath"`
-	// Relative path to destination element, see SourcePath for details.
-	DestinationPath string `form:"DestinationPath" json:"DestinationPath" xml:"DestinationPath"`
 	// Kind of destination element
 	DestinationKind string `form:"DestinationKind" json:"DestinationKind" xml:"DestinationKind"`
+	// Relative path to destination element, see SourcePath for details.
+	DestinationPath string `form:"DestinationPath" json:"DestinationPath" xml:"DestinationPath"`
 	// Description of relationship
 	Description *string `form:"Description,omitempty" json:"Description,omitempty" xml:"Description,omitempty"`
 	// Technology used by relationship
@@ -329,6 +329,8 @@ type DeleteComponentRequestBody struct {
 // DeleteRelationshipRequestBody is the type of the "DSLEditor" service
 // "DeleteRelationship" endpoint HTTP request body.
 type DeleteRelationshipRequestBody struct {
+	// Kind of source element
+	SourceKind string `form:"SourceKind" json:"SourceKind" xml:"SourceKind"`
 	// Path to source element consisting of <software system name>[/<container
 	// name>[/<component name>]]
 	SourcePath string `form:"SourcePath" json:"SourcePath" xml:"SourcePath"`
@@ -1419,8 +1421,8 @@ func NewUpsertRelationshipRequestBody(p *dsleditor.Relationship) *UpsertRelation
 	body := &UpsertRelationshipRequestBody{
 		SourceKind:       p.SourceKind,
 		SourcePath:       p.SourcePath,
-		DestinationPath:  p.DestinationPath,
 		DestinationKind:  p.DestinationKind,
+		DestinationPath:  p.DestinationPath,
 		Description:      p.Description,
 		Technology:       p.Technology,
 		InteractionStyle: p.InteractionStyle,
@@ -1703,6 +1705,7 @@ func NewDeleteComponentRequestBody(p *dsleditor.DeleteComponentPayload) *DeleteC
 // payload of the "DeleteRelationship" endpoint of the "DSLEditor" service.
 func NewDeleteRelationshipRequestBody(p *dsleditor.DeleteRelationshipPayload) *DeleteRelationshipRequestBody {
 	body := &DeleteRelationshipRequestBody{
+		SourceKind:      p.SourceKind,
 		SourcePath:      p.SourcePath,
 		DestinationPath: p.DestinationPath,
 		Repository:      p.Repository,

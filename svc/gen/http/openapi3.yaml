@@ -54,9 +54,9 @@ paths:
                         application/json:
                             schema:
                                 type: string
-                                example: <svg����</svg>
+                                example: <svg��</svg>
                                 pattern: <svg.*</svg>$
-                            example: <svg���</svg>
+                            example: <svg������</svg>
                 "404":
                     description: 'NotFound: File not found'
                     content:
@@ -79,7 +79,7 @@ paths:
                             Dir: services/my-service/diagram
                             Filename: model.go
                             Repository: my-repo
-                            SVG: <svg</svg>
+                            SVG: <svg������</svg>
             responses:
                 "204":
                     description: No Content response.
@@ -290,8 +290,8 @@ paths:
                   schema:
                     type: string
                     description: Name of person to delete
-                    example: Autem harum ut nesciunt aut et laudantium.
-                  example: A vel tempore adipisci ex fugit reiciendis.
+                    example: A vel tempore adipisci ex fugit reiciendis.
+                  example: Eius laudantium esse.
             requestBody:
                 required: true
                 content:
@@ -348,6 +348,7 @@ paths:
                             DestinationPath: Software System/Container/Component
                             Dir: services/my-service/diagram
                             Repository: my-repo
+                            SourceKind: Container
                             SourcePath: Software System/Container/Component
             responses:
                 "200":
@@ -498,8 +499,8 @@ paths:
                   schema:
                     type: string
                     description: Name of software system to delete
-                    example: Iusto dolorum.
-                  example: Omnis voluptatem officia quisquam.
+                    example: Quisquam distinctio autem harum.
+                  example: Nesciunt aut et laudantium.
             requestBody:
                 required: true
                 content:
@@ -554,8 +555,8 @@ paths:
                   schema:
                     type: string
                     description: Name of container software system
-                    example: Eius laudantium esse.
-                  example: Aspernatur fugit.
+                    example: Aspernatur fugit.
+                  example: Hic laboriosam id sunt enim sit.
                 - name: ContainerName
                   in: path
                   description: Name of container to delete
@@ -563,8 +564,8 @@ paths:
                   schema:
                     type: string
                     description: Name of container to delete
-                    example: Hic laboriosam id sunt enim sit.
-                  example: Cum eligendi voluptatum incidunt quos sunt.
+                    example: Cum eligendi voluptatum incidunt quos sunt.
+                  example: Aut et excepturi.
             requestBody:
                 required: true
                 content:
@@ -753,8 +754,8 @@ paths:
                   schema:
                     type: string
                     description: Key of component view to delete
-                    example: Omnis id consequatur provident voluptatem aut eligendi.
-                  example: Tempora quibusdam cumque amet similique deleniti aspernatur.
+                    example: Tempora quibusdam cumque amet similique deleniti aspernatur.
+                  example: Totam voluptates sit.
             requestBody:
                 required: true
                 content:
@@ -869,8 +870,8 @@ paths:
                   schema:
                     type: string
                     description: Key of container view to delete
-                    example: Libero qui consectetur.
-                  example: Incidunt deserunt eum.
+                    example: Incidunt deserunt eum.
+                  example: Omnis id consequatur provident voluptatem aut eligendi.
             requestBody:
                 required: true
                 content:
@@ -924,9 +925,9 @@ paths:
                         schema:
                             $ref: '#/components/schemas/UpserElementStyleRequestBody'
                         example:
-                            Background: '#1dF376'
+                            Background: '#EAcAac'
                             Border: BorderDotted
-                            Color: '#E1ccfa'
+                            Color: '#faAF28'
                             Description: false
                             FontSize: 20
                             Height: 100
@@ -938,7 +939,7 @@ paths:
                             Metadata: true
                             Opacity: 45
                             Shape: ShapePipe
-                            Stroke: '#9D0155'
+                            Stroke: '#7DbfF8'
                             Tag: tag
                             Width: 100
             responses:
@@ -980,8 +981,8 @@ paths:
                   schema:
                     type: string
                     description: Tag of element style to delete
-                    example: Totam voluptates sit.
-                  example: Beatae rem quibusdam dignissimos dolores illum iusto.
+                    example: Beatae rem quibusdam dignissimos dolores illum iusto.
+                  example: Repudiandae enim modi voluptas natus.
             requestBody:
                 required: true
                 content:
@@ -1092,8 +1093,8 @@ paths:
                   schema:
                     type: string
                     description: Key of landscape view to delete
-                    example: Aut et excepturi.
-                  example: Animi necessitatibus.
+                    example: Animi necessitatibus.
+                  example: Nesciunt ut atque dignissimos quis qui sit.
             requestBody:
                 required: true
                 content:
@@ -1147,7 +1148,7 @@ paths:
                         schema:
                             $ref: '#/components/schemas/UpsertRelationshipStyleRequestBody'
                         example:
-                            Color: '#F77f19'
+                            Color: '#3887AA'
                             Dashed: true
                             FontSize: 10
                             Locator:
@@ -1157,7 +1158,7 @@ paths:
                             Opacity: 35
                             Position: 25
                             Routing: Direct
-                            Stroke: '#5EA24B'
+                            Stroke: '#864597'
                             Tag: tag
                             Thickness: 2
                             Width: 272
@@ -1200,8 +1201,8 @@ paths:
                   schema:
                     type: string
                     description: Tag of relationship style to delete
-                    example: Repudiandae enim modi voluptas natus.
-                  example: Labore aut dignissimos consequuntur iure.
+                    example: Labore aut dignissimos consequuntur iure.
+                  example: Unde temporibus nihil.
             requestBody:
                 required: true
                 content:
@@ -1314,8 +1315,8 @@ paths:
                   schema:
                     type: string
                     description: Key of system context view to delete
-                    example: Nesciunt ut atque dignissimos quis qui sit.
-                  example: Earum animi rerum perspiciatis et aut iste.
+                    example: Earum animi rerum perspiciatis et aut iste.
+                  example: Libero qui consectetur.
             requestBody:
                 required: true
                 content:
@@ -1422,8 +1423,6 @@ paths:
                                 items:
                                     $ref: '#/components/schemas/Package'
                                 example:
-                                    - Dir: services/my-service/diagram
-                                      ImportPath: goa.design/model/examples/basic/model
                                     - Dir: services/my-service/diagram
                                       ImportPath: goa.design/model/examples/basic/model
                                     - Dir: services/my-service/diagram
@@ -1543,7 +1542,37 @@ paths:
                                         Dir: services/my-service/diagram
                                         Filename: model.go
                                         Repository: my-repo
+                                    - Content: |-
+                                        package model
+
+                                        import . "goa.design/model/dsl"
+
+                                        var _ = Design(func() {})
+                                      Locator:
+                                        Dir: services/my-service/diagram
+                                        Filename: model.go
+                                        Repository: my-repo
                             example:
+                                - Content: |-
+                                    package model
+
+                                    import . "goa.design/model/dsl"
+
+                                    var _ = Design(func() {})
+                                  Locator:
+                                    Dir: services/my-service/diagram
+                                    Filename: model.go
+                                    Repository: my-repo
+                                - Content: |-
+                                    package model
+
+                                    import . "goa.design/model/dsl"
+
+                                    var _ = Design(func() {})
+                                  Locator:
+                                    Dir: services/my-service/diagram
+                                    Filename: model.go
+                                    Repository: my-repo
                                 - Content: |-
                                     package model
 
@@ -1660,7 +1689,7 @@ paths:
                             schema:
                                 $ref: '#/components/schemas/CompilationResults'
                             example:
-                                Error: Dicta eos hic ipsum.
+                                Error: Hic ipsum ea minima accusamus modi.
                                 Model: '{"name":"example","email":"mail@example.com"}'
                 "404":
                     description: 'not_found: Package not found'
@@ -1686,14 +1715,14 @@ components:
                 Error:
                     type: string
                     description: Compilation error if any
-                    example: Dolorem maiores et labore.
+                    example: Labore nemo quaerat nulla minus.
                 Model:
                     type: string
                     description: Model JSON if compilation succeeded
                     example: '{"name":"example","email":"mail@example.com"}'
                     format: json
             example:
-                Error: Ad fugiat facilis.
+                Error: Voluptatem omnis voluptatem.
                 Model: '{"name":"example","email":"mail@example.com"}'
         DeleteRelationshipRequestBody:
             type: object
@@ -1712,6 +1741,15 @@ components:
                     description: Path to repository root
                     example: my-repo
                     minLength: 1
+                SourceKind:
+                    type: string
+                    description: Kind of source element
+                    example: Component
+                    enum:
+                        - SoftwareSystem
+                        - Person
+                        - Container
+                        - Component
                 SourcePath:
                     type: string
                     description: Path to source element consisting of <software system name>[/<container name>[/<component name>]]
@@ -1720,8 +1758,10 @@ components:
                 DestinationPath: Software System/Container/Component
                 Dir: services/my-service/diagram
                 Repository: my-repo
+                SourceKind: SoftwareSystem
                 SourcePath: Software System/Container/Component
             required:
+                - SourceKind
                 - SourcePath
                 - DestinationPath
                 - Repository
@@ -1784,12 +1824,12 @@ components:
                     example: false
             description: Compilation failed
             example:
-                fault: false
+                fault: true
                 id: 123abc
                 message: parameter 'p' must be an integer
                 name: bad_request
                 temporary: false
-                timeout: false
+                timeout: true
             required:
                 - name
                 - id
@@ -1879,13 +1919,13 @@ components:
                 SVG:
                     type: string
                     description: Diagram SVG
-                    example: <svg���</svg>
+                    example: <svg����</svg>
                     pattern: <svg.*</svg>$
             example:
                 Dir: services/my-service/diagram
                 Filename: model.go
                 Repository: my-repo
-                SVG: <svg������</svg>
+                SVG: <svg�</svg>
             required:
                 - Filename
                 - SVG
@@ -1927,7 +1967,7 @@ components:
                 Background:
                     type: string
                     description: Background color of element
-                    example: '#A6bb02'
+                    example: '#B8C4b4'
                     pattern: ^#[0-9a-fA-F]{6}$
                 Border:
                     type: string
@@ -1941,7 +1981,7 @@ components:
                 Color:
                     type: string
                     description: Text color of element
-                    example: '#E9D8b7'
+                    example: '#a11D39'
                     pattern: ^#[0-9a-fA-F]{6}$
                 Description:
                     type: boolean
@@ -1998,7 +2038,7 @@ components:
                 Stroke:
                     type: string
                     description: Stroke color of element
-                    example: '#86F4be'
+                    example: '#eB60CA'
                     pattern: ^#[0-9a-fA-F]{6}$
                 Tag:
                     type: string
@@ -2010,9 +2050,9 @@ components:
                     example: 100
                     format: int64
             example:
-                Background: '#3C8e1A'
+                Background: '#4E6065'
                 Border: BorderSolid
-                Color: '#0e59aF'
+                Color: '#Ad9b9a'
                 Description: true
                 FontSize: 20
                 Height: 100
@@ -2024,7 +2064,7 @@ components:
                 Metadata: true
                 Opacity: 13
                 Shape: ShapeRoundedBox
-                Stroke: '#5c789a'
+                Stroke: '#ab7F1a'
                 Tag: tag
                 Width: 100
             required:
@@ -2055,7 +2095,7 @@ components:
                         key2: value2
                     additionalProperties:
                         type: string
-                        example: Nulla sit veniam recusandae at.
+                        example: Incidunt nulla sit veniam recusandae.
                 SystemName:
                     type: string
                     description: Name of parent software system
@@ -2064,7 +2104,7 @@ components:
                     type: array
                     items:
                         type: string
-                        example: Maiores magni autem iste earum dolores.
+                        example: Magni autem iste earum.
                     description: Attached tags
                     example:
                         - Tag1
@@ -2228,7 +2268,7 @@ components:
                         key2: value2
                     additionalProperties:
                         type: string
-                        example: Perferendis et doloremque sit qui qui quia.
+                        example: Qui quia ipsa.
                 SystemName:
                     type: string
                     description: Name of parent software system
@@ -2237,7 +2277,7 @@ components:
                     type: array
                     items:
                         type: string
-                        example: Totam totam et deleniti excepturi occaecati voluptatem.
+                        example: Doloremque sit.
                     description: Attached tags
                     example:
                         - Tag1
@@ -2470,7 +2510,7 @@ components:
                 DestinationKind:
                     type: string
                     description: Kind of destination element
-                    example: Component
+                    example: Person
                     enum:
                         - SoftwareSystem
                         - Person
@@ -2493,7 +2533,7 @@ components:
                 SourceKind:
                     type: string
                     description: Kind of source element
-                    example: Person
+                    example: SoftwareSystem
                     enum:
                         - SoftwareSystem
                         - Person
@@ -2507,7 +2547,7 @@ components:
                     type: array
                     items:
                         type: string
-                        example: Corrupti excepturi.
+                        example: Et corrupti excepturi.
                     description: Attached tags
                     example:
                         - Tag1
@@ -2538,17 +2578,17 @@ components:
                 Technology: Technology
                 URL: https://relationship.com
             required:
-                - SourcePath
                 - SourceKind
-                - DestinationPath
+                - SourcePath
                 - DestinationKind
+                - DestinationPath
         UpsertRelationshipStyleRequestBody:
             type: object
             properties:
                 Color:
                     type: string
                     description: Color of label
-                    example: '#eDB061'
+                    example: '#5aeFEE'
                     pattern: ^#[0-9a-fA-F]{6}$
                 Dashed:
                     type: boolean
@@ -2587,7 +2627,7 @@ components:
                 Stroke:
                     type: string
                     description: Stroke color of relationship
-                    example: '#f30AeB'
+                    example: '#C397bC'
                     pattern: ^#[0-9a-fA-F]{6}$
                 Tag:
                     type: string
@@ -2606,7 +2646,7 @@ components:
                     minimum: 1
                     maximum: 10000
             example:
-                Color: '#Eb446f'
+                Color: '#6A66c2'
                 Dashed: true
                 FontSize: 57
                 Locator:
@@ -2616,7 +2656,7 @@ components:
                 Opacity: 15
                 Position: 93
                 Routing: Orthogonal
-                Stroke: '#2BbaCF'
+                Stroke: '#27a06E'
                 Tag: tag
                 Thickness: 2
                 Width: 1379
@@ -2734,7 +2774,7 @@ components:
                     type: string
                     description: Indicates whether the system is in-house (Internal) or hosted by a third party (External)
                     default: Internal
-                    example: Internal
+                    example: External
                     enum:
                         - Internal
                         - External
@@ -2752,12 +2792,12 @@ components:
                         key2: value2
                     additionalProperties:
                         type: string
-                        example: Aperiam molestiae ipsum cumque fugiat eos.
+                        example: Totam et deleniti excepturi occaecati voluptatem illum.
                 Tags:
                     type: array
                     items:
                         type: string
-                        example: Doloribus aut molestiae.
+                        example: Eos repellat.
                     description: Attached tags
                     example:
                         - Tag1

@@ -192,6 +192,9 @@ var _ = Service("DSLEditor", func() {
 		Description("Delete an existing relationship from the model")
 		Payload(func() {
 			Extend(PackageLocator)
+			Attribute("SourceKind", String, "Kind of source element", func() {
+				Enum("SoftwareSystem", "Person", "Container", "Component")
+			})
 			Attribute("SourcePath", String, "Path to source element consisting of <software system name>[/<container name>[/<component name>]]", func() {
 				Example("Software System", func() {
 					Value("Software System")
@@ -214,7 +217,7 @@ var _ = Service("DSLEditor", func() {
 					Value("Software System/Container/Component")
 				})
 			})
-			Required("SourcePath", "DestinationPath")
+			Required("SourceKind", "SourcePath", "DestinationPath")
 		})
 		Result(PackageFile)
 		Error("NotFound", ErrorResult, "Relationship not found")
@@ -435,6 +438,9 @@ var Relationship = Type("Relationship", func() {
 			Value("Software System/Container/Component")
 		})
 	})
+	Attribute("DestinationKind", String, "Kind of destination element", func() {
+		Enum("SoftwareSystem", "Person", "Container", "Component")
+	})
 	Attribute("DestinationPath", String, "Relative path to destination element, see SourcePath for details.", func() {
 		Example("Software System", func() {
 			Value("Software System")
@@ -455,9 +461,6 @@ var Relationship = Type("Relationship", func() {
 			Value("Component")
 		})
 	})
-	Attribute("DestinationKind", String, "Kind of destination element", func() {
-		Enum("SoftwareSystem", "Person", "Container", "Component")
-	})
 	Attribute("Description", String, "Description of relationship", func() {
 		Example("Relationship description")
 	})
@@ -475,7 +478,7 @@ var Relationship = Type("Relationship", func() {
 		Format(FormatURI)
 		Example("https://relationship.com")
 	})
-	Required("SourcePath", "SourceKind", "DestinationPath", "DestinationKind")
+	Required("SourceKind", "SourcePath", "DestinationKind", "DestinationPath")
 })
 
 var ViewBase = Type("ViewBase", func() {

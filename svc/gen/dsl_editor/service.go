@@ -254,6 +254,8 @@ type DeletePersonPayload struct {
 // DeleteRelationshipPayload is the payload type of the DSLEditor service
 // DeleteRelationship method.
 type DeleteRelationshipPayload struct {
+	// Kind of source element
+	SourceKind string
 	// Path to source element consisting of <software system name>[/<container
 	// name>[/<component name>]]
 	SourcePath string
@@ -390,10 +392,10 @@ type Relationship struct {
 	// Path to source element consisting of <software system name>[/<container
 	// name>[/<component name>]]
 	SourcePath string
-	// Relative path to destination element, see SourcePath for details.
-	DestinationPath string
 	// Kind of destination element
 	DestinationKind string
+	// Relative path to destination element, see SourcePath for details.
+	DestinationPath string
 	// Description of relationship
 	Description *string
 	// Technology used by relationship

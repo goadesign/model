@@ -32,22 +32,22 @@ func (svc *Service) UpdateDSL(ctx context.Context, p *gentypes.PackageFile) erro
 
 // UpsertSystem updates the DSL for the given system or adds the DSL if it does not exist.
 func (svc *Service) UpsertSystem(ctx context.Context, p *geneditor.System) (*gentypes.PackageFile, error) {
-	return upsertElementByPath(ctx, p.Locator.Repository, p.Locator.Dir, editor.SoftwareSystemKind, p.Name, systemDSL(p))
+	return upsertElement(ctx, p.Locator.Repository, p.Locator.Dir, systemDSL(p), editor.SoftwareSystemKind, p.Name)
 }
 
 // Create or update a person in the model
 func (svc *Service) UpsertPerson(ctx context.Context, p *geneditor.Person) (*gentypes.PackageFile, error) {
-	return upsertElementByPath(ctx, p.Locator.Repository, p.Locator.Dir, editor.PersonKind, p.Name, personDSL(p))
+	return upsertElement(ctx, p.Locator.Repository, p.Locator.Dir, personDSL(p), editor.PersonKind, p.Name)
 }
 
 // Create or update a container in the model
 func (svc *Service) UpsertContainer(ctx context.Context, p *geneditor.Container) (*gentypes.PackageFile, error) {
-	return upsertElementByPath(ctx, p.Locator.Repository, p.Locator.Dir, editor.ContainerKind, p.Name, containerDSL(p))
+	return upsertElement(ctx, p.Locator.Repository, p.Locator.Dir, containerDSL(p), editor.ContainerKind, p.SystemName+"/"+p.Name)
 }
 
 // Create or update a component in the model
 func (svc *Service) UpsertComponent(ctx context.Context, p *geneditor.Component) (*gentypes.PackageFile, error) {
-	return upsertElementByPath(ctx, p.Locator.Repository, p.Locator.Dir, editor.ComponentKind, p.Name, componentDSL(p))
+	return upsertElement(ctx, p.Locator.Repository, p.Locator.Dir, componentDSL(p), editor.ComponentKind, p.SystemName+"/"+p.ContainerName+"/"+p.Name)
 }
 
 // Create or update a relationship in the model
@@ -61,8 +61,8 @@ func (svc *Service) UpsertRelationship(ctx context.Context, p *geneditor.Relatio
 		name = "Delivers"
 	}
 	data := &RelationshipData{Relationship: p, RelationName: name}
-	editor := editor.NewEditor(p.Locator.Repository, p.Locator.Dir)
-	f, err := editor.UpsertRelationship(p.SourcePath, p.DestinationPath, relationshipDSL(data))
+	ed := editor.NewEditor(p.Locator.Repository, p.Locator.Dir)
+	f, err := ed.UpsertRelationship(editor.ElementKind(p.SourceKind), p.SourcePath, p.DestinationPath, relationshipDSL(data))
 	if err != nil {
 		return nil, logAndReturn(ctx, err)
 	}
@@ -71,32 +71,32 @@ func (svc *Service) UpsertRelationship(ctx context.Context, p *geneditor.Relatio
 
 // Create or update a landscape view in the model
 func (svc *Service) UpsertLandscapeView(ctx context.Context, v *geneditor.LandscapeView) (*gentypes.PackageFile, error) {
-	return upsertElementByID(ctx, v.Locator.Repository, v.Locator.Dir, editor.LandscapeViewKind, v.Key, landscapeViewDSL(v))
+	return upsertElement(ctx, v.Locator.Repository, v.Locator.Dir, landscapeViewDSL(v), editor.LandscapeViewKind, "", v.Key)
 }
 
 // Create or update a system context view in the model
 func (svc *Service) UpsertSystemContextView(ctx context.Context, v *geneditor.SystemContextView) (*gentypes.PackageFile, error) {
-	return upsertElementByID(ctx, v.Locator.Repository, v.Locator.Dir, editor.SystemContextViewKind, v.Key, systemContextViewDSL(v))
+	return upsertElement(ctx, v.Locator.Repository, v.Locator.Dir, systemContextViewDSL(v), editor.SystemContextViewKind, "", "", v.Key)
 }
 
 // Create or update a container view in the model
 func (svc *Service) UpsertContainerView(ctx context.Context, v *geneditor.ContainerView) (*gentypes.PackageFile, error) {
-	return upsertElementByID(ctx, v.Locator.Repository, v.Locator.Dir, editor.ContainerViewKind, v.Key, containerViewDSL(v))
+	return upsertElement(ctx, v.Locator.Repository, v.Locator.Dir, containerViewDSL(v), editor.ContainerViewKind, "", "", v.Key)
 }
 
 // Create or update a component view in the model
 func (svc *Service) UpsertComponentView(ctx context.Context, v *geneditor.ComponentView) (*gentypes.PackageFile, error) {
-	return upsertElementByID(ctx, v.Locator.Repository, v.Locator.Dir, editor.ComponentViewKind, v.Key, componentViewDSL(v))
+	return upsertElement(ctx, v.Locator.Repository, v.Locator.Dir, componentViewDSL(v), editor.ComponentViewKind, "", "", v.Key)
 }
 
 // Create or update an element style in the model
 func (svc *Service) UpserElementStyle(ctx context.Context, e *geneditor.ElementStyle) (*gentypes.PackageFile, error) {
-	return upsertElementByID(ctx, e.Locator.Repository, e.Locator.Dir, editor.ElementStyleKind, e.Tag, elementStyleDSL(e))
+	return upsertElement(ctx, e.Locator.Repository, e.Locator.Dir, elementStyleDSL(e), editor.ElementStyleKind, "", e.Tag)
 }
 
 // Create or update a relationship style in the model
 func (svc *Service) UpsertRelationshipStyle(ctx context.Context, r *geneditor.RelationshipStyle) (*gentypes.PackageFile, error) {
-	return upsertElementByID(ctx, r.Locator.Repository, r.Locator.Dir, editor.RelationshipStyleKind, r.Tag, relationshipStyleDSL(r))
+	return upsertElement(ctx, r.Locator.Repository, r.Locator.Dir, relationshipStyleDSL(r), editor.RelationshipStyleKind, "", r.Tag)
 }
 
 // DeleteSystem implements DeleteSystem.
@@ -121,7 +121,12 @@ func (svc *Service) DeleteComponent(ctx context.Context, p *geneditor.DeleteComp
 
 // DeleteRelationship implements DeleteRelationship.
 func (svc *Service) DeleteRelationship(ctx context.Context, p *geneditor.DeleteRelationshipPayload) (*gentypes.PackageFile, error) {
-	return deleteRelationship(ctx, p.Repository, p.Dir, p.SourcePath, p.DestinationPath)
+	edit := editor.NewEditor(p.Repository, p.Dir)
+	f, err := edit.DeleteRelationship(editor.ElementKind(p.SourceKind), p.SourcePath, p.DestinationPath)
+	if err != nil {
+		return nil, logAndReturn(ctx, err)
+	}
+	return f, nil
 }
 
 // Delete an existing landscape view from the model
@@ -154,18 +159,9 @@ func (svc *Service) DeleteRelationshipStyle(ctx context.Context, p *geneditor.De
 	return deleteElement(ctx, p.Repository, p.Dir, editor.RelationshipStyleKind, p.Tag)
 }
 
-func upsertElementByPath(ctx context.Context, repo, dir string, kind editor.ElementKind, elementPath, code string) (*gentypes.PackageFile, error) {
+func upsertElement(ctx context.Context, repo, dir, code string, kind editor.ElementKind, path string, args ...string) (*gentypes.PackageFile, error) {
 	edit := editor.NewEditor(repo, dir)
-	f, err := edit.UpsertElement(kind, elementPath, code)
-	if err != nil {
-		return nil, logAndReturn(ctx, err)
-	}
-	return f, nil
-}
-
-func upsertElementByID(ctx context.Context, repo, dir string, kind editor.ElementKind, key, code string) (*gentypes.PackageFile, error) {
-	edit := editor.NewEditor(repo, dir)
-	f, err := edit.UpsertElementByID(kind, key, code)
+	f, err := edit.UpsertElement(code, kind, path, args...)
 	if err != nil {
 		return nil, logAndReturn(ctx, err)
 	}
@@ -175,15 +171,6 @@ func upsertElementByID(ctx context.Context, repo, dir string, kind editor.Elemen
 func deleteElement(ctx context.Context, repo, dir string, kind editor.ElementKind, key string) (*gentypes.PackageFile, error) {
 	edit := editor.NewEditor(repo, dir)
 	f, err := edit.DeleteElement(kind, key)
-	if err != nil {
-		return nil, logAndReturn(ctx, err)
-	}
-	return f, nil
-}
-
-func deleteRelationship(ctx context.Context, repo, dir, sourcePath, destinationPath string) (*gentypes.PackageFile, error) {
-	edit := editor.NewEditor(repo, dir)
-	f, err := edit.DeleteRelationship(sourcePath, destinationPath)
 	if err != nil {
 		return nil, logAndReturn(ctx, err)
 	}

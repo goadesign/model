@@ -240,10 +240,10 @@ paths:
                   schema:
                     $ref: '#/definitions/DSLEditorUpsertRelationshipRequestBody'
                     required:
-                        - SourcePath
                         - SourceKind
-                        - DestinationPath
+                        - SourcePath
                         - DestinationKind
+                        - DestinationPath
             responses:
                 "200":
                     description: OK response.
@@ -271,6 +271,7 @@ paths:
                   schema:
                     $ref: '#/definitions/DSLEditorDeleteRelationshipRequestBody'
                     required:
+                        - SourceKind
                         - SourcePath
                         - DestinationPath
                         - Repository
@@ -1072,7 +1073,7 @@ definitions:
             fault:
                 type: boolean
                 description: Is the error a server-side fault?
-                example: false
+                example: true
             id:
                 type: string
                 description: ID is a unique identifier for this particular occurrence of the problem.
@@ -1088,18 +1089,18 @@ definitions:
             temporary:
                 type: boolean
                 description: Is the error temporary?
-                example: false
+                example: true
             timeout:
                 type: boolean
                 description: Is the error a timeout?
-                example: true
+                example: false
         description: Compilation failed (default view)
         example:
-            fault: false
+            fault: true
             id: 123abc
             message: parameter 'p' must be an integer
             name: bad_request
-            temporary: true
+            temporary: false
             timeout: true
         required:
             - name
@@ -1115,7 +1116,7 @@ definitions:
             fault:
                 type: boolean
                 description: Is the error a server-side fault?
-                example: true
+                example: false
             id:
                 type: string
                 description: ID is a unique identifier for this particular occurrence of the problem.
@@ -1131,18 +1132,18 @@ definitions:
             temporary:
                 type: boolean
                 description: Is the error temporary?
-                example: true
+                example: false
             timeout:
                 type: boolean
                 description: Is the error a timeout?
-                example: false
+                example: true
         description: Component not found (default view)
         example:
             fault: false
             id: 123abc
             message: parameter 'p' must be an integer
             name: bad_request
-            temporary: false
+            temporary: true
             timeout: true
         required:
             - name
@@ -1209,7 +1210,7 @@ definitions:
             fault:
                 type: boolean
                 description: Is the error a server-side fault?
-                example: false
+                example: true
             id:
                 type: string
                 description: ID is a unique identifier for this particular occurrence of the problem.
@@ -1225,7 +1226,7 @@ definitions:
             temporary:
                 type: boolean
                 description: Is the error temporary?
-                example: false
+                example: true
             timeout:
                 type: boolean
                 description: Is the error a timeout?
@@ -1237,7 +1238,7 @@ definitions:
             message: parameter 'p' must be an integer
             name: bad_request
             temporary: true
-            timeout: true
+            timeout: false
         required:
             - name
             - id
@@ -1252,7 +1253,7 @@ definitions:
             fault:
                 type: boolean
                 description: Is the error a server-side fault?
-                example: false
+                example: true
             id:
                 type: string
                 description: ID is a unique identifier for this particular occurrence of the problem.
@@ -1275,12 +1276,12 @@ definitions:
                 example: true
         description: Component view not found (default view)
         example:
-            fault: false
+            fault: true
             id: 123abc
             message: parameter 'p' must be an integer
             name: bad_request
-            temporary: false
-            timeout: true
+            temporary: true
+            timeout: false
         required:
             - name
             - id
@@ -1362,18 +1363,18 @@ definitions:
             temporary:
                 type: boolean
                 description: Is the error temporary?
-                example: false
+                example: true
             timeout:
                 type: boolean
                 description: Is the error a timeout?
-                example: true
+                example: false
         description: Compilation failed (default view)
         example:
             fault: false
             id: 123abc
             message: parameter 'p' must be an integer
             name: bad_request
-            temporary: true
+            temporary: false
             timeout: true
         required:
             - name
@@ -1409,15 +1410,15 @@ definitions:
             timeout:
                 type: boolean
                 description: Is the error a timeout?
-                example: false
+                example: true
         description: Container not found (default view)
         example:
-            fault: true
+            fault: false
             id: 123abc
             message: parameter 'p' must be an integer
             name: bad_request
             temporary: true
-            timeout: false
+            timeout: true
         required:
             - name
             - id
@@ -1499,11 +1500,11 @@ definitions:
             temporary:
                 type: boolean
                 description: Is the error temporary?
-                example: true
+                example: false
             timeout:
                 type: boolean
                 description: Is the error a timeout?
-                example: true
+                example: false
         description: Compilation failed (default view)
         example:
             fault: true
@@ -1511,7 +1512,7 @@ definitions:
             message: parameter 'p' must be an integer
             name: bad_request
             temporary: false
-            timeout: true
+            timeout: false
         required:
             - name
             - id
@@ -1526,7 +1527,7 @@ definitions:
             fault:
                 type: boolean
                 description: Is the error a server-side fault?
-                example: false
+                example: true
             id:
                 type: string
                 description: ID is a unique identifier for this particular occurrence of the problem.
@@ -1546,10 +1547,10 @@ definitions:
             timeout:
                 type: boolean
                 description: Is the error a timeout?
-                example: true
+                example: false
         description: Container view not found (default view)
         example:
-            fault: false
+            fault: true
             id: 123abc
             message: parameter 'p' must be an integer
             name: bad_request
@@ -1636,11 +1637,11 @@ definitions:
             temporary:
                 type: boolean
                 description: Is the error temporary?
-                example: false
+                example: true
             timeout:
                 type: boolean
                 description: Is the error a timeout?
-                example: true
+                example: false
         description: Compilation failed (default view)
         example:
             fault: true
@@ -1648,7 +1649,7 @@ definitions:
             message: parameter 'p' must be an integer
             name: bad_request
             temporary: false
-            timeout: true
+            timeout: false
         required:
             - name
             - id
@@ -1683,15 +1684,15 @@ definitions:
             timeout:
                 type: boolean
                 description: Is the error a timeout?
-                example: true
+                example: false
         description: Element style not found (default view)
         example:
-            fault: true
+            fault: false
             id: 123abc
             message: parameter 'p' must be an integer
             name: bad_request
             temporary: true
-            timeout: true
+            timeout: false
         required:
             - name
             - id
@@ -1780,11 +1781,11 @@ definitions:
                 example: true
         description: Compilation failed (default view)
         example:
-            fault: true
+            fault: false
             id: 123abc
             message: parameter 'p' must be an integer
             name: bad_request
-            temporary: true
+            temporary: false
             timeout: true
         required:
             - name
@@ -1800,7 +1801,7 @@ definitions:
             fault:
                 type: boolean
                 description: Is the error a server-side fault?
-                example: false
+                example: true
             id:
                 type: string
                 description: ID is a unique identifier for this particular occurrence of the problem.
@@ -1820,15 +1821,15 @@ definitions:
             timeout:
                 type: boolean
                 description: Is the error a timeout?
-                example: false
+                example: true
         description: Landscape view not found (default view)
         example:
-            fault: true
+            fault: false
             id: 123abc
             message: parameter 'p' must be an integer
             name: bad_request
-            temporary: false
-            timeout: false
+            temporary: true
+            timeout: true
         required:
             - name
             - id
@@ -1894,7 +1895,7 @@ definitions:
             fault:
                 type: boolean
                 description: Is the error a server-side fault?
-                example: false
+                example: true
             id:
                 type: string
                 description: ID is a unique identifier for this particular occurrence of the problem.
@@ -1914,7 +1915,7 @@ definitions:
             timeout:
                 type: boolean
                 description: Is the error a timeout?
-                example: true
+                example: false
         description: Compilation failed (default view)
         example:
             fault: true
@@ -1922,7 +1923,7 @@ definitions:
             message: parameter 'p' must be an integer
             name: bad_request
             temporary: true
-            timeout: true
+            timeout: false
         required:
             - name
             - id
@@ -1937,7 +1938,7 @@ definitions:
             fault:
                 type: boolean
                 description: Is the error a server-side fault?
-                example: true
+                example: false
             id:
                 type: string
                 description: ID is a unique identifier for this particular occurrence of the problem.
@@ -1953,7 +1954,7 @@ definitions:
             temporary:
                 type: boolean
                 description: Is the error temporary?
-                example: true
+                example: false
             timeout:
                 type: boolean
                 description: Is the error a timeout?
@@ -2047,11 +2048,11 @@ definitions:
             temporary:
                 type: boolean
                 description: Is the error temporary?
-                example: true
+                example: false
             timeout:
                 type: boolean
                 description: Is the error a timeout?
-                example: true
+                example: false
         description: Compilation failed (default view)
         example:
             fault: true
@@ -2074,7 +2075,7 @@ definitions:
             fault:
                 type: boolean
                 description: Is the error a server-side fault?
-                example: true
+                example: false
             id:
                 type: string
                 description: ID is a unique identifier for this particular occurrence of the problem.
@@ -2094,7 +2095,7 @@ definitions:
             timeout:
                 type: boolean
                 description: Is the error a timeout?
-                example: false
+                example: true
         description: Relationship not found (default view)
         example:
             fault: true
@@ -2102,7 +2103,7 @@ definitions:
             message: parameter 'p' must be an integer
             name: bad_request
             temporary: false
-            timeout: true
+            timeout: false
         required:
             - name
             - id
@@ -2128,6 +2129,15 @@ definitions:
                 description: Path to repository root
                 example: my-repo
                 minLength: 1
+            SourceKind:
+                type: string
+                description: Kind of source element
+                example: Person
+                enum:
+                    - SoftwareSystem
+                    - Person
+                    - Container
+                    - Component
             SourcePath:
                 type: string
                 description: Path to source element consisting of <software system name>[/<container name>[/<component name>]]
@@ -2136,8 +2146,10 @@ definitions:
             DestinationPath: Software System/Container/Component
             Dir: services/my-service/diagram
             Repository: my-repo
+            SourceKind: Container
             SourcePath: Software System/Container/Component
         required:
+            - SourceKind
             - SourcePath
             - DestinationPath
             - Repository
@@ -2180,7 +2192,7 @@ definitions:
             fault:
                 type: boolean
                 description: Is the error a server-side fault?
-                example: false
+                example: true
             id:
                 type: string
                 description: ID is a unique identifier for this particular occurrence of the problem.
@@ -2196,18 +2208,18 @@ definitions:
             temporary:
                 type: boolean
                 description: Is the error temporary?
-                example: false
+                example: true
             timeout:
                 type: boolean
                 description: Is the error a timeout?
                 example: true
         description: Compilation failed (default view)
         example:
-            fault: true
+            fault: false
             id: 123abc
             message: parameter 'p' must be an integer
             name: bad_request
-            temporary: true
+            temporary: false
             timeout: false
         required:
             - name
@@ -2223,7 +2235,7 @@ definitions:
             fault:
                 type: boolean
                 description: Is the error a server-side fault?
-                example: true
+                example: false
             id:
                 type: string
                 description: ID is a unique identifier for this particular occurrence of the problem.
@@ -2243,14 +2255,14 @@ definitions:
             timeout:
                 type: boolean
                 description: Is the error a timeout?
-                example: false
+                example: true
         description: Relationship style not found (default view)
         example:
-            fault: false
+            fault: true
             id: 123abc
             message: parameter 'p' must be an integer
             name: bad_request
-            temporary: false
+            temporary: true
             timeout: false
         required:
             - name
@@ -2337,50 +2349,7 @@ definitions:
             timeout:
                 type: boolean
                 description: Is the error a timeout?
-                example: false
-        description: Compilation failed (default view)
-        example:
-            fault: true
-            id: 123abc
-            message: parameter 'p' must be an integer
-            name: bad_request
-            temporary: true
-            timeout: false
-        required:
-            - name
-            - id
-            - message
-            - temporary
-            - timeout
-            - fault
-    DSLEditorDeleteSystemContextViewCompilationFailedResponseBody:
-        title: 'Mediatype identifier: application/vnd.goa.error; view=default'
-        type: object
-        properties:
-            fault:
-                type: boolean
-                description: Is the error a server-side fault?
                 example: true
-            id:
-                type: string
-                description: ID is a unique identifier for this particular occurrence of the problem.
-                example: 123abc
-            message:
-                type: string
-                description: Message is a human-readable explanation specific to this occurrence of the problem.
-                example: parameter 'p' must be an integer
-            name:
-                type: string
-                description: Name is the name of this class of errors.
-                example: bad_request
-            temporary:
-                type: boolean
-                description: Is the error temporary?
-                example: true
-            timeout:
-                type: boolean
-                description: Is the error a timeout?
-                example: false
         description: Compilation failed (default view)
         example:
             fault: true
@@ -2396,7 +2365,7 @@ definitions:
             - temporary
             - timeout
             - fault
-    DSLEditorDeleteSystemContextViewNotFoundResponseBody:
+    DSLEditorDeleteSystemContextViewCompilationFailedResponseBody:
         title: 'Mediatype identifier: application/vnd.goa.error; view=default'
         type: object
         properties:
@@ -2419,19 +2388,62 @@ definitions:
             temporary:
                 type: boolean
                 description: Is the error temporary?
+                example: false
+            timeout:
+                type: boolean
+                description: Is the error a timeout?
+                example: true
+        description: Compilation failed (default view)
+        example:
+            fault: true
+            id: 123abc
+            message: parameter 'p' must be an integer
+            name: bad_request
+            temporary: false
+            timeout: true
+        required:
+            - name
+            - id
+            - message
+            - temporary
+            - timeout
+            - fault
+    DSLEditorDeleteSystemContextViewNotFoundResponseBody:
+        title: 'Mediatype identifier: application/vnd.goa.error; view=default'
+        type: object
+        properties:
+            fault:
+                type: boolean
+                description: Is the error a server-side fault?
+                example: true
+            id:
+                type: string
+                description: ID is a unique identifier for this particular occurrence of the problem.
+                example: 123abc
+            message:
+                type: string
+                description: Message is a human-readable explanation specific to this occurrence of the problem.
+                example: parameter 'p' must be an integer
+            name:
+                type: string
+                description: Name is the name of this class of errors.
+                example: bad_request
+            temporary:
+                type: boolean
+                description: Is the error temporary?
                 example: true
             timeout:
                 type: boolean
                 description: Is the error a timeout?
-                example: false
+                example: true
         description: System context view not found (default view)
         example:
-            fault: false
+            fault: true
             id: 123abc
             message: parameter 'p' must be an integer
             name: bad_request
             temporary: true
-            timeout: false
+            timeout: true
         required:
             - name
             - id
@@ -2513,7 +2525,7 @@ definitions:
             temporary:
                 type: boolean
                 description: Is the error temporary?
-                example: false
+                example: true
             timeout:
                 type: boolean
                 description: Is the error a timeout?
@@ -2524,7 +2536,7 @@ definitions:
             id: 123abc
             message: parameter 'p' must be an integer
             name: bad_request
-            temporary: false
+            temporary: true
             timeout: false
         required:
             - name
@@ -2591,7 +2603,7 @@ definitions:
             fault:
                 type: boolean
                 description: Is the error a server-side fault?
-                example: true
+                example: false
             id:
                 type: string
                 description: ID is a unique identifier for this particular occurrence of the problem.
@@ -2607,19 +2619,19 @@ definitions:
             temporary:
                 type: boolean
                 description: Is the error temporary?
-                example: true
+                example: false
             timeout:
                 type: boolean
                 description: Is the error a timeout?
-                example: true
+                example: false
         description: Compilation failed (default view)
         example:
-            fault: false
+            fault: true
             id: 123abc
             message: parameter 'p' must be an integer
             name: bad_request
             temporary: false
-            timeout: false
+            timeout: true
         required:
             - name
             - id
@@ -2665,7 +2677,7 @@ definitions:
             fault:
                 type: boolean
                 description: Is the error a server-side fault?
-                example: false
+                example: true
             id:
                 type: string
                 description: ID is a unique identifier for this particular occurrence of the problem.
@@ -2681,19 +2693,19 @@ definitions:
             temporary:
                 type: boolean
                 description: Is the error temporary?
-                example: true
+                example: false
             timeout:
                 type: boolean
                 description: Is the error a timeout?
                 example: false
         description: Compilation failed (default view)
         example:
-            fault: false
+            fault: true
             id: 123abc
             message: parameter 'p' must be an integer
             name: bad_request
             temporary: true
-            timeout: false
+            timeout: true
         required:
             - name
             - id
@@ -2708,13 +2720,13 @@ definitions:
             Background:
                 type: string
                 description: Background color of element
-                example: '#55aaFb'
+                example: '#DA2Ece'
                 pattern: ^#[0-9a-fA-F]{6}$
             Border:
                 type: string
                 description: Type of border to apply to elements
                 default: BorderSolid
-                example: BorderDashed
+                example: BorderDotted
                 enum:
                     - BorderSolid
                     - BorderDashed
@@ -2722,13 +2734,13 @@ definitions:
             Color:
                 type: string
                 description: Text color of element
-                example: '#6b58Cd'
+                example: '#9cB78B'
                 pattern: ^#[0-9a-fA-F]{6}$
             Description:
                 type: boolean
                 description: Indicates whether the element description should be visible on the resulting diagram
                 default: true
-                example: true
+                example: false
             FontSize:
                 type: integer
                 description: Font size of element
@@ -2749,18 +2761,18 @@ definitions:
             Metadata:
                 type: boolean
                 description: Indicates whether the element metadata should be visible on the resulting diagram
-                example: false
+                example: true
             Opacity:
                 type: integer
                 description: Opacity of element as a percentage
-                example: 4
+                example: 74
                 minimum: 0
                 maximum: 100
             Shape:
                 type: string
                 description: Shape of element
                 default: ShapeBox
-                example: ShapeEllipse
+                example: ShapeMobileDevicePortrait
                 enum:
                     - ShapeBox
                     - ShapeCircle
@@ -2779,7 +2791,7 @@ definitions:
             Stroke:
                 type: string
                 description: Stroke color of element
-                example: '#43aE3F'
+                example: '#4ea69c'
                 pattern: ^#[0-9a-fA-F]{6}$
             Tag:
                 type: string
@@ -2791,10 +2803,10 @@ definitions:
                 example: 100
                 format: int64
         example:
-            Background: '#fFc414'
-            Border: BorderSolid
-            Color: '#A7FDCc'
-            Description: true
+            Background: '#82ea02'
+            Border: BorderDotted
+            Color: '#fEBdC5'
+            Description: false
             FontSize: 20
             Height: 100
             Icon: https://static.structurizr.com/images/icons/Person.png
@@ -2803,9 +2815,9 @@ definitions:
                 Filename: model.go
                 Repository: my-repo
             Metadata: false
-            Opacity: 17
-            Shape: ShapePerson
-            Stroke: '#4aC1a8'
+            Opacity: 95
+            Shape: ShapePipe
+            Stroke: '#4DefaA'
             Tag: tag
             Width: 100
         required:
@@ -2849,7 +2861,7 @@ definitions:
             fault:
                 type: boolean
                 description: Is the error a server-side fault?
-                example: true
+                example: false
             id:
                 type: string
                 description: ID is a unique identifier for this particular occurrence of the problem.
@@ -2865,7 +2877,7 @@ definitions:
             temporary:
                 type: boolean
                 description: Is the error temporary?
-                example: false
+                example: true
             timeout:
                 type: boolean
                 description: Is the error a timeout?
@@ -2876,8 +2888,8 @@ definitions:
             id: 123abc
             message: parameter 'p' must be an integer
             name: bad_request
-            temporary: true
-            timeout: false
+            temporary: false
+            timeout: true
         required:
             - name
             - id
@@ -2911,7 +2923,7 @@ definitions:
                     key2: value2
                 additionalProperties:
                     type: string
-                    example: Nisi ducimus placeat.
+                    example: Eum nulla facere.
             SystemName:
                 type: string
                 description: Name of parent software system
@@ -2920,7 +2932,7 @@ definitions:
                 type: array
                 items:
                     type: string
-                    example: Libero totam ullam id ipsa reiciendis.
+                    example: Qui et qui.
                 description: Attached tags
                 example:
                     - Tag1
@@ -2992,7 +3004,7 @@ definitions:
             fault:
                 type: boolean
                 description: Is the error a server-side fault?
-                example: false
+                example: true
             id:
                 type: string
                 description: ID is a unique identifier for this particular occurrence of the problem.
@@ -3008,7 +3020,7 @@ definitions:
             temporary:
                 type: boolean
                 description: Is the error temporary?
-                example: true
+                example: false
             timeout:
                 type: boolean
                 description: Is the error a timeout?
@@ -3053,6 +3065,7 @@ definitions:
                 example:
                     - Element: Software System/Container/Component
                     - Element: Software System/Container/Component
+                    - Element: Software System/Container/Component
             Key:
                 type: string
                 description: Key of view
@@ -3062,7 +3075,7 @@ definitions:
             PaperSize:
                 type: string
                 description: Paper size of view
-                example: A2_Landscape
+                example: Slide_4x3
                 enum:
                     - A0_Landscape
                     - A0_Portrait
@@ -3095,8 +3108,6 @@ definitions:
                       Source: Software System/Container/Component
                     - Destination: Software System/Container/Component
                       Source: Software System/Container/Component
-                    - Destination: Software System/Container/Component
-                      Source: Software System/Container/Component
             SoftwareSystemName:
                 type: string
                 description: Name of software system to create view for
@@ -3112,16 +3123,13 @@ definitions:
             ElementViews:
                 - Element: Software System/Container/Component
                 - Element: Software System/Container/Component
-                - Element: Software System/Container/Component
             Key: key
             Locator:
                 Dir: services/my-service/diagram
                 Filename: model.go
                 Repository: my-repo
-            PaperSize: A3_Landscape
+            PaperSize: A5_Portrait
             RelationshipViews:
-                - Destination: Software System/Container/Component
-                  Source: Software System/Container/Component
                 - Destination: Software System/Container/Component
                   Source: Software System/Container/Component
                 - Destination: Software System/Container/Component
@@ -3173,7 +3181,7 @@ definitions:
             fault:
                 type: boolean
                 description: Is the error a server-side fault?
-                example: false
+                example: true
             id:
                 type: string
                 description: ID is a unique identifier for this particular occurrence of the problem.
@@ -3189,18 +3197,18 @@ definitions:
             temporary:
                 type: boolean
                 description: Is the error temporary?
-                example: true
+                example: false
             timeout:
                 type: boolean
                 description: Is the error a timeout?
-                example: false
+                example: true
         description: Compilation failed (default view)
         example:
-            fault: false
+            fault: true
             id: 123abc
             message: parameter 'p' must be an integer
             name: bad_request
-            temporary: false
+            temporary: true
             timeout: true
         required:
             - name
@@ -3231,7 +3239,7 @@ definitions:
                     key2: value2
                 additionalProperties:
                     type: string
-                    example: Vitae quidem aut.
+                    example: Totam ullam id.
             SystemName:
                 type: string
                 description: Name of parent software system
@@ -3240,7 +3248,7 @@ definitions:
                 type: array
                 items:
                     type: string
-                    example: Et repellat voluptatibus architecto tenetur.
+                    example: Ipsa et quae voluptatem culpa earum eos.
                 description: Attached tags
                 example:
                     - Tag1
@@ -3310,7 +3318,7 @@ definitions:
             fault:
                 type: boolean
                 description: Is the error a server-side fault?
-                example: false
+                example: true
             id:
                 type: string
                 description: ID is a unique identifier for this particular occurrence of the problem.
@@ -3330,14 +3338,14 @@ definitions:
             timeout:
                 type: boolean
                 description: Is the error a timeout?
-                example: false
+                example: true
         description: Compilation failed (default view)
         example:
-            fault: true
+            fault: false
             id: 123abc
             message: parameter 'p' must be an integer
             name: bad_request
-            temporary: true
+            temporary: false
             timeout: false
         required:
             - name
@@ -3371,7 +3379,7 @@ definitions:
             PaperSize:
                 type: string
                 description: Paper size of view
-                example: A6_Landscape
+                example: Slide_4x3
                 enum:
                     - A0_Landscape
                     - A0_Portrait
@@ -3404,8 +3412,6 @@ definitions:
                       Source: Software System/Container/Component
                     - Destination: Software System/Container/Component
                       Source: Software System/Container/Component
-                    - Destination: Software System/Container/Component
-                      Source: Software System/Container/Component
             SoftwareSystemName:
                 type: string
                 description: Name of software system to create view for
@@ -3414,7 +3420,7 @@ definitions:
                 type: boolean
                 description: Indicates whether the system boundaries are visible on the resulting diagram
                 default: true
-                example: false
+                example: true
             Title:
                 type: string
                 description: Title of view
@@ -3424,12 +3430,13 @@ definitions:
             ElementViews:
                 - Element: Software System/Container/Component
                 - Element: Software System/Container/Component
+                - Element: Software System/Container/Component
             Key: key
             Locator:
                 Dir: services/my-service/diagram
                 Filename: model.go
                 Repository: my-repo
-            PaperSize: A4_Landscape
+            PaperSize: A4_Portrait
             RelationshipViews:
                 - Destination: Software System/Container/Component
                   Source: Software System/Container/Component
@@ -3483,7 +3490,7 @@ definitions:
             fault:
                 type: boolean
                 description: Is the error a server-side fault?
-                example: false
+                example: true
             id:
                 type: string
                 description: ID is a unique identifier for this particular occurrence of the problem.
@@ -3506,7 +3513,7 @@ definitions:
                 example: true
         description: Compilation failed (default view)
         example:
-            fault: false
+            fault: true
             id: 123abc
             message: parameter 'p' must be an integer
             name: bad_request
@@ -3535,11 +3542,13 @@ definitions:
                 example:
                     - Element: Software System/Container/Component
                     - Element: Software System/Container/Component
+                    - Element: Software System/Container/Component
+                    - Element: Software System/Container/Component
             EnterpriseBoundaryVisible:
                 type: boolean
                 description: Indicates whether the enterprise boundary is visible on the resulting diagram
                 default: true
-                example: false
+                example: true
             Key:
                 type: string
                 description: Key of view
@@ -3549,7 +3558,7 @@ definitions:
             PaperSize:
                 type: string
                 description: Paper size of view
-                example: A4_Landscape
+                example: A0_Landscape
                 enum:
                     - A0_Landscape
                     - A0_Portrait
@@ -3582,6 +3591,10 @@ definitions:
                       Source: Software System/Container/Component
                     - Destination: Software System/Container/Component
                       Source: Software System/Container/Component
+                    - Destination: Software System/Container/Component
+                      Source: Software System/Container/Component
+                    - Destination: Software System/Container/Component
+                      Source: Software System/Container/Component
             Title:
                 type: string
                 description: Title of view
@@ -3593,13 +3606,13 @@ definitions:
                 - Element: Software System/Container/Component
                 - Element: Software System/Container/Component
                 - Element: Software System/Container/Component
-            EnterpriseBoundaryVisible: false
+            EnterpriseBoundaryVisible: true
             Key: key
             Locator:
                 Dir: services/my-service/diagram
                 Filename: model.go
                 Repository: my-repo
-            PaperSize: A0_Portrait
+            PaperSize: A5_Landscape
             RelationshipViews:
                 - Destination: Software System/Container/Component
                   Source: Software System/Container/Component
@@ -3670,11 +3683,11 @@ definitions:
                 example: false
         description: Compilation failed (default view)
         example:
-            fault: false
+            fault: true
             id: 123abc
             message: parameter 'p' must be an integer
             name: bad_request
-            temporary: false
+            temporary: true
             timeout: false
         required:
             - name
@@ -3695,7 +3708,7 @@ definitions:
                 type: string
                 description: Indicates whether the person is an employee (Internal) or a third party (External)
                 default: Internal
-                example: Internal
+                example: External
                 enum:
                     - Internal
                     - External
@@ -3713,12 +3726,12 @@ definitions:
                     key2: value2
                 additionalProperties:
                     type: string
-                    example: Velit distinctio cupiditate et.
+                    example: Ab quam molestiae provident et.
             Tags:
                 type: array
                 items:
                     type: string
-                    example: Ut rerum nostrum accusamus aspernatur.
+                    example: Cupiditate et dolore inventore.
                 description: Attached tags
                 example:
                     - Tag1
@@ -3782,7 +3795,7 @@ definitions:
             fault:
                 type: boolean
                 description: Is the error a server-side fault?
-                example: true
+                example: false
             id:
                 type: string
                 description: ID is a unique identifier for this particular occurrence of the problem.
@@ -3798,18 +3811,18 @@ definitions:
             temporary:
                 type: boolean
                 description: Is the error temporary?
-                example: true
+                example: false
             timeout:
                 type: boolean
                 description: Is the error a timeout?
                 example: true
         description: Compilation failed (default view)
         example:
-            fault: false
+            fault: true
             id: 123abc
             message: parameter 'p' must be an integer
             name: bad_request
-            temporary: false
+            temporary: true
             timeout: true
         required:
             - name
@@ -3843,7 +3856,7 @@ definitions:
                 type: string
                 description: Indicates whether the relationship is synchronous or asynchronous
                 default: Synchronous
-                example: Asynchronous
+                example: Synchronous
                 enum:
                     - Synchronous
                     - Asynchronous
@@ -3852,7 +3865,7 @@ definitions:
             SourceKind:
                 type: string
                 description: Kind of source element
-                example: Component
+                example: Container
                 enum:
                     - SoftwareSystem
                     - Person
@@ -3866,7 +3879,7 @@ definitions:
                 type: array
                 items:
                     type: string
-                    example: Repellat laboriosam cupiditate numquam nihil ut sunt.
+                    example: Deleniti laborum et ad quas.
                 description: Attached tags
                 example:
                     - Tag1
@@ -3882,14 +3895,14 @@ definitions:
                 format: uri
         example:
             Description: Relationship description
-            DestinationKind: Person
+            DestinationKind: Component
             DestinationPath: Component
-            InteractionStyle: Synchronous
+            InteractionStyle: Asynchronous
             Locator:
                 Dir: services/my-service/diagram
                 Filename: model.go
                 Repository: my-repo
-            SourceKind: SoftwareSystem
+            SourceKind: Component
             SourcePath: Software System/Container/Component
             Tags:
                 - Tag1
@@ -3897,10 +3910,10 @@ definitions:
             Technology: Technology
             URL: https://relationship.com
         required:
-            - SourcePath
             - SourceKind
-            - DestinationPath
+            - SourcePath
             - DestinationKind
+            - DestinationPath
     DSLEditorUpsertRelationshipResponseBody:
         title: DSLEditorUpsertRelationshipResponseBody
         type: object
@@ -3955,11 +3968,11 @@ definitions:
             temporary:
                 type: boolean
                 description: Is the error temporary?
-                example: true
+                example: false
             timeout:
                 type: boolean
                 description: Is the error a timeout?
-                example: false
+                example: true
         description: Compilation failed (default view)
         example:
             fault: false
@@ -3982,7 +3995,7 @@ definitions:
             Color:
                 type: string
                 description: Color of label
-                example: '#39BBe7'
+                example: '#6FBC51'
                 pattern: ^#[0-9a-fA-F]{6}$
             Dashed:
                 type: boolean
@@ -3992,7 +4005,7 @@ definitions:
             FontSize:
                 type: integer
                 description: Font size of label on relationship
-                example: 19
+                example: 20
                 minimum: 1
                 maximum: 100
             Locator:
@@ -4000,20 +4013,20 @@ definitions:
             Opacity:
                 type: integer
                 description: Opacity of relationship as a percentage
-                example: 33
+                example: 18
                 minimum: 0
                 maximum: 100
             Position:
                 type: integer
                 description: Position of label on relationship as a percentage (0 is next to source, 100 next to destination)
-                example: 25
+                example: 85
                 minimum: 0
                 maximum: 100
             Routing:
                 type: string
                 description: Routing of relationship
                 default: Direct
-                example: Orthogonal
+                example: Curved
                 enum:
                     - Direct
                     - Orthogonal
@@ -4021,7 +4034,7 @@ definitions:
             Stroke:
                 type: string
                 description: Stroke color of relationship
-                example: '#6BEC0A'
+                example: '#EafabE'
                 pattern: ^#[0-9a-fA-F]{6}$
             Tag:
                 type: string
@@ -4036,24 +4049,24 @@ definitions:
             Width:
                 type: integer
                 description: Width of label on relationship
-                example: 9956
+                example: 6228
                 minimum: 1
                 maximum: 10000
         example:
-            Color: '#5bBbfC'
+            Color: '#DAbF70'
             Dashed: false
-            FontSize: 20
+            FontSize: 24
             Locator:
                 Dir: services/my-service/diagram
                 Filename: model.go
                 Repository: my-repo
-            Opacity: 18
-            Position: 85
+            Opacity: 46
+            Position: 12
             Routing: Curved
-            Stroke: '#fDb29A'
+            Stroke: '#d51088'
             Tag: tag
             Thickness: 2
-            Width: 6228
+            Width: 4670
         required:
             - Locator
             - Tag
@@ -4118,11 +4131,11 @@ definitions:
                 example: false
         description: Compilation failed (default view)
         example:
-            fault: false
+            fault: true
             id: 123abc
             message: parameter 'p' must be an integer
             name: bad_request
-            temporary: true
+            temporary: false
             timeout: false
         required:
             - name
@@ -4138,7 +4151,7 @@ definitions:
             fault:
                 type: boolean
                 description: Is the error a server-side fault?
-                example: true
+                example: false
             id:
                 type: string
                 description: ID is a unique identifier for this particular occurrence of the problem.
@@ -4154,11 +4167,11 @@ definitions:
             temporary:
                 type: boolean
                 description: Is the error temporary?
-                example: true
+                example: false
             timeout:
                 type: boolean
                 description: Is the error a timeout?
-                example: true
+                example: false
         description: Compilation failed (default view)
         example:
             fault: false
@@ -4190,6 +4203,8 @@ definitions:
                 example:
                     - Element: Software System/Container/Component
                     - Element: Software System/Container/Component
+                    - Element: Software System/Container/Component
+                    - Element: Software System/Container/Component
             EnterpriseBoundaryVisible:
                 type: boolean
                 description: Indicates whether the enterprise boundary is visible on the resulting diagram
@@ -4204,7 +4219,7 @@ definitions:
             PaperSize:
                 type: string
                 description: Paper size of view
-                example: Legal_Landscape
+                example: A5_Portrait
                 enum:
                     - A0_Landscape
                     - A0_Portrait
@@ -4237,6 +4252,8 @@ definitions:
                       Source: Software System/Container/Component
                     - Destination: Software System/Container/Component
                       Source: Software System/Container/Component
+                    - Destination: Software System/Container/Component
+                      Source: Software System/Container/Component
             SoftwareSystemName:
                 type: string
                 description: Name of software system to create view for
@@ -4258,7 +4275,7 @@ definitions:
                 Dir: services/my-service/diagram
                 Filename: model.go
                 Repository: my-repo
-            PaperSize: Slide_4x3
+            PaperSize: Legal_Landscape
             RelationshipViews:
                 - Destination: Software System/Container/Component
                   Source: Software System/Container/Component
@@ -4335,12 +4352,12 @@ definitions:
                     key2: value2
                 additionalProperties:
                     type: string
-                    example: In dignissimos consequatur dolorem voluptatem.
+                    example: Odit id odit sit quos quia ut.
             Tags:
                 type: array
                 items:
                     type: string
-                    example: Fugiat laborum.
+                    example: In dignissimos consequatur dolorem voluptatem.
                 description: Attached tags
                 example:
                     - Tag1
@@ -4582,14 +4599,14 @@ definitions:
             temporary:
                 type: boolean
                 description: Is the error temporary?
-                example: false
+                example: true
             timeout:
                 type: boolean
                 description: Is the error a timeout?
-                example: true
+                example: false
         description: Package or directory already exists (default view)
         example:
-            fault: false
+            fault: true
             id: 123abc
             message: parameter 'p' must be an integer
             name: bad_request
@@ -4656,14 +4673,14 @@ definitions:
             temporary:
                 type: boolean
                 description: Is the error temporary?
-                example: false
+                example: true
             timeout:
                 type: boolean
                 description: Is the error a timeout?
-                example: false
+                example: true
         description: Package not found (default view)
         example:
-            fault: true
+            fault: false
             id: 123abc
             message: parameter 'p' must be an integer
             name: bad_request
@@ -4699,18 +4716,18 @@ definitions:
             temporary:
                 type: boolean
                 description: Is the error temporary?
-                example: true
+                example: false
             timeout:
                 type: boolean
                 description: Is the error a timeout?
                 example: true
         description: Compilation error (default view)
         example:
-            fault: true
+            fault: false
             id: 123abc
             message: parameter 'p' must be an integer
             name: bad_request
-            temporary: false
+            temporary: true
             timeout: false
         required:
             - name
@@ -4749,12 +4766,12 @@ definitions:
                 example: false
         description: Package not found (default view)
         example:
-            fault: false
+            fault: true
             id: 123abc
             message: parameter 'p' must be an integer
             name: bad_request
-            temporary: false
-            timeout: true
+            temporary: true
+            timeout: false
         required:
             - name
             - id
@@ -4785,7 +4802,7 @@ definitions:
             temporary:
                 type: boolean
                 description: Is the error temporary?
-                example: true
+                example: false
             timeout:
                 type: boolean
                 description: Is the error a timeout?
@@ -4812,7 +4829,7 @@ definitions:
             fault:
                 type: boolean
                 description: Is the error a server-side fault?
-                example: false
+                example: true
             id:
                 type: string
                 description: ID is a unique identifier for this particular occurrence of the problem.
@@ -4828,7 +4845,7 @@ definitions:
             temporary:
                 type: boolean
                 description: Is the error temporary?
-                example: true
+                example: false
             timeout:
                 type: boolean
                 description: Is the error a timeout?
@@ -4839,7 +4856,7 @@ definitions:
             id: 123abc
             message: parameter 'p' must be an integer
             name: bad_request
-            temporary: true
+            temporary: false
             timeout: true
         required:
             - name
@@ -4871,19 +4888,19 @@ definitions:
             temporary:
                 type: boolean
                 description: Is the error temporary?
-                example: true
+                example: false
             timeout:
                 type: boolean
                 description: Is the error a timeout?
-                example: true
+                example: false
         description: Package not found (default view)
         example:
             fault: false
             id: 123abc
             message: parameter 'p' must be an integer
             name: bad_request
-            temporary: true
-            timeout: false
+            temporary: false
+            timeout: true
         required:
             - name
             - id
@@ -4898,14 +4915,14 @@ definitions:
             Error:
                 type: string
                 description: Compilation error if any
-                example: Et provident.
+                example: Sit qui magnam id temporibus.
             Model:
                 type: string
                 description: Model JSON if compilation succeeded
                 example: '{"name":"example","email":"mail@example.com"}'
                 format: json
         example:
-            Error: Omnis explicabo rerum ut.
+            Error: Numquam aut.
             Model: '{"name":"example","email":"mail@example.com"}'
     SVGLoadNotFoundResponseBody:
         title: 'Mediatype identifier: application/vnd.goa.error; view=default'
@@ -4914,7 +4931,7 @@ definitions:
             fault:
                 type: boolean
                 description: Is the error a server-side fault?
-                example: true
+                example: false
             id:
                 type: string
                 description: ID is a unique identifier for this particular occurrence of the problem.
@@ -4930,14 +4947,14 @@ definitions:
             temporary:
                 type: boolean
                 description: Is the error temporary?
-                example: true
+                example: false
             timeout:
                 type: boolean
                 description: Is the error a timeout?
                 example: false
         description: File not found (default view)
         example:
-            fault: false
+            fault: true
             id: 123abc
             message: parameter 'p' must be an integer
             name: bad_request
@@ -4972,13 +4989,13 @@ definitions:
             SVG:
                 type: string
                 description: Diagram SVG
-                example: <svg���</svg>
+                example: <svg��</svg>
                 pattern: <svg.*</svg>$
         example:
             Dir: services/my-service/diagram
             Filename: model.go
             Repository: my-repo
-            SVG: <svg�</svg>
+            SVG: <svg</svg>
         required:
             - Filename
             - SVG

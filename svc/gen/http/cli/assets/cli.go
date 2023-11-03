@@ -892,9 +892,9 @@ Create or update an element style in the model
 
 Example:
     %[1]s dsl-editor upser-element-style --body '{
-      "Background": "#1dF376",
+      "Background": "#EAcAac",
       "Border": "BorderDotted",
-      "Color": "#E1ccfa",
+      "Color": "#faAF28",
       "Description": false,
       "FontSize": 20,
       "Height": 100,
@@ -907,7 +907,7 @@ Example:
       "Metadata": true,
       "Opacity": 45,
       "Shape": "ShapePipe",
-      "Stroke": "#9D0155",
+      "Stroke": "#7DbfF8",
       "Tag": "tag",
       "Width": 100
    }'
@@ -922,7 +922,7 @@ Create or update a relationship style in the model
 
 Example:
     %[1]s dsl-editor upsert-relationship-style --body '{
-      "Color": "#F77f19",
+      "Color": "#3887AA",
       "Dashed": true,
       "FontSize": 10,
       "Locator": {
@@ -933,7 +933,7 @@ Example:
       "Opacity": 35,
       "Position": 25,
       "Routing": "Direct",
-      "Stroke": "#5EA24B",
+      "Stroke": "#864597",
       "Tag": "tag",
       "Thickness": 2,
       "Width": 272
@@ -1015,6 +1015,7 @@ Example:
       "DestinationPath": "Software System/Container/Component",
       "Dir": "services/my-service/diagram",
       "Repository": "my-repo",
+      "SourceKind": "Container",
       "SourcePath": "Software System/Container/Component"
    }'
 `, os.Args[0])
@@ -1031,7 +1032,7 @@ Example:
     %[1]s dsl-editor delete-landscape-view --body '{
       "Dir": "services/my-service/diagram",
       "Repository": "my-repo"
-   }' --key "Accusantium id nemo."
+   }' --key "Aut accusantium id nemo minima veritatis quibusdam."
 `, os.Args[0])
 }
 
@@ -1046,7 +1047,7 @@ Example:
     %[1]s dsl-editor delete-system-context-view --body '{
       "Dir": "services/my-service/diagram",
       "Repository": "my-repo"
-   }' --key "Perferendis nostrum aut debitis sint quibusdam eum."
+   }' --key "Aut debitis."
 `, os.Args[0])
 }
 
@@ -1061,7 +1062,7 @@ Example:
     %[1]s dsl-editor delete-container-view --body '{
       "Dir": "services/my-service/diagram",
       "Repository": "my-repo"
-   }' --key "Illum est."
+   }' --key "Reprehenderit et."
 `, os.Args[0])
 }
 
@@ -1076,7 +1077,7 @@ Example:
     %[1]s dsl-editor delete-component-view --body '{
       "Dir": "services/my-service/diagram",
       "Repository": "my-repo"
-   }' --key "Cupiditate velit non architecto voluptas."
+   }' --key "Reiciendis cupiditate velit."
 `, os.Args[0])
 }
 
@@ -1091,7 +1092,7 @@ Example:
     %[1]s dsl-editor delete-element-style --body '{
       "Dir": "services/my-service/diagram",
       "Repository": "my-repo"
-   }' --tag "In voluptatem."
+   }' --tag "Aperiam perferendis in voluptatem deserunt molestiae distinctio."
 `, os.Args[0])
 }
 
@@ -1106,7 +1107,7 @@ Example:
     %[1]s dsl-editor delete-relationship-style --body '{
       "Dir": "services/my-service/diagram",
       "Repository": "my-repo"
-   }' --tag "Eaque et enim repellat voluptates eum distinctio."
+   }' --tag "Repellat voluptates eum distinctio rerum ex."
 `, os.Args[0])
 }
 
@@ -1243,7 +1244,7 @@ Example:
       "Dir": "services/my-service/diagram",
       "Filename": "model.go",
       "Repository": "my-repo",
-      "SVG": "\u003csvg\u003c/svg\u003e"
+      "SVG": "\u003csvg������\u003c/svg\u003e"
    }'
 `, os.Args[0])
 }

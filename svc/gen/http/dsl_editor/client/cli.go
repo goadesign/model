@@ -292,8 +292,8 @@ func BuildUpsertRelationshipPayload(dSLEditorUpsertRelationshipBody string) (*ds
 	v := &dsleditor.Relationship{
 		SourceKind:       body.SourceKind,
 		SourcePath:       body.SourcePath,
-		DestinationPath:  body.DestinationPath,
 		DestinationKind:  body.DestinationKind,
+		DestinationPath:  body.DestinationPath,
 		Description:      body.Description,
 		Technology:       body.Technology,
 		InteractionStyle: body.InteractionStyle,
@@ -554,7 +554,7 @@ func BuildUpserElementStylePayload(dSLEditorUpserElementStyleBody string) (*dsle
 	{
 		err = json.Unmarshal([]byte(dSLEditorUpserElementStyleBody), &body)
 		if err != nil {
-			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Background\": \"#1dF376\",\n      \"Border\": \"BorderDotted\",\n      \"Color\": \"#E1ccfa\",\n      \"Description\": false,\n      \"FontSize\": 20,\n      \"Height\": 100,\n      \"Icon\": \"https://static.structurizr.com/images/icons/Person.png\",\n      \"Locator\": {\n         \"Dir\": \"services/my-service/diagram\",\n         \"Filename\": \"model.go\",\n         \"Repository\": \"my-repo\"\n      },\n      \"Metadata\": true,\n      \"Opacity\": 45,\n      \"Shape\": \"ShapePipe\",\n      \"Stroke\": \"#9D0155\",\n      \"Tag\": \"tag\",\n      \"Width\": 100\n   }'")
+			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Background\": \"#EAcAac\",\n      \"Border\": \"BorderDotted\",\n      \"Color\": \"#faAF28\",\n      \"Description\": false,\n      \"FontSize\": 20,\n      \"Height\": 100,\n      \"Icon\": \"https://static.structurizr.com/images/icons/Person.png\",\n      \"Locator\": {\n         \"Dir\": \"services/my-service/diagram\",\n         \"Filename\": \"model.go\",\n         \"Repository\": \"my-repo\"\n      },\n      \"Metadata\": true,\n      \"Opacity\": 45,\n      \"Shape\": \"ShapePipe\",\n      \"Stroke\": \"#7DbfF8\",\n      \"Tag\": \"tag\",\n      \"Width\": 100\n   }'")
 		}
 		if body.Locator == nil {
 			err = goa.MergeErrors(err, goa.MissingFieldError("Locator", "body"))
@@ -644,7 +644,7 @@ func BuildUpsertRelationshipStylePayload(dSLEditorUpsertRelationshipStyleBody st
 	{
 		err = json.Unmarshal([]byte(dSLEditorUpsertRelationshipStyleBody), &body)
 		if err != nil {
-			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Color\": \"#F77f19\",\n      \"Dashed\": true,\n      \"FontSize\": 10,\n      \"Locator\": {\n         \"Dir\": \"services/my-service/diagram\",\n         \"Filename\": \"model.go\",\n         \"Repository\": \"my-repo\"\n      },\n      \"Opacity\": 35,\n      \"Position\": 25,\n      \"Routing\": \"Direct\",\n      \"Stroke\": \"#5EA24B\",\n      \"Tag\": \"tag\",\n      \"Thickness\": 2,\n      \"Width\": 272\n   }'")
+			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Color\": \"#3887AA\",\n      \"Dashed\": true,\n      \"FontSize\": 10,\n      \"Locator\": {\n         \"Dir\": \"services/my-service/diagram\",\n         \"Filename\": \"model.go\",\n         \"Repository\": \"my-repo\"\n      },\n      \"Opacity\": 35,\n      \"Position\": 25,\n      \"Routing\": \"Direct\",\n      \"Stroke\": \"#864597\",\n      \"Tag\": \"tag\",\n      \"Thickness\": 2,\n      \"Width\": 272\n   }'")
 		}
 		if body.Locator == nil {
 			err = goa.MergeErrors(err, goa.MissingFieldError("Locator", "body"))
@@ -903,7 +903,10 @@ func BuildDeleteRelationshipPayload(dSLEditorDeleteRelationshipBody string) (*ds
 	{
 		err = json.Unmarshal([]byte(dSLEditorDeleteRelationshipBody), &body)
 		if err != nil {
-			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"DestinationPath\": \"Software System/Container/Component\",\n      \"Dir\": \"services/my-service/diagram\",\n      \"Repository\": \"my-repo\",\n      \"SourcePath\": \"Software System/Container/Component\"\n   }'")
+			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"DestinationPath\": \"Software System/Container/Component\",\n      \"Dir\": \"services/my-service/diagram\",\n      \"Repository\": \"my-repo\",\n      \"SourceKind\": \"Container\",\n      \"SourcePath\": \"Software System/Container/Component\"\n   }'")
+		}
+		if !(body.SourceKind == "SoftwareSystem" || body.SourceKind == "Person" || body.SourceKind == "Container" || body.SourceKind == "Component") {
+			err = goa.MergeErrors(err, goa.InvalidEnumValueError("body.SourceKind", body.SourceKind, []any{"SoftwareSystem", "Person", "Container", "Component"}))
 		}
 		if utf8.RuneCountInString(body.Repository) < 1 {
 			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Repository", body.Repository, utf8.RuneCountInString(body.Repository), 1, true))
@@ -916,6 +919,7 @@ func BuildDeleteRelationshipPayload(dSLEditorDeleteRelationshipBody string) (*ds
 		}
 	}
 	v := &dsleditor.DeleteRelationshipPayload{
+		SourceKind:      body.SourceKind,
 		SourcePath:      body.SourcePath,
 		DestinationPath: body.DestinationPath,
 		Repository:      body.Repository,

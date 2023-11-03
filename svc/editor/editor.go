@@ -61,30 +61,39 @@ func NewEditor(repo, dir string) *Editor {
 	return &Editor{repo: repo, dir: dir}
 }
 
-// UpsertCode updates the code for the DSL element with the given kind, path and
-// arguments if there's a match otherwise it adds the element. The path is the
-// path to the element in the DSL file, e.g. "Person1" or
-// "SoftwareSystem1/Container1/Component1".
-func (e *Editor) UpsertCode(code string, kind ElementKind, path string, args ...string) (*gentypes.PackageFile, error) {
+// UpsertElement updates the code for the DSL element with the given kind, path
+// and arguments if there's a match otherwise it adds the element. The path is
+// the path to the element in the DSL file, e.g. "Person1" or
+// "SoftwareSystem1/Container1/Component1". Only non nil and non-empty arguments
+// are used to match the element.
+func (e *Editor) UpsertElement(code string, kind ElementKind, path string, args ...string) (*gentypes.PackageFile, error) {
 	res, parsed, fset, err := e.parseDir()
 	if err != nil {
 		return nil, err
 	}
-	var node, parent ast.Node
-	var file *ast.File
-	for _, f := range parsed.Files {
-		node, parent = findDSL(file, kind, id)
-		if node != nil {
-			file = f
-			break
-		}
-	}
+
 	if parsed == nil {
+		// New repository, add the DSL file.
 		res.Locator.Filename = DefaultModelFilename
 		modelFile := filepath.Join(e.repo, e.dir, DefaultModelFilename)
 		return setContent(modelFile, res, newDesign(code))
 	}
-	for _, file := range parsed.Files {
+
+	// Find node and/or parent.
+	var node, parent ast.Node
+	var file *ast.File
+	for _, f := range parsed.Files {
+		node, parent = findDSL(f, kind, path, args...)
+		if node != nil {
+			file = f
+			break
+		} else if parent != nil {
+			file = f
+		}
+	}
+
+	if file != nil {
+		// Load node or parent file.
 		tokFile := fset.File(file.Pos())
 		filename := tokFile.Name()
 		res.Locator.Filename = filepath.Base(filename)
@@ -93,31 +102,33 @@ func (e *Editor) UpsertCode(code string, kind ElementKind, path string, args ...
 			return nil, fmt.Errorf("failed to read DSL file %s: %w", tokFile.Name(), err)
 		}
 		src := string(srcBytes)
-		elemNode, pos, end := findDSL(file, kind, path)
-		if elemNode != nil {
+
+		if node != nil {
 			// Found the element, so replace it.
-			code, err := copyRelationships(tokFile, elemNode, src, code)
+			code, err := copyRelationships(tokFile, node, src, code)
 			if err != nil {
 				return nil, err
 			}
 			newContent := concat(
-				src[:tokFile.Offset(pos)],
+				src[:tokFile.Offset(node.Pos())],
 				code,
-				src[tokFile.Offset(end):],
+				src[tokFile.Offset(node.End()):],
 			)
 			return setContent(filename, res, newContent)
 		}
-		if end != token.NoPos {
-			// We found the parent, but not the child, so add the child in the parent.
-			endOffset := tokFile.Offset(end)
+
+		if parent != nil {
+			// We found the parent, so insert the child.
+			endOffset := tokFile.Offset(parent.End()) - 2 // -2 to account for `})`
 			newContent := concat(
-				src[:endOffset-2], // -2 to account for `})`
+				src[:endOffset],
 				code,
-				src[endOffset-2:],
+				src[endOffset:],
 			)
 			return setContent(filename, res, newContent)
 		}
 	}
+
 	// We didn't find the element, so add it
 	modelFile := filepath.Join(e.repo, e.dir, DefaultModelFilename)
 	res.Locator.Filename = DefaultModelFilename
@@ -125,31 +136,68 @@ func (e *Editor) UpsertCode(code string, kind ElementKind, path string, args ...
 		if !errors.Is(err, os.ErrNotExist) {
 			return nil, fmt.Errorf("failed to stat DSL file %s: %w", modelFile, err)
 		}
+		// New model, add the DSL file.
 		return setContent(modelFile, res, newDesign(code))
 	}
-	// Find the position of the Views() call if any.
-	f, err := parser.ParseFile(fset, modelFile, nil, parser.AllErrors)
+	file, err = parser.ParseFile(fset, modelFile, nil, 0)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse DSL file %s: %w", modelFile, err)
 	}
-	tokFile := fset.File(f.Pos())
-	var viewsCallOffset int
-	n, _, _ := findDSL(f, ViewsKind, "")
-	if n != nil {
-		viewsCallOffset = tokFile.Offset(n.Pos())
-	} else {
-		_, _, end := findDSL(f, DesignKind, "")
-		if end == token.NoPos {
-			return nil, fmt.Errorf("failed to find Design() call in DSL file %s", modelFile)
-		}
-		viewsCallOffset = tokFile.Offset(end) - 2
-	}
-	data, err := os.ReadFile(modelFile)
+	tokFile := fset.File(file.Pos())
+	filename := tokFile.Name()
+	res.Locator.Filename = filepath.Base(filename)
+	srcBytes, err := os.ReadFile(filename)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read DSL file %s: %w", modelFile, err)
+		return nil, fmt.Errorf("failed to read DSL file %s: %w", tokFile.Name(), err)
 	}
-	content := string(data)
-	newContent := concat(content[:viewsCallOffset], code, content[viewsCallOffset:])
+	src := string(srcBytes)
+
+	// Make sure the DSL file contains a Design() call.
+	design, _ := findDSL(file, DesignKind, "")
+	if design == nil {
+		return nil, fmt.Errorf("failed to find Design() call in DSL file %s", modelFile)
+	}
+
+	// Where to insert the code depends on the kind:
+	//  - Person, SoftwareSystem, Container, Component: insert last before Views DSL
+	//  - Views: insert last in the Views DSL
+	//  - Styles: insert last in the Styles DSL
+	var insertOffset int
+	switch kind {
+	case PersonKind, SoftwareSystemKind, ContainerKind, ComponentKind:
+		n, _ := findDSL(file, ViewsKind, "")
+		if n != nil {
+			insertOffset = fset.File(file.Pos()).Offset(n.Pos()) - 2 // -2 to account for `})`
+		} else {
+			insertOffset = fset.File(file.Pos()).Offset(design.End()) - 2
+		}
+	case LandscapeViewKind, SystemContextViewKind, ContainerViewKind, ComponentViewKind:
+		n, _ := findDSL(file, ViewsKind, "")
+		if n != nil {
+			insertOffset = fset.File(file.Pos()).Offset(n.Pos()) - 2 // -2 to account for `})`
+		} else {
+			insertOffset = fset.File(file.Pos()).Offset(design.End()) - 2
+			code = concat("Views(func() {", code, "})")
+		}
+	case ElementStyleKind, RelationshipStyleKind:
+		n, _ := findDSL(file, "Styles", "")
+		if n != nil {
+			insertOffset = fset.File(file.Pos()).Offset(n.End()) - 2 // -2 to account for `})`
+		} else {
+			vn, _ := findDSL(file, ViewsKind, "")
+			if vn != nil {
+				insertOffset = fset.File(file.Pos()).Offset(vn.Pos()) - 2
+				code = concat("Styles(func() {", code, "})")
+			} else {
+				insertOffset = fset.File(file.Pos()).Offset(design.End()) - 2
+				code = concat("Views(func() {", "Styles(func() {", code, "})", "})")
+			}
+		}
+	default:
+		return nil, fmt.Errorf("invalid element kind %s", kind)
+	}
+
+	newContent := concat(src[:insertOffset], code, src[insertOffset:])
 	return setContent(modelFile, res, newContent)
 }
 
@@ -158,34 +206,29 @@ func (e *Editor) UpsertCode(code string, kind ElementKind, path string, args ...
 // the source element, e.g. "Person1" or
 // "SoftwareSystem1/Container1/Component1". The destinationPath is the path to
 // the destination element.
-func (e *Editor) UpsertRelationship(sourcePath, destinationPath, code string) (*gentypes.PackageFile, error) {
+func (e *Editor) UpsertRelationship(sourceKind ElementKind, sourcePath, destinationPath, code string) (*gentypes.PackageFile, error) {
 	res, parsed, fset, err := e.parseDir()
 	if err != nil {
 		return nil, err
 	}
-	var sourceNode, destinationNode ast.Node
+	var sourceNode ast.Node
 	var sourceFile *ast.File
 	var existingRel ast.Node
 	for _, file := range parsed.Files {
 		if sourceNode == nil {
-			sourceNode = findElement(file, sourcePath)
+			fmt.Println("findDSL", sourceKind, sourcePath)
+			sourceNode, _ = findDSL(file, sourceKind, sourcePath)
 			if sourceNode != nil {
 				sourceFile = file
 				existingRel = findRelationship(sourceNode, destinationPath)
 			}
 		}
-		if destinationNode == nil {
-			destinationNode = findElement(file, destinationPath)
-		}
-		if sourceNode != nil && destinationNode != nil {
+		if sourceNode != nil {
 			break
 		}
 	}
 	if sourceNode == nil {
 		return nil, fmt.Errorf("failed to find source element %s", sourcePath)
-	}
-	if destinationNode == nil {
-		return nil, fmt.Errorf("failed to find destination element %s", destinationPath)
 	}
 
 	srcFilename := fset.File(sourceNode.Pos()).Name()
@@ -225,131 +268,39 @@ func (e *Editor) UpsertRelationship(sourcePath, destinationPath, code string) (*
 	return setContent(srcFilename, res, newContent)
 }
 
-// UpsertElementByID updates the code for the view, element style or
-// relationship style with the given kind and identified with the given ID if
-// there's a match otherwise it adds new DSL.  The ID corresponds to the first
-// argument of the DSL function, e.g. the ID of a view is the key.
-func (e *Editor) UpsertElementByID(kind ElementKind, id, code string) (*gentypes.PackageFile, error) {
-	res, parsed, fset, err := e.parseDir()
-	if err != nil {
-		return nil, err
-	}
-	var node ast.Node
-	var file *ast.File
-	for _, f := range parsed.Files {
-		node, _, _ = findDSL(file, kind, id)
-		if node != nil {
-			file = f
-			break
-		}
-	}
-	if node != nil {
-		// Found the element, so replace it.
-		srcFilename := fset.File(node.Pos()).Name()
-		srcBytes, err := os.ReadFile(srcFilename)
-		if err != nil {
-			return nil, fmt.Errorf("failed to read DSL file %s: %w", srcFilename, err)
-		}
-		src := string(srcBytes)
-		res.Locator.Filename = filepath.Base(srcFilename)
-		tokFile := fset.File(file.Pos())
-
-		newContent := concat(
-			src[:tokFile.Offset(node.Pos())],
-			code,
-			src[tokFile.Offset(node.End()):],
-		)
-		return setContent(srcFilename, res, newContent)
-	}
-	// We didn't find the element, so add it
-	modelFile := filepath.Join(e.repo, e.dir, DefaultModelFilename)
-	res.Locator.Filename = DefaultModelFilename
-	if _, err := os.Stat(modelFile); err != nil {
-		if !errors.Is(err, os.ErrNotExist) {
-			return nil, fmt.Errorf("failed to stat DSL file %s: %w", modelFile, err)
-		}
-		return setContent(modelFile, res, newDesign(code))
-	}
-	// Where to insert the code depends on the kind:
-	//  - Views: insert last in the Views DSL
-	//  - Styles: insert last in the Styles DSL
-	var insertOffset int
-	switch kind {
-	case LandscapeViewKind, SystemContextViewKind, ContainerViewKind, ComponentViewKind:
-		n, _, _ := findDSL(file, ViewsKind, "")
-		if n != nil {
-			insertOffset = fset.File(file.Pos()).Offset(n.Pos()) - 2 // -2 to account for `})`
-		} else {
-			dn, _, _ := findDSL(file, DesignKind, "")
-			if dn == nil {
-				return nil, fmt.Errorf("failed to find Design() call in DSL file %s", modelFile)
-			}
-			insertOffset = fset.File(file.Pos()).Offset(dn.End()) - 2
-			code = concat("Views(func() {", code, "})")
-		}
-	case ElementStyleKind, RelationshipStyleKind:
-		n, _, _ := findDSL(file, "Styles", "")
-		if n != nil {
-			insertOffset = fset.File(file.Pos()).Offset(n.End()) - 2 // -2 to account for `})`
-		} else {
-			vn, _, _ := findDSL(file, ViewsKind, "")
-			if vn != nil {
-				insertOffset = fset.File(file.Pos()).Offset(vn.Pos()) - 2
-				code = concat("Styles(func() {", code, "})")
-			} else {
-				dn, _, _ := findDSL(file, DesignKind, "")
-				if dn == nil {
-					return nil, fmt.Errorf("failed to find Design() call in DSL file %s", modelFile)
-				}
-				insertOffset = fset.File(file.Pos()).Offset(dn.End()) - 2
-				code = concat("Views(func() {", "Styles(func() {", code, "})", "})")
-			}
-		}
-	default:
-		return nil, fmt.Errorf("invalid element kind %s", kind)
-	}
-	data, err := os.ReadFile(modelFile)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read DSL file %s: %w", modelFile, err)
-	}
-	content := string(data)
-	newContent := concat(content[:insertOffset], code, content[insertOffset:])
-	return setContent(modelFile, res, newContent)
-}
-
 // DeleteElement deletes the element with the given kind and path. The
 // elementPath is the path to the element in the DSL file, e.g. "Person1" or
 // "SoftwareSystem1/Container1/Component1".
-func (e *Editor) DeleteElement(kind ElementKind, elementPath string) (*gentypes.PackageFile, error) {
+func (e *Editor) DeleteElement(kind ElementKind, path string) (*gentypes.PackageFile, error) {
 	res, parsed, fset, err := e.parseDir()
 	if err != nil {
 		return nil, err
 	}
 	for _, file := range parsed.Files {
-		tokFile := fset.File(file.Pos())
-		filename := tokFile.Name()
-		res.Locator.Filename = filepath.Base(filename)
-		srcBytes, err := os.ReadFile(filename)
-		if err != nil {
-			return nil, fmt.Errorf("failed to read DSL file %s: %w", tokFile.Name(), err)
-		}
-		src := string(srcBytes)
-		elemNode, pos, end := findDSL(file, kind, elementPath)
-		if elemNode != nil {
+		node, _ := findDSL(file, kind, path)
+		if node != nil {
 			// Found the element, so delete it.
+			tokFile := fset.File(file.Pos())
+			filename := tokFile.Name()
+			res.Locator.Filename = filepath.Base(filename)
+			srcBytes, err := os.ReadFile(filename)
+			if err != nil {
+				return nil, fmt.Errorf("failed to read DSL file %s: %w", tokFile.Name(), err)
+			}
+			src := string(srcBytes)
 			newContent := concat(
-				src[:tokFile.Offset(pos)],
-				src[tokFile.Offset(end):],
+				src[:tokFile.Offset(node.Pos())],
+				src[tokFile.Offset(node.End()):],
 			)
 			return setContent(filename, res, newContent)
 		}
 	}
-	return res, nil
+	return nil, fmt.Errorf("failed to find %s %s", kind, path)
 }
 
 // DeleteRelationship deletes the relationship between the given source and
 // destination elements.
-func (e *Editor) DeleteRelationship(sourcePath, destinationPath string) (*gentypes.PackageFile, error) {
+func (e *Editor) DeleteRelationship(sourceKind ElementKind, sourcePath, destinationPath string) (*gentypes.PackageFile, error) {
 	res, parsed, fset, err := e.parseDir()
 	if err != nil {
 		return nil, err
@@ -358,7 +309,7 @@ func (e *Editor) DeleteRelationship(sourcePath, destinationPath string) (*gentyp
 	var sourceFile *ast.File
 	var existingRel ast.Node
 	for _, file := range parsed.Files {
-		sourceNode = findElement(file, sourcePath)
+		sourceNode, _ = findDSL(file, sourceKind, sourcePath)
 		if sourceNode != nil {
 			sourceFile = file
 			existingRel = findRelationship(sourceNode, destinationPath)
@@ -368,6 +319,7 @@ func (e *Editor) DeleteRelationship(sourcePath, destinationPath string) (*gentyp
 	if existingRel == nil {
 		return nil, fmt.Errorf("failed to find relationship between %s and %s", sourcePath, destinationPath)
 	}
+
 	srcFilename := fset.File(sourceNode.Pos()).Name()
 	srcBytes, err := os.ReadFile(srcFilename)
 	if err != nil {
@@ -382,6 +334,84 @@ func (e *Editor) DeleteRelationship(sourcePath, destinationPath string) (*gentyp
 		src[tokFile.Offset(existingRel.End()):],
 	)
 	return setContent(srcFilename, res, newContent)
+}
+
+// findDSL searches the AST for a CallExpr node representing a DSL with the
+// specified kind, path, and arguments.  If the desired DSL node is found, it
+// returns the node alongside its parent (a function containing an anonymous
+// function argument that calls the found node).  If only the parent DSL
+// function is located without the actual DSL node, it returns (nil,
+// parentNode).
+func findDSL(file *ast.File, kind ElementKind, path string, args ...string) (node, parent ast.Node) {
+	var stack []string
+	lookupKind := kind
+	lookupArgs := args
+	if path != "" {
+		stack = strings.Split(path, "/")
+		if len(stack) > 1 {
+			lookupKind = SoftwareSystemKind
+			if len(stack) == 2 {
+				if kind == ComponentKind {
+					lookupKind = ContainerKind
+				}
+			}
+		}
+		lookupArgs = append([]string{stack[0]}, args...)
+	}
+	ast.Inspect(file, func(n ast.Node) bool {
+		if node != nil {
+			return false
+		}
+		if checkNode(n, lookupKind, lookupArgs...) {
+			if len(stack) <= 1 {
+				node = n
+			} else {
+				parent = n
+				stack = stack[1:]
+				lookupArgs = append([]string{stack[0]}, args...)
+				if len(stack) == 2 {
+					lookupKind = ContainerKind
+				} else {
+					lookupKind = kind
+				}
+			}
+		}
+		return node == nil
+	})
+	return
+}
+
+// checkNode checks if the given node is a CallExpr with the specified
+// ElementKind and arguments.  It returns true if the node matches the criteria,
+// false otherwise. Only non nil and non-empty arguments are matched.
+func checkNode(node ast.Node, kind ElementKind, args ...string) bool {
+	callExpr, ok := node.(*ast.CallExpr)
+	if !ok {
+		return false
+	}
+	ident, ok := callExpr.Fun.(*ast.Ident)
+	if !ok {
+		return false
+	}
+	if ident.Name != string(kind) {
+		return false
+	}
+	if len(callExpr.Args) < len(args) {
+		return false
+	}
+	for i, arg := range args {
+		if arg == "" {
+			continue
+		}
+		val, ok := callExpr.Args[i].(*ast.BasicLit)
+		if !ok {
+			return false
+		}
+		if fmt.Sprintf("%q", arg) != val.Value {
+			return false
+		}
+	}
+	return true
 }
 
 // parseDir parses the DSL in the editor directory and returns the parsed AST.
@@ -544,27 +574,6 @@ func isInside(target, start, end token.Pos) bool {
 	return target >= start && target <= end
 }
 
-// findElement looks for a software system, container or component with the
-// given path.
-func findElement(file *ast.File, path string) ast.Node {
-	stack := strings.Split(path, "/")
-	var elemKind ElementKind
-	switch len(stack) {
-	case 1:
-		elemKind = SoftwareSystemKind
-	case 2:
-		elemKind = ContainerKind
-	case 3:
-		elemKind = ComponentKind
-	}
-	n, _, _ := findDSL(file, elemKind, path)
-	if n == nil && elemKind == SoftwareSystemKind {
-		// Try person
-		n, _, _ = findDSL(file, PersonKind, path)
-	}
-	return n
-}
-
 // setContent replaces the content of the DSL file with newContent and returns
 // the updated file. It first formats the new content using the Go formatter.
 func setContent(filename string, res *gentypes.PackageFile, newContent string) (*gentypes.PackageFile, error) {
@@ -578,123 +587,6 @@ func setContent(filename string, res *gentypes.PackageFile, newContent string) (
 	res.Content = string(contentBytes)
 	return res, nil
 }
-
-// findDSL searches the AST for a CallExpr node representing a DSL with the
-// specified kind, path, and arguments.  If the desired DSL node is found, it
-// returns the node alongside its parent (a function containing an anonymous
-// function argument that calls the found node).  If only the parent DSL
-// function is located without the actual DSL node, it returns (nil,
-// parentNode).
-func findDSL(file *ast.File, kind ElementKind, path string, args ...string) (node, parent ast.Node) {
-	var stack []string
-	if path != "" {
-		stack = strings.Split(path, "/")
-		args = append([]string{stack[0]}, args...)
-	}
-	ast.Inspect(file, func(n ast.Node) bool {
-		if node != nil {
-			return false
-		}
-		if checkNode(n, kind, args...) {
-			if len(stack) == 0 {
-				node = n
-			} else {
-				parent = n
-				stack = stack[1:]
-			}
-		}
-		return node == nil
-	})
-	return
-}
-
-// checkNode checks if node is a call expression with a name that
-// matches the first element of pathStack and arguments that match args in order
-// (note: not all the call expression arguments need to match, just the first n
-// where n is the size of args). If so there are two cases:
-//
-//  1. The function matches and pathStack has no or one element: return true and
-//     an empty pathStack.
-//  2. The function matches SoftwareSystemKind or ContainerKind and the
-//     pathStack has more than one element: return true and the remaining
-//     pathStack so the caller can recurse.
-func checkNode(node ast.Node, kind ElementKind, args ...string) bool {
-	callExpr, ok := node.(*ast.CallExpr)
-	if !ok {
-		return false
-	}
-	ident, ok := callExpr.Fun.(*ast.Ident)
-	if !ok {
-		return false
-	}
-	if ident.Name != string(kind) {
-		return false
-	}
-	if len(callExpr.Args) < len(args) {
-		return false
-	}
-	for i, arg := range args {
-		val, ok := callExpr.Args[i].(*ast.BasicLit)
-		if !ok {
-			return false
-		}
-		if fmt.Sprintf("%q", arg) != val.Value {
-			return false
-		}
-	}
-	return true
-}
-
-// if len(pathStack) == 0 {
-// 	if ident, ok := callExpr.Fun.(*ast.Ident); ok {
-// 		if ident.Name == string(kind) {
-// 			return callExpr.Pos(), callExpr.End(), nil, false
-// 		}
-// 	}
-// 	return
-// }
-// if len(callExpr.Args) == 0 {
-// 	return
-// }
-// arg, ok := callExpr.Args[0].(*ast.BasicLit)
-// if !ok {
-// 	return
-// }
-// if arg.Value != fmt.Sprintf("%q", pathStack[0]) {
-// 	return
-// }
-// switch len(pathStack) {
-// case 1:
-// 	if ident, ok := callExpr.Fun.(*ast.Ident); ok {
-// 		if len(callExpr.Args) < len(args) {
-// 			return
-// 		}
-// 		for i, arg := range args {
-// 			if fmt.Sprintf("%q", arg) != callExpr.Args[i].(*ast.BasicLit).Value {
-// 				return
-// 			}
-// 		}
-// 		if ident.Name == string(kind) {
-// 			return callExpr.Pos(), callExpr.End(), nil, false
-// 		}
-// 	}
-// case 2:
-// 	// We must be in a system or a container for a match
-// 	if ident, ok := callExpr.Fun.(*ast.Ident); ok {
-// 		if ident.Name == string(SoftwareSystemKind) && kind == ContainerKind || ident.Name == string(ContainerKind) && kind == ComponentKind {
-// 			return callExpr.Pos(), callExpr.End(), pathStack[1:], true
-// 		}
-// 	}
-// case 3:
-// 	// We must be in a system for a match
-// 	if ident, ok := callExpr.Fun.(*ast.Ident); ok {
-// 		if ident.Name == string(SoftwareSystemKind) {
-// 			return callExpr.Pos(), callExpr.End(), pathStack[1:], true
-// 		}
-// 	}
-// }
-// return
-// }
 
 // newDesign returns the DSL code for a new design with the given code.
 func newDesign(code string) string {
