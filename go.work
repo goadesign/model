@@ -2,6 +2,6 @@ go 1.21.3
 
 use (
 	.
-	./svc/clients/repo/testdata/parent
 	./svc/clients/repo/testdata/model
+	./svc/clients/repo/testdata/parent
 )
