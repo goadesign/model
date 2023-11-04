@@ -6,7 +6,6 @@ import (
 )
 
 func TestContainerEvalName(t *testing.T) {
-	t.Parallel()
 	tests := []struct {
 		name, want string
 	}{
@@ -36,7 +35,7 @@ func TestContainerFinalize(t *testing.T) {
 			Name: "foo",
 		},
 	}
-	tests := []struct {
+	seq := []struct {
 		pre  func()
 		want string
 	}{
@@ -44,10 +43,9 @@ func TestContainerFinalize(t *testing.T) {
 		{pre: func() { container.Tags = "foo" }, want: "foo"},
 		{pre: func() { container.Finalize() }, want: "Element,Container,foo"},
 	}
-	for i, tt := range tests {
+	for i, tt := range seq {
 		tt := tt
 		t.Run(fmt.Sprint(i), func(t *testing.T) {
-			t.Parallel()
 			if tt.pre != nil {
 				tt.pre()
 			}
@@ -71,7 +69,6 @@ func TestContainersElements(t *testing.T) {
 }
 
 func TestContainerComponent(t *testing.T) {
-	t.Parallel()
 	container := Container{
 		Components: Components{
 			{Element: &Element{Name: "foo"}},
@@ -128,7 +125,7 @@ func TestAddComponent(t *testing.T) {
 		}},
 	}
 
-	tests := []struct {
+	seq := []struct {
 		name          string
 		component2Add *Component
 		want          *Component
@@ -137,8 +134,7 @@ func TestAddComponent(t *testing.T) {
 		{name: "bar", component2Add: &componentBar, want: &componentBar}, // now appended
 		{name: "foo", component2Add: &componentFooPlus, want: &componentFoo},
 	}
-	for i, tt := range tests {
-		t.Parallel()
+	for i, tt := range seq {
 		tt := tt
 		t.Run(fmt.Sprint(i), func(t *testing.T) {
 			got := OuterContainer.AddComponent(tt.component2Add)
