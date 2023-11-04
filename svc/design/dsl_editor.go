@@ -130,6 +130,11 @@ var _ = Service("DSLEditor", func() {
 		Error("NotFound", ErrorResult, "Software system not found")
 		HTTP(func() {
 			DELETE("/model/system/{SystemName}")
+			Params(func() {
+				Param("Repository:repo")
+				Param("Dir:dir")
+				Required("Repository", "Dir")
+			})
 			Response(StatusOK)
 			Response("NotFound", StatusNotFound)
 		})
@@ -145,6 +150,11 @@ var _ = Service("DSLEditor", func() {
 		Error("NotFound", ErrorResult, "Person not found")
 		HTTP(func() {
 			DELETE("/model/person/{PersonName}")
+			Params(func() {
+				Param("Repository:repo")
+				Param("Dir:dir")
+				Required("Repository", "Dir")
+			})
 			Response(StatusOK)
 			Response("NotFound", StatusNotFound)
 		})
@@ -161,6 +171,11 @@ var _ = Service("DSLEditor", func() {
 		Error("NotFound", ErrorResult, "Container not found")
 		HTTP(func() {
 			DELETE("/model/system/{SystemName}/container/{ContainerName}")
+			Params(func() {
+				Param("Repository:repo")
+				Param("Dir:dir")
+				Required("Repository", "Dir")
+			})
 			Response(StatusOK)
 			Response("NotFound", StatusNotFound)
 		})
@@ -184,6 +199,11 @@ var _ = Service("DSLEditor", func() {
 		Error("NotFound", ErrorResult, "Component not found")
 		HTTP(func() {
 			DELETE("/model/system/{SystemName}/container/{ContainerName}/component/{ComponentName}")
+			Params(func() {
+				Param("Repository:repo")
+				Param("Dir:dir")
+				Required("Repository", "Dir")
+			})
 			Response(StatusOK)
 			Response("NotFound", StatusNotFound)
 		})
@@ -222,7 +242,13 @@ var _ = Service("DSLEditor", func() {
 		Result(PackageFile)
 		Error("NotFound", ErrorResult, "Relationship not found")
 		HTTP(func() {
-			DELETE("/model/relationship")
+			DELETE("/model/relationship/{SourceKind}/{SourcePath}")
+			Params(func() {
+				Param("Repository:repo")
+				Param("Dir:dir")
+				Param("DestinationPath:path")
+				Required("Repository", "Dir", "DestinationPath")
+			})
 			Response(StatusOK)
 			Response("NotFound", StatusNotFound)
 		})
@@ -238,6 +264,11 @@ var _ = Service("DSLEditor", func() {
 		Error("NotFound", ErrorResult, "Landscape view not found")
 		HTTP(func() {
 			DELETE("/views/landscape/{Key}")
+			Params(func() {
+				Param("Repository:repo")
+				Param("Dir:dir")
+				Required("Repository", "Dir")
+			})
 			Response(StatusOK)
 			Response("NotFound", StatusNotFound)
 		})
@@ -253,6 +284,11 @@ var _ = Service("DSLEditor", func() {
 		Error("NotFound", ErrorResult, "System context view not found")
 		HTTP(func() {
 			DELETE("/views/systemcontext/{Key}")
+			Params(func() {
+				Param("Repository:repo")
+				Param("Dir:dir")
+				Required("Repository", "Dir")
+			})
 			Response(StatusOK)
 			Response("NotFound", StatusNotFound)
 		})
@@ -268,6 +304,11 @@ var _ = Service("DSLEditor", func() {
 		Error("NotFound", ErrorResult, "Container view not found")
 		HTTP(func() {
 			DELETE("/views/container/{Key}")
+			Params(func() {
+				Param("Repository:repo")
+				Param("Dir:dir")
+				Required("Repository", "Dir")
+			})
 			Response(StatusOK)
 			Response("NotFound", StatusNotFound)
 		})
@@ -283,6 +324,11 @@ var _ = Service("DSLEditor", func() {
 		Error("NotFound", ErrorResult, "Component view not found")
 		HTTP(func() {
 			DELETE("/views/component/{Key}")
+			Params(func() {
+				Param("Repository:repo")
+				Param("Dir:dir")
+				Required("Repository", "Dir")
+			})
 			Response(StatusOK)
 			Response("NotFound", StatusNotFound)
 		})
@@ -298,6 +344,11 @@ var _ = Service("DSLEditor", func() {
 		Error("NotFound", ErrorResult, "Element style not found")
 		HTTP(func() {
 			DELETE("/views/elementstyle/{Tag}")
+			Params(func() {
+				Param("Repository:repo")
+				Param("Dir:dir")
+				Required("Repository", "Dir")
+			})
 			Response(StatusOK)
 			Response("NotFound", StatusNotFound)
 		})
@@ -313,6 +364,11 @@ var _ = Service("DSLEditor", func() {
 		Error("NotFound", ErrorResult, "Relationship style not found")
 		HTTP(func() {
 			DELETE("/views/relationshipstyle/{Tag}")
+			Params(func() {
+				Param("Repository:repo")
+				Param("Dir:dir")
+				Required("Repository", "Dir")
+			})
 			Response(StatusOK)
 			Response("NotFound", StatusNotFound)
 		})

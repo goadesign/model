@@ -1,10 +1,10 @@
 openapi: 3.0.3
 info:
-    title: Goa API
+    title: Model
+    description: Model is a service for managing software models using diagram as code.
     version: "1.0"
 servers:
-    - url: http://localhost:80
-      description: Default server for Assets
+    - url: http://localhost:8080
 paths:
     /api/diagrams:
         get:
@@ -54,9 +54,9 @@ paths:
                         application/json:
                             schema:
                                 type: string
-                                example: <svg��</svg>
+                                example: <svg���</svg>
                                 pattern: <svg.*</svg>$
-                            example: <svg������</svg>
+                            example: <svg�</svg>
                 "404":
                     description: 'NotFound: File not found'
                     content:
@@ -79,7 +79,7 @@ paths:
                             Dir: services/my-service/diagram
                             Filename: model.go
                             Repository: my-repo
-                            SVG: <svg������</svg>
+                            SVG: <svg���</svg>
             responses:
                 "204":
                     description: No Content response.
@@ -283,6 +283,28 @@ paths:
             description: Delete an existing person from the model
             operationId: DSLEditor#DeletePerson
             parameters:
+                - name: repo
+                  in: query
+                  description: Path to repository root
+                  allowEmptyValue: true
+                  required: true
+                  schema:
+                    type: string
+                    description: Path to repository root
+                    example: my-repo
+                    minLength: 1
+                  example: my-repo
+                - name: dir
+                  in: query
+                  description: Path to directory containing a model package
+                  allowEmptyValue: true
+                  required: true
+                  schema:
+                    type: string
+                    description: Path to directory containing a model package
+                    example: services/my-service/diagram
+                    minLength: 1
+                  example: services/my-service/diagram
                 - name: PersonName
                   in: path
                   description: Name of person to delete
@@ -290,17 +312,8 @@ paths:
                   schema:
                     type: string
                     description: Name of person to delete
-                    example: A vel tempore adipisci ex fugit reiciendis.
-                  example: Eius laudantium esse.
-            requestBody:
-                required: true
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/DeleteSystemRequestBody'
-                        example:
-                            Dir: services/my-service/diagram
-                            Repository: my-repo
+                    example: Sint consequuntur.
+                  example: Labore voluptas assumenda.
             responses:
                 "200":
                     description: OK response.
@@ -332,54 +345,6 @@ paths:
                             schema:
                                 $ref: '#/components/schemas/Error'
     /api/dsl/model/relationship:
-        delete:
-            tags:
-                - DSLEditor
-            summary: DeleteRelationship DSLEditor
-            description: Delete an existing relationship from the model
-            operationId: DSLEditor#DeleteRelationship
-            requestBody:
-                required: true
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/DeleteRelationshipRequestBody'
-                        example:
-                            DestinationPath: Software System/Container/Component
-                            Dir: services/my-service/diagram
-                            Repository: my-repo
-                            SourceKind: Container
-                            SourcePath: Software System/Container/Component
-            responses:
-                "200":
-                    description: OK response.
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/UpdateDSLRequestBody'
-                            example:
-                                Content: |-
-                                    package model
-
-                                    import . "goa.design/model/dsl"
-
-                                    var _ = Design(func() {})
-                                Locator:
-                                    Dir: services/my-service/diagram
-                                    Filename: model.go
-                                    Repository: my-repo
-                "400":
-                    description: 'compilation_failed: Compilation failed'
-                    content:
-                        application/vnd.goa.error:
-                            schema:
-                                $ref: '#/components/schemas/Error'
-                "404":
-                    description: 'NotFound: Relationship not found'
-                    content:
-                        application/vnd.goa.error:
-                            schema:
-                                $ref: '#/components/schemas/Error'
         put:
             tags:
                 - DSLEditor
@@ -394,14 +359,14 @@ paths:
                             $ref: '#/components/schemas/UpsertRelationshipRequestBody'
                         example:
                             Description: Relationship description
-                            DestinationKind: Component
+                            DestinationKind: SoftwareSystem
                             DestinationPath: Component
                             InteractionStyle: Synchronous
                             Locator:
                                 Dir: services/my-service/diagram
                                 Filename: model.go
                                 Repository: my-repo
-                            SourceKind: SoftwareSystem
+                            SourceKind: Component
                             SourcePath: Software System/Container/Component
                             Tags:
                                 - Tag1
@@ -428,6 +393,117 @@ paths:
                                     Repository: my-repo
                 "400":
                     description: 'compilation_failed: Compilation failed'
+                    content:
+                        application/vnd.goa.error:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+    /api/dsl/model/relationship/{SourceKind}/{SourcePath}:
+        delete:
+            tags:
+                - DSLEditor
+            summary: DeleteRelationship DSLEditor
+            description: Delete an existing relationship from the model
+            operationId: DSLEditor#DeleteRelationship
+            parameters:
+                - name: repo
+                  in: query
+                  description: Path to repository root
+                  allowEmptyValue: true
+                  required: true
+                  schema:
+                    type: string
+                    description: Path to repository root
+                    example: my-repo
+                    minLength: 1
+                  example: my-repo
+                - name: dir
+                  in: query
+                  description: Path to directory containing a model package
+                  allowEmptyValue: true
+                  required: true
+                  schema:
+                    type: string
+                    description: Path to directory containing a model package
+                    example: services/my-service/diagram
+                    minLength: 1
+                  example: services/my-service/diagram
+                - name: path
+                  in: query
+                  description: Path to destination element, see SourcePath for details.
+                  allowEmptyValue: true
+                  required: true
+                  schema:
+                    type: string
+                    description: Path to destination element, see SourcePath for details.
+                    example: Software System/Container/Component
+                  examples:
+                    Component:
+                        summary: Component
+                        value: Software System/Container/Component
+                    Container:
+                        summary: Container
+                        value: Software System/Container
+                    Software System:
+                        summary: Software System
+                        value: Software System
+                - name: SourceKind
+                  in: path
+                  description: Kind of source element
+                  required: true
+                  schema:
+                    type: string
+                    description: Kind of source element
+                    example: SoftwareSystem
+                    enum:
+                        - SoftwareSystem
+                        - Person
+                        - Container
+                        - Component
+                  example: SoftwareSystem
+                - name: SourcePath
+                  in: path
+                  description: Path to source element consisting of <software system name>[/<container name>[/<component name>]]
+                  required: true
+                  schema:
+                    type: string
+                    description: Path to source element consisting of <software system name>[/<container name>[/<component name>]]
+                    example: Software System/Container/Component
+                  examples:
+                    Component:
+                        summary: Component
+                        value: Software System/Container/Component
+                    Container:
+                        summary: Container
+                        value: Software System/Container
+                    Software System:
+                        summary: Software System
+                        value: Software System
+            responses:
+                "200":
+                    description: OK response.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UpdateDSLRequestBody'
+                            example:
+                                Content: |-
+                                    package model
+
+                                    import . "goa.design/model/dsl"
+
+                                    var _ = Design(func() {})
+                                Locator:
+                                    Dir: services/my-service/diagram
+                                    Filename: model.go
+                                    Repository: my-repo
+                "400":
+                    description: 'compilation_failed: Compilation failed'
+                    content:
+                        application/vnd.goa.error:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                "404":
+                    description: 'NotFound: Relationship not found'
                     content:
                         application/vnd.goa.error:
                             schema:
@@ -492,6 +568,28 @@ paths:
             description: Delete an existing software system from the model
             operationId: DSLEditor#DeleteSystem
             parameters:
+                - name: repo
+                  in: query
+                  description: Path to repository root
+                  allowEmptyValue: true
+                  required: true
+                  schema:
+                    type: string
+                    description: Path to repository root
+                    example: my-repo
+                    minLength: 1
+                  example: my-repo
+                - name: dir
+                  in: query
+                  description: Path to directory containing a model package
+                  allowEmptyValue: true
+                  required: true
+                  schema:
+                    type: string
+                    description: Path to directory containing a model package
+                    example: services/my-service/diagram
+                    minLength: 1
+                  example: services/my-service/diagram
                 - name: SystemName
                   in: path
                   description: Name of software system to delete
@@ -499,17 +597,8 @@ paths:
                   schema:
                     type: string
                     description: Name of software system to delete
-                    example: Quisquam distinctio autem harum.
-                  example: Nesciunt aut et laudantium.
-            requestBody:
-                required: true
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/DeleteSystemRequestBody'
-                        example:
-                            Dir: services/my-service/diagram
-                            Repository: my-repo
+                    example: Vel sit quibusdam ex perferendis veritatis.
+                  example: Earum eos perspiciatis eius eius laboriosam.
             responses:
                 "200":
                     description: OK response.
@@ -548,6 +637,28 @@ paths:
             description: Delete an existing container from the model
             operationId: DSLEditor#DeleteContainer
             parameters:
+                - name: repo
+                  in: query
+                  description: Path to repository root
+                  allowEmptyValue: true
+                  required: true
+                  schema:
+                    type: string
+                    description: Path to repository root
+                    example: my-repo
+                    minLength: 1
+                  example: my-repo
+                - name: dir
+                  in: query
+                  description: Path to directory containing a model package
+                  allowEmptyValue: true
+                  required: true
+                  schema:
+                    type: string
+                    description: Path to directory containing a model package
+                    example: services/my-service/diagram
+                    minLength: 1
+                  example: services/my-service/diagram
                 - name: SystemName
                   in: path
                   description: Name of container software system
@@ -555,8 +666,8 @@ paths:
                   schema:
                     type: string
                     description: Name of container software system
-                    example: Aspernatur fugit.
-                  example: Hic laboriosam id sunt enim sit.
+                    example: Deserunt rem aut.
+                  example: Aliquam hic.
                 - name: ContainerName
                   in: path
                   description: Name of container to delete
@@ -564,17 +675,8 @@ paths:
                   schema:
                     type: string
                     description: Name of container to delete
-                    example: Cum eligendi voluptatum incidunt quos sunt.
-                  example: Aut et excepturi.
-            requestBody:
-                required: true
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/DeleteSystemRequestBody'
-                        example:
-                            Dir: services/my-service/diagram
-                            Repository: my-repo
+                    example: Aut totam adipisci quasi deleniti nulla.
+                  example: Ea eos asperiores repellat assumenda et reiciendis.
             responses:
                 "200":
                     description: OK response.
@@ -613,6 +715,28 @@ paths:
             description: Delete an existing component from the model
             operationId: DSLEditor#DeleteComponent
             parameters:
+                - name: repo
+                  in: query
+                  description: Path to repository root
+                  allowEmptyValue: true
+                  required: true
+                  schema:
+                    type: string
+                    description: Path to repository root
+                    example: my-repo
+                    minLength: 1
+                  example: my-repo
+                - name: dir
+                  in: query
+                  description: Path to directory containing a model package
+                  allowEmptyValue: true
+                  required: true
+                  schema:
+                    type: string
+                    description: Path to directory containing a model package
+                    example: services/my-service/diagram
+                    minLength: 1
+                  example: services/my-service/diagram
                 - name: SystemName
                   in: path
                   description: Name of component software system
@@ -640,15 +764,6 @@ paths:
                     description: Name of component to delete
                     example: My Component
                   example: My Component
-            requestBody:
-                required: true
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/DeleteSystemRequestBody'
-                        example:
-                            Dir: services/my-service/diagram
-                            Repository: my-repo
             responses:
                 "200":
                     description: OK response.
@@ -693,11 +808,10 @@ paths:
                         schema:
                             $ref: '#/components/schemas/UpsertComponentViewRequestBody'
                         example:
-                            ContainerBoundaryVisible: true
+                            ContainerBoundaryVisible: false
                             ContainerName: Container
                             Description: description
                             ElementViews:
-                                - Element: Software System/Container/Component
                                 - Element: Software System/Container/Component
                                 - Element: Software System/Container/Component
                             Key: key
@@ -705,7 +819,7 @@ paths:
                                 Dir: services/my-service/diagram
                                 Filename: model.go
                                 Repository: my-repo
-                            PaperSize: A1_Portrait
+                            PaperSize: A0_Landscape
                             RelationshipViews:
                                 - Destination: Software System/Container/Component
                                   Source: Software System/Container/Component
@@ -747,6 +861,28 @@ paths:
             description: Delete an existing component view from the model
             operationId: DSLEditor#DeleteComponentView
             parameters:
+                - name: repo
+                  in: query
+                  description: Path to repository root
+                  allowEmptyValue: true
+                  required: true
+                  schema:
+                    type: string
+                    description: Path to repository root
+                    example: my-repo
+                    minLength: 1
+                  example: my-repo
+                - name: dir
+                  in: query
+                  description: Path to directory containing a model package
+                  allowEmptyValue: true
+                  required: true
+                  schema:
+                    type: string
+                    description: Path to directory containing a model package
+                    example: services/my-service/diagram
+                    minLength: 1
+                  example: services/my-service/diagram
                 - name: Key
                   in: path
                   description: Key of component view to delete
@@ -754,17 +890,8 @@ paths:
                   schema:
                     type: string
                     description: Key of component view to delete
-                    example: Tempora quibusdam cumque amet similique deleniti aspernatur.
-                  example: Totam voluptates sit.
-            requestBody:
-                required: true
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/DeleteSystemRequestBody'
-                        example:
-                            Dir: services/my-service/diagram
-                            Repository: my-repo
+                    example: Asperiores facilis enim quia vel sint.
+                  example: Sunt placeat quo hic quia amet.
             responses:
                 "200":
                     description: OK response.
@@ -814,13 +941,12 @@ paths:
                                 - Element: Software System/Container/Component
                                 - Element: Software System/Container/Component
                                 - Element: Software System/Container/Component
-                                - Element: Software System/Container/Component
                             Key: key
                             Locator:
                                 Dir: services/my-service/diagram
                                 Filename: model.go
                                 Repository: my-repo
-                            PaperSize: A3_Portrait
+                            PaperSize: A6_Landscape
                             RelationshipViews:
                                 - Destination: Software System/Container/Component
                                   Source: Software System/Container/Component
@@ -829,7 +955,7 @@ paths:
                                 - Destination: Software System/Container/Component
                                   Source: Software System/Container/Component
                             SoftwareSystemName: Software System
-                            SystemBoundariesVisible: false
+                            SystemBoundariesVisible: true
                             Title: title
             responses:
                 "200":
@@ -863,6 +989,28 @@ paths:
             description: Delete an existing container view from the model
             operationId: DSLEditor#DeleteContainerView
             parameters:
+                - name: repo
+                  in: query
+                  description: Path to repository root
+                  allowEmptyValue: true
+                  required: true
+                  schema:
+                    type: string
+                    description: Path to repository root
+                    example: my-repo
+                    minLength: 1
+                  example: my-repo
+                - name: dir
+                  in: query
+                  description: Path to directory containing a model package
+                  allowEmptyValue: true
+                  required: true
+                  schema:
+                    type: string
+                    description: Path to directory containing a model package
+                    example: services/my-service/diagram
+                    minLength: 1
+                  example: services/my-service/diagram
                 - name: Key
                   in: path
                   description: Key of container view to delete
@@ -870,17 +1018,8 @@ paths:
                   schema:
                     type: string
                     description: Key of container view to delete
-                    example: Incidunt deserunt eum.
-                  example: Omnis id consequatur provident voluptatem aut eligendi.
-            requestBody:
-                required: true
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/DeleteSystemRequestBody'
-                        example:
-                            Dir: services/my-service/diagram
-                            Repository: my-repo
+                    example: Qui molestiae quia.
+                  example: Quia fugiat ipsam qui consequatur earum.
             responses:
                 "200":
                     description: OK response.
@@ -925,10 +1064,10 @@ paths:
                         schema:
                             $ref: '#/components/schemas/UpserElementStyleRequestBody'
                         example:
-                            Background: '#EAcAac'
+                            Background: '#Aa15AC'
                             Border: BorderDotted
-                            Color: '#faAF28'
-                            Description: false
+                            Color: '#2C6e81'
+                            Description: true
                             FontSize: 20
                             Height: 100
                             Icon: https://static.structurizr.com/images/icons/Person.png
@@ -936,10 +1075,10 @@ paths:
                                 Dir: services/my-service/diagram
                                 Filename: model.go
                                 Repository: my-repo
-                            Metadata: true
-                            Opacity: 45
-                            Shape: ShapePipe
-                            Stroke: '#7DbfF8'
+                            Metadata: false
+                            Opacity: 10
+                            Shape: ShapePerson
+                            Stroke: '#E7c976'
                             Tag: tag
                             Width: 100
             responses:
@@ -974,6 +1113,28 @@ paths:
             description: Delete an existing element style from the model
             operationId: DSLEditor#DeleteElementStyle
             parameters:
+                - name: repo
+                  in: query
+                  description: Path to repository root
+                  allowEmptyValue: true
+                  required: true
+                  schema:
+                    type: string
+                    description: Path to repository root
+                    example: my-repo
+                    minLength: 1
+                  example: my-repo
+                - name: dir
+                  in: query
+                  description: Path to directory containing a model package
+                  allowEmptyValue: true
+                  required: true
+                  schema:
+                    type: string
+                    description: Path to directory containing a model package
+                    example: services/my-service/diagram
+                    minLength: 1
+                  example: services/my-service/diagram
                 - name: Tag
                   in: path
                   description: Tag of element style to delete
@@ -981,17 +1142,8 @@ paths:
                   schema:
                     type: string
                     description: Tag of element style to delete
-                    example: Beatae rem quibusdam dignissimos dolores illum iusto.
-                  example: Repudiandae enim modi voluptas natus.
-            requestBody:
-                required: true
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/DeleteSystemRequestBody'
-                        example:
-                            Dir: services/my-service/diagram
-                            Repository: my-repo
+                    example: Veritatis dolorum.
+                  example: Sit et ratione consequatur praesentium officia.
             responses:
                 "200":
                     description: OK response.
@@ -1041,14 +1193,18 @@ paths:
                                 - Element: Software System/Container/Component
                                 - Element: Software System/Container/Component
                                 - Element: Software System/Container/Component
-                            EnterpriseBoundaryVisible: true
+                            EnterpriseBoundaryVisible: false
                             Key: key
                             Locator:
                                 Dir: services/my-service/diagram
                                 Filename: model.go
                                 Repository: my-repo
-                            PaperSize: A4_Landscape
+                            PaperSize: Legal_Landscape
                             RelationshipViews:
+                                - Destination: Software System/Container/Component
+                                  Source: Software System/Container/Component
+                                - Destination: Software System/Container/Component
+                                  Source: Software System/Container/Component
                                 - Destination: Software System/Container/Component
                                   Source: Software System/Container/Component
                                 - Destination: Software System/Container/Component
@@ -1086,6 +1242,28 @@ paths:
             description: Delete an existing landscape view from the model
             operationId: DSLEditor#DeleteLandscapeView
             parameters:
+                - name: repo
+                  in: query
+                  description: Path to repository root
+                  allowEmptyValue: true
+                  required: true
+                  schema:
+                    type: string
+                    description: Path to repository root
+                    example: my-repo
+                    minLength: 1
+                  example: my-repo
+                - name: dir
+                  in: query
+                  description: Path to directory containing a model package
+                  allowEmptyValue: true
+                  required: true
+                  schema:
+                    type: string
+                    description: Path to directory containing a model package
+                    example: services/my-service/diagram
+                    minLength: 1
+                  example: services/my-service/diagram
                 - name: Key
                   in: path
                   description: Key of landscape view to delete
@@ -1093,17 +1271,8 @@ paths:
                   schema:
                     type: string
                     description: Key of landscape view to delete
-                    example: Animi necessitatibus.
-                  example: Nesciunt ut atque dignissimos quis qui sit.
-            requestBody:
-                required: true
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/DeleteSystemRequestBody'
-                        example:
-                            Dir: services/my-service/diagram
-                            Repository: my-repo
+                    example: Nesciunt ipsam doloremque.
+                  example: Repudiandae porro necessitatibus quibusdam fugit.
             responses:
                 "200":
                     description: OK response.
@@ -1148,20 +1317,20 @@ paths:
                         schema:
                             $ref: '#/components/schemas/UpsertRelationshipStyleRequestBody'
                         example:
-                            Color: '#3887AA'
-                            Dashed: true
-                            FontSize: 10
+                            Color: '#a5bEDd'
+                            Dashed: false
+                            FontSize: 70
                             Locator:
                                 Dir: services/my-service/diagram
                                 Filename: model.go
                                 Repository: my-repo
-                            Opacity: 35
-                            Position: 25
+                            Opacity: 93
+                            Position: 92
                             Routing: Direct
-                            Stroke: '#864597'
+                            Stroke: '#09bA4c'
                             Tag: tag
                             Thickness: 2
-                            Width: 272
+                            Width: 6938
             responses:
                 "200":
                     description: OK response.
@@ -1194,6 +1363,28 @@ paths:
             description: Delete an existing relationship style from the model
             operationId: DSLEditor#DeleteRelationshipStyle
             parameters:
+                - name: repo
+                  in: query
+                  description: Path to repository root
+                  allowEmptyValue: true
+                  required: true
+                  schema:
+                    type: string
+                    description: Path to repository root
+                    example: my-repo
+                    minLength: 1
+                  example: my-repo
+                - name: dir
+                  in: query
+                  description: Path to directory containing a model package
+                  allowEmptyValue: true
+                  required: true
+                  schema:
+                    type: string
+                    description: Path to directory containing a model package
+                    example: services/my-service/diagram
+                    minLength: 1
+                  example: services/my-service/diagram
                 - name: Tag
                   in: path
                   description: Tag of relationship style to delete
@@ -1201,17 +1392,8 @@ paths:
                   schema:
                     type: string
                     description: Tag of relationship style to delete
-                    example: Labore aut dignissimos consequuntur iure.
-                  example: Unde temporibus nihil.
-            requestBody:
-                required: true
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/DeleteSystemRequestBody'
-                        example:
-                            Dir: services/my-service/diagram
-                            Repository: my-repo
+                    example: Voluptatem molestias porro ea ea.
+                  example: Quos ad provident.
             responses:
                 "200":
                     description: OK response.
@@ -1260,14 +1442,17 @@ paths:
                             ElementViews:
                                 - Element: Software System/Container/Component
                                 - Element: Software System/Container/Component
-                            EnterpriseBoundaryVisible: true
+                                - Element: Software System/Container/Component
+                            EnterpriseBoundaryVisible: false
                             Key: key
                             Locator:
                                 Dir: services/my-service/diagram
                                 Filename: model.go
                                 Repository: my-repo
-                            PaperSize: A4_Landscape
+                            PaperSize: Legal_Landscape
                             RelationshipViews:
+                                - Destination: Software System/Container/Component
+                                  Source: Software System/Container/Component
                                 - Destination: Software System/Container/Component
                                   Source: Software System/Container/Component
                                 - Destination: Software System/Container/Component
@@ -1308,6 +1493,28 @@ paths:
             description: Delete an existing system context view from the model
             operationId: DSLEditor#DeleteSystemContextView
             parameters:
+                - name: repo
+                  in: query
+                  description: Path to repository root
+                  allowEmptyValue: true
+                  required: true
+                  schema:
+                    type: string
+                    description: Path to repository root
+                    example: my-repo
+                    minLength: 1
+                  example: my-repo
+                - name: dir
+                  in: query
+                  description: Path to directory containing a model package
+                  allowEmptyValue: true
+                  required: true
+                  schema:
+                    type: string
+                    description: Path to directory containing a model package
+                    example: services/my-service/diagram
+                    minLength: 1
+                  example: services/my-service/diagram
                 - name: Key
                   in: path
                   description: Key of system context view to delete
@@ -1315,17 +1522,8 @@ paths:
                   schema:
                     type: string
                     description: Key of system context view to delete
-                    example: Earum animi rerum perspiciatis et aut iste.
-                  example: Libero qui consectetur.
-            requestBody:
-                required: true
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/DeleteSystemRequestBody'
-                        example:
-                            Dir: services/my-service/diagram
-                            Repository: my-repo
+                    example: Quibusdam minima quo.
+                  example: Debitis facere autem doloribus placeat.
             responses:
                 "200":
                     description: OK response.
@@ -1428,6 +1626,8 @@ paths:
                                     - Dir: services/my-service/diagram
                                       ImportPath: goa.design/model/examples/basic/model
                             example:
+                                - Dir: services/my-service/diagram
+                                  ImportPath: goa.design/model/examples/basic/model
                                 - Dir: services/my-service/diagram
                                   ImportPath: goa.design/model/examples/basic/model
                                 - Dir: services/my-service/diagram
@@ -1542,37 +1742,7 @@ paths:
                                         Dir: services/my-service/diagram
                                         Filename: model.go
                                         Repository: my-repo
-                                    - Content: |-
-                                        package model
-
-                                        import . "goa.design/model/dsl"
-
-                                        var _ = Design(func() {})
-                                      Locator:
-                                        Dir: services/my-service/diagram
-                                        Filename: model.go
-                                        Repository: my-repo
                             example:
-                                - Content: |-
-                                    package model
-
-                                    import . "goa.design/model/dsl"
-
-                                    var _ = Design(func() {})
-                                  Locator:
-                                    Dir: services/my-service/diagram
-                                    Filename: model.go
-                                    Repository: my-repo
-                                - Content: |-
-                                    package model
-
-                                    import . "goa.design/model/dsl"
-
-                                    var _ = Design(func() {})
-                                  Locator:
-                                    Dir: services/my-service/diagram
-                                    Filename: model.go
-                                    Repository: my-repo
                                 - Content: |-
                                     package model
 
@@ -1689,7 +1859,7 @@ paths:
                             schema:
                                 $ref: '#/components/schemas/CompilationResults'
                             example:
-                                Error: Hic ipsum ea minima accusamus modi.
+                                Error: Cum quis.
                                 Model: '{"name":"example","email":"mail@example.com"}'
                 "404":
                     description: 'not_found: Package not found'
@@ -1715,76 +1885,15 @@ components:
                 Error:
                     type: string
                     description: Compilation error if any
-                    example: Labore nemo quaerat nulla minus.
+                    example: Atque iusto.
                 Model:
                     type: string
                     description: Model JSON if compilation succeeded
                     example: '{"name":"example","email":"mail@example.com"}'
                     format: json
             example:
-                Error: Voluptatem omnis voluptatem.
+                Error: Ab expedita nostrum deleniti minima provident.
                 Model: '{"name":"example","email":"mail@example.com"}'
-        DeleteRelationshipRequestBody:
-            type: object
-            properties:
-                DestinationPath:
-                    type: string
-                    description: Path to destination element, see SourcePath for details.
-                    example: Software System/Container/Component
-                Dir:
-                    type: string
-                    description: Path to directory containing a model package
-                    example: services/my-service/diagram
-                    minLength: 1
-                Repository:
-                    type: string
-                    description: Path to repository root
-                    example: my-repo
-                    minLength: 1
-                SourceKind:
-                    type: string
-                    description: Kind of source element
-                    example: Component
-                    enum:
-                        - SoftwareSystem
-                        - Person
-                        - Container
-                        - Component
-                SourcePath:
-                    type: string
-                    description: Path to source element consisting of <software system name>[/<container name>[/<component name>]]
-                    example: Software System/Container/Component
-            example:
-                DestinationPath: Software System/Container/Component
-                Dir: services/my-service/diagram
-                Repository: my-repo
-                SourceKind: SoftwareSystem
-                SourcePath: Software System/Container/Component
-            required:
-                - SourceKind
-                - SourcePath
-                - DestinationPath
-                - Repository
-                - Dir
-        DeleteSystemRequestBody:
-            type: object
-            properties:
-                Dir:
-                    type: string
-                    description: Path to directory containing a model package
-                    example: services/my-service/diagram
-                    minLength: 1
-                Repository:
-                    type: string
-                    description: Path to repository root
-                    example: my-repo
-                    minLength: 1
-            example:
-                Dir: services/my-service/diagram
-                Repository: my-repo
-            required:
-                - Repository
-                - Dir
         ElementView:
             type: object
             properties:
@@ -1817,18 +1926,18 @@ components:
                 temporary:
                     type: boolean
                     description: Is the error temporary?
-                    example: true
+                    example: false
                 timeout:
                     type: boolean
                     description: Is the error a timeout?
                     example: false
             description: Compilation failed
             example:
-                fault: true
+                fault: false
                 id: 123abc
                 message: parameter 'p' must be an integer
                 name: bad_request
-                temporary: false
+                temporary: true
                 timeout: true
             required:
                 - name
@@ -1919,13 +2028,13 @@ components:
                 SVG:
                     type: string
                     description: Diagram SVG
-                    example: <svg����</svg>
+                    example: <svg</svg>
                     pattern: <svg.*</svg>$
             example:
                 Dir: services/my-service/diagram
                 Filename: model.go
                 Repository: my-repo
-                SVG: <svg�</svg>
+                SVG: <svg</svg>
             required:
                 - Filename
                 - SVG
@@ -1967,7 +2076,7 @@ components:
                 Background:
                     type: string
                     description: Background color of element
-                    example: '#B8C4b4'
+                    example: '#Ec67F0'
                     pattern: ^#[0-9a-fA-F]{6}$
                 Border:
                     type: string
@@ -1981,13 +2090,13 @@ components:
                 Color:
                     type: string
                     description: Text color of element
-                    example: '#a11D39'
+                    example: '#77a82E'
                     pattern: ^#[0-9a-fA-F]{6}$
                 Description:
                     type: boolean
                     description: Indicates whether the element description should be visible on the resulting diagram
                     default: true
-                    example: true
+                    example: false
                 FontSize:
                     type: integer
                     description: Font size of element
@@ -2008,18 +2117,18 @@ components:
                 Metadata:
                     type: boolean
                     description: Indicates whether the element metadata should be visible on the resulting diagram
-                    example: false
+                    example: true
                 Opacity:
                     type: integer
                     description: Opacity of element as a percentage
-                    example: 16
+                    example: 49
                     minimum: 0
                     maximum: 100
                 Shape:
                     type: string
                     description: Shape of element
                     default: ShapeBox
-                    example: ShapeRoundedBox
+                    example: ShapeBox
                     enum:
                         - ShapeBox
                         - ShapeCircle
@@ -2038,7 +2147,7 @@ components:
                 Stroke:
                     type: string
                     description: Stroke color of element
-                    example: '#eB60CA'
+                    example: '#12AdeD'
                     pattern: ^#[0-9a-fA-F]{6}$
                 Tag:
                     type: string
@@ -2050,10 +2159,10 @@ components:
                     example: 100
                     format: int64
             example:
-                Background: '#4E6065'
-                Border: BorderSolid
-                Color: '#Ad9b9a'
-                Description: true
+                Background: '#ef9f40'
+                Border: BorderDotted
+                Color: '#dE490a'
+                Description: false
                 FontSize: 20
                 Height: 100
                 Icon: https://static.structurizr.com/images/icons/Person.png
@@ -2061,10 +2170,10 @@ components:
                     Dir: services/my-service/diagram
                     Filename: model.go
                     Repository: my-repo
-                Metadata: true
-                Opacity: 13
-                Shape: ShapeRoundedBox
-                Stroke: '#ab7F1a'
+                Metadata: false
+                Opacity: 42
+                Shape: ShapeMobileDevicePortrait
+                Stroke: '#c4aBB3'
                 Tag: tag
                 Width: 100
             required:
@@ -2095,7 +2204,7 @@ components:
                         key2: value2
                     additionalProperties:
                         type: string
-                        example: Incidunt nulla sit veniam recusandae.
+                        example: Quidem mollitia ipsum dolorem.
                 SystemName:
                     type: string
                     description: Name of parent software system
@@ -2104,7 +2213,7 @@ components:
                     type: array
                     items:
                         type: string
-                        example: Magni autem iste earum.
+                        example: Modi perferendis ipsam id veritatis occaecati.
                     description: Attached tags
                     example:
                         - Tag1
@@ -2162,7 +2271,6 @@ components:
                     example:
                         - Element: Software System/Container/Component
                         - Element: Software System/Container/Component
-                        - Element: Software System/Container/Component
                 Key:
                     type: string
                     description: Key of view
@@ -2172,7 +2280,7 @@ components:
                 PaperSize:
                     type: string
                     description: Paper size of view
-                    example: A2_Portrait
+                    example: Legal_Portrait
                     enum:
                         - A0_Landscape
                         - A0_Portrait
@@ -2230,12 +2338,8 @@ components:
                     Dir: services/my-service/diagram
                     Filename: model.go
                     Repository: my-repo
-                PaperSize: A0_Landscape
+                PaperSize: A5_Portrait
                 RelationshipViews:
-                    - Destination: Software System/Container/Component
-                      Source: Software System/Container/Component
-                    - Destination: Software System/Container/Component
-                      Source: Software System/Container/Component
                     - Destination: Software System/Container/Component
                       Source: Software System/Container/Component
                     - Destination: Software System/Container/Component
@@ -2268,7 +2372,7 @@ components:
                         key2: value2
                     additionalProperties:
                         type: string
-                        example: Qui quia ipsa.
+                        example: Molestias aut.
                 SystemName:
                     type: string
                     description: Name of parent software system
@@ -2277,7 +2381,7 @@ components:
                     type: array
                     items:
                         type: string
-                        example: Doloremque sit.
+                        example: Labore unde.
                     description: Attached tags
                     example:
                         - Tag1
@@ -2334,7 +2438,7 @@ components:
                 PaperSize:
                     type: string
                     description: Paper size of view
-                    example: A0_Portrait
+                    example: A1_Portrait
                     enum:
                         - A0_Landscape
                         - A0_Portrait
@@ -2363,8 +2467,6 @@ components:
                         $ref: '#/components/schemas/RelationshipView'
                     description: Relationships in view
                     example:
-                        - Destination: Software System/Container/Component
-                          Source: Software System/Container/Component
                         - Destination: Software System/Container/Component
                           Source: Software System/Container/Component
                         - Destination: Software System/Container/Component
@@ -2389,12 +2491,13 @@ components:
                 ElementViews:
                     - Element: Software System/Container/Component
                     - Element: Software System/Container/Component
+                    - Element: Software System/Container/Component
                 Key: key
                 Locator:
                     Dir: services/my-service/diagram
                     Filename: model.go
                     Repository: my-repo
-                PaperSize: A2_Portrait
+                PaperSize: A3_Landscape
                 RelationshipViews:
                     - Destination: Software System/Container/Component
                       Source: Software System/Container/Component
@@ -2403,7 +2506,7 @@ components:
                     - Destination: Software System/Container/Component
                       Source: Software System/Container/Component
                 SoftwareSystemName: Software System
-                SystemBoundariesVisible: true
+                SystemBoundariesVisible: false
                 Title: title
             required:
                 - Key
@@ -2428,7 +2531,7 @@ components:
                     type: boolean
                     description: Indicates whether the enterprise boundary is visible on the resulting diagram
                     default: true
-                    example: true
+                    example: false
                 Key:
                     type: string
                     description: Key of view
@@ -2438,7 +2541,7 @@ components:
                 PaperSize:
                     type: string
                     description: Paper size of view
-                    example: A1_Landscape
+                    example: A4_Portrait
                     enum:
                         - A0_Landscape
                         - A0_Portrait
@@ -2482,14 +2585,18 @@ components:
                 ElementViews:
                     - Element: Software System/Container/Component
                     - Element: Software System/Container/Component
+                    - Element: Software System/Container/Component
+                    - Element: Software System/Container/Component
                 EnterpriseBoundaryVisible: true
                 Key: key
                 Locator:
                     Dir: services/my-service/diagram
                     Filename: model.go
                     Repository: my-repo
-                PaperSize: Letter_Landscape
+                PaperSize: Slide_4x3
                 RelationshipViews:
+                    - Destination: Software System/Container/Component
+                      Source: Software System/Container/Component
                     - Destination: Software System/Container/Component
                       Source: Software System/Container/Component
                     - Destination: Software System/Container/Component
@@ -2510,7 +2617,7 @@ components:
                 DestinationKind:
                     type: string
                     description: Kind of destination element
-                    example: Person
+                    example: Container
                     enum:
                         - SoftwareSystem
                         - Person
@@ -2524,7 +2631,7 @@ components:
                     type: string
                     description: Indicates whether the relationship is synchronous or asynchronous
                     default: Synchronous
-                    example: Asynchronous
+                    example: Synchronous
                     enum:
                         - Synchronous
                         - Asynchronous
@@ -2533,7 +2640,7 @@ components:
                 SourceKind:
                     type: string
                     description: Kind of source element
-                    example: SoftwareSystem
+                    example: Person
                     enum:
                         - SoftwareSystem
                         - Person
@@ -2547,7 +2654,7 @@ components:
                     type: array
                     items:
                         type: string
-                        example: Et corrupti excepturi.
+                        example: Ipsa repudiandae voluptatem.
                     description: Attached tags
                     example:
                         - Tag1
@@ -2563,7 +2670,7 @@ components:
                     format: uri
             example:
                 Description: Relationship description
-                DestinationKind: Person
+                DestinationKind: SoftwareSystem
                 DestinationPath: Component
                 InteractionStyle: Asynchronous
                 Locator:
@@ -2588,7 +2695,7 @@ components:
                 Color:
                     type: string
                     description: Color of label
-                    example: '#5aeFEE'
+                    example: '#1D7295'
                     pattern: ^#[0-9a-fA-F]{6}$
                 Dashed:
                     type: boolean
@@ -2598,7 +2705,7 @@ components:
                 FontSize:
                     type: integer
                     description: Font size of label on relationship
-                    example: 68
+                    example: 94
                     minimum: 1
                     maximum: 100
                 Locator:
@@ -2606,20 +2713,20 @@ components:
                 Opacity:
                     type: integer
                     description: Opacity of relationship as a percentage
-                    example: 16
+                    example: 18
                     minimum: 0
                     maximum: 100
                 Position:
                     type: integer
                     description: Position of label on relationship as a percentage (0 is next to source, 100 next to destination)
-                    example: 35
+                    example: 10
                     minimum: 0
                     maximum: 100
                 Routing:
                     type: string
                     description: Routing of relationship
                     default: Direct
-                    example: Direct
+                    example: Curved
                     enum:
                         - Direct
                         - Orthogonal
@@ -2627,7 +2734,7 @@ components:
                 Stroke:
                     type: string
                     description: Stroke color of relationship
-                    example: '#C397bC'
+                    example: '#cA909a'
                     pattern: ^#[0-9a-fA-F]{6}$
                 Tag:
                     type: string
@@ -2642,24 +2749,24 @@ components:
                 Width:
                     type: integer
                     description: Width of label on relationship
-                    example: 6270
+                    example: 3010
                     minimum: 1
                     maximum: 10000
             example:
-                Color: '#6A66c2'
+                Color: '#B05503'
                 Dashed: true
-                FontSize: 57
+                FontSize: 95
                 Locator:
                     Dir: services/my-service/diagram
                     Filename: model.go
                     Repository: my-repo
-                Opacity: 15
-                Position: 93
-                Routing: Orthogonal
-                Stroke: '#27a06E'
+                Opacity: 17
+                Position: 65
+                Routing: Curved
+                Stroke: '#dd3D0B'
                 Tag: tag
                 Thickness: 2
-                Width: 1379
+                Width: 2449
             required:
                 - Locator
                 - Tag
@@ -2678,12 +2785,11 @@ components:
                     example:
                         - Element: Software System/Container/Component
                         - Element: Software System/Container/Component
-                        - Element: Software System/Container/Component
                 EnterpriseBoundaryVisible:
                     type: boolean
                     description: Indicates whether the enterprise boundary is visible on the resulting diagram
                     default: true
-                    example: true
+                    example: false
                 Key:
                     type: string
                     description: Key of view
@@ -2693,7 +2799,7 @@ components:
                 PaperSize:
                     type: string
                     description: Paper size of view
-                    example: A2_Landscape
+                    example: Slide_16x10
                     enum:
                         - A0_Landscape
                         - A0_Portrait
@@ -2728,6 +2834,8 @@ components:
                           Source: Software System/Container/Component
                         - Destination: Software System/Container/Component
                           Source: Software System/Container/Component
+                        - Destination: Software System/Container/Component
+                          Source: Software System/Container/Component
                 SoftwareSystemName:
                     type: string
                     description: Name of software system to create view for
@@ -2742,17 +2850,14 @@ components:
                     - Element: Software System/Container/Component
                     - Element: Software System/Container/Component
                     - Element: Software System/Container/Component
-                    - Element: Software System/Container/Component
-                EnterpriseBoundaryVisible: false
+                EnterpriseBoundaryVisible: true
                 Key: key
                 Locator:
                     Dir: services/my-service/diagram
                     Filename: model.go
                     Repository: my-repo
-                PaperSize: A1_Portrait
+                PaperSize: A4_Portrait
                 RelationshipViews:
-                    - Destination: Software System/Container/Component
-                      Source: Software System/Container/Component
                     - Destination: Software System/Container/Component
                       Source: Software System/Container/Component
                     - Destination: Software System/Container/Component
@@ -2792,12 +2897,12 @@ components:
                         key2: value2
                     additionalProperties:
                         type: string
-                        example: Totam et deleniti excepturi occaecati voluptatem illum.
+                        example: Sit et quia quis eos.
                 Tags:
                     type: array
                     items:
                         type: string
-                        example: Eos repellat.
+                        example: Nobis repudiandae blanditiis sint a.
                     description: Attached tags
                     example:
                         - Tag1
@@ -2808,7 +2913,7 @@ components:
                     example: https://system.com
             example:
                 Description: System description
-                Location: External
+                Location: Internal
                 Locator:
                     Dir: services/my-service/diagram
                     Filename: model.go

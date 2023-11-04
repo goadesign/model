@@ -55,7 +55,7 @@ build:
 	@cd cmd/stz && go install
 
 serve: build
-	@cmd/mdl/mdl serve
+	@mdl serve
 
 release: build
 # First make sure all is clean
