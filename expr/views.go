@@ -166,7 +166,7 @@ func (vs *Views) DSL() func() {
 }
 
 // EvalName returns the generic expression name used in error messages.
-func (vs *Views) EvalName() string {
+func (*Views) EvalName() string {
 	return "views"
 }
 
@@ -473,7 +473,7 @@ func (dv *DeploymentView) AddAnimationStep(s *AnimationStep) error {
 }
 
 // EvalName returns the generic expression name used in error messages.
-func (c *Styles) EvalName() string {
+func (*Styles) EvalName() string {
 	return "styles"
 }
 
@@ -555,7 +555,7 @@ func addDeploymentNodeChildren(dv *DeploymentView, n *DeploymentNode) bool {
 		nested = true
 	}
 	for _, c := range n.Children {
-		if nest := addDeploymentNodeChildren(dv, c); nest {
+		if addDeploymentNodeChildren(dv, c) {
 			addElements(dv.ViewProps, c)
 			nested = true
 		}

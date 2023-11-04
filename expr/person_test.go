@@ -6,7 +6,6 @@ import (
 )
 
 func TestPersonEvalName(t *testing.T) {
-	t.Parallel()
 	tests := []struct {
 		name, want string
 	}{
@@ -36,7 +35,7 @@ func TestPersonFinalize(t *testing.T) {
 			Name: "foo",
 		},
 	}
-	tests := []struct {
+	seq := []struct {
 		pre  func()
 		want string
 	}{
@@ -44,7 +43,7 @@ func TestPersonFinalize(t *testing.T) {
 		{pre: func() { person.Tags = "foo" }, want: "foo"},
 		{pre: func() { person.Finalize() }, want: "Element,Person,foo"},
 	}
-	for i, tt := range tests {
+	for i, tt := range seq {
 		tt := tt
 		t.Run(fmt.Sprint(i), func(t *testing.T) {
 			if tt.pre != nil {

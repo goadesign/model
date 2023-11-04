@@ -34,7 +34,7 @@ func Parent(eh ElementHolder) ElementHolder {
 }
 
 // EvalName is the qualified name of the DSL expression.
-func (m *Model) EvalName() string { return "model" }
+func (*Model) EvalName() string { return "model" }
 
 // Validate makes sure all element names are unique.
 func (m *Model) Validate() error {

@@ -98,7 +98,7 @@ func main() {
 			fail(`missing PACKAGE argument, use "--help" for usage`)
 		}
 		*dir, _ = filepath.Abs(*dir)
-		if err := os.MkdirAll(*dir, 0777); err != nil {
+		if err := os.MkdirAll(*dir, 0600); err != nil {
 			fail(err.Error())
 		}
 		err = serve(*dir, pkg, *port, devmode, *debug)

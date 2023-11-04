@@ -99,7 +99,7 @@ func Uses(element any, description string, args ...any) {
 		eval.IncompatibleDSL()
 		return
 	}
-	if err := uses(src, element, description, args...); err != nil {
+	if err := addrel(src, element, description, args...); err != nil {
 		eval.ReportError("Uses: %s", err.Error())
 	}
 }
@@ -149,7 +149,7 @@ func InteractsWith(person any, description string, args ...any) {
 	}
 	switch p := person.(type) {
 	case *expr.Person:
-		if err := uses(src.Element, p, description, args...); err != nil {
+		if err := addrel(src.Element, p, description, args...); err != nil {
 			eval.ReportError("InteractsWith: %s", err.Error())
 		}
 	case string:
@@ -158,7 +158,7 @@ func InteractsWith(person any, description string, args ...any) {
 			eval.ReportError("InteractsWith: unknown person %q", p)
 			return
 		}
-		if err := uses(src.Element, e, description, args...); err != nil {
+		if err := addrel(src.Element, e, description, args...); err != nil {
 			eval.ReportError("InteractsWith: %s", err.Error())
 		}
 	default:
@@ -221,7 +221,7 @@ func Delivers(person any, description string, args ...any) {
 
 	switch p := person.(type) {
 	case *expr.Person:
-		if err := uses(src, p, description, args...); err != nil {
+		if err := addrel(src, p, description, args...); err != nil {
 			eval.ReportError("Delivers: %s", err.Error())
 		}
 	case string:
@@ -230,7 +230,7 @@ func Delivers(person any, description string, args ...any) {
 			eval.ReportError("Delivers: unknown person %q", p)
 			return
 		}
-		if err := uses(src, e, description, args...); err != nil {
+		if err := addrel(src, e, description, args...); err != nil {
 			eval.ReportError("Delivers: %s", err.Error())
 		}
 	default:
@@ -256,9 +256,9 @@ func Description(desc string) {
 	v.Description = desc
 }
 
-// uses adds a relationship between the given source and destination. The caller
+// addrel adds a relationship between the given source and destination. The caller
 // must make sure that the relationship is valid.
-func uses(src *expr.Element, dest any, desc string, args ...any) error {
+func addrel(src *expr.Element, dest any, desc string, args ...any) error {
 	var (
 		technology string
 		style      InteractionStyleKind

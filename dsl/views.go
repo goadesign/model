@@ -2100,7 +2100,7 @@ func findDeploymentViewElement(env, path string) (expr.ElementHolder, error) {
 	return nil, fmt.Errorf("could not find %q in path %q", name, path)
 }
 
-func parseLinkArgs(v expr.View, source any, destination any, args []any) (src, dest expr.ElementHolder, desc string, dsl func(), err error) {
+func parseLinkArgs(v expr.View, source, destination any, args []any) (src, dest expr.ElementHolder, desc string, dsl func(), err error) {
 	var ok bool
 	if len(args) > 0 {
 		if dsl, ok = args[len(args)-1].(func()); ok {
