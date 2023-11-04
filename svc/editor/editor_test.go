@@ -163,7 +163,7 @@ func Test_findDSL(t *testing.T) {
 	}
 }
 
-func TestParser_UpsertElement(t *testing.T) {
+func Test_UpsertElement(t *testing.T) {
 	pkgdir := "model"
 	defaultLocator := &gentypes.FileLocator{
 		Dir:      pkgdir,
@@ -361,7 +361,7 @@ func TestParser_UpsertElement(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tmpdir, err := os.MkdirTemp(t.TempDir(), "model_parser_test")
+			tmpdir, err := os.MkdirTemp(t.TempDir(), "model_editor_test")
 			require.NoError(t, err)
 			defer os.RemoveAll(tmpdir) // nolint: errcheck
 			err = os.MkdirAll(filepath.Join(tmpdir, pkgdir), 0755)
@@ -434,7 +434,7 @@ func Test_UpsertRelationship(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tmpdir, err := os.MkdirTemp(t.TempDir(), "model_parser_test")
+			tmpdir, err := os.MkdirTemp(t.TempDir(), "model_editor_test")
 			require.NoError(t, err)
 			defer os.RemoveAll(tmpdir) // nolint: errcheck
 			err = os.MkdirAll(filepath.Join(tmpdir, pkgdir), 0755)
@@ -446,6 +446,166 @@ func Test_UpsertRelationship(t *testing.T) {
 			tt.expected.Locator.Repository = tmpdir
 			p := NewEditor(tmpdir, pkgdir)
 			res, err := p.UpsertRelationship(tt.srcKind, tt.srcPath, tt.destPath, tt.code)
+			require.NoError(t, err)
+			assert.Equal(t, tt.expected.Locator, res.Locator, "locator")
+			assert.Equal(t, tt.expected.Content, res.Content, "content")
+		})
+	}
+}
+
+func Test_DeleteElement(t *testing.T) {
+	pkgdir := "model"
+	defaultLocator := &gentypes.FileLocator{
+		Dir:      pkgdir,
+		Filename: DefaultModelFilename,
+	}
+	tests := []struct {
+		name     string
+		kind     ElementKind
+		path     string
+		existing map[string]string // existing code by filename
+		expected *gentypes.PackageFile
+	}{
+		{
+			name:     "Delete only system",
+			kind:     SoftwareSystemKind,
+			path:     "ExistingSystem",
+			existing: map[string]string{DefaultModelFilename: contentHeader + existingSystem + endBrackets},
+			expected: &gentypes.PackageFile{
+				Locator: defaultLocator,
+				Content: formatted(t, contentHeader+endBrackets[1:]),
+			},
+		},
+		{
+			name:     "Delete system",
+			kind:     SoftwareSystemKind,
+			path:     "AnotherSystem",
+			existing: map[string]string{DefaultModelFilename: contentHeader + existingTwoSystems + endBrackets},
+			expected: &gentypes.PackageFile{
+				Locator: defaultLocator,
+				Content: formatted(t, contentHeader+existingSystem+endBrackets),
+			},
+		},
+		{
+			name:     "Delete system from other file",
+			kind:     SoftwareSystemKind,
+			path:     "AnotherSystem",
+			existing: map[string]string{"other.go": contentHeader + existingTwoSystems + endBrackets},
+			expected: &gentypes.PackageFile{
+				Locator: &gentypes.FileLocator{
+					Dir:      pkgdir,
+					Filename: "other.go",
+				},
+				Content: formatted(t, contentHeader+existingSystem+endBrackets),
+			},
+		},
+		{
+			name:     "Delete container",
+			kind:     ContainerKind,
+			path:     "ExistingSystem/ExistingContainer",
+			existing: map[string]string{DefaultModelFilename: contentHeader + existingSystem + endBrackets},
+			expected: &gentypes.PackageFile{
+				Locator: defaultLocator,
+				Content: formatted(t, contentHeader+deletedContainer+endBrackets),
+			},
+		},
+		{
+			name:     "Delete component",
+			kind:     ComponentKind,
+			path:     "ExistingSystem/ExistingContainer/ExistingComponent",
+			existing: map[string]string{DefaultModelFilename: contentHeader + existingSystem + endBrackets},
+			expected: &gentypes.PackageFile{
+				Locator: defaultLocator,
+				Content: formatted(t, contentHeader+deletedComponent+endBrackets),
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tmpdir, err := os.MkdirTemp(t.TempDir(), "model_editor_test")
+			require.NoError(t, err)
+			defer os.RemoveAll(tmpdir) // nolint: errcheck
+			err = os.MkdirAll(filepath.Join(tmpdir, pkgdir), 0755)
+			require.NoError(t, err)
+			for filename, content := range tt.existing {
+				err = os.WriteFile(filepath.Join(tmpdir, pkgdir, filename), []byte(content), 0644)
+				require.NoError(t, err)
+			}
+			tt.expected.Locator.Repository = tmpdir
+			p := NewEditor(tmpdir, pkgdir)
+			res, err := p.DeleteElement(tt.kind, tt.path)
+			require.NoError(t, err)
+			assert.Equal(t, tt.expected.Locator, res.Locator, "locator")
+			assert.Equal(t, tt.expected.Content, res.Content, "content")
+		})
+	}
+}
+
+func Test_DeleteRelationship(t *testing.T) {
+	pkgdir := "model"
+	defaultLocator := &gentypes.FileLocator{
+		Dir:      pkgdir,
+		Filename: DefaultModelFilename,
+	}
+	tests := []struct {
+		name     string
+		srcKind  ElementKind
+		srcPath  string
+		destPath string
+		existing map[string]string // existing code by filename
+		expected *gentypes.PackageFile
+	}{
+		{
+			name:     "Delete relationship to system",
+			srcKind:  SoftwareSystemKind,
+			srcPath:  "ExistingSystem",
+			destPath: "AnotherSystem",
+			existing: map[string]string{DefaultModelFilename: contentHeader + existingTwoSystemsWithRel + endBrackets},
+			expected: &gentypes.PackageFile{
+				Locator: defaultLocator,
+				Content: formatted(t, contentHeader+existingTwoSystems+endBrackets),
+			},
+		},
+		{
+			name:     "Delete relationship to container",
+			srcKind:  ContainerKind,
+			srcPath:  "ExistingSystem/ExistingContainer",
+			destPath: "AnotherSystem",
+			existing: map[string]string{DefaultModelFilename: contentHeader + existingTwoSystemsWithContainerRel + endBrackets},
+			expected: &gentypes.PackageFile{
+				Locator: defaultLocator,
+				Content: formatted(t, contentHeader+existingTwoSystems+endBrackets),
+			},
+		},
+		{
+			name:     "Delete relationship to system from other file",
+			srcKind:  SoftwareSystemKind,
+			srcPath:  "ExistingSystem",
+			destPath: "AnotherSystem",
+			existing: map[string]string{"other.go": contentHeader + existingTwoSystemsWithRel + endBrackets},
+			expected: &gentypes.PackageFile{
+				Locator: &gentypes.FileLocator{
+					Dir:      pkgdir,
+					Filename: "other.go",
+				},
+				Content: formatted(t, contentHeader+existingTwoSystems+endBrackets),
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tmpdir, err := os.MkdirTemp(t.TempDir(), "model_editor_test")
+			require.NoError(t, err)
+			defer os.RemoveAll(tmpdir) // nolint: errcheck
+			err = os.MkdirAll(filepath.Join(tmpdir, pkgdir), 0755)
+			require.NoError(t, err)
+			for filename, content := range tt.existing {
+				err = os.WriteFile(filepath.Join(tmpdir, pkgdir, filename), []byte(content), 0644)
+				require.NoError(t, err)
+			}
+			tt.expected.Locator.Repository = tmpdir
+			p := NewEditor(tmpdir, pkgdir)
+			res, err := p.DeleteRelationship(tt.srcKind, tt.srcPath, tt.destPath)
 			require.NoError(t, err)
 			assert.Equal(t, tt.expected.Locator, res.Locator, "locator")
 			assert.Equal(t, tt.expected.Content, res.Content, "content")
@@ -530,6 +690,20 @@ var _ = Design(func() {
 			Component("ExistingComponent", func() {
 				Tag("Component")
 			})
+			Tag("AfterComponent")
+		})
+		Tag("AfterContainer")
+	})`
+
+	deletedContainer = `SoftwareSystem("ExistingSystem", func() {
+		Tag("BeforeContainer")
+		Tag("AfterContainer")
+	})`
+
+	deletedComponent = `SoftwareSystem("ExistingSystem", func() {
+		Tag("BeforeContainer")
+		Container("ExistingContainer", func() {
+			Tag("BeforeComponent")
 			Tag("AfterComponent")
 		})
 		Tag("AfterContainer")
