@@ -134,7 +134,7 @@ func loadLayouts(dir string) ([]byte, error) {
 	endMark := []byte("]]></script>")
 
 	// first, read the fallback layout.json, then merge individual layouts from SVGs
-	var layouts Layouts = make(map[string]Layout)
+	layouts := make(map[string]Layout)
 	lj := path.Join(dir, "layout.json")
 	if fileExists(lj) {
 		b, err := os.ReadFile(lj)
@@ -168,7 +168,7 @@ func loadLayouts(dir string) ([]byte, error) {
 		end := bytes.Index(b, endMark)
 		b = b[begin:end]
 
-		var l Layout = make(map[string]any)
+		l := make(map[string]any)
 		err = json.Unmarshal(b, &l)
 		if err != nil {
 			return nil, err

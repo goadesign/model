@@ -19,7 +19,7 @@ func init() {
 
 // Generate produces the design JSON representation inside the top level gen
 // directory.
-func Generate(_ string, roots []eval.Root, files []*codegen.File) ([]*codegen.File, error) {
+func Generate(_ string, _ []eval.Root, files []*codegen.File) ([]*codegen.File, error) {
 	err := eval.RunDSL()
 	if err != nil {
 		return nil, err

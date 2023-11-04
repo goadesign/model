@@ -165,7 +165,7 @@ func (v *ViewProps) EvalName() string {
 }
 
 // EvalName returns the generic expression name used in error messages.
-func (l *AnimationStep) EvalName() string { return "animation step" }
+func (*AnimationStep) EvalName() string { return "animation step" }
 
 // Add adds the given elements to the animation step.
 func (l *AnimationStep) Add(eh ElementHolder) {
@@ -173,13 +173,13 @@ func (l *AnimationStep) Add(eh ElementHolder) {
 }
 
 // EvalName returns the generic expression name used in error messages.
-func (l *AutoLayout) EvalName() string { return "automatic layout" }
+func (*AutoLayout) EvalName() string { return "automatic layout" }
 
 // EvalName returns the generic expression name used in error messages.
-func (v *ElementView) EvalName() string { return "element view" }
+func (*ElementView) EvalName() string { return "element view" }
 
 // EvalName returns the generic expression name used in error messages.
-func (v *RelationshipView) EvalName() string { return "relationship view" }
+func (*RelationshipView) EvalName() string { return "relationship view" }
 
 // Validate makes sure there is a corresponding relationship (and exactly one).
 func (v *RelationshipView) Validate() error {

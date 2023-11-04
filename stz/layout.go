@@ -144,26 +144,29 @@ func buildIDMap(remote, local *Workspace) map[string]string {
 	}
 	for _, rs := range rm.Systems {
 		for _, ls := range lm.Systems {
-			if rs.Name == ls.Name {
-				idmap[ls.ID] = rs.ID
-				for _, rc := range rs.Containers {
-					for _, lc := range ls.Containers {
-						if rc.Name == lc.Name {
-							idmap[lc.ID] = rc.ID
-							for _, rcmp := range rc.Components {
-								for _, lcmp := range lc.Components {
-									if rcmp.Name == lcmp.Name {
-										idmap[lcmp.ID] = rcmp.ID
-										break
-									}
-								}
+			if rs.Name != ls.Name {
+				continue
+			}
+			idmap[ls.ID] = rs.ID
+			for _, rc := range rs.Containers {
+				for _, lc := range ls.Containers {
+					if rc.Name != lc.Name {
+						continue
+					}
+					idmap[lc.ID] = rc.ID
+					for _, rcmp := range rc.Components {
+						for _, lcmp := range lc.Components {
+							if rcmp.Name != lcmp.Name {
+								continue
 							}
+							idmap[lcmp.ID] = rcmp.ID
 							break
 						}
 					}
+					break
 				}
-				break
 			}
+			break
 		}
 	}
 
@@ -178,25 +181,29 @@ func buildIDMap(remote, local *Workspace) map[string]string {
 	}
 	for _, rs := range rm.Systems {
 		for _, ls := range lm.Systems {
-			if rs.Name == ls.Name {
-				buildRelationshipIDMap(rs.Relationships, ls.Relationships, idmap)
-				for _, rc := range rs.Containers {
-					for _, lc := range ls.Containers {
-						if rc.Name == lc.Name {
-							buildRelationshipIDMap(rc.Relationships, lc.Relationships, idmap)
-							for _, rcmp := range rc.Components {
-								for _, lcmp := range lc.Components {
-									if rcmp.Name == lcmp.Name {
-										buildRelationshipIDMap(rcmp.Relationships, lcmp.Relationships, idmap)
-									}
-								}
+			if rs.Name != ls.Name {
+				continue
+			}
+			buildRelationshipIDMap(rs.Relationships, ls.Relationships, idmap)
+			for _, rc := range rs.Containers {
+				for _, lc := range ls.Containers {
+					if rc.Name != lc.Name {
+						continue
+					}
+					buildRelationshipIDMap(rc.Relationships, lc.Relationships, idmap)
+					for _, rcmp := range rc.Components {
+						for _, lcmp := range lc.Components {
+							if rcmp.Name != lcmp.Name {
+								continue
 							}
+							buildRelationshipIDMap(rcmp.Relationships, lcmp.Relationships, idmap)
 							break
 						}
 					}
+					break
 				}
-				break
 			}
+			break
 		}
 	}
 	return idmap

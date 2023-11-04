@@ -47,6 +47,7 @@ func TestComponentFinalize(t *testing.T) {
 	for i, tt := range tests {
 		tt := tt
 		t.Run(fmt.Sprint(i), func(t *testing.T) {
+			t.Parallel()
 			if tt.pre != nil {
 				tt.pre()
 			}

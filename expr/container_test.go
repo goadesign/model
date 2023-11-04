@@ -47,6 +47,7 @@ func TestContainerFinalize(t *testing.T) {
 	for i, tt := range tests {
 		tt := tt
 		t.Run(fmt.Sprint(i), func(t *testing.T) {
+			t.Parallel()
 			if tt.pre != nil {
 				tt.pre()
 			}
@@ -88,6 +89,7 @@ func TestContainerComponent(t *testing.T) {
 	for i, tt := range tests {
 		tt := tt
 		t.Run(fmt.Sprint(i), func(t *testing.T) {
+			t.Parallel()
 			if got := container.Component(tt.name); got != tt.want {
 				t.Errorf("got %#v, want %#v", got.Element, tt.want.Element)
 			}
@@ -136,6 +138,7 @@ func TestAddComponent(t *testing.T) {
 		{name: "foo", component2Add: &componentFooPlus, want: &componentFoo},
 	}
 	for i, tt := range tests {
+		t.Parallel()
 		tt := tt
 		t.Run(fmt.Sprint(i), func(t *testing.T) {
 			got := OuterContainer.AddComponent(tt.component2Add)
