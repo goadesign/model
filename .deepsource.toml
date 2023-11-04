@@ -1,0 +1,10 @@
+version = 1
+[[analyzers]]
+name = "test-coverage"
+enabled = true
+[[analyzers]]
+name = "go"
+  [analyzers.meta]
+  import_root = "goa.design/model"
+[[analyzers]]
+name = "secrets"

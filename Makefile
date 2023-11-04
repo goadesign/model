@@ -25,7 +25,7 @@ DEPEND=\
 	github.com/golangci/golangci-lint/cmd/golangci-lint@latest \
 	goa.design/clue/mock/cmd/cmg@latest
 
-all: lint test
+all: lint test build
 
 ci: depend all
 
@@ -48,13 +48,16 @@ ifneq ($(GOOS),windows)
 endif
 
 test:
-	go test ./...
+	go test ./... --coverprofile=cover.out
 
-serve:
-	@go build -o ./cmd/mdl goa.design/model/cmd/mdl
+build: 
+	@cd cmd/mdl && go install
+	@cd cmd/stz && go install
+
+serve: build
 	@cmd/mdl/mdl serve
 
-release:
+release: build
 # First make sure all is clean
 	@git diff-index --quiet HEAD
 	@go mod tidy
@@ -66,10 +69,6 @@ release:
 	@sed 's/badge\/Version-.*/badge\/Version-v$(MAJOR).$(MINOR).$(BUILD)-blue.svg)/' README.md > _tmp && mv _tmp README.md
 	@sed 's/model@v.*\/\(.*\)tab=doc/model@v$(MAJOR).$(MINOR).$(BUILD)\/\1tab=doc/' README.md > _tmp && mv _tmp README.md
 	@sed 's/model@v.*\/\(.*\)tab=doc/model@v$(MAJOR).$(MINOR).$(BUILD)\/\1tab=doc/' DSL.md > _tmp && mv _tmp DSL.md
-
-# Make sure mdl and stz build
-	@cd cmd/mdl && go install
-	@cd cmd/stz && go install
 
 # Commit and push
 	@git add .
