@@ -169,6 +169,11 @@ func TestParser_UpsertElement(t *testing.T) {
 		Dir:      pkgdir,
 		Filename: DefaultModelFilename,
 	}
+	otherFile := "other.go"
+	otherLocator := &gentypes.FileLocator{
+		Dir:      pkgdir,
+		Filename: "other.go",
+	}
 	tests := []struct {
 		name     string
 		kind     ElementKind
@@ -182,6 +187,17 @@ func TestParser_UpsertElement(t *testing.T) {
 			kind: SoftwareSystemKind,
 			path: "NewSoftwareSystem",
 			code: addSystemCode,
+			expected: &gentypes.PackageFile{
+				Locator: defaultLocator,
+				Content: formatted(t, contentHeader+addSystemCode+endBrackets),
+			},
+		},
+		{
+			name:     "Create default model file",
+			kind:     SoftwareSystemKind,
+			path:     "NewSoftwareSystem",
+			code:     addSystemCode,
+			existing: map[string]string{otherFile: "package model\n"},
 			expected: &gentypes.PackageFile{
 				Locator: defaultLocator,
 				Content: formatted(t, contentHeader+addSystemCode+endBrackets),
@@ -239,6 +255,17 @@ func TestParser_UpsertElement(t *testing.T) {
 			code:     editSystemCode,
 			expected: &gentypes.PackageFile{
 				Locator: defaultLocator,
+				Content: formatted(t, contentHeader+editSystemCode+endBrackets),
+			},
+		},
+		{
+			name:     "Update existing system in other file",
+			kind:     SoftwareSystemKind,
+			path:     "ExistingSystem",
+			existing: map[string]string{otherFile: contentHeader + existingSystem + endBrackets},
+			code:     editSystemCode,
+			expected: &gentypes.PackageFile{
+				Locator: otherLocator,
 				Content: formatted(t, contentHeader+editSystemCode+endBrackets),
 			},
 		},
