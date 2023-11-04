@@ -2,7 +2,7 @@
 
 <p align="center">
   <p align="center">
-    <img alt="Model" src="model-banner.png">
+    <img alt="Model" src="assets/model-banner.png">
   </p>
   <p align="center">
     <a href="https://github.com/goadesign/model/releases/latest"><img alt="Release" src="https://img.shields.io/github/release/goadesign/model.svg?style=for-the-badge"></a>
