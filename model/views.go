@@ -175,6 +175,8 @@ type (
 
 	// AutoLayout describes an automatic layout.
 	AutoLayout struct {
+		// Implementation used for automatic layouting of the view
+		Implementation ImplementationKind `json:"implementation,omitempty"`
 		// Algorithm rank direction.
 		RankDirection RankDirectionKind `json:"rankDirection,omitempty"`
 		// RankSep defines the separation between ranks in pixels.
@@ -253,6 +255,9 @@ type (
 	// RoutingKind is the enum for possible routing algorithms.
 	RoutingKind int
 
+	// ImplementationKind is the enum for possible automatic layout implementations
+	ImplementationKind int
+
 	// RankDirectionKind is the enum for possible automatic layout rank
 	// directions.
 	RankDirectionKind int
@@ -305,6 +310,12 @@ const (
 	RoutingDirect
 	RoutingOrthogonal
 	RoutingCurved
+)
+
+const (
+	ImplementationUndefined ImplementationKind = iota
+	ImplementationGraphviz
+	ImplementationDagre
 )
 
 const (
@@ -575,6 +586,18 @@ func (p *PaperSizeKind) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+// Name returns the name of the implementation used in the automatic layout of the view.
+func (i ImplementationKind) Name() string {
+	switch i {
+	case ImplementationGraphviz:
+		return "Graphviz"
+	case ImplementationDagre:
+		return "Dagre"
+	default:
+		return "ImplementationUndefined"
+	}
+}
+
 // Name returns the name of the rank direction is specified in the DSL.
 func (r RankDirectionKind) Name() string {
 	switch r {
@@ -619,6 +642,34 @@ func (r *RoutingKind) UnmarshalJSON(data []byte) error {
 		*r = RoutingCurved
 	case "Orthogonal":
 		*r = RoutingOrthogonal
+	}
+	return nil
+}
+
+// MarshalJSON replaces the constant value with the proper string value.
+func (i ImplementationKind) MarshalJSON() ([]byte, error) {
+	buf := bytes.NewBufferString(`"`)
+	switch i {
+	case ImplementationGraphviz:
+		buf.WriteString("Graphviz")
+	case ImplementationDagre:
+		buf.WriteString("Dagre")
+	}
+	buf.WriteString(`"`)
+	return buf.Bytes(), nil
+}
+
+// UnmarshalJSON sets the constant from its JSON representation.
+func (i *ImplementationKind) UnmarshalJSON(data []byte) error {
+	var val string
+	if err := json.Unmarshal(data, &val); err != nil {
+		return err
+	}
+	switch val {
+	case "Graphviz":
+		*i = ImplementationGraphviz
+	case "Dagre":
+		*i = ImplementationDagre
 	}
 	return nil
 }

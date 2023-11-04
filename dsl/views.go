@@ -16,6 +16,9 @@ type (
 	// RoutingKind is the enum for possible routing algorithms.
 	RoutingKind int
 
+	// ImplementationKind is the enum for possible automatic layout implementations
+	ImplementationKind int
+
 	// RankDirectionKind is the enum for possible automatic layout rank
 	// directions.
 	RankDirectionKind int
@@ -24,6 +27,13 @@ type (
 // Global is the keyword used to define dynamic views with global scope. See
 // DynamicView.
 const Global = 0
+
+const (
+	// ImplementationGraphviz indicates the automatic layout will be using Graphviz
+	ImplementationGraphviz ImplementationKind = iota + 1
+	// ImplementationDagre indicates the automatic layout will be using Dagre
+	ImplementationDagre
+)
 
 const (
 	// RankTopBottom indicates a layout that uses top to bottom rank.
@@ -1442,6 +1452,9 @@ func RemoveUnrelated() {
 	eval.IncompatibleDSL()
 }
 
+// DefaultImplementation sets tje default implementation for the auto layout.
+var DefaultImplementation = ImplementationDagre
+
 // DefaultRankSeparation sets the default rank separation for auto layout.
 var DefaultRankSeparation = 300
 
@@ -1451,8 +1464,9 @@ var DefaultNodeSeparation = 600
 // DefaultEdgeSeparation sets the default edge separation for auto layout.
 var DefaultEdgeSeparation = 200
 
-// AutoLayout enables automatic layout mode for the diagram. The
-// first argument indicates the rank direction, it must be one of
+// AutoLayout enables automatic layout mode for the diagram.
+//
+// The First argument indicates the rank direction, it must be one of
 // RankTopBottom, RankBottomTop, RankLeftRight or RankRightLeft
 //
 // AutoLayout must appear in SystemLandscapeView, SystemContextView,
@@ -1474,6 +1488,7 @@ var DefaultEdgeSeparation = 200
 //	        SystemContextView(SoftwareSystem, "context", "An overview diagram.", func() {
 //	            AddDefault()
 //	            AutoLayout(RankTopBottom, func() {
+//	                Implementation(ImplementationGraphviz)
 //	                RankSeparation(200)
 //	                NodeSeparation(100)
 //	                EdgeSeparation(10)
@@ -1496,10 +1511,11 @@ func AutoLayout(rank RankDirectionKind, args ...func()) {
 		}
 	}
 	layout := &expr.AutoLayout{
-		RankDirection: expr.RankDirectionKind(rank),
-		RankSep:       &DefaultRankSeparation,
-		NodeSep:       &DefaultNodeSeparation,
-		EdgeSep:       &DefaultEdgeSeparation,
+		RankDirection:  expr.RankDirectionKind(rank),
+		Implementation: expr.ImplementationKind(DefaultImplementation),
+		RankSep:        &DefaultRankSeparation,
+		NodeSep:        &DefaultNodeSeparation,
+		EdgeSep:        &DefaultEdgeSeparation,
 	}
 	if dsl != nil {
 		eval.Execute(dsl, layout)
@@ -1821,6 +1837,32 @@ func Position(pos int) {
 	default:
 		eval.IncompatibleDSL()
 	}
+}
+
+// Implementation sets the implementation of the automatic layout, defaults to ImplementationDagre.
+//
+// Implementation must appear in AutoLayout.
+//
+// Implementation takes one argument: the ImplementationKind.
+//
+// Example:
+//
+//	var _ = Design(func() {
+//	    var System = SoftwareSystem("Software System", "My software system.")
+//	    Views(func() {
+//	        SystemContextView(SoftwareSystem, "context", "An overview diagram.", func() {
+//	            AutoLayout(func() {
+//	                Implementation(ImplementationGraphviz)
+//	            })
+//	        })
+//	    })
+//	})
+func Implementation(impl ImplementationKind) {
+	if a, ok := eval.Current().(*expr.AutoLayout); ok {
+		a.Implementation = expr.ImplementationKind(impl)
+		return
+	}
+	eval.IncompatibleDSL()
 }
 
 // RankSeparation sets the separation between ranks in pixels, defaults to 300.

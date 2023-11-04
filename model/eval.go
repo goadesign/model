@@ -274,11 +274,12 @@ func modelizeProps(prop *expr.ViewProps) *ViewProps {
 	}
 	if layout := prop.AutoLayout; layout != nil {
 		props.AutoLayout = &AutoLayout{
-			RankDirection: RankDirectionKind(layout.RankDirection),
-			RankSep:       layout.RankSep,
-			NodeSep:       layout.NodeSep,
-			EdgeSep:       layout.EdgeSep,
-			Vertices:      layout.Vertices,
+			Implementation: ImplementationKind(layout.Implementation),
+			RankDirection:  RankDirectionKind(layout.RankDirection),
+			RankSep:        layout.RankSep,
+			NodeSep:        layout.NodeSep,
+			EdgeSep:        layout.EdgeSep,
+			Vertices:       layout.Vertices,
 		}
 	}
 	return props

@@ -6,8 +6,8 @@ require (
 	github.com/gorilla/websocket v1.5.0
 	github.com/kylelemons/godebug v1.1.0
 	github.com/stretchr/testify v1.8.4
-	goa.design/clue v0.18.2
-	goa.design/goa/v3 v3.13.2
+	goa.design/clue v0.19.0
+	goa.design/goa/v3 v3.14.0
 	golang.org/x/tools v0.14.0
 	gopkg.in/fsnotify.v1 v1.4.7
 )
@@ -17,7 +17,7 @@ require (
 	github.com/aws/smithy-go v1.16.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dimfeld/httppath v0.0.0-20170720192232-ee938bf73598 // indirect
-	github.com/fsnotify/fsnotify v1.6.0 // indirect
+	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/go-chi/chi/v5 v5.0.10 // indirect
 	github.com/go-logfmt/logfmt v0.6.0 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
