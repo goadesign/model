@@ -25,7 +25,7 @@ DEPEND=\
 	github.com/golangci/golangci-lint/cmd/golangci-lint@latest \
 	github.com/mjibson/esc@latest
 
-all: lint check-generated test
+all: lint test build
 
 ci: depend all
 
@@ -46,15 +46,17 @@ ifneq ($(GOOS),windows)
 	fi
 endif
 
-check-generated: generate
-	@if ! git diff -s --exit-code cmd/mdl/webapp.go; then \
-  		echo 'cmd/mdl/webapp.go is different, run `make generate` before commit!'; \
-  	fi
-
 test:
-	go test ./...
+	go test ./... --coverprofile=cover.out
 
-release:
+build: 
+	@cd cmd/mdl && go install
+	@cd cmd/stz && go install
+
+serve: build
+	@cmd/mdl/mdl serve
+
+release: build
 # First make sure all is clean
 	@git diff-index --quiet HEAD
 	@go mod tidy
@@ -66,10 +68,6 @@ release:
 	@sed 's/badge\/Version-.*/badge\/Version-v$(MAJOR).$(MINOR).$(BUILD)-blue.svg)/' README.md > _tmp && mv _tmp README.md
 	@sed 's/model@v.*\/\(.*\)tab=doc/model@v$(MAJOR).$(MINOR).$(BUILD)\/\1tab=doc/' README.md > _tmp && mv _tmp README.md
 	@sed 's/model@v.*\/\(.*\)tab=doc/model@v$(MAJOR).$(MINOR).$(BUILD)\/\1tab=doc/' DSL.md > _tmp && mv _tmp DSL.md
-
-# Make sure mdl and stz build
-	@cd cmd/mdl && go install
-	@cd cmd/stz && go install
 
 # Commit and push
 	@git add .
