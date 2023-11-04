@@ -1,10 +1,21 @@
 # Model
 
-[![Build](https://github.com/goadesign/model/workflows/CI/badge.svg)](https://github.com/goadesign/model/actions?query=workflow%3ACI)
-![Version](https://img.shields.io/badge/Version-v1.7.9-blue.svg)
-![Go version](https://img.shields.io/github/go-mod/go-version/gomods/athens.svg)
-[![DSL Reference](https://img.shields.io/badge/Doc-DSL-orange)](https://pkg.go.dev/goa.design/model@v1.7.9/dsl?tab=doc)
-[![Go Packages](https://img.shields.io/badge/Doc-packages-orange)](https://pkg.go.dev/goa.design/model)
+<p align="center">
+  <p align="center">
+    <img alt="Model" src="model-banner.png">
+  </p>
+  <p align="center">
+    <a href="https://github.com/goadesign/model/releases/latest"><img alt="Release" src="https://img.shields.io/github/release/goadesign/model.svg?style=for-the-badge"></a>
+    <a href="https://pkg.go.dev/goa.design/model/dsl?tab=doc"><img alt="Go Doc" src="https://img.shields.io/badge/godoc-reference-blue.svg?style=for-the-badge"></a>
+    <a href="https://github.com/goadesign/model/actions/workflows/test.yml"><img alt="GitHub Action: Test" src="https://img.shields.io/github/actions/workflow/status/goadesign/model/test.yml?branch=main&style=for-the-badge"></a>
+    <a href="https://goreportcard.com/report/github.com/goadesign/model"><img alt="Go Report Card" src="https://goreportcard.com/badge/github.com/goadesign/model?style=for-the-badge"></a>
+    <a href="/LICENSE"><img alt="Software License" src="https://img.shields.io/badge/license-MIT-brightgreen.svg?style=for-the-badge"></a>
+    </br>
+    <a href="https://gophers.slack.com/messages/goa"><img alt="Slack: Goa" src="https://img.shields.io/badge/Goa-gray.svg?longCache=true&logo=slack&colorB=red&style=for-the-badge"></a>
+    <a href="https://invite.slack.golangbridge.org/"><img alt="Slack: Sign-up" src="https://img.shields.io/badge/Signup-gray.svg?longCache=true&logo=slack&colorB=red&style=for-the-badge"></a>
+    <a href="https://twitter.com/goadesign"><img alt="Twitter: @goadesign" src="https://img.shields.io/badge/@goadesign-gray.svg?logo=twitter&colorB=blue&style=for-the-badge"></a>
+  </p>
+</p>
 
 ## Overview
 
