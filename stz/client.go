@@ -68,7 +68,7 @@ func NewClient(key, secret string) *Client {
 // Get retrieves the given workspace.
 func (c *Client) Get(id string) (*Workspace, error) {
 	u := &url.URL{Scheme: Scheme, Host: Host, Path: fmt.Sprintf("/workspace/%s", id)}
-	req, _ := http.NewRequest("GET", u.String(), nil)
+	req, _ := http.NewRequest("GET", u.String(), http.NoBody)
 	c.sign(req, "", "")
 	resp, err := c.HTTP.Do(req)
 	if err != nil {
@@ -133,7 +133,7 @@ func (c *Client) lockUnlock(id string, lock bool) error {
 	if !lock {
 		verb = "DELETE"
 	}
-	req, _ := http.NewRequest(verb, u.String(), nil)
+	req, _ := http.NewRequest(verb, u.String(), http.NoBody)
 	c.sign(req, "", "")
 	resp, err := c.HTTP.Do(req)
 	if err != nil {

@@ -82,7 +82,7 @@ done:
 	}
 }
 
-func gen(pkg string, out string, debug bool) error {
+func gen(pkg, out string, debug bool) error {
 	// Validate package import path
 	if _, err := packages.Load(&packages.Config{Mode: packages.NeedName}, pkg); err != nil {
 		return err

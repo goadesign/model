@@ -57,7 +57,7 @@ func (d *Design) WalkSets(walk eval.SetWalker) {
 // Packages returns the import path to the Go packages that make
 // up the DSL. This is used to skip frames that point to files
 // in these packages when computing the location of errors.
-func (d *Design) Packages() []string {
+func (*Design) Packages() []string {
 	return []string{
 		"goa.design/model/expr",
 		"goa.design/model/dsl",
@@ -67,10 +67,10 @@ func (d *Design) Packages() []string {
 }
 
 // DependsOn tells the eval engine to run the goa DSL first.
-func (d *Design) DependsOn() []eval.Root { return []eval.Root{expr.Root} }
+func (*Design) DependsOn() []eval.Root { return []eval.Root{expr.Root} }
 
 // EvalName returns the generic expression name used in error messages.
-func (d *Design) EvalName() string { return "root" }
+func (*Design) EvalName() string { return "root" }
 
 func walkDeploymentNodes(n []*DeploymentNode, walk eval.SetWalker) {
 	if n == nil {

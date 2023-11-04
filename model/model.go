@@ -48,7 +48,7 @@ func (m *Model) MarshalJSON() ([]byte, error) {
 		}
 	}
 	sortDeploymentNodes(m.DeploymentNodes)
-	var mm _model = _model(*m)
+	mm := _model(*m)
 	return json.Marshal(&mm)
 }
 
