@@ -6,8 +6,18 @@ var _ = Service("Repo", func() {
 	HTTP(func() {
 		Path("/api/repo")
 	})
+	Method("CreateDefaultPackage", func() {
+		Description("Create a new model package with default content")
+		Payload(FileLocator)
+		Error("already_exists", ErrorResult, "Package or directory already exists")
+		HTTP(func() {
+			POST("/default")
+			Response(StatusCreated)
+			Response("already_exists", StatusConflict)
+		})
+	})
 	Method("CreatePackage", func() {
-		Description("Create a new model package")
+		Description("Create a new model package with given content")
 		Payload(PackageFile)
 		Error("already_exists", ErrorResult, "Package or directory already exists")
 		HTTP(func() {

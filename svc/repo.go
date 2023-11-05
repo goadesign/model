@@ -12,11 +12,21 @@ import (
 	gentypes "goa.design/model/svc/gen/types"
 )
 
+// defaultPackageContent is the default content for a new package.
+const defaultPackageContent = `package model
+
+import . "goa.design/model/dsl"
+
+var _ = Design("model", "System architecture model" func() {
+})
+`
+
 // ListPackages lists the packages in the given workspace.
 func (svc *Service) ListPackages(ctx context.Context, w *gentypes.Repository) ([]*gentypes.Package, error) {
 	ctx = log.With(ctx, log.KV{K: "repo", V: w.Repository})
 	ps, err := svc.handler.ListPackages(ctx, w.Repository)
 	if err != nil {
+
 		return nil, logAndReturn(ctx, err)
 	}
 	return ps, nil
@@ -36,6 +46,25 @@ func (svc *Service) ReadPackage(ctx context.Context, p *gentypes.PackageLocator)
 func (svc *Service) CreatePackage(ctx context.Context, pf *gentypes.PackageFile) error {
 	ctx = log.With(ctx, log.KV{K: "repo", V: pf.Locator.Repository}, log.KV{K: "dir", V: pf.Locator.Dir})
 	if err := svc.handler.CreatePackage(ctx, pf); err != nil {
+		if err == repo.ErrAlreadyExists {
+			return genrepo.MakeAlreadyExists(err)
+		}
+		return logAndReturn(ctx, err)
+	}
+	return nil
+}
+
+// CreateDefaultPackage creates a new package with default content in the given workspace.
+func (svc *Service) CreateDefaultPackage(ctx context.Context, p *gentypes.FileLocator) error {
+	ctx = log.With(ctx, log.KV{K: "repo", V: p.Repository}, log.KV{K: "dir", V: p.Dir})
+	pf := &gentypes.PackageFile{
+		Locator: p,
+		Content: defaultPackageContent,
+	}
+	if err := svc.handler.CreatePackage(ctx, pf); err != nil {
+		if err == repo.ErrAlreadyExists {
+			return genrepo.MakeAlreadyExists(err)
+		}
 		return logAndReturn(ctx, err)
 	}
 	return nil
@@ -45,6 +74,9 @@ func (svc *Service) CreatePackage(ctx context.Context, pf *gentypes.PackageFile)
 func (svc *Service) DeletePackage(ctx context.Context, p *gentypes.PackageLocator) error {
 	ctx = log.With(ctx, log.KV{K: "repo", V: p.Repository}, log.KV{K: "dir", V: p.Dir})
 	if err := svc.handler.DeletePackage(ctx, p); err != nil {
+		if err == repo.ErrNotFound {
+			return genrepo.MakeNotFound(err)
+		}
 		return logAndReturn(ctx, err)
 	}
 	return nil
@@ -62,7 +94,7 @@ func (svc *Service) GetModelJSON(ctx context.Context, p *gentypes.PackageLocator
 	}
 	js, err := codegen.JSON(filepath.Join(p.Repository, p.Dir), pkgPath, svc.debug)
 	if err != nil {
-		return "", logAndReturn(ctx, err, "failed to compile")
+		return "", genrepo.MakeCompilationError(err)
 	}
 	return gentypes.ModelJSON(js), nil
 }

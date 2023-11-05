@@ -554,7 +554,7 @@ func BuildUpserElementStylePayload(dSLEditorUpserElementStyleBody string) (*dsle
 	{
 		err = json.Unmarshal([]byte(dSLEditorUpserElementStyleBody), &body)
 		if err != nil {
-			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Background\": \"#Aa15AC\",\n      \"Border\": \"BorderDotted\",\n      \"Color\": \"#2C6e81\",\n      \"Description\": true,\n      \"FontSize\": 20,\n      \"Height\": 100,\n      \"Icon\": \"https://static.structurizr.com/images/icons/Person.png\",\n      \"Locator\": {\n         \"Dir\": \"services/my-service/diagram\",\n         \"Filename\": \"model.go\",\n         \"Repository\": \"my-repo\"\n      },\n      \"Metadata\": false,\n      \"Opacity\": 10,\n      \"Shape\": \"ShapePerson\",\n      \"Stroke\": \"#E7c976\",\n      \"Tag\": \"tag\",\n      \"Width\": 100\n   }'")
+			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Background\": \"#cF6Bc9\",\n      \"Border\": \"BorderDotted\",\n      \"Color\": \"#4B3C6F\",\n      \"Description\": true,\n      \"FontSize\": 20,\n      \"Height\": 100,\n      \"Icon\": \"https://static.structurizr.com/images/icons/Person.png\",\n      \"Locator\": {\n         \"Dir\": \"services/my-service/diagram\",\n         \"Filename\": \"model.go\",\n         \"Repository\": \"my-repo\"\n      },\n      \"Metadata\": false,\n      \"Opacity\": 10,\n      \"Shape\": \"ShapePerson\",\n      \"Stroke\": \"#595579\",\n      \"Tag\": \"tag\",\n      \"Width\": 100\n   }'")
 		}
 		if body.Locator == nil {
 			err = goa.MergeErrors(err, goa.MissingFieldError("Locator", "body"))
@@ -644,7 +644,7 @@ func BuildUpsertRelationshipStylePayload(dSLEditorUpsertRelationshipStyleBody st
 	{
 		err = json.Unmarshal([]byte(dSLEditorUpsertRelationshipStyleBody), &body)
 		if err != nil {
-			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Color\": \"#a5bEDd\",\n      \"Dashed\": false,\n      \"FontSize\": 70,\n      \"Locator\": {\n         \"Dir\": \"services/my-service/diagram\",\n         \"Filename\": \"model.go\",\n         \"Repository\": \"my-repo\"\n      },\n      \"Opacity\": 93,\n      \"Position\": 92,\n      \"Routing\": \"Direct\",\n      \"Stroke\": \"#09bA4c\",\n      \"Tag\": \"tag\",\n      \"Thickness\": 2,\n      \"Width\": 6938\n   }'")
+			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Color\": \"#268b55\",\n      \"Dashed\": false,\n      \"FontSize\": 70,\n      \"Locator\": {\n         \"Dir\": \"services/my-service/diagram\",\n         \"Filename\": \"model.go\",\n         \"Repository\": \"my-repo\"\n      },\n      \"Opacity\": 93,\n      \"Position\": 92,\n      \"Routing\": \"Direct\",\n      \"Stroke\": \"#eCD61D\",\n      \"Tag\": \"tag\",\n      \"Thickness\": 2,\n      \"Width\": 6938\n   }'")
 		}
 		if body.Locator == nil {
 			err = goa.MergeErrors(err, goa.MissingFieldError("Locator", "body"))

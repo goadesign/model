@@ -19,13 +19,14 @@ import (
 
 // Server lists the Repo service endpoint HTTP handlers.
 type Server struct {
-	Mounts        []*MountPoint
-	CreatePackage http.Handler
-	DeletePackage http.Handler
-	ListPackages  http.Handler
-	ReadPackage   http.Handler
-	GetModelJSON  http.Handler
-	Subscribe     http.Handler
+	Mounts               []*MountPoint
+	CreateDefaultPackage http.Handler
+	CreatePackage        http.Handler
+	DeletePackage        http.Handler
+	ListPackages         http.Handler
+	ReadPackage          http.Handler
+	GetModelJSON         http.Handler
+	Subscribe            http.Handler
 }
 
 // MountPoint holds information about the mounted endpoints.
@@ -60,6 +61,7 @@ func New(
 	}
 	return &Server{
 		Mounts: []*MountPoint{
+			{"CreateDefaultPackage", "POST", "/api/repo/default"},
 			{"CreatePackage", "POST", "/api/repo"},
 			{"DeletePackage", "DELETE", "/api/repo"},
 			{"ListPackages", "GET", "/api/repo"},
@@ -67,12 +69,13 @@ func New(
 			{"GetModelJSON", "GET", "/api/repo/json"},
 			{"Subscribe", "GET", "/api/repo/subscribe"},
 		},
-		CreatePackage: NewCreatePackageHandler(e.CreatePackage, mux, decoder, encoder, errhandler, formatter),
-		DeletePackage: NewDeletePackageHandler(e.DeletePackage, mux, decoder, encoder, errhandler, formatter),
-		ListPackages:  NewListPackagesHandler(e.ListPackages, mux, decoder, encoder, errhandler, formatter),
-		ReadPackage:   NewReadPackageHandler(e.ReadPackage, mux, decoder, encoder, errhandler, formatter),
-		GetModelJSON:  NewGetModelJSONHandler(e.GetModelJSON, mux, decoder, encoder, errhandler, formatter),
-		Subscribe:     NewSubscribeHandler(e.Subscribe, mux, decoder, encoder, errhandler, formatter, upgrader, configurer.SubscribeFn),
+		CreateDefaultPackage: NewCreateDefaultPackageHandler(e.CreateDefaultPackage, mux, decoder, encoder, errhandler, formatter),
+		CreatePackage:        NewCreatePackageHandler(e.CreatePackage, mux, decoder, encoder, errhandler, formatter),
+		DeletePackage:        NewDeletePackageHandler(e.DeletePackage, mux, decoder, encoder, errhandler, formatter),
+		ListPackages:         NewListPackagesHandler(e.ListPackages, mux, decoder, encoder, errhandler, formatter),
+		ReadPackage:          NewReadPackageHandler(e.ReadPackage, mux, decoder, encoder, errhandler, formatter),
+		GetModelJSON:         NewGetModelJSONHandler(e.GetModelJSON, mux, decoder, encoder, errhandler, formatter),
+		Subscribe:            NewSubscribeHandler(e.Subscribe, mux, decoder, encoder, errhandler, formatter, upgrader, configurer.SubscribeFn),
 	}
 }
 
@@ -81,6 +84,7 @@ func (s *Server) Service() string { return "Repo" }
 
 // Use wraps the server handlers with the given middleware.
 func (s *Server) Use(m func(http.Handler) http.Handler) {
+	s.CreateDefaultPackage = m(s.CreateDefaultPackage)
 	s.CreatePackage = m(s.CreatePackage)
 	s.DeletePackage = m(s.DeletePackage)
 	s.ListPackages = m(s.ListPackages)
@@ -94,6 +98,7 @@ func (s *Server) MethodNames() []string { return repo.MethodNames[:] }
 
 // Mount configures the mux to serve the Repo endpoints.
 func Mount(mux goahttp.Muxer, h *Server) {
+	MountCreateDefaultPackageHandler(mux, h.CreateDefaultPackage)
 	MountCreatePackageHandler(mux, h.CreatePackage)
 	MountDeletePackageHandler(mux, h.DeletePackage)
 	MountListPackagesHandler(mux, h.ListPackages)
@@ -105,6 +110,57 @@ func Mount(mux goahttp.Muxer, h *Server) {
 // Mount configures the mux to serve the Repo endpoints.
 func (s *Server) Mount(mux goahttp.Muxer) {
 	Mount(mux, s)
+}
+
+// MountCreateDefaultPackageHandler configures the mux to serve the "Repo"
+// service "CreateDefaultPackage" endpoint.
+func MountCreateDefaultPackageHandler(mux goahttp.Muxer, h http.Handler) {
+	f, ok := h.(http.HandlerFunc)
+	if !ok {
+		f = func(w http.ResponseWriter, r *http.Request) {
+			h.ServeHTTP(w, r)
+		}
+	}
+	mux.Handle("POST", "/api/repo/default", f)
+}
+
+// NewCreateDefaultPackageHandler creates a HTTP handler which loads the HTTP
+// request and calls the "Repo" service "CreateDefaultPackage" endpoint.
+func NewCreateDefaultPackageHandler(
+	endpoint goa.Endpoint,
+	mux goahttp.Muxer,
+	decoder func(*http.Request) goahttp.Decoder,
+	encoder func(context.Context, http.ResponseWriter) goahttp.Encoder,
+	errhandler func(context.Context, http.ResponseWriter, error),
+	formatter func(ctx context.Context, err error) goahttp.Statuser,
+) http.Handler {
+	var (
+		decodeRequest  = DecodeCreateDefaultPackageRequest(mux, decoder)
+		encodeResponse = EncodeCreateDefaultPackageResponse(encoder)
+		encodeError    = EncodeCreateDefaultPackageError(encoder, formatter)
+	)
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := context.WithValue(r.Context(), goahttp.AcceptTypeKey, r.Header.Get("Accept"))
+		ctx = context.WithValue(ctx, goa.MethodKey, "CreateDefaultPackage")
+		ctx = context.WithValue(ctx, goa.ServiceKey, "Repo")
+		payload, err := decodeRequest(r)
+		if err != nil {
+			if err := encodeError(ctx, w, err); err != nil {
+				errhandler(ctx, w, err)
+			}
+			return
+		}
+		res, err := endpoint(ctx, payload)
+		if err != nil {
+			if err := encodeError(ctx, w, err); err != nil {
+				errhandler(ctx, w, err)
+			}
+			return
+		}
+		if err := encodeResponse(ctx, w, res); err != nil {
+			errhandler(ctx, w, err)
+		}
+	})
 }
 
 // MountCreatePackageHandler configures the mux to serve the "Repo" service

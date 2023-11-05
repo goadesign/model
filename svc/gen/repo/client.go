@@ -16,24 +16,36 @@ import (
 
 // Client is the "Repo" service client.
 type Client struct {
-	CreatePackageEndpoint goa.Endpoint
-	DeletePackageEndpoint goa.Endpoint
-	ListPackagesEndpoint  goa.Endpoint
-	ReadPackageEndpoint   goa.Endpoint
-	GetModelJSONEndpoint  goa.Endpoint
-	SubscribeEndpoint     goa.Endpoint
+	CreateDefaultPackageEndpoint goa.Endpoint
+	CreatePackageEndpoint        goa.Endpoint
+	DeletePackageEndpoint        goa.Endpoint
+	ListPackagesEndpoint         goa.Endpoint
+	ReadPackageEndpoint          goa.Endpoint
+	GetModelJSONEndpoint         goa.Endpoint
+	SubscribeEndpoint            goa.Endpoint
 }
 
 // NewClient initializes a "Repo" service client given the endpoints.
-func NewClient(createPackage, deletePackage, listPackages, readPackage, getModelJSON, subscribe goa.Endpoint) *Client {
+func NewClient(createDefaultPackage, createPackage, deletePackage, listPackages, readPackage, getModelJSON, subscribe goa.Endpoint) *Client {
 	return &Client{
-		CreatePackageEndpoint: createPackage,
-		DeletePackageEndpoint: deletePackage,
-		ListPackagesEndpoint:  listPackages,
-		ReadPackageEndpoint:   readPackage,
-		GetModelJSONEndpoint:  getModelJSON,
-		SubscribeEndpoint:     subscribe,
+		CreateDefaultPackageEndpoint: createDefaultPackage,
+		CreatePackageEndpoint:        createPackage,
+		DeletePackageEndpoint:        deletePackage,
+		ListPackagesEndpoint:         listPackages,
+		ReadPackageEndpoint:          readPackage,
+		GetModelJSONEndpoint:         getModelJSON,
+		SubscribeEndpoint:            subscribe,
 	}
+}
+
+// CreateDefaultPackage calls the "CreateDefaultPackage" endpoint of the "Repo"
+// service.
+// CreateDefaultPackage may return the following errors:
+//   - "already_exists" (type *goa.ServiceError): Package or directory already exists
+//   - error: internal error
+func (c *Client) CreateDefaultPackage(ctx context.Context, p *types.FileLocator) (err error) {
+	_, err = c.CreateDefaultPackageEndpoint(ctx, p)
+	return
 }
 
 // CreatePackage calls the "CreatePackage" endpoint of the "Repo" service.

@@ -25,7 +25,7 @@ import (
 //	command (subcommand1|subcommand2|...)
 func UsageCommands() string {
 	return `dsl-editor (update-dsl|upsert-system|upsert-person|upsert-container|upsert-component|upsert-relationship|upsert-landscape-view|upsert-system-context-view|upsert-container-view|upsert-component-view|upser-element-style|upsert-relationship-style|delete-system|delete-person|delete-container|delete-component|delete-relationship|delete-landscape-view|delete-system-context-view|delete-container-view|delete-component-view|delete-element-style|delete-relationship-style)
-repo (create-package|delete-package|list-packages|read-package|get-model-json|subscribe)
+repo (create-default-package|create-package|delete-package|list-packages|read-package|get-model-json|subscribe)
 svg (load|save)
 `
 }
@@ -40,13 +40,10 @@ func UsageExamples() string {
          "Repository": "my-repo"
       }
    }'` + "\n" +
-		os.Args[0] + ` repo create-package --body '{
-      "Content": "package model\n\nimport . \"goa.design/model/dsl\"\n\nvar _ = Design(func() {})",
-      "Locator": {
-         "Dir": "services/my-service/diagram",
-         "Filename": "model.go",
-         "Repository": "my-repo"
-      }
+		os.Args[0] + ` repo create-default-package --body '{
+      "Dir": "services/my-service/diagram",
+      "Filename": "model.go",
+      "Repository": "my-repo"
    }'` + "\n" +
 		os.Args[0] + ` svg load --filename "model.go" --repository "my-repo" --dir "services/my-service/diagram"` + "\n" +
 		""
@@ -164,6 +161,9 @@ func ParseEndpoint(
 
 		repoFlags = flag.NewFlagSet("repo", flag.ContinueOnError)
 
+		repoCreateDefaultPackageFlags    = flag.NewFlagSet("create-default-package", flag.ExitOnError)
+		repoCreateDefaultPackageBodyFlag = repoCreateDefaultPackageFlags.String("body", "REQUIRED", "")
+
 		repoCreatePackageFlags    = flag.NewFlagSet("create-package", flag.ExitOnError)
 		repoCreatePackageBodyFlag = repoCreatePackageFlags.String("body", "REQUIRED", "")
 
@@ -222,6 +222,7 @@ func ParseEndpoint(
 	dSLEditorDeleteRelationshipStyleFlags.Usage = dSLEditorDeleteRelationshipStyleUsage
 
 	repoFlags.Usage = repoUsage
+	repoCreateDefaultPackageFlags.Usage = repoCreateDefaultPackageUsage
 	repoCreatePackageFlags.Usage = repoCreatePackageUsage
 	repoDeletePackageFlags.Usage = repoDeletePackageUsage
 	repoListPackagesFlags.Usage = repoListPackagesUsage
@@ -344,6 +345,9 @@ func ParseEndpoint(
 
 		case "repo":
 			switch epn {
+			case "create-default-package":
+				epf = repoCreateDefaultPackageFlags
+
 			case "create-package":
 				epf = repoCreatePackageFlags
 
@@ -470,6 +474,9 @@ func ParseEndpoint(
 		case "repo":
 			c := repoc.NewClient(scheme, host, doer, enc, dec, restore, dialer, repoConfigurer)
 			switch epn {
+			case "create-default-package":
+				endpoint = c.CreateDefaultPackage()
+				data, err = repoc.BuildCreateDefaultPackagePayload(*repoCreateDefaultPackageBodyFlag)
 			case "create-package":
 				endpoint = c.CreatePackage()
 				data, err = repoc.BuildCreatePackagePayload(*repoCreatePackageBodyFlag)
@@ -915,9 +922,9 @@ Create or update an element style in the model
 
 Example:
     %[1]s dsl-editor upser-element-style --body '{
-      "Background": "#Aa15AC",
+      "Background": "#cF6Bc9",
       "Border": "BorderDotted",
-      "Color": "#2C6e81",
+      "Color": "#4B3C6F",
       "Description": true,
       "FontSize": 20,
       "Height": 100,
@@ -930,7 +937,7 @@ Example:
       "Metadata": false,
       "Opacity": 10,
       "Shape": "ShapePerson",
-      "Stroke": "#E7c976",
+      "Stroke": "#595579",
       "Tag": "tag",
       "Width": 100
    }'
@@ -945,7 +952,7 @@ Create or update a relationship style in the model
 
 Example:
     %[1]s dsl-editor upsert-relationship-style --body '{
-      "Color": "#a5bEDd",
+      "Color": "#268b55",
       "Dashed": false,
       "FontSize": 70,
       "Locator": {
@@ -956,7 +963,7 @@ Example:
       "Opacity": 93,
       "Position": 92,
       "Routing": "Direct",
-      "Stroke": "#09bA4c",
+      "Stroke": "#eCD61D",
       "Tag": "tag",
       "Thickness": 2,
       "Width": 6938
@@ -1119,7 +1126,8 @@ Usage:
     %[1]s [globalflags] repo COMMAND [flags]
 
 COMMAND:
-    create-package: Create a new model package
+    create-default-package: Create a new model package with default content
+    create-package: Create a new model package with given content
     delete-package: Delete the given model package
     list-packages: List the model packages in the given workspace
     read-package: Get the DSL files and their content for the given model package
@@ -1130,10 +1138,25 @@ Additional help:
     %[1]s repo COMMAND --help
 `, os.Args[0])
 }
+func repoCreateDefaultPackageUsage() {
+	fmt.Fprintf(os.Stderr, `%[1]s [flags] repo create-default-package -body JSON
+
+Create a new model package with default content
+    -body JSON: 
+
+Example:
+    %[1]s repo create-default-package --body '{
+      "Dir": "services/my-service/diagram",
+      "Filename": "model.go",
+      "Repository": "my-repo"
+   }'
+`, os.Args[0])
+}
+
 func repoCreatePackageUsage() {
 	fmt.Fprintf(os.Stderr, `%[1]s [flags] repo create-package -body JSON
 
-Create a new model package
+Create a new model package with given content
     -body JSON: 
 
 Example:
@@ -1245,7 +1268,7 @@ Example:
       "Dir": "services/my-service/diagram",
       "Filename": "model.go",
       "Repository": "my-repo",
-      "SVG": "\u003csvg���\u003c/svg\u003e"
+      "SVG": "\u003csvg������\u003c/svg\u003e"
    }'
 `, os.Args[0])
 }

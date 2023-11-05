@@ -16,12 +16,13 @@ import (
 
 // Endpoints wraps the "Repo" service endpoints.
 type Endpoints struct {
-	CreatePackage goa.Endpoint
-	DeletePackage goa.Endpoint
-	ListPackages  goa.Endpoint
-	ReadPackage   goa.Endpoint
-	GetModelJSON  goa.Endpoint
-	Subscribe     goa.Endpoint
+	CreateDefaultPackage goa.Endpoint
+	CreatePackage        goa.Endpoint
+	DeletePackage        goa.Endpoint
+	ListPackages         goa.Endpoint
+	ReadPackage          goa.Endpoint
+	GetModelJSON         goa.Endpoint
+	Subscribe            goa.Endpoint
 }
 
 // SubscribeEndpointInput holds both the payload and the server stream of the
@@ -36,23 +37,34 @@ type SubscribeEndpointInput struct {
 // NewEndpoints wraps the methods of the "Repo" service with endpoints.
 func NewEndpoints(s Service) *Endpoints {
 	return &Endpoints{
-		CreatePackage: NewCreatePackageEndpoint(s),
-		DeletePackage: NewDeletePackageEndpoint(s),
-		ListPackages:  NewListPackagesEndpoint(s),
-		ReadPackage:   NewReadPackageEndpoint(s),
-		GetModelJSON:  NewGetModelJSONEndpoint(s),
-		Subscribe:     NewSubscribeEndpoint(s),
+		CreateDefaultPackage: NewCreateDefaultPackageEndpoint(s),
+		CreatePackage:        NewCreatePackageEndpoint(s),
+		DeletePackage:        NewDeletePackageEndpoint(s),
+		ListPackages:         NewListPackagesEndpoint(s),
+		ReadPackage:          NewReadPackageEndpoint(s),
+		GetModelJSON:         NewGetModelJSONEndpoint(s),
+		Subscribe:            NewSubscribeEndpoint(s),
 	}
 }
 
 // Use applies the given middleware to all the "Repo" service endpoints.
 func (e *Endpoints) Use(m func(goa.Endpoint) goa.Endpoint) {
+	e.CreateDefaultPackage = m(e.CreateDefaultPackage)
 	e.CreatePackage = m(e.CreatePackage)
 	e.DeletePackage = m(e.DeletePackage)
 	e.ListPackages = m(e.ListPackages)
 	e.ReadPackage = m(e.ReadPackage)
 	e.GetModelJSON = m(e.GetModelJSON)
 	e.Subscribe = m(e.Subscribe)
+}
+
+// NewCreateDefaultPackageEndpoint returns an endpoint function that calls the
+// method "CreateDefaultPackage" of service "Repo".
+func NewCreateDefaultPackageEndpoint(s Service) goa.Endpoint {
+	return func(ctx context.Context, req any) (any, error) {
+		p := req.(*types.FileLocator)
+		return nil, s.CreateDefaultPackage(ctx, p)
+	}
 }
 
 // NewCreatePackageEndpoint returns an endpoint function that calls the method

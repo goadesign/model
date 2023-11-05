@@ -14,6 +14,17 @@ import (
 	types "goa.design/model/svc/gen/types"
 )
 
+// CreateDefaultPackageRequestBody is the type of the "Repo" service
+// "CreateDefaultPackage" endpoint HTTP request body.
+type CreateDefaultPackageRequestBody struct {
+	// Name of DSL file
+	Filename string `form:"Filename" json:"Filename" xml:"Filename"`
+	// Path to repository root
+	Repository string `form:"Repository" json:"Repository" xml:"Repository"`
+	// Path to directory containing a model package
+	Dir string `form:"Dir" json:"Dir" xml:"Dir"`
+}
+
 // CreatePackageRequestBody is the type of the "Repo" service "CreatePackage"
 // endpoint HTTP request body.
 type CreatePackageRequestBody struct {
@@ -38,6 +49,25 @@ type SubscribeResponseBody struct {
 	Model *string `form:"Model,omitempty" json:"Model,omitempty" xml:"Model,omitempty"`
 	// Compilation error if any
 	Error *string `form:"Error,omitempty" json:"Error,omitempty" xml:"Error,omitempty"`
+}
+
+// CreateDefaultPackageAlreadyExistsResponseBody is the type of the "Repo"
+// service "CreateDefaultPackage" endpoint HTTP response body for the
+// "already_exists" error.
+type CreateDefaultPackageAlreadyExistsResponseBody struct {
+	// Name is the name of this class of errors.
+	Name *string `form:"name,omitempty" json:"name,omitempty" xml:"name,omitempty"`
+	// ID is a unique identifier for this particular occurrence of the problem.
+	ID *string `form:"id,omitempty" json:"id,omitempty" xml:"id,omitempty"`
+	// Message is a human-readable explanation specific to this occurrence of the
+	// problem.
+	Message *string `form:"message,omitempty" json:"message,omitempty" xml:"message,omitempty"`
+	// Is the error temporary?
+	Temporary *bool `form:"temporary,omitempty" json:"temporary,omitempty" xml:"temporary,omitempty"`
+	// Is the error a timeout?
+	Timeout *bool `form:"timeout,omitempty" json:"timeout,omitempty" xml:"timeout,omitempty"`
+	// Is the error a server-side fault?
+	Fault *bool `form:"fault,omitempty" json:"fault,omitempty" xml:"fault,omitempty"`
 }
 
 // CreatePackageAlreadyExistsResponseBody is the type of the "Repo" service
@@ -202,6 +232,17 @@ type FileLocatorResponse struct {
 	Dir *string `form:"Dir,omitempty" json:"Dir,omitempty" xml:"Dir,omitempty"`
 }
 
+// NewCreateDefaultPackageRequestBody builds the HTTP request body from the
+// payload of the "CreateDefaultPackage" endpoint of the "Repo" service.
+func NewCreateDefaultPackageRequestBody(p *types.FileLocator) *CreateDefaultPackageRequestBody {
+	body := &CreateDefaultPackageRequestBody{
+		Filename:   p.Filename,
+		Repository: p.Repository,
+		Dir:        p.Dir,
+	}
+	return body
+}
+
 // NewCreatePackageRequestBody builds the HTTP request body from the payload of
 // the "CreatePackage" endpoint of the "Repo" service.
 func NewCreatePackageRequestBody(p *types.PackageFile) *CreatePackageRequestBody {
@@ -212,6 +253,21 @@ func NewCreatePackageRequestBody(p *types.PackageFile) *CreatePackageRequestBody
 		body.Locator = marshalTypesFileLocatorToFileLocatorRequestBody(p.Locator)
 	}
 	return body
+}
+
+// NewCreateDefaultPackageAlreadyExists builds a Repo service
+// CreateDefaultPackage endpoint already_exists error.
+func NewCreateDefaultPackageAlreadyExists(body *CreateDefaultPackageAlreadyExistsResponseBody) *goa.ServiceError {
+	v := &goa.ServiceError{
+		Name:      *body.Name,
+		ID:        *body.ID,
+		Message:   *body.Message,
+		Temporary: *body.Temporary,
+		Timeout:   *body.Timeout,
+		Fault:     *body.Fault,
+	}
+
+	return v
 }
 
 // NewCreatePackageAlreadyExists builds a Repo service CreatePackage endpoint
@@ -368,6 +424,30 @@ func NewSubscribeNotFound(body *SubscribeNotFoundResponseBody) *goa.ServiceError
 func ValidateSubscribeResponseBody(body *SubscribeResponseBody) (err error) {
 	if body.Model != nil {
 		err = goa.MergeErrors(err, goa.ValidateFormat("body.Model", *body.Model, goa.FormatJSON))
+	}
+	return
+}
+
+// ValidateCreateDefaultPackageAlreadyExistsResponseBody runs the validations
+// defined on CreateDefaultPackage_already_exists_Response_Body
+func ValidateCreateDefaultPackageAlreadyExistsResponseBody(body *CreateDefaultPackageAlreadyExistsResponseBody) (err error) {
+	if body.Name == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("name", "body"))
+	}
+	if body.ID == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("id", "body"))
+	}
+	if body.Message == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("message", "body"))
+	}
+	if body.Temporary == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("temporary", "body"))
+	}
+	if body.Timeout == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("timeout", "body"))
+	}
+	if body.Fault == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("fault", "body"))
 	}
 	return
 }

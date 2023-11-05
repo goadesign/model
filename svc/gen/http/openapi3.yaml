@@ -54,9 +54,9 @@ paths:
                         application/json:
                             schema:
                                 type: string
-                                example: <svg���</svg>
+                                example: <svg����</svg>
                                 pattern: <svg.*</svg>$
-                            example: <svg�</svg>
+                            example: <svg������</svg>
                 "404":
                     description: 'NotFound: File not found'
                     content:
@@ -79,7 +79,7 @@ paths:
                             Dir: services/my-service/diagram
                             Filename: model.go
                             Repository: my-repo
-                            SVG: <svg���</svg>
+                            SVG: <svg������</svg>
             responses:
                 "204":
                     description: No Content response.
@@ -1064,9 +1064,9 @@ paths:
                         schema:
                             $ref: '#/components/schemas/UpserElementStyleRequestBody'
                         example:
-                            Background: '#Aa15AC'
+                            Background: '#cF6Bc9'
                             Border: BorderDotted
-                            Color: '#2C6e81'
+                            Color: '#4B3C6F'
                             Description: true
                             FontSize: 20
                             Height: 100
@@ -1078,7 +1078,7 @@ paths:
                             Metadata: false
                             Opacity: 10
                             Shape: ShapePerson
-                            Stroke: '#E7c976'
+                            Stroke: '#595579'
                             Tag: tag
                             Width: 100
             responses:
@@ -1317,7 +1317,7 @@ paths:
                         schema:
                             $ref: '#/components/schemas/UpsertRelationshipStyleRequestBody'
                         example:
-                            Color: '#a5bEDd'
+                            Color: '#268b55'
                             Dashed: false
                             FontSize: 70
                             Locator:
@@ -1327,7 +1327,7 @@ paths:
                             Opacity: 93
                             Position: 92
                             Routing: Direct
-                            Stroke: '#09bA4c'
+                            Stroke: '#eCD61D'
                             Tag: tag
                             Thickness: 2
                             Width: 6938
@@ -1644,7 +1644,7 @@ paths:
             tags:
                 - Repo
             summary: CreatePackage Repo
-            description: Create a new model package
+            description: Create a new model package with given content
             operationId: Repo#CreatePackage
             requestBody:
                 required: true
@@ -1663,6 +1663,32 @@ paths:
                                 Dir: services/my-service/diagram
                                 Filename: model.go
                                 Repository: my-repo
+            responses:
+                "201":
+                    description: Created response.
+                "409":
+                    description: 'already_exists: Package or directory already exists'
+                    content:
+                        application/vnd.goa.error:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+    /api/repo/default:
+        post:
+            tags:
+                - Repo
+            summary: CreateDefaultPackage Repo
+            description: Create a new model package with default content
+            operationId: Repo#CreateDefaultPackage
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/FileLocator'
+                        example:
+                            Dir: services/my-service/diagram
+                            Filename: model.go
+                            Repository: my-repo
             responses:
                 "201":
                     description: Created response.
@@ -1859,7 +1885,7 @@ paths:
                             schema:
                                 $ref: '#/components/schemas/CompilationResults'
                             example:
-                                Error: Cum quis.
+                                Error: Quis iste.
                                 Model: '{"name":"example","email":"mail@example.com"}'
                 "404":
                     description: 'not_found: Package not found'
@@ -2028,13 +2054,13 @@ components:
                 SVG:
                     type: string
                     description: Diagram SVG
-                    example: <svg</svg>
+                    example: <svg�</svg>
                     pattern: <svg.*</svg>$
             example:
                 Dir: services/my-service/diagram
                 Filename: model.go
                 Repository: my-repo
-                SVG: <svg</svg>
+                SVG: <svg�</svg>
             required:
                 - Filename
                 - SVG
@@ -2076,7 +2102,7 @@ components:
                 Background:
                     type: string
                     description: Background color of element
-                    example: '#Ec67F0'
+                    example: '#8aA830'
                     pattern: ^#[0-9a-fA-F]{6}$
                 Border:
                     type: string
@@ -2090,7 +2116,7 @@ components:
                 Color:
                     type: string
                     description: Text color of element
-                    example: '#77a82E'
+                    example: '#8FACEB'
                     pattern: ^#[0-9a-fA-F]{6}$
                 Description:
                     type: boolean
@@ -2147,7 +2173,7 @@ components:
                 Stroke:
                     type: string
                     description: Stroke color of element
-                    example: '#12AdeD'
+                    example: '#cdB44f'
                     pattern: ^#[0-9a-fA-F]{6}$
                 Tag:
                     type: string
@@ -2159,9 +2185,9 @@ components:
                     example: 100
                     format: int64
             example:
-                Background: '#ef9f40'
+                Background: '#3c517d'
                 Border: BorderDotted
-                Color: '#dE490a'
+                Color: '#50E9eF'
                 Description: false
                 FontSize: 20
                 Height: 100
@@ -2173,7 +2199,7 @@ components:
                 Metadata: false
                 Opacity: 42
                 Shape: ShapeMobileDevicePortrait
-                Stroke: '#c4aBB3'
+                Stroke: '#a9Bb19'
                 Tag: tag
                 Width: 100
             required:
@@ -2695,7 +2721,7 @@ components:
                 Color:
                     type: string
                     description: Color of label
-                    example: '#1D7295'
+                    example: '#4d2e9e'
                     pattern: ^#[0-9a-fA-F]{6}$
                 Dashed:
                     type: boolean
@@ -2734,7 +2760,7 @@ components:
                 Stroke:
                     type: string
                     description: Stroke color of relationship
-                    example: '#cA909a'
+                    example: '#843Ade'
                     pattern: ^#[0-9a-fA-F]{6}$
                 Tag:
                     type: string
@@ -2753,7 +2779,7 @@ components:
                     minimum: 1
                     maximum: 10000
             example:
-                Color: '#B05503'
+                Color: '#d26bc0'
                 Dashed: true
                 FontSize: 95
                 Locator:
@@ -2763,7 +2789,7 @@ components:
                 Opacity: 17
                 Position: 65
                 Routing: Curved
-                Stroke: '#dd3D0B'
+                Stroke: '#bcAf64'
                 Tag: tag
                 Thickness: 2
                 Width: 2449

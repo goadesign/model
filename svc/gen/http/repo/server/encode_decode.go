@@ -19,6 +19,69 @@ import (
 	types "goa.design/model/svc/gen/types"
 )
 
+// EncodeCreateDefaultPackageResponse returns an encoder for responses returned
+// by the Repo CreateDefaultPackage endpoint.
+func EncodeCreateDefaultPackageResponse(encoder func(context.Context, http.ResponseWriter) goahttp.Encoder) func(context.Context, http.ResponseWriter, any) error {
+	return func(ctx context.Context, w http.ResponseWriter, v any) error {
+		w.WriteHeader(http.StatusCreated)
+		return nil
+	}
+}
+
+// DecodeCreateDefaultPackageRequest returns a decoder for requests sent to the
+// Repo CreateDefaultPackage endpoint.
+func DecodeCreateDefaultPackageRequest(mux goahttp.Muxer, decoder func(*http.Request) goahttp.Decoder) func(*http.Request) (any, error) {
+	return func(r *http.Request) (any, error) {
+		var (
+			body CreateDefaultPackageRequestBody
+			err  error
+		)
+		err = decoder(r).Decode(&body)
+		if err != nil {
+			if err == io.EOF {
+				return nil, goa.MissingPayloadError()
+			}
+			return nil, goa.DecodePayloadError(err.Error())
+		}
+		err = ValidateCreateDefaultPackageRequestBody(&body)
+		if err != nil {
+			return nil, err
+		}
+		payload := NewCreateDefaultPackageFileLocator(&body)
+
+		return payload, nil
+	}
+}
+
+// EncodeCreateDefaultPackageError returns an encoder for errors returned by
+// the CreateDefaultPackage Repo endpoint.
+func EncodeCreateDefaultPackageError(encoder func(context.Context, http.ResponseWriter) goahttp.Encoder, formatter func(ctx context.Context, err error) goahttp.Statuser) func(context.Context, http.ResponseWriter, error) error {
+	encodeError := goahttp.ErrorEncoder(encoder, formatter)
+	return func(ctx context.Context, w http.ResponseWriter, v error) error {
+		var en goa.GoaErrorNamer
+		if !errors.As(v, &en) {
+			return encodeError(ctx, w, v)
+		}
+		switch en.GoaErrorName() {
+		case "already_exists":
+			var res *goa.ServiceError
+			errors.As(v, &res)
+			enc := encoder(ctx, w)
+			var body any
+			if formatter != nil {
+				body = formatter(ctx, res)
+			} else {
+				body = NewCreateDefaultPackageAlreadyExistsResponseBody(res)
+			}
+			w.Header().Set("goa-error", res.GoaErrorName())
+			w.WriteHeader(http.StatusConflict)
+			return enc.Encode(body)
+		default:
+			return encodeError(ctx, w, v)
+		}
+	}
+}
+
 // EncodeCreatePackageResponse returns an encoder for responses returned by the
 // Repo CreatePackage endpoint.
 func EncodeCreatePackageResponse(encoder func(context.Context, http.ResponseWriter) goahttp.Encoder) func(context.Context, http.ResponseWriter, any) error {

@@ -14,6 +14,17 @@ import (
 	types "goa.design/model/svc/gen/types"
 )
 
+// CreateDefaultPackageRequestBody is the type of the "Repo" service
+// "CreateDefaultPackage" endpoint HTTP request body.
+type CreateDefaultPackageRequestBody struct {
+	// Name of DSL file
+	Filename *string `form:"Filename,omitempty" json:"Filename,omitempty" xml:"Filename,omitempty"`
+	// Path to repository root
+	Repository *string `form:"Repository,omitempty" json:"Repository,omitempty" xml:"Repository,omitempty"`
+	// Path to directory containing a model package
+	Dir *string `form:"Dir,omitempty" json:"Dir,omitempty" xml:"Dir,omitempty"`
+}
+
 // CreatePackageRequestBody is the type of the "Repo" service "CreatePackage"
 // endpoint HTTP request body.
 type CreatePackageRequestBody struct {
@@ -38,6 +49,25 @@ type SubscribeResponseBody struct {
 	Model *string `form:"Model,omitempty" json:"Model,omitempty" xml:"Model,omitempty"`
 	// Compilation error if any
 	Error *string `form:"Error,omitempty" json:"Error,omitempty" xml:"Error,omitempty"`
+}
+
+// CreateDefaultPackageAlreadyExistsResponseBody is the type of the "Repo"
+// service "CreateDefaultPackage" endpoint HTTP response body for the
+// "already_exists" error.
+type CreateDefaultPackageAlreadyExistsResponseBody struct {
+	// Name is the name of this class of errors.
+	Name string `form:"name" json:"name" xml:"name"`
+	// ID is a unique identifier for this particular occurrence of the problem.
+	ID string `form:"id" json:"id" xml:"id"`
+	// Message is a human-readable explanation specific to this occurrence of the
+	// problem.
+	Message string `form:"message" json:"message" xml:"message"`
+	// Is the error temporary?
+	Temporary bool `form:"temporary" json:"temporary" xml:"temporary"`
+	// Is the error a timeout?
+	Timeout bool `form:"timeout" json:"timeout" xml:"timeout"`
+	// Is the error a server-side fault?
+	Fault bool `form:"fault" json:"fault" xml:"fault"`
 }
 
 // CreatePackageAlreadyExistsResponseBody is the type of the "Repo" service
@@ -235,6 +265,21 @@ func NewSubscribeResponseBody(res *types.CompilationResults) *SubscribeResponseB
 	return body
 }
 
+// NewCreateDefaultPackageAlreadyExistsResponseBody builds the HTTP response
+// body from the result of the "CreateDefaultPackage" endpoint of the "Repo"
+// service.
+func NewCreateDefaultPackageAlreadyExistsResponseBody(res *goa.ServiceError) *CreateDefaultPackageAlreadyExistsResponseBody {
+	body := &CreateDefaultPackageAlreadyExistsResponseBody{
+		Name:      res.Name,
+		ID:        res.ID,
+		Message:   res.Message,
+		Temporary: res.Temporary,
+		Timeout:   res.Timeout,
+		Fault:     res.Fault,
+	}
+	return body
+}
+
 // NewCreatePackageAlreadyExistsResponseBody builds the HTTP response body from
 // the result of the "CreatePackage" endpoint of the "Repo" service.
 func NewCreatePackageAlreadyExistsResponseBody(res *goa.ServiceError) *CreatePackageAlreadyExistsResponseBody {
@@ -333,6 +378,18 @@ func NewSubscribeNotFoundResponseBody(res *goa.ServiceError) *SubscribeNotFoundR
 	return body
 }
 
+// NewCreateDefaultPackageFileLocator builds a Repo service
+// CreateDefaultPackage endpoint payload.
+func NewCreateDefaultPackageFileLocator(body *CreateDefaultPackageRequestBody) *types.FileLocator {
+	v := &types.FileLocator{
+		Filename:   *body.Filename,
+		Repository: *body.Repository,
+		Dir:        *body.Dir,
+	}
+
+	return v
+}
+
 // NewCreatePackagePackageFile builds a Repo service CreatePackage endpoint
 // payload.
 func NewCreatePackagePackageFile(body *CreatePackageRequestBody) *types.PackageFile {
@@ -390,6 +447,34 @@ func NewSubscribePackageLocator(repository string, dir string) *types.PackageLoc
 	v.Dir = dir
 
 	return v
+}
+
+// ValidateCreateDefaultPackageRequestBody runs the validations defined on
+// CreateDefaultPackageRequestBody
+func ValidateCreateDefaultPackageRequestBody(body *CreateDefaultPackageRequestBody) (err error) {
+	if body.Filename == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Filename", "body"))
+	}
+	if body.Repository == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Repository", "body"))
+	}
+	if body.Dir == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("Dir", "body"))
+	}
+	if body.Filename != nil {
+		err = goa.MergeErrors(err, goa.ValidatePattern("body.Filename", *body.Filename, "\\.go$"))
+	}
+	if body.Repository != nil {
+		if utf8.RuneCountInString(*body.Repository) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Repository", *body.Repository, utf8.RuneCountInString(*body.Repository), 1, true))
+		}
+	}
+	if body.Dir != nil {
+		if utf8.RuneCountInString(*body.Dir) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Dir", *body.Dir, utf8.RuneCountInString(*body.Dir), 1, true))
+		}
+	}
+	return
 }
 
 // ValidateCreatePackageRequestBody runs the validations defined on

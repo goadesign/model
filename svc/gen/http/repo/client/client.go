@@ -19,6 +19,10 @@ import (
 
 // Client lists the Repo service endpoint HTTP clients.
 type Client struct {
+	// CreateDefaultPackage Doer is the HTTP client used to make requests to the
+	// CreateDefaultPackage endpoint.
+	CreateDefaultPackageDoer goahttp.Doer
+
 	// CreatePackage Doer is the HTTP client used to make requests to the
 	// CreatePackage endpoint.
 	CreatePackageDoer goahttp.Doer
@@ -70,19 +74,44 @@ func NewClient(
 		cfn = &ConnConfigurer{}
 	}
 	return &Client{
-		CreatePackageDoer:   doer,
-		DeletePackageDoer:   doer,
-		ListPackagesDoer:    doer,
-		ReadPackageDoer:     doer,
-		GetModelJSONDoer:    doer,
-		SubscribeDoer:       doer,
-		RestoreResponseBody: restoreBody,
-		scheme:              scheme,
-		host:                host,
-		decoder:             dec,
-		encoder:             enc,
-		dialer:              dialer,
-		configurer:          cfn,
+		CreateDefaultPackageDoer: doer,
+		CreatePackageDoer:        doer,
+		DeletePackageDoer:        doer,
+		ListPackagesDoer:         doer,
+		ReadPackageDoer:          doer,
+		GetModelJSONDoer:         doer,
+		SubscribeDoer:            doer,
+		RestoreResponseBody:      restoreBody,
+		scheme:                   scheme,
+		host:                     host,
+		decoder:                  dec,
+		encoder:                  enc,
+		dialer:                   dialer,
+		configurer:               cfn,
+	}
+}
+
+// CreateDefaultPackage returns an endpoint that makes HTTP requests to the
+// Repo service CreateDefaultPackage server.
+func (c *Client) CreateDefaultPackage() goa.Endpoint {
+	var (
+		encodeRequest  = EncodeCreateDefaultPackageRequest(c.encoder)
+		decodeResponse = DecodeCreateDefaultPackageResponse(c.decoder, c.RestoreResponseBody)
+	)
+	return func(ctx context.Context, v any) (any, error) {
+		req, err := c.BuildCreateDefaultPackageRequest(ctx, v)
+		if err != nil {
+			return nil, err
+		}
+		err = encodeRequest(req, v)
+		if err != nil {
+			return nil, err
+		}
+		resp, err := c.CreateDefaultPackageDoer.Do(req)
+		if err != nil {
+			return nil, goahttp.ErrRequestError("Repo", "CreateDefaultPackage", err)
+		}
+		return decodeResponse(resp)
 	}
 }
 

@@ -16,7 +16,9 @@ import (
 
 // Service is the Repo service interface.
 type Service interface {
-	// Create a new model package
+	// Create a new model package with default content
+	CreateDefaultPackage(context.Context, *types.FileLocator) (err error)
+	// Create a new model package with given content
 	CreatePackage(context.Context, *types.PackageFile) (err error)
 	// Delete the given model package
 	DeletePackage(context.Context, *types.PackageLocator) (err error)
@@ -38,7 +40,7 @@ const ServiceName = "Repo"
 // MethodNames lists the service method names as defined in the design. These
 // are the same values that are set in the endpoint request contexts under the
 // MethodKey key.
-var MethodNames = [6]string{"CreatePackage", "DeletePackage", "ListPackages", "ReadPackage", "GetModelJSON", "Subscribe"}
+var MethodNames = [7]string{"CreateDefaultPackage", "CreatePackage", "DeletePackage", "ListPackages", "ReadPackage", "GetModelJSON", "Subscribe"}
 
 // SubscribeServerStream is the interface a "Subscribe" endpoint server stream
 // must satisfy.

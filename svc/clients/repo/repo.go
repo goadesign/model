@@ -111,6 +111,9 @@ func (h *handler) ListPackages(ctx context.Context, repo string) ([]*gentypes.Pa
 		})
 	})
 	if err != nil {
+		if err == ErrNotFound {
+			return nil, err
+		}
 		return nil, fmt.Errorf("failed to list packages: %w", err)
 	}
 	return pkgs, nil
@@ -276,8 +279,11 @@ func (h *handler) Subscribe(ctx context.Context, p *gentypes.PackageLocator) (<-
 }
 
 func iterateModelPackages(ctx context.Context, root string, fn func(dirPath string, importPath string)) error {
-	err := filepath.Walk(root, func(fpath string, info os.FileInfo, err error) error {
+	return filepath.Walk(root, func(fpath string, info os.FileInfo, err error) error {
 		if err != nil {
+			if errors.Is(err, fs.ErrNotExist) {
+				return ErrNotFound
+			}
 			log.Errorf(ctx, err, "failed to stat %s", fpath)
 			return nil
 		}
@@ -315,7 +321,6 @@ func iterateModelPackages(ctx context.Context, root string, fn func(dirPath stri
 		}
 		return nil
 	})
-	return err
 }
 
 // modulePath searches for the go.mod file recursively starting at the given

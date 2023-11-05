@@ -16,6 +16,36 @@ import (
 	types "goa.design/model/svc/gen/types"
 )
 
+// BuildCreateDefaultPackagePayload builds the payload for the Repo
+// CreateDefaultPackage endpoint from CLI flags.
+func BuildCreateDefaultPackagePayload(repoCreateDefaultPackageBody string) (*types.FileLocator, error) {
+	var err error
+	var body CreateDefaultPackageRequestBody
+	{
+		err = json.Unmarshal([]byte(repoCreateDefaultPackageBody), &body)
+		if err != nil {
+			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"Dir\": \"services/my-service/diagram\",\n      \"Filename\": \"model.go\",\n      \"Repository\": \"my-repo\"\n   }'")
+		}
+		err = goa.MergeErrors(err, goa.ValidatePattern("body.Filename", body.Filename, "\\.go$"))
+		if utf8.RuneCountInString(body.Repository) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Repository", body.Repository, utf8.RuneCountInString(body.Repository), 1, true))
+		}
+		if utf8.RuneCountInString(body.Dir) < 1 {
+			err = goa.MergeErrors(err, goa.InvalidLengthError("body.Dir", body.Dir, utf8.RuneCountInString(body.Dir), 1, true))
+		}
+		if err != nil {
+			return nil, err
+		}
+	}
+	v := &types.FileLocator{
+		Filename:   body.Filename,
+		Repository: body.Repository,
+		Dir:        body.Dir,
+	}
+
+	return v, nil
+}
+
 // BuildCreatePackagePayload builds the payload for the Repo CreatePackage
 // endpoint from CLI flags.
 func BuildCreatePackagePayload(repoCreatePackageBody string) (*types.PackageFile, error) {

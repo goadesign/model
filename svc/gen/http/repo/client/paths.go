@@ -7,6 +7,11 @@
 
 package client
 
+// CreateDefaultPackageRepoPath returns the URL path to the Repo service CreateDefaultPackage HTTP endpoint.
+func CreateDefaultPackageRepoPath() string {
+	return "/api/repo/default"
+}
+
 // CreatePackageRepoPath returns the URL path to the Repo service CreatePackage HTTP endpoint.
 func CreatePackageRepoPath() string {
 	return "/api/repo"

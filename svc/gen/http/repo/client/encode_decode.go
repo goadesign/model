@@ -19,6 +19,82 @@ import (
 	types "goa.design/model/svc/gen/types"
 )
 
+// BuildCreateDefaultPackageRequest instantiates a HTTP request object with
+// method and path set to call the "Repo" service "CreateDefaultPackage"
+// endpoint
+func (c *Client) BuildCreateDefaultPackageRequest(ctx context.Context, v any) (*http.Request, error) {
+	u := &url.URL{Scheme: c.scheme, Host: c.host, Path: CreateDefaultPackageRepoPath()}
+	req, err := http.NewRequest("POST", u.String(), nil)
+	if err != nil {
+		return nil, goahttp.ErrInvalidURL("Repo", "CreateDefaultPackage", u.String(), err)
+	}
+	if ctx != nil {
+		req = req.WithContext(ctx)
+	}
+
+	return req, nil
+}
+
+// EncodeCreateDefaultPackageRequest returns an encoder for requests sent to
+// the Repo CreateDefaultPackage server.
+func EncodeCreateDefaultPackageRequest(encoder func(*http.Request) goahttp.Encoder) func(*http.Request, any) error {
+	return func(req *http.Request, v any) error {
+		p, ok := v.(*types.FileLocator)
+		if !ok {
+			return goahttp.ErrInvalidType("Repo", "CreateDefaultPackage", "*types.FileLocator", v)
+		}
+		body := NewCreateDefaultPackageRequestBody(p)
+		if err := encoder(req).Encode(&body); err != nil {
+			return goahttp.ErrEncodingError("Repo", "CreateDefaultPackage", err)
+		}
+		return nil
+	}
+}
+
+// DecodeCreateDefaultPackageResponse returns a decoder for responses returned
+// by the Repo CreateDefaultPackage endpoint. restoreBody controls whether the
+// response body should be restored after having been read.
+// DecodeCreateDefaultPackageResponse may return the following errors:
+//   - "already_exists" (type *goa.ServiceError): http.StatusConflict
+//   - error: internal error
+func DecodeCreateDefaultPackageResponse(decoder func(*http.Response) goahttp.Decoder, restoreBody bool) func(*http.Response) (any, error) {
+	return func(resp *http.Response) (any, error) {
+		if restoreBody {
+			b, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return nil, err
+			}
+			resp.Body = io.NopCloser(bytes.NewBuffer(b))
+			defer func() {
+				resp.Body = io.NopCloser(bytes.NewBuffer(b))
+			}()
+		} else {
+			defer resp.Body.Close()
+		}
+		switch resp.StatusCode {
+		case http.StatusCreated:
+			return nil, nil
+		case http.StatusConflict:
+			var (
+				body CreateDefaultPackageAlreadyExistsResponseBody
+				err  error
+			)
+			err = decoder(resp).Decode(&body)
+			if err != nil {
+				return nil, goahttp.ErrDecodingError("Repo", "CreateDefaultPackage", err)
+			}
+			err = ValidateCreateDefaultPackageAlreadyExistsResponseBody(&body)
+			if err != nil {
+				return nil, goahttp.ErrValidationError("Repo", "CreateDefaultPackage", err)
+			}
+			return nil, NewCreateDefaultPackageAlreadyExists(&body)
+		default:
+			body, _ := io.ReadAll(resp.Body)
+			return nil, goahttp.ErrInvalidResponse("Repo", "CreateDefaultPackage", resp.StatusCode, string(body))
+		}
+	}
+}
+
 // BuildCreatePackageRequest instantiates a HTTP request object with method and
 // path set to call the "Repo" service "CreatePackage" endpoint
 func (c *Client) BuildCreatePackageRequest(ctx context.Context, v any) (*http.Request, error) {
