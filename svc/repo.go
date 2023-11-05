@@ -17,7 +17,7 @@ const defaultPackageContent = `package model
 
 import . "goa.design/model/dsl"
 
-var _ = Design("model", "System architecture model" func() {
+var _ = Design("model", "System architecture model", func() {
 })
 `
 
