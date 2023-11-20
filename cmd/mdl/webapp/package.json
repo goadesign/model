@@ -17,7 +17,7 @@
 		"react-router-dom": "6.18.0",
 		"styled-components": "^6.1.0",
 		"svg-editor-tools": "github:dvictor/svg-editor-tools#1.0.1",
-		"yarn": "^1.22.19"
+		"yarn": "^1.22.21"
 	},
 	"devDependencies": {
 		"@babel/core": "7.23.2",
