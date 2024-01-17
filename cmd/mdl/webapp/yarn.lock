@@ -4506,9 +4506,9 @@ strip-json-comments@^3.1.1:
   version "3.1.1"
   resolved "https://registry.npmjs.org/strip-json-comments/-/strip-json-comments-3.1.1.tgz"
 
-style-loader@3.3.3:
-  version "3.3.3"
-  resolved "https://registry.yarnpkg.com/style-loader/-/style-loader-3.3.3.tgz#bba8daac19930169c0c9c96706749a597ae3acff"
+style-loader@3.3.4:
+  version "3.3.4"
+  resolved "https://registry.yarnpkg.com/style-loader/-/style-loader-3.3.4.tgz#f30f786c36db03a45cbd55b6a70d930c479090e7"
 
 styled-components@^6.1.8:
   version "6.1.8"
