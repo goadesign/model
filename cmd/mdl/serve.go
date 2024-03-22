@@ -32,9 +32,6 @@ type (
 
 	// Layout is position info saved for one view (diagram)
 	Layout = map[string]any
-
-	// Layouts is a map from view key to the view Layout
-	Layouts = map[string]Layout
 )
 
 // NewServer created a server that serves the given design.
@@ -47,7 +44,7 @@ func NewServer(d *mdl.Design) *Server {
 // Serve starts the HTTP server on localhost with the given port. outDir
 // indicates where the view data structures are located. If devmode is true then
 // the single page app is served directly from the source under the "webapp"
-// directory. Otherwise it is served from the code embedded in the Go executable.
+// directory. Otherwise, it is served from the code embedded in the Go executable.
 func (s *Server) Serve(outDir string, devmode bool, port int) error {
 
 	if devmode {
@@ -189,6 +186,10 @@ func fileExists(filename string) bool {
 	info, err := os.Stat(filename)
 	if os.IsNotExist(err) {
 		return false
+	}
+	// in case of any other error, like permission denied, let the user know
+	if err != nil {
+		fail("Can't read FileInfo: %s", err)
 	}
 	return !info.IsDir()
 }
