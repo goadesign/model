@@ -114,6 +114,8 @@ type (
 		Description string `json:"description,omitempty"`
 		// Key used to identify the view
 		Key string `json:"key"`
+		// A number representing the creation order of this view.
+		Order float32 `json:"order"`
 		// PaperSize is the paper size that should be used to render this view.
 		PaperSize PaperSizeKind `json:"paperSize,omitempty"`
 		// AutoLayout describes the automatic layout mode for the diagram if
