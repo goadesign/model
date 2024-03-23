@@ -12,6 +12,7 @@ import (
 	"path"
 	"strings"
 	"sync"
+	"time"
 
 	"goa.design/model/mdl"
 )
@@ -101,9 +102,14 @@ func (s *Server) Serve(outDir string, devmode bool, port int) error {
 		w.WriteHeader(http.StatusAccepted)
 	})
 
+	server := &http.Server{
+		Addr:              fmt.Sprintf("127.0.0.1:%d", port),
+		ReadHeaderTimeout: 3 * time.Second,
+	}
+
 	// start the server
 	fmt.Printf("Editor started. Open http://localhost:%d in your browser.\n", port)
-	return http.ListenAndServe(fmt.Sprintf("127.0.0.1:%d", port), nil)
+	return server.ListenAndServe()
 }
 
 // SetDesign updates the design served by s.
