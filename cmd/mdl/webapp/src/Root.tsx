@@ -1,7 +1,7 @@
 import React, {FC, useState} from "react";
 import {getZoom, getZoomAuto, GraphData, setZoom} from "./graph-view/graph";
 import {Graph} from "./graph-view/graph-react";
-import {BrowserRouter as Router, Routes, Route, useNavigate} from 'react-router-dom'
+import {BrowserRouter as Router, Routes, Route, useNavigate, useSearchParams} from 'react-router-dom'
 import {listViews, parseView, ViewsList} from "./parseModel";
 import {findShortcut, HELP, Help, SAVE} from "./shortcuts";
 
@@ -15,14 +15,6 @@ const getCrtID = () => {
 	return p.get('id') || ''
 }
 
-const DomainSelect: FC<{ views: ViewsList; crtID: string}> = ({views, crtID}) => {
-	const navigate = useNavigate();
-	return <select
-		onChange={e => navigate('?id=' + encodeURIComponent(e.target.value))} value={crtID}>
-		<option disabled value="" hidden>...</option>
-		{views.map(m => <option key={m.key} value={m.key}>{camelToWords(m.section) + ': ' + m.title}</option>)}
-	</select>
-}
 
 // we keep graphs here, in case they are edited but not saved
 const graphs: {[key: string]: GraphData} = {}
@@ -43,9 +35,12 @@ window.addEventListener('keydown', e => {
 })
 
 const ModelPane: FC<{model: any, layouts: any}> = ({model, layouts}) => {
-	const crtID = getCrtID()
+
 	const [saving, setSaving] = useState(false)
 	const [helpOn, setHelpOn] = useState(false)
+
+	const [searchParams, setSearchParams] = useSearchParams()
+	const crtID = searchParams.get('id') || ''
 
 	const graph = graphs[crtID] || parseView(model, layouts, crtID)
 	if (!graph) {
@@ -75,7 +70,13 @@ const ModelPane: FC<{model: any, layouts: any}> = ({model, layouts}) => {
 	return <>
 		<div className="toolbar">
 			<div>
-				View: <DomainSelect views={listViews(model)} crtID={crtID}/>
+				View:
+				<select
+					onChange={e => setSearchParams({id: encodeURIComponent(e.target.value)})} value={crtID}>
+					<option disabled value="" hidden>...</option>
+					{listViews(model).map(m => <option key={m.key}
+											value={m.key}>{camelToWords(m.section) + ': ' + m.title}</option>)}
+				</select>
 			</div>
 			<div>
 				<button onClick={() => graph.undo()} title="Undo last change">Undo</button>
