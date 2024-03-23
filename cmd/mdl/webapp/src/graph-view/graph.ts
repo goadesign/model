@@ -48,7 +48,7 @@ interface BBox extends Point {
 	height: number;
 }
 
-interface Group extends BBox {
+export interface Group extends BBox {
 	id: string;
 	name: string;
 	nodes: (Node | Group)[];
@@ -56,7 +56,7 @@ interface Group extends BBox {
 	style: NodeStyle;
 }
 
-interface Node extends BBox {
+export interface Node extends BBox {
 	id: string;
 	title: string;
 	sub: string;
@@ -292,6 +292,7 @@ export class GraphData {
 	}
 
 	moveNode(n: Node, x: number, y: number) {
+		if (!n) return
 		[x, y] = roundPoint(x, y)
 		if (n.x == x && n.y == y) return
 		this._undo.beforeChange()

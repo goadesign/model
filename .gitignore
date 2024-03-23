@@ -1,9 +1,11 @@
 cmd/mdl/mdl
 cmd/stz/stz
 cmd/mdl/webapp/node_modules
+cmd/mdl/webapp/dist-static
 
 /gen
 /gen-*
 .idea
 .vscode
+
 
