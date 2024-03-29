@@ -1,7 +1,5 @@
 package main
 
-//go:generate esc -o webapp.go -pkg main -prefix webapp/dist webapp/dist/
-
 import (
 	"encoding/json"
 	"flag"

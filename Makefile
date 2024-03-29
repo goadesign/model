@@ -33,9 +33,6 @@ depend:
 	@go mod download
 	@for package in $(DEPEND); do go install $$package; done
 
-generate:
-	go generate ./cmd/mdl/
-
 lint:
 ifneq ($(GOOS),windows)
 	@if [ "`goimports -l $(GO_FILES) | tee /dev/stderr`" ]; then \

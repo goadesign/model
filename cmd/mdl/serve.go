@@ -2,14 +2,17 @@ package main
 
 import (
 	"bytes"
+	"embed"
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/fs"
 	"net/http"
 	"os"
 	"path"
 	"strings"
 	"sync"
+	"time"
 
 	"goa.design/model/mdl"
 )
@@ -41,6 +44,9 @@ func NewServer(d *mdl.Design) *Server {
 	return &s
 }
 
+//go:embed webapp/dist/*
+var distFS embed.FS
+
 // Serve starts the HTTP server on localhost with the given port. outDir
 // indicates where the view data structures are located. If devmode is true then
 // the single page app is served directly from the source under the "webapp"
@@ -52,9 +58,8 @@ func (s *Server) Serve(outDir string, devmode bool, port int) error {
 		fs := http.FileSystem(http.Dir("./cmd/mdl/webapp/dist"))
 		http.Handle("/", http.FileServer(fs))
 	} else {
-		// the TS/React webapp is embeded in the go executable using esc https://github.com/mjibson/esc
-		// to update the webapp, run `make generate` in the root dir of the repo
-		http.Handle("/", http.FileServer(FS(false)))
+		sub, _ := fs.Sub(distFS, "webapp/dist")
+		http.Handle("/", http.FileServer(http.FS(sub)))
 	}
 
 	http.HandleFunc("/data/model.json", func(w http.ResponseWriter, _ *http.Request) {
@@ -97,9 +102,14 @@ func (s *Server) Serve(outDir string, devmode bool, port int) error {
 		w.WriteHeader(http.StatusAccepted)
 	})
 
+	server := &http.Server{
+		Addr:              fmt.Sprintf("127.0.0.1:%d", port),
+		ReadHeaderTimeout: 3 * time.Second,
+	}
+
 	// start the server
 	fmt.Printf("Editor started. Open http://localhost:%d in your browser.\n", port)
-	return http.ListenAndServe(fmt.Sprintf("127.0.0.1:%d", port), nil)
+	return server.ListenAndServe()
 }
 
 // SetDesign updates the design served by s.
