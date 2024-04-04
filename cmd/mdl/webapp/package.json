@@ -22,7 +22,7 @@
 	"devDependencies": {
 		"@babel/core": "7.24.4",
 		"@babel/preset-env": "7.24.3",
-		"@babel/preset-react": "7.23.3",
+		"@babel/preset-react": "7.24.1",
 		"@babel/preset-typescript": "7.23.3",
 		"@pmmmwh/react-refresh-webpack-plugin": "^0.5.11",
 		"@types/dagre": "^0.7.52",
