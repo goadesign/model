@@ -94,6 +94,7 @@ var _ = Service("Repo", func() {
 })
 
 var Repository = Type("Repository", func() {
+	Description("Repository is the location of a model repository")
 	Attribute("Repository", String, "Path to repository root", func() {
 		Example("my-repo")
 		MinLength(1)
@@ -103,6 +104,7 @@ var Repository = Type("Repository", func() {
 })
 
 var PackageDir = Type("PackageDir", func() {
+	Description("PackageDir is the location of a model package")
 	Attribute("Dir", String, "Path to directory containing a model package", func() {
 		Example("services/my-service/diagram")
 		MinLength(1)
@@ -130,6 +132,7 @@ var FileLocator = Type("FileLocator", func() {
 })
 
 var GoPackage = Type("Package", func() {
+	Description("Package is a Go package containing a model")
 	Extend(PackageDir)
 	Attribute("ImportPath", String, "Design Go package import path", func() {
 		domainRegex := `^([a-zA-Z0-9]+(-[a-zA-Z0-9]+)*\.)+[a-zA-Z]{2,}`
@@ -143,6 +146,7 @@ var GoPackage = Type("Package", func() {
 })
 
 var PackageFile = Type("PackageFile", func() {
+	Description("PackageFile is a DSL file in a model package")
 	Attribute("Locator", FileLocator, "Path to file containing DSL code")
 	Attribute("Content", String, "DSL code", func() {
 		Example(`package model
@@ -158,12 +162,14 @@ var _ = Design(func() {})`)
 })
 
 var CompilationResults = Type("CompilationResults", func() {
+	Description("CompilationResults is the result of compiling a model package")
 	Attribute("Model", ModelJSON, "Model JSON if compilation succeeded")
 	Attribute("Error", String, "Compilation error if any")
 	Meta("struct:pkg:path", "types")
 })
 
 var ModelJSON = Type("ModelJSON", String, func() {
+	Description("ModelJSON is the JSON representation of a model")
 	Format(FormatJSON)
 	Docs(func() {
 		Description("A serialized representation of a model")
