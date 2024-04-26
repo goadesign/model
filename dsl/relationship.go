@@ -337,6 +337,12 @@ func addrel(src *expr.Element, dest any, desc string, args ...any) error {
 		eval.Execute(dsl, rel)
 	}
 	expr.Identify(rel)
+	for _, r := range src.Relationships {
+		if r.ID == rel.ID {
+			// relationship could have been imported from another DSL, valid to have duplicates
+			return nil
+		}
+	}
 	src.Relationships = append(src.Relationships, rel)
 
 	return nil

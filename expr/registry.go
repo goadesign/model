@@ -36,36 +36,37 @@ func IterateRelationships(visitor func(r *Relationship)) {
 }
 
 // Identify sets the ID field of the given element or relationship and registers
-// it with the global registery. The algorithm first compute a unique moniker
+// it with the global registry. The algorithm first compute a unique moniker
 // for the element or relatioship (based on names and parent scope ID) then
 // hashes and base36 encodes the result.
 func Identify(element any) {
+	var id string
 	switch e := element.(type) {
 	case *Person:
-		e.ID = idify(e.Name)
-		Registry[e.ID] = e
+		id = idify(e.Name)
+		e.ID = id
 	case *SoftwareSystem:
-		e.ID = idify(e.Name)
-		Registry[e.ID] = e
+		id = idify(e.Name)
+		e.ID = id
 	case *Container:
-		e.ID = idify(e.System.ID + ":" + e.Name)
-		Registry[e.ID] = e
+		id = idify(e.System.ID + ":" + e.Name)
+		e.ID = id
 	case *Component:
-		e.ID = idify(e.Container.ID + ":" + e.Name)
-		Registry[e.ID] = e
+		id = idify(e.Container.ID + ":" + e.Name)
+		e.ID = id
 	case *DeploymentNode:
 		prefix := "dn:" + e.Environment + ":"
 		for f := e.Parent; f != nil; f = f.Parent {
 			prefix += f.ID + ":"
 		}
-		e.ID = idify(prefix + e.Name)
-		Registry[e.ID] = e
+		id = idify(prefix + e.Name)
+		e.ID = id
 	case *InfrastructureNode:
-		e.ID = idify(e.Environment + ":" + e.Parent.ID + ":" + e.Name)
-		Registry[e.ID] = e
+		id = idify(e.Environment + ":" + e.Parent.ID + ":" + e.Name)
+		e.ID = id
 	case *ContainerInstance:
-		e.ID = idify(e.Environment + ":" + e.Parent.ID + ":" + e.ContainerID)
-		Registry[e.ID] = e
+		id = idify(e.Environment + ":" + e.Parent.ID + ":" + e.ContainerID)
+		e.ID = id
 	case *Relationship:
 		var dest string
 		if e.Destination != nil {
@@ -73,11 +74,16 @@ func Identify(element any) {
 		} else {
 			dest = e.DestinationPath
 		}
-		e.ID = idify(e.Source.ID + ":" + dest + ":" + e.Description)
-		Registry[e.ID] = e
+		id = idify(e.Source.ID + ":" + dest + ":" + e.Description)
+		e.ID = id
 	default:
 		panic(fmt.Sprintf("element of type %T does not have an ID", element)) // bug
 	}
+	if _, ok := Registry[id]; ok {
+		// Could have been imported from another model package
+		return
+	}
+	Registry[id] = element
 }
 
 var h = fnv.New32a()
