@@ -13,8 +13,8 @@
 # - "ci" runs "depend" and "all"
 #
 MAJOR=1
-MINOR=7
-BUILD=9
+MINOR=9
+BUILD=3
 
 GO_FILES=$(shell find . -type f -name '*.go')
 
