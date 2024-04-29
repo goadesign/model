@@ -195,6 +195,15 @@ export const parseView = (model: Model, layouts: Layouts, viewKey: string) => {
 		model.model.softwareSystems.filter(el => el.location != 'External').forEach(el => el.parent = p)
 		groupingIDs[p.id] = true
 	}
+	// for container views, group by software system
+	if (section == 'containerViews') {
+		view.elements.forEach((ref) => {
+			const el = elements.get(ref.id)
+			if (el && el.parent) {
+				groupingIDs[el.parent.id] = true
+			}
+		})
+	}
 	// console.log(view.key, 'grouping:', Object.keys(groupingIDs).map(id => elements.get(id)))
 
 	const styles = model.views.styles
