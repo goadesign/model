@@ -176,7 +176,7 @@ export const parseView = (model: Model, layouts: Layouts, viewKey: string) => {
 
 	//grouping rules - elements that are groups will not be nodes
 	const groupingIDs: { [key: string]: boolean } = {}
-	if (section == 'deploymentViews') {
+	if (section == 'deploymentViews' || section == 'containerViews') {
 		view.elements.forEach((ref) => {
 			const el = elements.get(ref.id)
 			if (el && el.parent) {
