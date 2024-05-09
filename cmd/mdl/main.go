@@ -28,6 +28,7 @@ func main() {
 		port   = svrset.Int("port", 8080, "set local HTTP port used to serve diagram editor")
 
 		devmode = os.Getenv("DEVMODE") == "1"
+		devdist = os.Getenv("DEVDIST")
 
 		showUsage = func() { printUsage(svrset, genset, gset) }
 	)
@@ -99,7 +100,10 @@ func main() {
 		if err := os.MkdirAll(*dir, 0700); err != nil {
 			fail(err.Error())
 		}
-		err = serve(*dir, pkg, *port, devmode, *debug)
+		if devmode && devdist == "" {
+			devdist = "./cmd/mdl/webapp/dist"
+		}
+		err = serve(*dir, pkg, *port, devdist, *debug)
 	case "version":
 		fmt.Printf("%s %s\n", os.Args[0], model.Version())
 	case "", "help":
@@ -112,7 +116,7 @@ func main() {
 	}
 }
 
-func serve(out, pkg string, port int, devmode, debug bool) error {
+func serve(out, pkg string, port int, devdist string, debug bool) error {
 	// Retrieve initial design and create server.
 	b, err := codegen.JSON(pkg, debug)
 	if err != nil {
@@ -142,7 +146,7 @@ func serve(out, pkg string, port int, devmode, debug bool) error {
 		return err
 	}
 
-	return s.Serve(out, devmode, port)
+	return s.Serve(out, devdist, port)
 }
 
 func printUsage(fss ...*flag.FlagSet) {
