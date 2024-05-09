@@ -51,7 +51,7 @@ var distFS embed.FS
 // indicates where the view data structures are located. If devmode is true then
 // the single page app is served directly from the source under the "webapp"
 // directory. Otherwise, it is served from the code embedded in the Go executable.
-func (s *Server) Serve(outDir string, devDistPath string, port int) error {
+func (s *Server) Serve(outDir, devDistPath string, port int) error {
 
 	if devDistPath != "" {
 		// in devmode, serve the webapp from filesystem
