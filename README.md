@@ -212,13 +212,13 @@ in this repo.
 
 ### Using Model as a library
 
-The [mdl](https://pkg.go.dev/goa.design/model@v1.9.4/mdl?tab=doc) package
-[RunDSL](https://pkg.go.dev/goa.design/model@v1.9.4/mdl?tab=doc#RunDSL)
+The [mdl](https://pkg.go.dev/goa.design/model@v1.9.5/mdl?tab=doc) package
+[RunDSL](https://pkg.go.dev/goa.design/model@v1.9.5/mdl?tab=doc#RunDSL)
 method runs the DSL and produces data structures that contain all the
 information needed to render the views it defines.
 
-The [stz](https://pkg.go.dev/goa.design/model@v1.9.4/stz?tab=doc) package
-[RunDSL](https://pkg.go.dev/goa.design/model@v1.9.4/stz?tab=doc#RunDSL)
+The [stz](https://pkg.go.dev/goa.design/model@v1.9.5/stz?tab=doc) package
+[RunDSL](https://pkg.go.dev/goa.design/model@v1.9.5/stz?tab=doc#RunDSL)
 method runs the DSL and produces a data structure that can be serialized into
 JSON and uploaded to the [Structurizr service](https://structurizr.com).
 
@@ -347,7 +347,7 @@ view that is scoped to a parent element.
 ### Resources
 
 The DSL package
-[documentation](https://pkg.go.dev/goa.design/model@v1.9.4/dsl?tab=doc) lists
+[documentation](https://pkg.go.dev/goa.design/model@v1.9.5/dsl?tab=doc) lists
 all the DSL keywords and their usage.
 
 The file [DSL.md](https://github.com/goadesign/model/blob/master/DSL.md)
