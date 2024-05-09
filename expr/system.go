@@ -32,6 +32,9 @@ func (s *SoftwareSystem) EvalName() string {
 // Finalize adds the 'SoftwareSystem' tag ands finalizes relationships.
 func (s *SoftwareSystem) Finalize() {
 	s.PrefixTags(SoftwareSystemTags...)
+	if s.Location == LocationExternal {
+		s.PrefixTags("External")
+	}
 	s.Element.Finalize()
 }
 
@@ -83,7 +86,7 @@ func (s *SoftwareSystem) AddContainer(c *Container) *Container {
 	for _, cmp := range c.Components {
 		existing.AddComponent(cmp) // will merge if needed
 	}
-	if olddsl := existing.DSLFunc; olddsl != nil {
+	if olddsl := existing.DSLFunc; olddsl != nil && c.DSLFunc != nil {
 		existing.DSLFunc = func() { olddsl(); c.DSLFunc() }
 	}
 	return existing
