@@ -291,7 +291,7 @@ func (m *Model) AddSystem(s *SoftwareSystem) *SoftwareSystem {
 	if s.Description != "" {
 		existing.Description = s.Description
 	}
-	if olddsl := existing.DSLFunc; olddsl != nil {
+	if olddsl := existing.DSLFunc; olddsl != nil && s.DSLFunc != nil {
 		existing.DSLFunc = func() { olddsl(); s.DSLFunc() }
 	}
 	return existing

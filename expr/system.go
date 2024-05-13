@@ -32,9 +32,6 @@ func (s *SoftwareSystem) EvalName() string {
 // Finalize adds the 'SoftwareSystem' tag ands finalizes relationships.
 func (s *SoftwareSystem) Finalize() {
 	s.PrefixTags(SoftwareSystemTags...)
-	if s.Location == LocationExternal {
-		s.PrefixTags("External")
-	}
 	s.Element.Finalize()
 }
 
