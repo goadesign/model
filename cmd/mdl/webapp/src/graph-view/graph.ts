@@ -423,6 +423,7 @@ export class GraphData {
 		const ret: Layout = {}
 		this.nodes().forEach(n => ret[n.id] = {x: n.x, y: n.y})
 		this.edges.forEach(e => {
+			if (!e.vertices) return
 			const lst = e.vertices.filter(v => !v.auto).map(v => ({x: v.x, y: v.y, label: v.label}));
 			(lst.length || full) && (ret[`e-${e.id}`] = lst)
 		})

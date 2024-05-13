@@ -191,8 +191,8 @@ export const parseView = (model: Model, layouts: Layouts, viewKey: string) => {
 		// create a virtual parent element from enterprise
 		const p: Element = {id: '__enterprise__', ...model.model.enterprise}
 		elements.set(p.id, p)
-		model.model.people.filter(el => el.location != 'External').forEach(el => el.parent = p)
-		model.model.softwareSystems.filter(el => el.location != 'External').forEach(el => el.parent = p)
+		if (model.model.people) model.model.people.filter(el => el.location != 'External').forEach(el => el.parent = p)
+		if (model.model.softwareSystems) model.model.softwareSystems.filter(el => el.location != 'External').forEach(el => el.parent = p)
 		groupingIDs[p.id] = true
 	}
 	// console.log(view.key, 'grouping:', Object.keys(groupingIDs).map(id => elements.get(id)))
