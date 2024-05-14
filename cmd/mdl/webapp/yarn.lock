@@ -1373,9 +1373,9 @@
   dependencies:
     "@types/react" "*"
 
-"@types/react@*", "@types/react@18.3.1":
-  version "18.3.1"
-  resolved "https://registry.yarnpkg.com/@types/react/-/react-18.3.1.tgz#fed43985caa834a2084d002e4771e15dfcbdbe8e"
+"@types/react@*", "@types/react@18.3.2":
+  version "18.3.2"
+  resolved "https://registry.yarnpkg.com/@types/react/-/react-18.3.2.tgz#462ae4904973bc212fa910424d901e3d137dbfcd"
   dependencies:
     "@types/prop-types" "*"
     csstype "^3.0.2"
