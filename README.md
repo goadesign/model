@@ -146,7 +146,7 @@ under the current path. For example:
 ```bash
 mdl serve goa.design/model/examples/basic/model -dir gen
 Watching: /home/raphael/go/src/goa.design/model/examples/basic/model
-Editor started. Open http://localhost:8080 in your browser.
+mdl v1.9.7, editor started. Open http://localhost:8080 in your browser.
 ```
 
 Modifying and saving the DSL while the editor is running causes it to

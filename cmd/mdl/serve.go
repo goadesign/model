@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"goa.design/model/mdl"
+	model "goa.design/model/pkg"
 )
 
 type (
@@ -108,7 +109,7 @@ func (s *Server) Serve(outDir, devDistPath string, port int) error {
 	}
 
 	// start the server
-	fmt.Printf("Editor started. Open http://localhost:%d in your browser.\n", port)
+	fmt.Printf("mdl %s, editor started. Open http://localhost:%d in your browser.\n", model.Version(), port)
 	return server.ListenAndServe()
 }
 
