@@ -14,6 +14,7 @@ function reload() {
 }
 
 let c = new RefreshConnector(path => {
+	if (path.endsWith('.svg')) return
 	console.log('file changed:', path)
 	refreshGraph()
 	reload()
