@@ -8,12 +8,11 @@ require (
 	github.com/fsnotify/fsnotify v1.7.0
 	github.com/jaschaephraim/lrserver v0.0.0-20240306232639-afed386b3640
 	github.com/kylelemons/godebug v1.1.0
-	goa.design/goa/v3 v3.16.1
+	goa.design/goa/v3 v3.16.2
 	golang.org/x/tools v0.21.0
 )
 
 require (
-	github.com/AnatolyRugalev/goregen v0.1.0 // indirect
 	github.com/dimfeld/httppath v0.0.0-20170720192232-ee938bf73598 // indirect
 	github.com/go-chi/chi/v5 v5.0.12 // indirect
 	github.com/google/uuid v1.6.0 // indirect
