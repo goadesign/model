@@ -178,10 +178,9 @@ export const parseView = (model: Model, layouts: Layouts, viewKey: string) => {
 	const groupingIDs: { [key: string]: boolean } = {}
 	if (section == 'deploymentViews' || section == 'containerViews') {
 		view.elements.forEach(ref => {
-			const el = elements.get(ref.id);
+			const el = elements.get(ref.id)
 			if (el?.parent) {
-				const id = section === 'containerViews' ? el.id : el.parent.id;
-				groupingIDs[id] = true;
+				groupingIDs[el.parent.id] = true
 			}
 		})
 	} else if (view.softwareSystemId) {
