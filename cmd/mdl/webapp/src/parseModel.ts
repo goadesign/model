@@ -177,10 +177,11 @@ export const parseView = (model: Model, layouts: Layouts, viewKey: string) => {
 	//grouping rules - elements that are groups will not be nodes
 	const groupingIDs: { [key: string]: boolean } = {}
 	if (section == 'deploymentViews' || section == 'containerViews') {
-		view.elements.forEach((ref) => {
-			const el = elements.get(ref.id)
-			if (el && el.parent) {
-				groupingIDs[el.parent.id] = true
+		view.elements.forEach(ref => {
+			const el = elements.get(ref.id);
+			if (el?.parent) {
+				const id = section === 'containerViews' ? el.id : el.parent.id;
+				groupingIDs[id] = true;
 			}
 		})
 	} else if (view.softwareSystemId) {
@@ -195,7 +196,6 @@ export const parseView = (model: Model, layouts: Layouts, viewKey: string) => {
 		if (model.model.softwareSystems) model.model.softwareSystems.filter(el => el.location != 'External').forEach(el => el.parent = p)
 		groupingIDs[p.id] = true
 	}
-	// console.log(view.key, 'grouping:', Object.keys(groupingIDs).map(id => elements.get(id)))
 
 	const styles = model.views.styles
 
