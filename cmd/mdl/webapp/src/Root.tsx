@@ -40,7 +40,7 @@ const ModelPane: FC<{model: any, layouts: any}> = ({model, layouts}) => {
 	const [helpOn, setHelpOn] = useState(false)
 
 	const [searchParams, setSearchParams] = useSearchParams()
-	const crtID = searchParams.get('id') || ''
+	const crtID = decodeURI(searchParams.get('id') || '')
 
 	const graph = graphs[crtID] || parseView(model, layouts, crtID)
 	if (!graph) {
