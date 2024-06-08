@@ -1002,9 +1002,9 @@
   version "0.5.5"
   resolved "https://registry.npmjs.org/@discoveryjs/json-ext/-/json-ext-0.5.5.tgz"
 
-"@emotion/is-prop-valid@1.2.1":
-  version "1.2.1"
-  resolved "https://registry.yarnpkg.com/@emotion/is-prop-valid/-/is-prop-valid-1.2.1.tgz#23116cf1ed18bfeac910ec6436561ecb1a3885cc"
+"@emotion/is-prop-valid@1.2.2":
+  version "1.2.2"
+  resolved "https://registry.yarnpkg.com/@emotion/is-prop-valid/-/is-prop-valid-1.2.2.tgz#d4175076679c6a26faa92b03bb786f9e52612337"
   dependencies:
     "@emotion/memoize" "^0.8.1"
 
@@ -1416,9 +1416,9 @@
     "@types/react" "*"
     csstype "^3.0.2"
 
-"@types/stylis@4.2.0":
-  version "4.2.0"
-  resolved "https://registry.yarnpkg.com/@types/stylis/-/stylis-4.2.0.tgz#199a3f473f0c3a6f6e4e1b17cdbc967f274bdc6b"
+"@types/stylis@4.2.5":
+  version "4.2.5"
+  resolved "https://registry.yarnpkg.com/@types/stylis/-/stylis-4.2.5.tgz#1daa6456f40959d06157698a653a9ab0a70281df"
 
 "@types/ws@^8.5.10":
   version "8.5.10"
@@ -2134,9 +2134,9 @@ cssesc@^3.0.0:
   version "3.0.0"
   resolved "https://registry.npmjs.org/cssesc/-/cssesc-3.0.0.tgz"
 
-csstype@3.1.2, csstype@^3.0.2:
-  version "3.1.2"
-  resolved "https://registry.yarnpkg.com/csstype/-/csstype-3.1.2.tgz#1d4bf9d572f11c14031f0436e1c10bc1f571f50b"
+csstype@3.1.3, csstype@^3.0.2:
+  version "3.1.3"
+  resolved "https://registry.yarnpkg.com/csstype/-/csstype-3.1.3.tgz#d80ff294d114fb0e6ac500fbf85b60137d7eff81"
 
 dagre@^0.8.5:
   version "0.8.5"
@@ -3777,10 +3777,6 @@ multicast-dns@^7.2.5:
     dns-packet "^5.2.2"
     thunky "^1.0.2"
 
-nanoid@^3.3.6:
-  version "3.3.6"
-  resolved "https://registry.yarnpkg.com/nanoid/-/nanoid-3.3.6.tgz#443380c856d6e9f9824267d960b4236ad583ea4c"
-
 nanoid@^3.3.7:
   version "3.3.7"
   resolved "https://registry.yarnpkg.com/nanoid/-/nanoid-3.3.7.tgz#d0c301a691bc8d54efa0a2226ccf3fe2fd656bd8"
@@ -4141,21 +4137,13 @@ postcss-value-parser@^4.0.2, postcss-value-parser@^4.1.0, postcss-value-parser@^
   version "4.2.0"
   resolved "https://registry.yarnpkg.com/postcss-value-parser/-/postcss-value-parser-4.2.0.tgz#723c09920836ba6d3e5af019f92bc0971c02e514"
 
-postcss@8.4.31:
-  version "8.4.31"
-  resolved "https://registry.yarnpkg.com/postcss/-/postcss-8.4.31.tgz#92b451050a9f914da6755af352bdc0192508656d"
-  dependencies:
-    nanoid "^3.3.6"
-    picocolors "^1.0.0"
-    source-map-js "^1.0.2"
-
-postcss@^8.4.33:
-  version "8.4.33"
-  resolved "https://registry.yarnpkg.com/postcss/-/postcss-8.4.33.tgz#1378e859c9f69bf6f638b990a0212f43e2aaa742"
+postcss@8.4.38, postcss@^8.4.33:
+  version "8.4.38"
+  resolved "https://registry.yarnpkg.com/postcss/-/postcss-8.4.38.tgz#b387d533baf2054288e337066d81c6bee9db9e0e"
   dependencies:
     nanoid "^3.3.7"
     picocolors "^1.0.0"
-    source-map-js "^1.0.2"
+    source-map-js "^1.2.0"
 
 prelude-ls@^1.2.1:
   version "1.2.1"
@@ -4669,9 +4657,9 @@ sockjs@^0.3.24:
     uuid "^8.3.2"
     websocket-driver "^0.7.4"
 
-source-map-js@^1.0.2:
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/source-map-js/-/source-map-js-1.0.2.tgz#adbc361d9c62df380125e7f161f71c826f1e490c"
+source-map-js@^1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/source-map-js/-/source-map-js-1.2.0.tgz#16b809c162517b5b8c3e7dcd315a2a5c2612b2af"
 
 source-map-support@~0.5.20:
   version "0.5.21"
@@ -4839,23 +4827,23 @@ style-loader@4.0.0:
   version "4.0.0"
   resolved "https://registry.yarnpkg.com/style-loader/-/style-loader-4.0.0.tgz#0ea96e468f43c69600011e0589cb05c44f3b17a5"
 
-styled-components@^6.1.9:
-  version "6.1.9"
-  resolved "https://registry.yarnpkg.com/styled-components/-/styled-components-6.1.9.tgz#cf2ac444979a925a3553d0bac3ba7688891e4625"
+styled-components@^6.1.11:
+  version "6.1.11"
+  resolved "https://registry.yarnpkg.com/styled-components/-/styled-components-6.1.11.tgz#01948e5195bf1d39e57e0a85b41958c80e40cfb8"
   dependencies:
-    "@emotion/is-prop-valid" "1.2.1"
+    "@emotion/is-prop-valid" "1.2.2"
     "@emotion/unitless" "0.8.1"
-    "@types/stylis" "4.2.0"
+    "@types/stylis" "4.2.5"
     css-to-react-native "3.2.0"
-    csstype "3.1.2"
-    postcss "8.4.31"
+    csstype "3.1.3"
+    postcss "8.4.38"
     shallowequal "1.1.0"
-    stylis "4.3.1"
-    tslib "2.5.0"
+    stylis "4.3.2"
+    tslib "2.6.2"
 
-stylis@4.3.1:
-  version "4.3.1"
-  resolved "https://registry.yarnpkg.com/stylis/-/stylis-4.3.1.tgz#ed8a9ebf9f76fe1e12d462f5cc3c4c980b23a7eb"
+stylis@4.3.2:
+  version "4.3.2"
+  resolved "https://registry.yarnpkg.com/stylis/-/stylis-4.3.2.tgz#8f76b70777dd53eb669c6f58c997bf0a9972e444"
 
 supports-color@^5.3.0:
   version "5.5.0"
@@ -4937,11 +4925,7 @@ toidentifier@1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/toidentifier/-/toidentifier-1.0.1.tgz#3be34321a88a820ed1bd80dfaa33e479fbb8dd35"
 
-tslib@2.5.0:
-  version "2.5.0"
-  resolved "https://registry.yarnpkg.com/tslib/-/tslib-2.5.0.tgz#42bfed86f5787aeb41d031866c8f402429e0fddf"
-
-tslib@^2.0.0, tslib@^2.0.3:
+tslib@2.6.2, tslib@^2.0.0, tslib@^2.0.3:
   version "2.6.2"
   resolved "https://registry.yarnpkg.com/tslib/-/tslib-2.6.2.tgz#703ac29425e7b37cd6fd456e92404d46d1f3e4ae"
 
