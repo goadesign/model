@@ -1287,16 +1287,16 @@
   version "0.11.0"
   resolved "https://registry.yarnpkg.com/@pkgjs/parseargs/-/parseargs-0.11.0.tgz#a77ea742fab25775145434eb1d2328cf5013ac33"
 
-"@pmmmwh/react-refresh-webpack-plugin@^0.5.13":
-  version "0.5.13"
-  resolved "https://registry.yarnpkg.com/@pmmmwh/react-refresh-webpack-plugin/-/react-refresh-webpack-plugin-0.5.13.tgz#02338a92a92f541a5189b97e922caf3215221e49"
+"@pmmmwh/react-refresh-webpack-plugin@^0.5.15":
+  version "0.5.15"
+  resolved "https://registry.yarnpkg.com/@pmmmwh/react-refresh-webpack-plugin/-/react-refresh-webpack-plugin-0.5.15.tgz#f126be97c30b83ed777e2aeabd518bc592e6e7c4"
   dependencies:
-    ansi-html-community "^0.0.8"
+    ansi-html "^0.0.9"
     core-js-pure "^3.23.3"
     error-stack-parser "^2.0.6"
     html-entities "^2.1.0"
     loader-utils "^2.0.4"
-    schema-utils "^3.0.0"
+    schema-utils "^4.2.0"
     source-map "^0.7.3"
 
 "@remix-run/router@1.16.1":
@@ -1727,6 +1727,10 @@ ajv@^8.0.0, ajv@^8.9.0:
 ansi-html-community@^0.0.8:
   version "0.0.8"
   resolved "https://registry.npmjs.org/ansi-html-community/-/ansi-html-community-0.0.8.tgz"
+
+ansi-html@^0.0.9:
+  version "0.0.9"
+  resolved "https://registry.yarnpkg.com/ansi-html/-/ansi-html-0.0.9.tgz#6512d02342ae2cc68131952644a129cb734cd3f0"
 
 ansi-regex@^5.0.1:
   version "5.0.1"
