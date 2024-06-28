@@ -1130,10 +1130,6 @@
     schema-utils "^4.2.0"
     source-map "^0.7.3"
 
-"@remix-run/router@1.16.1":
-  version "1.16.1"
-  resolved "https://registry.yarnpkg.com/@remix-run/router/-/router-1.16.1.tgz#73db3c48b975eeb06d0006481bde4f5f2d17d1cd"
-
 "@remix-run/router@1.17.0":
   version "1.17.0"
   resolved "https://registry.yarnpkg.com/@remix-run/router/-/router-1.17.0.tgz#fbb0add487478ef42247d5942e7a5d8a2e20095f"
@@ -4256,12 +4252,6 @@ react-router-dom@6.24.0:
   dependencies:
     "@remix-run/router" "1.17.0"
     react-router "6.24.0"
-
-react-router@6.23.1:
-  version "6.23.1"
-  resolved "https://registry.yarnpkg.com/react-router/-/react-router-6.23.1.tgz#d08cbdbd9d6aedc13eea6e94bc6d9b29cb1c4be9"
-  dependencies:
-    "@remix-run/router" "1.16.1"
 
 react-router@6.24.0:
   version "6.24.0"
