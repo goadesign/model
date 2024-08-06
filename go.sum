@@ -35,8 +35,8 @@ github.com/smartystreets/goconvey v1.8.1 h1:qGjIddxOk4grTu9JPOU31tVfq3cNdBlNa5sS
 github.com/smartystreets/goconvey v1.8.1/go.mod h1:+/u4qLyY6x1jReYOp7GOM2FSt8aP9CzCZL03bI28W60=
 github.com/stretchr/testify v1.9.0 h1:HtqpIVDClZ4nwg75+f6Lvsy/wHu+3BoSGCbBAcpTsTg=
 github.com/stretchr/testify v1.9.0/go.mod h1:r2ic/lqez/lEtzL7wO/rwa5dbSLXVDPFyf8C91i36aY=
-goa.design/goa/v3 v3.18.0 h1:rrayPNsJg8WEmgSzS+FFCO9Fv5VtTQ45Oh5rbfE/+4U=
-goa.design/goa/v3 v3.18.0/go.mod h1:jS66/I2PCh9MPwXtFY8vWb4pGQDYz3qVK3TjjvRLEUM=
+goa.design/goa/v3 v3.18.2 h1:2t3RHgc2tTYEExEwRlnkrSsFD82rsZ5mBkv5JUBvelY=
+goa.design/goa/v3 v3.18.2/go.mod h1:jS66/I2PCh9MPwXtFY8vWb4pGQDYz3qVK3TjjvRLEUM=
 golang.org/x/mod v0.19.0 h1:fEdghXQSo20giMthA7cd28ZC+jts4amQ3YMXiP5oMQ8=
 golang.org/x/mod v0.19.0/go.mod h1:hTbmBsO62+eylJbnUtE2MGJUyE7QWk4xUqPFrRgJ+7c=
 golang.org/x/sync v0.7.0 h1:YsImfSBoP9QPYL0xyKJPq0gcaJdG3rInoqxTWbfQu9M=
