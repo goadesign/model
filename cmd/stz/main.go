@@ -235,7 +235,7 @@ func runCmd(path, dir string, args ...string) (string, error) {
 	b, err := c.CombinedOutput()
 	if err != nil {
 		if len(b) > 0 {
-			return "", fmt.Errorf(string(b))
+			return "", fmt.Errorf("%s", string(b))
 		}
 		return "", fmt.Errorf("failed to run command %q in directory %q: %s", path, dir, err)
 	}

@@ -184,14 +184,14 @@ func (vs *Views) Validate() error {
 				// all good
 			case *Container:
 				if !allowContainers {
-					verr.Add(vs, fmt.Sprintf("%s can only contain software systems and people", title))
+					verr.Add(vs, "%s can only contain software systems and people", title)
 				}
 			default:
 				var suffix = " and people"
 				if allowContainers {
 					suffix = ", people and containers"
 				}
-				verr.Add(vs, fmt.Sprintf("%s can only contain software systems%s", title, suffix))
+				verr.Add(vs, "%s can only contain software systems%s", title, suffix)
 			}
 		}
 	}
