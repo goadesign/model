@@ -872,8 +872,8 @@
   resolved "https://registry.yarnpkg.com/@eslint/object-schema/-/object-schema-2.1.4.tgz#9e69f8bb4031e11df79e03db09f9dbbae1740843"
 
 "@eslint/plugin-kit@^0.2.0":
-  version "0.2.1"
-  resolved "https://registry.yarnpkg.com/@eslint/plugin-kit/-/plugin-kit-0.2.1.tgz#cd14fe2db79fa639839dfef4105e83bad1814482"
+  version "0.2.3"
+  resolved "https://registry.yarnpkg.com/@eslint/plugin-kit/-/plugin-kit-0.2.3.tgz#812980a6a41ecf3a8341719f92a6d1e784a2e0e8"
   dependencies:
     levn "^0.4.1"
 
