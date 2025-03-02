@@ -4211,15 +4211,6 @@ react-router-dom@7.2.0:
   dependencies:
     react-router "7.2.0"
 
-react-router@7.1.5:
-  version "7.1.5"
-  resolved "https://registry.yarnpkg.com/react-router/-/react-router-7.1.5.tgz#c9e19d329d9ce2215fdae844ab6b023b911094db"
-  dependencies:
-    "@types/cookie" "^0.6.0"
-    cookie "^1.0.1"
-    set-cookie-parser "^2.6.0"
-    turbo-stream "2.4.0"
-
 react-router@7.2.0:
   version "7.2.0"
   resolved "https://registry.yarnpkg.com/react-router/-/react-router-7.2.0.tgz#a8f2729d39f634a7a870d14dd906a1b406f39d6f"
