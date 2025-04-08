@@ -24,7 +24,7 @@
 		"@babel/preset-env": "7.26.9",
 		"@babel/preset-react": "7.26.3",
 		"@babel/preset-typescript": "7.27.0",
-		"@pmmmwh/react-refresh-webpack-plugin": "^0.5.15",
+		"@pmmmwh/react-refresh-webpack-plugin": "^0.5.16",
 		"@types/dagre": "^0.7.52",
 		"@types/react": "19.0.12",
 		"@types/react-dom": "19.0.4",
