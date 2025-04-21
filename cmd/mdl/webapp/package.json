@@ -38,7 +38,7 @@
 		"eslint-plugin-react-hooks": "5.2.0",
 		"html-loader": "5.1.0",
 		"html-webpack-plugin": "5.6.3",
-		"react-refresh": "0.16.0",
+		"react-refresh": "0.17.0",
 		"style-loader": "4.0.0",
 		"typescript": "5.8.3",
 		"webpack": "5.99.1",
