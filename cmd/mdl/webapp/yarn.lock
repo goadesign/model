@@ -1132,9 +1132,9 @@
   dependencies:
     "@types/react" "*"
 
-"@types/react@*", "@types/react@19.1.2":
-  version "19.1.2"
-  resolved "https://registry.yarnpkg.com/@types/react/-/react-19.1.2.tgz#11df86f66f188f212c90ecb537327ec68bfd593f"
+"@types/react@*", "@types/react@19.1.4":
+  version "19.1.4"
+  resolved "https://registry.yarnpkg.com/@types/react/-/react-19.1.4.tgz#4d125f014d6ac26b4759775698db118701e314fe"
   dependencies:
     csstype "^3.0.2"
 
