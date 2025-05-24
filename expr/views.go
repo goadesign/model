@@ -317,6 +317,9 @@ func (vs *Views) Finalize() {
 				vp.RelationshipViews = vp.RelationshipViews[:i]
 			}
 		}
+
+		// Process coalesced relationships last.
+		coalesceRelationships(vp)
 	}
 }
 

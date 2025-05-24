@@ -21,14 +21,15 @@ type (
 
 		// The following fields are used to compute the elements and
 		// relationships that should be added to the view.
-		AddAll              bool
-		AddDefault          bool
-		AddNeighbors        []*Element
-		RemoveElements      []*Element
-		RemoveTags          []string
-		RemoveRelationships []*Relationship
-		RemoveUnreachable   []*Element
-		RemoveUnrelated     bool
+		AddAll                 bool
+		AddDefault             bool
+		AddNeighbors           []*Element
+		RemoveElements         []*Element
+		RemoveTags             []string
+		RemoveRelationships    []*Relationship
+		RemoveUnreachable      []*Element
+		RemoveUnrelated        bool
+		CoalescedRelationships []*CoalescedRelationship
 	}
 
 	// ElementView describes an instance of a model element (Person,
@@ -46,6 +47,7 @@ type (
 		Source      *Element
 		Destination *Element
 		Description string
+		Technology  string
 		Order       string
 		Vertices    []*Vertex
 		Routing     RoutingKind
@@ -78,6 +80,15 @@ type (
 		Order           int
 		View            View
 	}
+
+	// CoalescedRelationship describes relationships that should be coalesced.
+	CoalescedRelationship struct {
+		Source      *Element
+		Destination *Element
+		Description string
+		Technology  string
+	}
+
 	// PaperSizeKind is the enum for possible paper kinds.
 	PaperSizeKind int
 
@@ -180,6 +191,9 @@ func (*ElementView) EvalName() string { return "element view" }
 
 // EvalName returns the generic expression name used in error messages.
 func (*RelationshipView) EvalName() string { return "relationship view" }
+
+// EvalName returns the generic expression name used in error messages.
+func (*CoalescedRelationship) EvalName() string { return "coalesced relationship" }
 
 // Validate makes sure there is a corresponding relationship (and exactly one).
 func (v *RelationshipView) Validate() error {

@@ -2,6 +2,7 @@ package expr
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 )
 
@@ -138,6 +139,7 @@ func addMissingElementsAndRelationships(vp *ViewProps) {
 					Source:         r.Source,
 					Destination:    r.Destination,
 					Description:    r.Description,
+					Technology:     r.Technology,
 					RelationshipID: r.ID,
 				})
 		}
@@ -494,4 +496,74 @@ func tagged(v *ViewProps, tag string) (elems []*Element) {
 		}
 	}
 	return
+}
+
+// coalesceRelationships processes the CoalescedRelationships in the view
+// and merges multiple relationships between the same source and destination.
+func coalesceRelationships(vp *ViewProps) {
+	for _, cr := range vp.CoalescedRelationships {
+		// Find all relationships between the specified source and destination
+		var toCoalesce []*RelationshipView
+		var toRemove []int
+
+		for i, rv := range vp.RelationshipViews {
+			if rv.Source.ID == cr.Source.ID && rv.Destination.ID == cr.Destination.ID {
+				toCoalesce = append(toCoalesce, rv)
+				toRemove = append(toRemove, i)
+			}
+		}
+
+		if len(toCoalesce) <= 1 {
+			continue // Nothing to coalesce
+		}
+
+		// Sort toRemove in descending order to remove from highest index first
+		for i := 0; i < len(toRemove)-1; i++ {
+			for j := i + 1; j < len(toRemove); j++ {
+				if toRemove[i] < toRemove[j] {
+					toRemove[i], toRemove[j] = toRemove[j], toRemove[i]
+				}
+			}
+		}
+
+		// Remove the coalesced relationships from the view (in reverse order)
+		for _, i := range toRemove {
+			vp.RelationshipViews = slices.Delete(vp.RelationshipViews, i, i+1)
+		}
+
+		// Build coalesced description and technology
+		var descriptions, technologies []string
+
+		for _, rv := range toCoalesce {
+			if rel, ok := Registry[rv.RelationshipID].(*Relationship); ok {
+				if rel.Description != "" {
+					descriptions = append(descriptions, rel.Description)
+				}
+				if rel.Technology != "" {
+					technologies = append(technologies, rel.Technology)
+				}
+			}
+		}
+
+		// Use provided description/technology or concatenate existing ones
+		coalescedDesc := cr.Description
+		if coalescedDesc == "" && len(descriptions) > 0 {
+			coalescedDesc = strings.Join(descriptions, ", ")
+		}
+
+		coalescedTech := cr.Technology
+		if coalescedTech == "" && len(technologies) > 0 {
+			coalescedTech = strings.Join(technologies, ", ")
+		}
+
+		// Create a new coalesced relationship view
+		crv := &RelationshipView{
+			Source:         cr.Source,
+			Destination:    cr.Destination,
+			Description:    coalescedDesc,
+			Technology:     coalescedTech,
+			RelationshipID: toCoalesce[0].RelationshipID, // Use the first relationship ID
+		}
+		vp.RelationshipViews = append(vp.RelationshipViews, crv)
+	}
 }
