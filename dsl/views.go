@@ -1015,7 +1015,8 @@ func Link(source, destination any, args ...any) {
 // are the source and destination elements of the relationships to be merged.
 // The third argument is the description of the coalesced relationship. The
 // fourth argument is the technology. If no description or technology is provided,
-// the values from all merged relationships are concatenated with commas.
+// the values from all merged relationships are concatenated with full stops for
+// description and commas for technology.
 //
 // Example:
 //
@@ -1078,6 +1079,48 @@ func CoalesceRelationships(source, destination any, args ...string) {
 	}
 
 	v.Props().CoalescedRelationships = append(v.Props().CoalescedRelationships, coalesced)
+}
+
+// CoalesceAllRelationships automatically merges all multiple relationships
+// between the same source and destination elements in the view.
+//
+// CoalesceAllRelationships must appear in SystemLandscapeView or SystemContextView.
+//
+// CoalesceAllRelationships takes no arguments. It automatically finds all pairs
+// of elements that have multiple relationships and coalesces them, concatenating
+// descriptions with full stops and technologies with commas.
+//
+// Example:
+//
+//	var _ = Design(func() {
+//	    var System = SoftwareSystem("Software System", "My software system.")
+//	    var Person = Person("Customer", func() {
+//	        External()
+//	        Uses(System, "Sends emails", "SMTP")
+//	        Uses(System, "Sends SMS", "SMS")
+//	    })
+//	    Views(func() {
+//	        SystemContextView(SoftwareSystem, "context", "An overview diagram.", func() {
+//	            CoalesceAllRelationships()
+//	        })
+//	    })
+//	})
+func CoalesceAllRelationships() {
+	v, ok := eval.Current().(expr.View)
+	if !ok {
+		eval.IncompatibleDSL()
+		return
+	}
+	// Only allow in landscape and context views
+	switch v.(type) {
+	case *expr.LandscapeView, *expr.ContextView:
+		// allowed
+	default:
+		eval.IncompatibleDSL()
+		return
+	}
+
+	v.Props().CoalesceAllRelationships = true
 }
 
 // AddAll includes all elements and relationships in the view scope.

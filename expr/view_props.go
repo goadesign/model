@@ -21,15 +21,16 @@ type (
 
 		// The following fields are used to compute the elements and
 		// relationships that should be added to the view.
-		AddAll                 bool
-		AddDefault             bool
-		AddNeighbors           []*Element
-		RemoveElements         []*Element
-		RemoveTags             []string
-		RemoveRelationships    []*Relationship
-		RemoveUnreachable      []*Element
-		RemoveUnrelated        bool
-		CoalescedRelationships []*CoalescedRelationship
+		AddAll                   bool
+		AddDefault               bool
+		AddNeighbors             []*Element
+		RemoveElements           []*Element
+		RemoveTags               []string
+		RemoveRelationships      []*Relationship
+		RemoveUnreachable        []*Element
+		RemoveUnrelated          bool
+		CoalescedRelationships   []*CoalescedRelationship
+		CoalesceAllRelationships bool
 	}
 
 	// ElementView describes an instance of a model element (Person,
