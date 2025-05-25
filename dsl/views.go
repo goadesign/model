@@ -1006,6 +1006,123 @@ func Link(source, destination any, args ...any) {
 	v.Props().RelationshipViews = append(v.Props().RelationshipViews, rel)
 }
 
+// CoalesceRelationships merges multiple relationships between the same source
+// and destination into a single relationship.
+//
+// CoalesceRelationships must appear in SystemLandscapeView or SystemContextView.
+//
+// CoalesceRelationships takes two to four arguments. The first two arguments
+// are the source and destination elements of the relationships to be merged.
+// The third argument is the description of the coalesced relationship. The
+// fourth argument is the technology. If no description or technology is provided,
+// the values from all merged relationships are concatenated with full stops for
+// description and commas for technology.
+//
+// Example:
+//
+//	var _ = Design(func() {
+//	    var System = SoftwareSystem("Software System", "My software system.")
+//	    var Person = Person("Customer", func() {
+//	        External()
+//	        Uses(System, "Sends emails", "SMTP")
+//	        Uses(System, "Sends SMS", "SMS")
+//	    })
+//	    Views(func() {
+//	        SystemContextView(SoftwareSystem, "context", "An overview diagram.", func() {
+//	            CoalesceRelationships(Person, System, "Communicates with") // Technology is "SMTP, SMS"
+//	        })
+//	    })
+//	})
+func CoalesceRelationships(source, destination any, args ...string) {
+	v, ok := eval.Current().(expr.View)
+	if !ok {
+		eval.IncompatibleDSL()
+		return
+	}
+	// Only allow in landscape and context views
+	switch v.(type) {
+	case *expr.LandscapeView, *expr.ContextView:
+		// allowed
+	default:
+		eval.IncompatibleDSL()
+		return
+	}
+
+	src, err := findViewElement(v, source)
+	if err != nil {
+		eval.ReportError("CoalesceRelationships: " + err.Error())
+		return
+	}
+	dest, err := findViewElement(v, destination)
+	if err != nil {
+		eval.ReportError("CoalesceRelationships: " + err.Error())
+		return
+	}
+
+	var description, technology string
+	if len(args) > 0 {
+		description = args[0]
+	}
+	if len(args) > 1 {
+		technology = args[1]
+	}
+	if len(args) > 2 {
+		eval.ReportError("CoalesceRelationships: too many arguments")
+		return
+	}
+
+	coalesced := &expr.CoalescedRelationship{
+		Source:      src.GetElement(),
+		Destination: dest.GetElement(),
+		Description: description,
+		Technology:  technology,
+	}
+
+	v.Props().CoalescedRelationships = append(v.Props().CoalescedRelationships, coalesced)
+}
+
+// CoalesceAllRelationships automatically merges all multiple relationships
+// between the same source and destination elements in the view.
+//
+// CoalesceAllRelationships must appear in SystemLandscapeView or SystemContextView.
+//
+// CoalesceAllRelationships takes no arguments. It automatically finds all pairs
+// of elements that have multiple relationships and coalesces them, concatenating
+// descriptions with full stops and technologies with commas.
+//
+// Example:
+//
+//	var _ = Design(func() {
+//	    var System = SoftwareSystem("Software System", "My software system.")
+//	    var Person = Person("Customer", func() {
+//	        External()
+//	        Uses(System, "Sends emails", "SMTP")
+//	        Uses(System, "Sends SMS", "SMS")
+//	    })
+//	    Views(func() {
+//	        SystemContextView(SoftwareSystem, "context", "An overview diagram.", func() {
+//	            CoalesceAllRelationships()
+//	        })
+//	    })
+//	})
+func CoalesceAllRelationships() {
+	v, ok := eval.Current().(expr.View)
+	if !ok {
+		eval.IncompatibleDSL()
+		return
+	}
+	// Only allow in landscape and context views
+	switch v.(type) {
+	case *expr.LandscapeView, *expr.ContextView:
+		// allowed
+	default:
+		eval.IncompatibleDSL()
+		return
+	}
+
+	v.Props().CoalesceAllRelationships = true
+}
+
 // AddAll includes all elements and relationships in the view scope.
 //
 // AddAll may appear in SystemLandscapeView, SystemContextView, ContainerView,
