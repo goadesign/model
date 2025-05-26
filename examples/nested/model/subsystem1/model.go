@@ -5,6 +5,7 @@ import (
 	"goa.design/model/examples/nested/styles"
 )
 
+// Subsystem1 defines the design for subsystem 1.
 var Subsystem1 = Design("Subsystem 1", "This is a model of subsystem 1.", func() {
 	var System = SoftwareSystem("Subsystem 1", "A software system that belongs to subsystem 1.", func() {
 		Tag("system")

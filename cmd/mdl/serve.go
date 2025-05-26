@@ -75,16 +75,18 @@ func (s *Server) setupRoutes(devDistPath string) {
 }
 
 // handleModelData serves the JSON representation of the architecture model
-func (s *Server) handleModelData(w http.ResponseWriter, r *http.Request) {
+func (s *Server) handleModelData(w http.ResponseWriter, _ *http.Request) {
 	s.lock.RLock()
 	defer s.lock.RUnlock()
 
 	w.Header().Set("Content-Type", "application/json")
-	w.Write(s.design)
+	if _, err := w.Write(s.design); err != nil {
+		s.handleError(w, fmt.Errorf("failed to write response: %w", err))
+	}
 }
 
 // handleLayoutData serves the view element positions indexed by view id
-func (s *Server) handleLayoutData(w http.ResponseWriter, r *http.Request) {
+func (s *Server) handleLayoutData(w http.ResponseWriter, _ *http.Request) {
 	s.lock.RLock()
 	defer s.lock.RUnlock()
 
@@ -95,7 +97,9 @@ func (s *Server) handleLayoutData(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	w.Write(layouts)
+	if _, err := w.Write(layouts); err != nil {
+		s.handleError(w, fmt.Errorf("failed to write response: %w", err))
+	}
 }
 
 // handleSave saves the SVG representation for a view
@@ -129,7 +133,11 @@ func (s *Server) saveSVG(id string, body io.Reader) error {
 	if err != nil {
 		return err
 	}
-	defer f.Close()
+	defer func() {
+		if err := f.Close(); err != nil {
+			fmt.Fprintf(os.Stderr, "failed to close file: %v\n", err)
+		}
+	}()
 
 	_, err = io.Copy(f, body)
 	return err

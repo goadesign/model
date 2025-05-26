@@ -74,7 +74,9 @@ func parseArgs() config {
 	args := os.Args[1:]
 	flagStart := findFlagStart(args)
 	if flagStart > 0 {
-		flag.CommandLine.Parse(args[flagStart:])
+		if err := flag.CommandLine.Parse(args[flagStart:]); err != nil {
+			fail("failed to parse flags: %s", err.Error())
+		}
 	}
 
 	return cfg
@@ -88,11 +90,12 @@ func parseCommand() (string, string) {
 		if strings.HasPrefix(arg, "-") {
 			break
 		}
-		if i == 0 {
+		switch i {
+		case 0:
 			cmd = arg
-		} else if i == 1 {
+		case 1:
 			pkg = arg
-		} else {
+		default:
 			printUsage()
 			os.Exit(1)
 		}
@@ -120,7 +123,7 @@ func generateJSON(pkg string, cfg config) error {
 		return err
 	}
 
-	return os.WriteFile(cfg.out, b, 0644)
+	return os.WriteFile(cfg.out, b, 0600)
 }
 
 func startServer(pkg string, cfg config) error {
