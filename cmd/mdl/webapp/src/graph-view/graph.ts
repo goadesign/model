@@ -12,7 +12,7 @@ import {
 	Segment,
 	uncenterBox
 } from "./intersect";
-import {autoLayout} from "./dagre";
+import {autoLayout} from "./layout";
 import {Undo} from "./undo";
 import {
 	ADD_LABEL_VERTEX,
@@ -110,11 +110,13 @@ export interface EdgeStyle {
 	// Whether line is rendered dashed or not.
 	dashed?: boolean
 	// Routing algorithm used to render lines.
-	routing?: string
+	routing?: 'Orthogonal' | 'Polyline' | 'Splines' | 'Curved'
 	// Position of annotation along the line; 0 (start) to 100 (end).
 	position?: number
 	// Opacity used to render line; 0-100.
 	opacity?: number
+	// Arrow style
+	arrowStyle?: 'normal' | 'large' | 'small' | 'none'
 }
 
 const defaultEdgeStyle: EdgeStyle = {
@@ -126,14 +128,14 @@ const defaultEdgeStyle: EdgeStyle = {
 }
 
 const defaultNodeStyle: NodeStyle = {
-	width: 300,
-	height: 300,
+	width: 280,
+	height: 180,
 	background: 'rgba(255, 255, 255, .9)',
 	color: '#666',
 	opacity: .9,
 	stroke: '#999',
 	fontSize: 22,
-	shape: 'Rect'
+	shape: 'Rectangle'
 }
 
 interface Edge {
@@ -204,9 +206,37 @@ export class GraphData {
 
 	addNode(id: string, label: string, sub: string, description: string, style: NodeStyle) {
 		if (this.nodesMap.has(id)) throw Error('duplicate node: ' + id)
+		
+		// ALWAYS use fixed dimensions - ignore any width/height from incoming styles
+		// This ensures visual consistency regardless of model data
+		const shape = style.shape || 'Rectangle';
+		const isPersonShape = shape.toLowerCase() === 'person';
+		const isCylinderShape = shape.toLowerCase() === 'cylinder';
+		
+		// Fixed dimensions based only on shape type - completely ignore style.width/height
+		let width: number;
+		let height: number;
+		
+		if (isPersonShape) {
+			width = 200;
+			height = 240;
+		} else if (isCylinderShape) {
+			width = 200;
+			height = 160;
+		} else {
+			// Standard rectangular shapes
+			width = 280;
+			height = 180;
+		}
+		
+		// Remove any width/height from style to prevent conflicts
+		const cleanStyle = {...style};
+		delete cleanStyle.width;
+		delete cleanStyle.height;
+		
 		const n: Node = {
-			id, title: label, sub, description, style: {...defaultNodeStyle, ...style},
-			x: 0, y: 0, width: style.width, height: style.height, intersect: null
+			id, title: label, sub, description, style: {...defaultNodeStyle, ...cleanStyle},
+			x: 0, y: 0, width, height, intersect: null
 		}
 		// console.log(label, id, style, {...defaultNodeStyle, ...style})
 		this.nodesMap.set(n.id, n)
@@ -459,21 +489,61 @@ export class GraphData {
 		}
 	}
 
-	autoLayout() {
-		const auto = autoLayout(this)
-		auto.nodes.forEach(an => {
-			const n = this.nodesMap.get(an.id)
-			this.moveNode(n, an.x, an.y)
-		})
-		this.edgeVertices.clear()
-		auto.edges.forEach(ae => {
-			const edge = this.edges.find(e => e.id == ae.id)
-			const labelVertex = ae.vertices.find(v => ae.label.x == v.x && ae.label.y == v.y) as EdgeVertex
-			labelVertex && (labelVertex.label = true)
-			edge.vertices = ae.vertices.slice(1, -1).map(p => edge.initVertex(p))
-			this.redrawEdge(edge)
-		})
-		updatePanning()
+	async autoLayout(options?: import('./layout').LayoutOptions) {
+		try {
+			const auto = await autoLayout(this, options)
+			
+			// Apply node positions
+			auto.nodes.forEach(an => {
+				const n = this.nodesMap.get(an.id)
+				if (n) {
+					this.moveNode(n, an.x, an.y)
+				}
+			})
+			
+			// Clear existing edge vertices before applying new layout
+			this.edgeVertices.clear()
+			
+			// Apply edge routing from ELK layout
+			auto.edges.forEach(ae => {
+				const edge = this.edges.find(e => e.id == ae.id)
+				if (edge) {
+					// Clear existing vertices
+					edge.vertices = []
+					
+					// Add routing vertices from ELK (these are proper bend points, not nodes)
+					if (ae.vertices && ae.vertices.length > 0) {
+						edge.vertices = ae.vertices.map(p => {
+							const vertex = edge.initVertex(p)
+							vertex.auto = true // Mark as auto-generated
+							return vertex
+						})
+					}
+					
+					// Handle edge label positioning
+					if (ae.label) {
+						const labelVertex = edge.initVertex(ae.label)
+						labelVertex.label = true
+						labelVertex.auto = true
+						edge.vertices.push(labelVertex)
+					}
+					
+					// Redraw the edge with new routing
+					this.redrawEdge(edge)
+				}
+			})
+			
+			// Update viewport to show all content
+			updatePanning()
+			
+			// Automatically fit the layout to show all content
+			this.alignTopLeft()
+			setZoom(getZoomAuto())
+			
+		} catch (error) {
+			console.error('Auto layout failed:', error)
+			// Could show user notification here
+		}
 	}
 
 	alignSelectionV() {
@@ -490,6 +560,109 @@ export class GraphData {
 		let minX = Math.min(...lst.map(p => p.x))
 		this.nodesMap.forEach(n => n.selected && this.moveNode(n, minX, n.y))
 		this.edgeVertices.forEach(v => v.selected && this.moveEdgeVertex(v, minX, v.y))
+	}
+
+	distributeSelectionH() {
+		const selectedNodes = this.nodes().filter(n => n.selected)
+		const selectedVertices = Array.from(this.edgeVertices.values()).filter(v => v.selected)
+		
+		if (selectedNodes.length + selectedVertices.length < 3) return // Need at least 3 elements to distribute
+		
+		this._undo.beforeChange()
+		
+		// Combine and sort by X coordinate
+		const allElements = [...selectedNodes, ...selectedVertices]
+		allElements.sort((a, b) => a.x - b.x)
+		
+		const minX = allElements[0].x
+		const maxX = allElements[allElements.length - 1].x
+		const spacing = (maxX - minX) / (allElements.length - 1)
+		
+		// Distribute elements evenly between leftmost and rightmost
+		allElements.forEach((element, index) => {
+			const newX = minX + (index * spacing)
+			if ('title' in element) {
+				// It's a Node
+				this.moveNode(element as Node, newX, element.y)
+			} else {
+				// It's an EdgeVertex
+				this.moveEdgeVertex(element as EdgeVertex, newX, element.y)
+			}
+		})
+		
+		this._undo.change()
+	}
+
+	distributeSelectionV() {
+		const selectedNodes = this.nodes().filter(n => n.selected)
+		const selectedVertices = Array.from(this.edgeVertices.values()).filter(v => v.selected)
+		
+		if (selectedNodes.length + selectedVertices.length < 3) return // Need at least 3 elements to distribute
+		
+		this._undo.beforeChange()
+		
+		// Combine and sort by Y coordinate
+		const allElements = [...selectedNodes, ...selectedVertices]
+		allElements.sort((a, b) => a.y - b.y)
+		
+		const minY = allElements[0].y
+		const maxY = allElements[allElements.length - 1].y
+		const spacing = (maxY - minY) / (allElements.length - 1)
+		
+		// Distribute elements evenly between topmost and bottommost
+		allElements.forEach((element, index) => {
+			const newY = minY + (index * spacing)
+			if ('title' in element) {
+				// It's a Node
+				this.moveNode(element as Node, element.x, newY)
+			} else {
+				// It's an EdgeVertex
+				this.moveEdgeVertex(element as EdgeVertex, element.x, newY)
+			}
+		})
+		
+		this._undo.change()
+	}
+
+	// Get selected edges (edges with selected nodes or vertices)
+	getSelectedEdges(): Edge[] {
+		return this.edges.filter(edge => 
+			edge.from.selected || 
+			edge.to.selected || 
+			(edge.vertices && edge.vertices.some(v => v.selected))
+		)
+	}
+
+	// Change style of selected edges
+	changeSelectedEdgeStyle(styleChanges: Partial<EdgeStyle>) {
+		this._undo.beforeChange()
+		const selectedEdges = this.getSelectedEdges()
+		selectedEdges.forEach(edge => {
+			edge.style = {...edge.style, ...styleChanges}
+			this.redrawEdge(edge)
+		})
+		this._undo.change()
+	}
+
+	// Change style of all edges (global change)
+	changeAllEdgeStyle(styleChanges: Partial<EdgeStyle>) {
+		this._undo.beforeChange()
+		this.edges.forEach(edge => {
+			edge.style = {...edge.style, ...styleChanges}
+			this.redrawEdge(edge)
+		})
+		this._undo.change()
+	}
+
+	// Set edge selection state
+	setEdgeSelected(edge: Edge, selected: boolean) {
+		// Mark the edge as selected by selecting its connected nodes
+		if (selected) {
+			this.setNodeSelected(edge.from, true)
+			this.setNodeSelected(edge.to, true)
+		}
+		// Update visual selection
+		this.updateEdgesSel()
 	}
 }
 
@@ -617,15 +790,35 @@ function buildEdge(data: GraphData, edge: Edge) {
 			v.label = true
 			v.auto = true
 			vertices.push(v)
-			// only if no vertices and no splitting, obey routing style Orthogonal
-		} else if (edge.style.routing == 'Orthogonal') {
-			Math.abs(n2.x - n1.x) > Math.abs(n2.y - n1.y) ?
-				vertices.push({x: n1.x, y: n2.y, auto: true} as Point) :
-				vertices.push({x: n2.x, y: n1.y, auto: true} as Point)
-			// vertices.push({x: (n1.x + n2.x)/2, y: n1.y, auto: true} as Point)
-			// vertices.push({x: (n1.x + n2.x)/2, y: n2.y, auto: true} as Point)
-			// vertices.push({x: n1.x, y: (n1.y + n2.y) /2, auto: true} as Point)
-			// vertices.push({x: n2.x, y: (n1.y + n2.y) /2, auto: true} as Point)
+		} else {
+			// Handle different routing styles
+			const routing = edge.style.routing || 'Orthogonal'
+			
+			if (routing === 'Orthogonal') {
+				// For orthogonal routing, we need to create a proper L-shaped path
+				// Use node center coordinates for the corner vertex
+				
+				// Determine if we should route horizontally first or vertically first
+				if (Math.abs(n2.x - n1.x) > Math.abs(n2.y - n1.y)) {
+					// Route horizontally first, then vertically
+					vertices.push({x: n2.x, y: n1.y, auto: true} as Point)
+				} else {
+					// Route vertically first, then horizontally  
+					vertices.push({x: n1.x, y: n2.y, auto: true} as Point)
+				}
+			} else if (routing === 'Curved' || routing === 'Splines') {
+				// Add control points for curved connections
+				const midX = (n1.x + n2.x) / 2
+				const midY = (n1.y + n2.y) / 2
+				const offset = Math.min(Math.abs(n2.x - n1.x), Math.abs(n2.y - n1.y)) * 0.3
+				
+				if (Math.abs(n2.x - n1.x) > Math.abs(n2.y - n1.y)) {
+					vertices.push({x: midX, y: n1.y + (n1.y < n2.y ? offset : -offset), auto: true} as Point)
+				} else {
+					vertices.push({x: n1.x + (n1.x < n2.x ? offset : -offset), y: midY, auto: true} as Point)
+				}
+			}
+			// For 'Polyline', no intermediate vertices needed (straight line)
 		}
 	}
 
@@ -672,7 +865,37 @@ function buildEdge(data: GraphData, edge: Edge) {
 	// splice edge over label box
 	intersectPolylineBox(segments, bbox)
 
-	const path = segments.map(s => `M${s.p.x},${s.p.y} L${s.q.x},${s.q.y}`).join(' ')
+	// Generate path based on routing style
+	const routing = edge.style.routing || 'Orthogonal'
+	let path: string
+	
+	if (routing === 'Splines' || routing === 'Curved') {
+		// Create smooth curved path
+		if (segments.length === 1) {
+			// Simple curve for single segment
+			const s = segments[0]
+			const midX = (s.p.x + s.q.x) / 2
+			const midY = (s.p.y + s.q.y) / 2
+			path = `M${s.p.x},${s.p.y} Q${midX},${midY} ${s.q.x},${s.q.y}`
+		} else {
+			// Multi-segment smooth curve
+			path = `M${segments[0].p.x},${segments[0].p.y}`
+			for (let i = 0; i < segments.length; i++) {
+				const s = segments[i]
+				if (i === segments.length - 1) {
+					path += ` L${s.q.x},${s.q.y}`
+				} else {
+					const nextS = segments[i + 1]
+					const cpX = s.q.x
+					const cpY = s.q.y
+					path += ` Q${cpX},${cpY} ${(s.q.x + nextS.p.x) / 2},${(s.q.y + nextS.p.y) / 2}`
+				}
+			}
+		}
+	} else {
+		// Standard polyline path for Orthogonal and Polyline
+		path = segments.map(s => `M${s.p.x},${s.p.y} L${s.q.x},${s.q.y}`).join(' ')
+	}
 
 	const p = create.path(path, {'marker-end': 'url(#arrow)'}, 'edge')
 	p.setAttribute('fill', 'none')
@@ -725,17 +948,18 @@ function buildNode(n: Node, data: GraphData) {
 	// @ts-ignore
 	window.gdata = data
 
-	const w = n.style.width;//Math.max(60, textWidth(n.id), ...n.fields.map(f => textWidth(f.name))) + 70
-	const h = n.style.height;
-	n.width = w;
-	n.height = h;
+	// Use the pre-calculated dimensions from addNode
+	const w = n.width;
+	const h = n.height;
 
 	const g = create.element('g', {}, 'node') as SVGGElement
 	g.setAttribute('id', n.id)
 	n.selected && g.classList.add('selected')
 	setPosition(g, n.x, n.y)
 
-	const shapeFn = shapes[n.style.shape.toLowerCase()] || shapes.box
+	// Ensure we use the correct shape from style, defaulting to Rectangle
+	const shapeType = n.style.shape || 'Rectangle';
+	const shapeFn = shapes[shapeType.toLowerCase()] || shapes.rectangle
 	const shape: SVGElement = shapeFn(g, n);
 
 	shape.classList.add('nodeBorder')
@@ -743,21 +967,28 @@ function buildNode(n: Node, data: GraphData) {
 	applyStyle(shape, styles.nodeBorder)
 	shape.setAttribute('fill', n.style.background)
 	shape.setAttribute('stroke', n.style.stroke)
-	shape.setAttribute('stroke-width', (n.width / 70).toFixed(1))
+	// Consistent border width for all elements
+	shape.setAttribute('stroke-width', '3')
 	shape.setAttribute('opacity', String(n.style.opacity))
 	setBorderStyle(shape, n.style.border)
 
 	const tg = create.element('g') as SVGGElement
 	let cy = Number(g.getAttribute('label-offset-y')) || 0
+	
+	// Optimized padding strategy - use minimal padding but ensure text fits
+	const textPadding = 12; // Much smaller padding for better space utilization
+	const maxTextWidth = Math.max(w - (textPadding * 2), 80); // Ensure reasonable minimum width
+	
 	{
 		const fontSize = n.style.fontSize
-		const {txt, dy} = create.textArea(n.title, w - 40, fontSize, true, 0, cy, 'middle')
+		// Use 95% of available width for titles - much more aggressive
+		const {txt, dy} = create.textArea(n.title, maxTextWidth * 0.95, fontSize, true, 0, cy, 'middle')
 		applyStyle(txt, styles.nodeText)
 		txt.setAttribute('fill', n.style.color)
 		txt.setAttribute('data-field', 'name')
 
 		tg.append(txt)
-		cy += dy
+		cy += dy + 6 // Reduced spacing after title
 	}
 	{
 		const txt = create.text(`[${n.sub}]`, 0, cy, 'middle')
@@ -765,12 +996,13 @@ function buildNode(n: Node, data: GraphData) {
 		txt.setAttribute('fill', n.style.color)
 		txt.setAttribute('font-size', String(0.75 * n.style.fontSize))
 		tg.append(txt)
-		cy += 10
+		cy += 12 // Reduced spacing
 	}
 	{
-		cy += 10
-		const fontSize = n.style.fontSize
-		const {txt, dy} = create.textArea(n.description, w - 40, fontSize, false, 0, cy, 'middle')
+		cy += 6 // Reduced spacing before description
+		const fontSize = Math.min(n.style.fontSize * 0.8, 16) // Keep smaller description text
+		// Use 95% of available width for descriptions too - much more aggressive
+		const {txt, dy} = create.textArea(n.description, maxTextWidth * 0.95, fontSize, false, 0, cy, 'middle')
 		applyStyle(txt, styles.nodeText)
 		txt.setAttribute('fill', n.style.color)
 		txt.setAttribute('data-field', 'description')
@@ -778,6 +1010,7 @@ function buildNode(n: Node, data: GraphData) {
 		cy += dy
 	}
 
+	// Better vertical centering with improved padding
 	setPosition(tg, 0, -cy / 2)
 	g.append(tg)
 
@@ -851,7 +1084,268 @@ function mouseToDrawing(e: MouseEvent): Point {
 	// transform event coords to drawing coords
 	const b = svg.getBoundingClientRect()
 	const z = getZoom()
-	return {x: (e.clientX - b.x) / z, y: (e.clientY - b.y) / z}
+	
+	// Get current pan transform
+	const currentTransform = getCurrentTransform()
+	
+	// Convert screen coordinates to drawing coordinates accounting for zoom and pan
+	return {
+		x: (e.clientX - b.x) / z - currentTransform.x,
+		y: (e.clientY - b.y) / z - currentTransform.y
+	}
+}
+
+interface Handle extends Point {
+	id: string
+	selected?: boolean
+	ref?: SVGElement
+}
+
+// Custom cursor interaction that prioritizes panning over selection
+function addCustomCursorInteraction(svg: SVGSVGElement, conn: {
+	nodeFromEvent(e: MouseEvent): Handle | null;
+	setSelection(handles: Handle[]): void;
+	setDragging(dragging: boolean): void;
+	isSelected(handle: Handle): boolean;
+	getSelection(): Handle[];
+	getZoom(): number;
+	moveNode(h: Handle, x: number, y: number): void;
+	boxSelection(box: DOMRect, add: boolean): void;
+	updatePanning(): void;
+}) {
+	let ini: { x: number; y: number; n: Handle }[] = []
+	let elastic: any = null
+	let isPanning = false
+	let panStartX = 0
+	let panStartY = 0
+	let initialTransform = { x: 0, y: 0 }
+
+	// Simple elastic selection box implementation - use mouseToDrawing for proper coordinate conversion
+	function createElastic() {
+		let startDrawingX = 0, startDrawingY = 0, rect: SVGRectElement | null = null
+		
+		return {
+			ini(e: MouseEvent) {
+				// Use mouseToDrawing to get proper drawing coordinates (accounts for zoom and pan)
+				const pt = mouseToDrawing(e)
+				startDrawingX = pt.x
+				startDrawingY = pt.y
+				
+				rect = document.createElementNS("http://www.w3.org/2000/svg", "rect")
+				rect.setAttribute('fill', 'rgba(0, 100, 255, 0.1)')
+				rect.setAttribute('stroke', 'rgba(0, 100, 255, 0.5)')
+				rect.setAttribute('stroke-width', '1')
+				rect.setAttribute('stroke-dasharray', '3,3')
+				rect.setAttribute('x', String(startDrawingX))
+				rect.setAttribute('y', String(startDrawingY))
+				rect.setAttribute('width', '0')
+				rect.setAttribute('height', '0')
+				
+				// Add to the zoom group so it transforms with the content
+				const zoomGroup = svg.querySelector('g.zoom')
+				if (zoomGroup) {
+					zoomGroup.appendChild(rect)
+				} else {
+					svg.appendChild(rect)
+				}
+			},
+			update(dx: number, dy: number) {
+				if (!rect) return
+				const zoom = conn.getZoom()
+				
+				// Calculate current drawing position by adding scaled delta to start position
+				const currentDrawingX = startDrawingX + dx / zoom
+				const currentDrawingY = startDrawingY + dy / zoom
+				
+				// Calculate rectangle bounds in drawing coordinates
+				const x = Math.min(startDrawingX, currentDrawingX)
+				const y = Math.min(startDrawingY, currentDrawingY)
+				const width = Math.abs(currentDrawingX - startDrawingX)
+				const height = Math.abs(currentDrawingY - startDrawingY)
+				
+				rect.setAttribute('x', String(x))
+				rect.setAttribute('y', String(y))
+				rect.setAttribute('width', String(width))
+				rect.setAttribute('height', String(height))
+			},
+			end(): DOMRect | null {
+				if (!rect) return null
+				
+				// Get final rectangle bounds in drawing coordinates
+				const x = parseFloat(rect.getAttribute('x') || '0')
+				const y = parseFloat(rect.getAttribute('y') || '0')
+				const width = parseFloat(rect.getAttribute('width') || '0')
+				const height = parseFloat(rect.getAttribute('height') || '0')
+				
+				rect.remove()
+				rect = null
+				
+				// Return drawing coordinates directly for boxSelection since we're now working in the same coordinate system
+				if (width > 5 && height > 5) {
+					return {
+						x: x, y: y, width: width, height: height,
+						left: x, top: y, right: x + width, bottom: y + height
+					} as DOMRect
+				}
+				return null
+			}
+		}
+	}
+
+	function getCurrentTransformLocal() {
+		const zoomGroup = svg.querySelector('g.zoom') as SVGGElement
+		if (!zoomGroup) return { x: 0, y: 0 }
+		
+		const transform = zoomGroup.getAttribute('transform') || ''
+		const translateMatch = transform.match(/translate\(([^,]+),([^)]+)\)/)
+		if (translateMatch) {
+			return {
+				x: parseFloat(translateMatch[1]) || 0,
+				y: parseFloat(translateMatch[2]) || 0
+			}
+		}
+		return { x: 0, y: 0 }
+	}
+
+	function setTransform(x: number, y: number) {
+		const zoomGroup = svg.querySelector('g.zoom') as SVGGElement
+		if (!zoomGroup) return
+		
+		const zoom = getZoom()
+		zoomGroup.setAttribute('transform', `scale(${zoom}) translate(${x}, ${y})`)
+	}
+
+	function onMouseDown(e: MouseEvent) {
+		const node = conn.nodeFromEvent(e)
+		
+		if (!node) {
+			// Clicked on empty space
+			if (e.shiftKey) {
+				// Shift+drag on empty space: selection box mode
+				ini = []
+				elastic = createElastic()
+				elastic.ini(e)
+				isPanning = false
+			} else {
+				// Normal drag on empty space: panning mode
+							isPanning = true
+			panStartX = e.clientX
+			panStartY = e.clientY
+			initialTransform = getCurrentTransformLocal()
+				ini = []
+			}
+			return
+		}
+
+		// Clicked on a node/vertex - handle shift+click selection
+		isPanning = false
+		elastic = null // No selection box when clicking on elements
+		const nodes = conn.getSelection()
+		
+		if (!conn.isSelected(node)) {
+			if (e.shiftKey) {
+				// Shift+click: Add to selection
+				nodes.push(node)
+			} else {
+				// Normal click: Set selection to this one element
+				nodes.length = 0
+				nodes.push(node)
+			}
+		} else if (e.shiftKey) {
+			// Shift+click on already selected: Remove from selection
+			const index = nodes.findIndex(n => n.id === node.id)
+			if (index >= 0) nodes.splice(index, 1)
+		}
+		// If normal click on already selected element, keep current selection for dragging
+		
+		conn.setSelection(nodes)
+		ini = nodes.map(n => ({ x: n.x, y: n.y, n }))
+	}
+
+	function onMouseMove(dx: number, dy: number) {
+		if (isPanning) {
+			// Pan the view - scale mouse delta by zoom factor
+			const zoom = conn.getZoom()
+			const newX = initialTransform.x + dx / zoom
+			const newY = initialTransform.y + dy / zoom
+			setTransform(newX, newY)
+		} else if (ini.length > 0) {
+			// Move selected nodes/vertices
+			ini.forEach(item => {
+				const sc = conn.getZoom()
+				conn.moveNode(item.n, item.x + dx / sc, item.y + dy / sc)
+			})
+			conn.setDragging(true)
+		} else if (elastic) {
+			// Update selection box (only when shift+dragging on empty space)
+			elastic.update(dx, dy)
+			conn.setDragging(true)
+		}
+	}
+
+	function onMouseUp(e: MouseEvent) {
+		conn.setDragging(false)
+		
+		if (elastic) {
+			const box = elastic.end()
+			if (box) {
+				conn.boxSelection(box, e.shiftKey)
+			} else if (!ini.length) {
+				// Deselect if no box was drawn
+				conn.setSelection([])
+			}
+			elastic = null
+		}
+		
+		isPanning = false
+		conn.updatePanning()
+	}
+
+	// Add drag and drop functionality
+	function addDnd(element: SVGSVGElement) {
+		let md: { ex: number; ey: number } | null = null
+
+		function convertEvent(e: MouseEvent | TouchEvent): MouseEvent {
+			if ('changedTouches' in e && e.changedTouches) {
+				return e.changedTouches[0] as any
+			}
+			return e as MouseEvent
+		}
+
+		function onMouseMoveHandler(e: MouseEvent | TouchEvent) {
+			if (!md) return
+			e = convertEvent(e)
+			onMouseMove(e.clientX - md.ex, e.clientY - md.ey)
+		}
+
+		function removeListeners() {
+			document.removeEventListener('touchmove', onMouseMoveHandler as any)
+			document.removeEventListener('mousemove', onMouseMoveHandler as any)
+			document.removeEventListener('mouseup', onMouseUpHandler)
+			document.removeEventListener('touchend', onMouseUpHandler)
+		}
+
+		function onMouseUpHandler(e: MouseEvent | TouchEvent) {
+			removeListeners()
+			onMouseUp(convertEvent(e))
+			md = null
+		}
+
+		function onMouseDownHandler(e: MouseEvent | TouchEvent) {
+			e = convertEvent(e)
+			md = { ex: e.clientX, ey: e.clientY }
+			onMouseDown(e)
+			document.addEventListener('touchmove', onMouseMoveHandler as any)
+			document.addEventListener('mousemove', onMouseMoveHandler as any)
+			document.addEventListener('mouseup', onMouseUpHandler)
+			document.addEventListener('touchend', onMouseUpHandler)
+		}
+
+		element.addEventListener('mousedown', onMouseDownHandler as any)
+		element.addEventListener('touchstart', onMouseDownHandler as any)
+	}
+
+	addDnd(svg)
 }
 
 function addCursorInteraction(svg: SVGSVGElement) {
@@ -862,12 +1356,6 @@ function addCursorInteraction(svg: SVGSVGElement) {
 	}
 
 	const gd = () => (getData(svg) as GraphData)
-
-	interface Handle extends Point {
-		id: string
-		selected?: boolean
-		ref?: SVGElement
-	}
 
 	window.addEventListener("beforeunload", e => {
 		if (!gd().changed()) return
@@ -927,7 +1415,8 @@ function addCursorInteraction(svg: SVGSVGElement) {
 		const key = findShortcut(e, false, true)
 		if (key == ZOOM_OUT || key == ZOOM_IN) {
 			const delta = Math.round(e.deltaY / 10) / 100
-			setZoom(getZoom() - delta)
+			const newZoom = Math.max(0.1, Math.min(5, getZoom() - delta)) // Clamp zoom between 0.1 and 5
+			setZoomCentered(newZoom, e.clientX, e.clientY)
 			e.preventDefault()
 		}
 	})
@@ -946,15 +1435,17 @@ function addCursorInteraction(svg: SVGSVGElement) {
 				gd().redo()
 				break
 			case ZOOM_IN:
-				setZoom(getZoom() + .05)
+				const newZoomIn = Math.min(5, getZoom() + .05)
+				setZoomCentered(newZoomIn)
 				e.preventDefault()
 				break
 			case ZOOM_OUT:
-				setZoom(getZoom() - .05)
+				const newZoomOut = Math.max(0.1, getZoom() - .05)
+				setZoomCentered(newZoomOut)
 				e.preventDefault()
 				break
 			case ZOOM_100:
-				setZoom(1)
+				setZoomCentered(1)
 				e.preventDefault()
 				break
 			case ZOOM_FIT:
@@ -999,8 +1490,8 @@ function addCursorInteraction(svg: SVGSVGElement) {
 		}
 	})
 
-	cursorInteraction({
-		svg: svg,
+	// Custom cursor interaction with pan-first behavior
+	addCustomCursorInteraction(svg, {
 		nodeFromEvent(e: MouseEvent): Handle {
 			e.preventDefault()
 			// node clicked
@@ -1041,11 +1532,29 @@ function addCursorInteraction(svg: SVGSVGElement) {
 			}
 		},
 		boxSelection(box: DOMRect, add) {
-			const b = scaleBox(box, 1 / getZoom())
+			// Box is now already in drawing coordinates, no need to scale
 			// nodes
-			gd().nodesMap.forEach(n => gd().setNodeSelected(n, (add && n.selected) || boxesOverlap(uncenterBox(n), b)))
+			gd().nodesMap.forEach(n => {
+				const inBox = boxesOverlap(uncenterBox(n), box)
+				if (inBox) {
+					// Toggle selection for elements in the box
+					gd().setNodeSelected(n, !n.selected)
+				} else if (!add) {
+					// If not holding shift and element is outside box, deselect it
+					gd().setNodeSelected(n, false)
+				}
+			})
 			// dots
-			gd().edgeVertices.forEach(d => setDotSelected(d, (add && d.selected) || insideBox(d, b, false)))
+			gd().edgeVertices.forEach(d => {
+				const inBox = insideBox(d, box, false)
+				if (inBox) {
+					// Toggle selection for elements in the box
+					setDotSelected(d, !d.selected)
+				} else if (!add) {
+					// If not holding shift and element is outside box, deselect it
+					setDotSelected(d, false)
+				}
+			})
 
 			selectListener(gd().nodes().find(n => n.selected))
 		},
@@ -1066,6 +1575,50 @@ export function setZoom(zoom: number) {
 	el.setAttribute('transform', `scale(${zoom})`)
 	// also set panning size
 	updatePanning()
+}
+
+export function setZoomCentered(newZoom: number, centerX?: number, centerY?: number) {
+	const el = svg.querySelector('g.zoom') as SVGGElement
+	const oldZoom = getZoom()
+	
+	// If no center point provided, use viewport center
+	if (centerX === undefined || centerY === undefined) {
+		const rect = svg.getBoundingClientRect()
+		centerX = rect.width / 2
+		centerY = rect.height / 2
+	}
+	
+	// Get current transform
+	const currentTransform = getCurrentTransform()
+	
+	// Calculate the point in the drawing coordinate system
+	const drawingX = (centerX / oldZoom) - currentTransform.x
+	const drawingY = (centerY / oldZoom) - currentTransform.y
+	
+	// Calculate new translation to keep the same point under the cursor
+	const newTranslateX = (centerX / newZoom) - drawingX
+	const newTranslateY = (centerY / newZoom) - drawingY
+	
+	// Apply the new transform
+	el.setAttribute('transform', `scale(${newZoom}) translate(${newTranslateX}, ${newTranslateY})`)
+	
+	// Update panning
+	updatePanning()
+}
+
+function getCurrentTransform() {
+	const el = svg.querySelector('g.zoom') as SVGGElement
+	if (!el) return { x: 0, y: 0 }
+	
+	const transform = el.getAttribute('transform') || ''
+	const translateMatch = transform.match(/translate\(([^,]+),([^)]+)\)/)
+	if (translateMatch) {
+		return {
+			x: parseFloat(translateMatch[1]) || 0,
+			y: parseFloat(translateMatch[2]) || 0
+		}
+	}
+	return { x: 0, y: 0 }
 }
 
 function updatePanning() {

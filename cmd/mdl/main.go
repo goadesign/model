@@ -15,151 +15,181 @@ import (
 	model "goa.design/model/pkg"
 )
 
+type config struct {
+	debug   bool
+	help    bool
+	out     string
+	dir     string
+	port    int
+	devmode bool
+	devdist string
+}
+
 func main() {
-	var (
-		gset           = flag.NewFlagSet("global", flag.ExitOnError)
-		debug, help, h *bool
+	cfg := parseArgs()
 
-		genset = flag.NewFlagSet("gen", flag.ExitOnError)
-		out    = genset.String("out", "design.json", "set path to generated JSON representation")
-
-		svrset = flag.NewFlagSet("serve", flag.ExitOnError)
-		dir    = svrset.String("dir", goacodegen.Gendir, "set output directory used by editor to save SVG files")
-		port   = svrset.Int("port", 8080, "set local HTTP port used to serve diagram editor")
-
-		devmode = os.Getenv("DEVMODE") == "1"
-		devdist = os.Getenv("DEVDIST")
-
-		showUsage = func() { printUsage(svrset, genset, gset) }
-	)
-
-	addGlobals := func(set *flag.FlagSet) {
-		debug = set.Bool("debug", false, "print debug output")
-		help = set.Bool("help", false, "print this information")
-		h = set.Bool("h", false, "print this information")
-	}
-
-	var (
-		cmd string
-		pkg string
-		idx = 1
-	)
-	for _, arg := range os.Args[1:] {
-		if strings.HasPrefix(arg, "-") {
-			break
-		} else if cmd == "" {
-			cmd = arg
-		} else if pkg == "" {
-			pkg = arg
-		} else {
-			addGlobals(gset)
-			showUsage()
-		}
-		idx++
-	}
-
-	switch cmd {
-	case "gen":
-		addGlobals(genset)
-		if err := genset.Parse(os.Args[idx:]); err != nil {
-			fail(err.Error())
-		}
-	case "serve":
-		addGlobals(svrset)
-		if err := svrset.Parse(os.Args[idx:]); err != nil {
-			fail(err.Error())
-		}
-	default:
-		addGlobals(gset)
-		if err := gset.Parse(os.Args[idx:]); err != nil {
-			fail(err.Error())
-		}
-	}
-
-	if *h || *help {
-		showUsage()
+	if cfg.help {
+		printUsage()
 		os.Exit(0)
 	}
+
+	cmd, pkg := parseCommand()
 
 	var err error
 	switch cmd {
 	case "gen":
-		if pkg == "" {
-			fail(`missing PACKAGE argument, use "--help" for usage`)
-		}
-		var b []byte
-		b, err = codegen.JSON(pkg, *debug)
-		if err == nil {
-			err = os.WriteFile(*out, b, 0644)
-		}
+		err = generateJSON(pkg, cfg)
 	case "serve":
-		if pkg == "" {
-			fail(`missing PACKAGE argument, use "--help" for usage`)
-		}
-		*dir, _ = filepath.Abs(*dir)
-		if err := os.MkdirAll(*dir, 0700); err != nil {
-			fail(err.Error())
-		}
-		if devmode && devdist == "" {
-			devdist = "./cmd/mdl/webapp/dist"
-		}
-		err = serve(*dir, pkg, *port, devdist, *debug)
+		err = startServer(pkg, cfg)
 	case "version":
 		fmt.Printf("%s %s\n", os.Args[0], model.Version())
 	case "", "help":
-		showUsage()
+		printUsage()
 	default:
 		fail(`unknown command %q, use "--help" for usage`, cmd)
 	}
+
 	if err != nil {
 		fail(err.Error())
 	}
 }
 
-func serve(out, pkg string, port int, devdist string, debug bool) error {
-	// Retrieve initial design and create server.
-	b, err := codegen.JSON(pkg, debug)
-	if err != nil {
-		return err
-	}
-	var design mdl.Design
-	if err := json.Unmarshal(b, &design); err != nil {
-		return fmt.Errorf("failed to load design: %s", err.Error())
-	}
-	s := NewServer(&design)
-
-	// Update server whenever design changes on disk.
-	err = watch(pkg, func() {
-		b, err := codegen.JSON(pkg, debug)
-		if err != nil {
-			fmt.Println("error parsing DSL:\n" + err.Error())
-			return
-		}
-		design = mdl.Design{}
-		if err := json.Unmarshal(b, &design); err != nil {
-			fmt.Println("failed to load design: " + err.Error())
-			return
-		}
-		s.SetDesign(&design)
-	})
-	if err != nil {
-		return err
+func parseArgs() config {
+	cfg := config{
+		out:     "design.json",
+		dir:     goacodegen.Gendir,
+		port:    8080,
+		devmode: os.Getenv("DEVMODE") == "1",
+		devdist: os.Getenv("DEVDIST"),
 	}
 
-	return s.Serve(out, devdist, port)
+	flag.BoolVar(&cfg.debug, "debug", false, "print debug output")
+	flag.BoolVar(&cfg.help, "help", false, "print this information")
+	flag.BoolVar(&cfg.help, "h", false, "print this information")
+	flag.StringVar(&cfg.out, "out", cfg.out, "set path to generated JSON representation")
+	flag.StringVar(&cfg.dir, "dir", cfg.dir, "set output directory used by editor to save SVG files")
+	flag.IntVar(&cfg.port, "port", cfg.port, "set local HTTP port used to serve diagram editor")
+
+	// Parse only the flags, not the command and package
+	args := os.Args[1:]
+	flagStart := findFlagStart(args)
+	if flagStart > 0 {
+		flag.CommandLine.Parse(args[flagStart:])
+	}
+
+	return cfg
 }
 
-func printUsage(fss ...*flag.FlagSet) {
+func parseCommand() (string, string) {
+	args := os.Args[1:]
+	var cmd, pkg string
+
+	for i, arg := range args {
+		if strings.HasPrefix(arg, "-") {
+			break
+		}
+		if i == 0 {
+			cmd = arg
+		} else if i == 1 {
+			pkg = arg
+		} else {
+			printUsage()
+			os.Exit(1)
+		}
+	}
+
+	return cmd, pkg
+}
+
+func findFlagStart(args []string) int {
+	for i, arg := range args {
+		if strings.HasPrefix(arg, "-") {
+			return i
+		}
+	}
+	return len(args)
+}
+
+func generateJSON(pkg string, cfg config) error {
+	if pkg == "" {
+		return fmt.Errorf(`missing PACKAGE argument, use "--help" for usage`)
+	}
+
+	b, err := codegen.JSON(pkg, cfg.debug)
+	if err != nil {
+		return err
+	}
+
+	return os.WriteFile(cfg.out, b, 0644)
+}
+
+func startServer(pkg string, cfg config) error {
+	if pkg == "" {
+		return fmt.Errorf(`missing PACKAGE argument, use "--help" for usage`)
+	}
+
+	absDir, err := filepath.Abs(cfg.dir)
+	if err != nil {
+		return err
+	}
+
+	if err := os.MkdirAll(absDir, 0700); err != nil {
+		return err
+	}
+
+	if cfg.devmode && cfg.devdist == "" {
+		cfg.devdist = "./cmd/mdl/webapp/dist"
+	}
+
+	return serve(absDir, pkg, cfg.port, cfg.devdist, cfg.debug)
+}
+
+func serve(out, pkg string, port int, devdist string, debug bool) error {
+	// Load initial design
+	design, err := loadDesign(pkg, debug)
+	if err != nil {
+		return err
+	}
+
+	server := NewServer(design)
+
+	// Watch for changes and update server
+	if err := watch(pkg, func() {
+		if newDesign, err := loadDesign(pkg, debug); err != nil {
+			fmt.Println("error parsing DSL:\n" + err.Error())
+		} else {
+			server.SetDesign(newDesign)
+		}
+	}); err != nil {
+		return err
+	}
+
+	return server.Serve(out, devdist, port)
+}
+
+func loadDesign(pkg string, debug bool) (*mdl.Design, error) {
+	b, err := codegen.JSON(pkg, debug)
+	if err != nil {
+		return nil, err
+	}
+
+	var design mdl.Design
+	if err := json.Unmarshal(b, &design); err != nil {
+		return nil, fmt.Errorf("failed to load design: %s", err.Error())
+	}
+
+	return &design, nil
+}
+
+func printUsage() {
 	fmt.Fprintln(os.Stderr, "Usage:")
-	fmt.Fprintf(os.Stderr, "  %s serve PACKAGE [FLAGS].\n", os.Args[0])
+	fmt.Fprintf(os.Stderr, "  %s serve PACKAGE [FLAGS]\n", os.Args[0])
 	fmt.Fprintf(os.Stderr, "    Start a HTTP server that serves a graphical editor for the design described in PACKAGE.\n")
-	fmt.Fprintf(os.Stderr, "  %s gen PACKAGE [FLAGS].\n", os.Args[0])
+	fmt.Fprintf(os.Stderr, "  %s gen PACKAGE [FLAGS]\n", os.Args[0])
 	fmt.Fprintf(os.Stderr, "    Generate a JSON representation of the design described in PACKAGE.\n")
 	fmt.Fprintf(os.Stderr, "\nPACKAGE must be the import path to a Go package containing Model DSL.\n\n")
 	fmt.Fprintf(os.Stderr, "FLAGS:\n")
-	for _, fs := range fss {
-		fs.PrintDefaults()
-	}
+	flag.PrintDefaults()
 }
 
 func fail(format string, args ...any) {

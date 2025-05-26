@@ -40,6 +40,12 @@ export const MOVE_RIGHT_FAST = 'move-right-fast'
 export const MOVE_UP_FAST = 'move-up-fast'
 export const MOVE_DOWN_FAST = 'move-down-fast'
 
+export const PAN_VIEW = 'pan-view'
+export const SELECT_ELEMENT = 'select-element'
+export const MULTI_SELECT = 'multi-select'
+export const BOX_SELECT = 'box-select'
+export const MOVE_ELEMENTS = 'move-elements'
+
 export const HELP = 'help'
 
 const shortcuts: { name: string; list: Shortcut[] }[] = [
@@ -122,7 +128,7 @@ const shortcuts: { name: string; list: Shortcut[] }[] = [
 				help: 'Zoom in',
 				combinations: [
 					{ctrl: true, key: '='},
-					{ctrl: true, wheel: true}
+					{wheel: true}
 				]
 			},
 			{
@@ -130,7 +136,7 @@ const shortcuts: { name: string; list: Shortcut[] }[] = [
 				help: 'Zoom out',
 				combinations: [
 					{ctrl: true, key: '-'},
-					{ctrl: true, wheel: true}
+					{wheel: true}
 				]
 			},
 			{
@@ -142,6 +148,36 @@ const shortcuts: { name: string; list: Shortcut[] }[] = [
 				id: ZOOM_100,
 				help: 'Zoom 100%',
 				combinations: [{ctrl: true, key: '0'}]
+			}
+		]
+	},
+	{
+		name: 'Mouse Interactions',
+		list: [
+			{
+				id: PAN_VIEW,
+				help: 'Pan view (drag empty space)',
+				combinations: [{click: true}]
+			},
+			{
+				id: SELECT_ELEMENT,
+				help: 'Select element',
+				combinations: [{click: true}]
+			},
+			{
+				id: MULTI_SELECT,
+				help: 'Add/remove from selection',
+				combinations: [{shift: true, click: true}]
+			},
+			{
+				id: BOX_SELECT,
+				help: 'Box selection (drag empty space)',
+				combinations: [{shift: true, click: true}]
+			},
+			{
+				id: MOVE_ELEMENTS,
+				help: 'Move selected elements',
+				combinations: [{click: true}]
 			}
 		]
 	},

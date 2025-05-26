@@ -291,15 +291,33 @@ export const parseView = (model: Model, layouts: Layouts, viewKey: string) => {
 				s && (style = {...style, ...s})
 			})
 		}
-		graph.addGroup(
-			parent.id,
-			parent.name,
-			view.elements
-				.map(ref => elements.get(ref.id))
-				.filter(el => el && el.parent == parent)
-				.map(el => el.id),
-			style
-		)
+		
+		// Filter group members more carefully to respect boundaries
+		const groupMembers = view.elements
+			.map(ref => elements.get(ref.id))
+			.filter(el => {
+				if (!el || el.parent !== parent) return false;
+				
+				// For system landscape views, respect the location-based grouping
+				if (section === 'systemLandscapeViews' && parent.id === '__enterprise__') {
+					// Only include elements that are explicitly non-external
+					return el.location !== 'External';
+				}
+				
+				// For other view types, include if parent matches
+				return true;
+			})
+			.map(el => el.id);
+		
+		// Only create group if it has members
+		if (groupMembers.length > 0) {
+			graph.addGroup(
+				parent.id,
+				parent.name,
+				groupMembers,
+				style
+			)
+		}
 	})
 
 	//layout if any and init graph

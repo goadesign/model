@@ -137,8 +137,8 @@ description of the corresponding software architecture.
 
 ### Using `mdl`
 
-The `mdl serve` command starts a local HTTP server that serves a graphical
-editor. The command takes the Go import path to the package containing the
+The `mdl serve` command starts a local HTTP server that serves an interactive
+graphical editor with advanced layout and editing capabilities. The command takes the Go import path to the package containing the
 DSL as argument. The path to the directory used to save the SVG files can be
 provided via the `-dir` flag, by default the editor creates a `gen` folder
 under the current path. For example:
@@ -152,6 +152,18 @@ mdl v1.9.7, editor started. Open http://localhost:8080 in your browser.
 Modifying and saving the DSL while the editor is running causes it to
 automatically update and reflect the latest changes making it convenient to
 work on the model while editing the view layouts.
+
+#### Interactive Editor Features
+
+The graphical editor provides a rich set of interactive features:
+
+- **Intuitive Navigation**: Pan by dragging, zoom with scroll wheel
+- **Smart Selection**: Click to select, Shift+click for multi-selection, Shift+drag for box selection
+- **Automatic Layout**: Multiple algorithms (Layered, Force, Tree, Radial, etc.) powered by ELK.js
+- **Precise Alignment**: Align and distribute selected elements with toolbar buttons
+- **Flexible Connections**: Multiple routing styles (orthogonal, straight, curved)
+- **Full Undo/Redo**: Complete history tracking for all changes
+- **Keyboard Shortcuts**: Comprehensive shortcuts for efficient editing
 
 The `mdl gen` command generates the JSON representation of a design, it accepts
 the Go import path to the package containing the design DSL as argument. For
@@ -420,8 +432,8 @@ the list of features that will be added in the future:
 - [ ] Support for both vertical and horizontal ranking with autolayout
 - [ ] Keyboard shortcuts for vertical and horizontal align
 - [ ] Autosave toggle
-- [ ] Distribute horizontally and vertically
-- [ ] Toolbar icons
+- [x] Distribute horizontally and vertically
+- [x] Toolbar icons
 
 ### Examples
 
