@@ -352,8 +352,8 @@ func Test_CoalesceRelationships(t *testing.T) {
 		coalescedRel := Registry[coalescedView.RelationshipID].(*Relationship)
 
 		// Verify source and destination are correct
-		assert.Equal(t, mSource.Element.ID, coalescedRel.Source.ID, "Source should match")
-		assert.Equal(t, mDestination.Element.ID, coalescedRel.Destination.ID, "Destination should match")
+		assert.Equal(t, mSource.ID, coalescedRel.Source.ID, "Source should match")
+		assert.Equal(t, mDestination.ID, coalescedRel.Destination.ID, "Destination should match")
 	})
 }
 
@@ -395,7 +395,7 @@ func Test_CoalesceAllRelationshipsInView(t *testing.T) {
 		copy(viewProps.RelationshipViews, baseViewProps.RelationshipViews)
 
 		explicitPairs := make(map[string]bool)
-		explicitPairs[mSource.Element.ID+"->"+mDestination.Element.ID] = true
+		explicitPairs[mSource.ID+"->"+mDestination.ID] = true
 
 		initialCount := len(viewProps.RelationshipViews)
 		assert.Equal(t, 2, initialCount, "Should start with 2 relationship views")

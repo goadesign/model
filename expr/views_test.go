@@ -538,7 +538,7 @@ func Test_AddDeploymentNodeChildren(t *testing.T) {
 	}
 	dv := DeploymentView{
 		ViewProps:        &mViewProps,
-		SoftwareSystemID: mSoftwareSystem.Element.ID,
+		SoftwareSystemID: mSoftwareSystem.ID,
 	}
 	tests := []struct {
 		dv1  *DeploymentView

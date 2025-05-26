@@ -30,7 +30,11 @@ func JSON(pkg string, debug bool) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer func() { os.RemoveAll(tmpDir) }()
+	defer func() {
+		if err := os.RemoveAll(tmpDir); err != nil {
+			fmt.Fprintf(os.Stderr, "failed to remove temp dir: %v\n", err)
+		}
+	}()
 	var sections []*codegen.SectionTemplate
 	{
 		imports := []*codegen.ImportSpec{
