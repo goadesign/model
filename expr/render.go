@@ -232,9 +232,10 @@ func addAnimationStepRelationships(vp *ViewProps) {
 		for _, rv := range vp.RelationshipViews {
 			for _, eh := range s.Elements {
 				id := eh.GetElement().ID
-				if id == rv.Source.ID {
+				switch id {
+				case rv.Source.ID:
 					oldSrc = true
-				} else if id == rv.Destination.ID {
+				case rv.Destination.ID:
 					oldDest = true
 				}
 				if oldSrc && oldDest {
@@ -245,9 +246,10 @@ func addAnimationStepRelationships(vp *ViewProps) {
 				break
 			}
 			for _, ev := range vp.ElementViews {
-				if ev.Element.ID == rv.Source.ID {
+				switch ev.Element.ID {
+				case rv.Source.ID:
 					newSrc = true
-				} else if ev.Element.ID == rv.Destination.ID {
+				case rv.Destination.ID:
 					newDest = true
 				}
 				if newSrc && newDest {

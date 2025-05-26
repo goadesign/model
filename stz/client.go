@@ -17,6 +17,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"os"
 	"os/user"
 	"strconv"
 	"time"
@@ -74,7 +75,11 @@ func (c *Client) Get(id string) (*Workspace, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			fmt.Fprintf(os.Stderr, "failed to close response body: %v\n", err)
+		}
+	}()
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
 		return nil, fmt.Errorf("service error: %s", string(body))
@@ -97,7 +102,11 @@ func (c *Client) Put(id string, w *Workspace) error {
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			fmt.Fprintf(os.Stderr, "failed to close response body: %v\n", err)
+		}
+	}()
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
 		return fmt.Errorf("service error: %s", string(body))
@@ -139,7 +148,11 @@ func (c *Client) lockUnlock(id string, lock bool) error {
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			fmt.Fprintf(os.Stderr, "failed to close response body: %v\n", err)
+		}
+	}()
 
 	if resp.StatusCode != http.StatusOK {
 		var res Response

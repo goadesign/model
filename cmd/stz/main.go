@@ -101,7 +101,9 @@ func gen(pkg, out string, debug bool) error {
 		if debug {
 			fmt.Printf("temp dir: %q\n", tmpDir)
 		} else {
-			os.RemoveAll(tmpDir)
+			if err := os.RemoveAll(tmpDir); err != nil {
+				fmt.Fprintf(os.Stderr, "failed to remove temp dir: %v\n", err)
+			}
 		}
 	}()
 	var sections []*codegen.SectionTemplate
@@ -163,7 +165,11 @@ func put(path, wid, key, secret string, debug bool) error {
 	if err != nil {
 		return err
 	}
-	defer f.Close()
+	defer func() {
+		if err := f.Close(); err != nil {
+			fmt.Fprintf(os.Stderr, "failed to close file: %v\n", err)
+		}
+	}()
 	local := &stz.Workspace{}
 	if err = json.NewDecoder(f).Decode(local); err != nil {
 		return err
@@ -177,7 +183,11 @@ func put(path, wid, key, secret string, debug bool) error {
 		if err != nil {
 			return err
 		}
-		defer llf.Close()
+		defer func() {
+			if err := llf.Close(); err != nil {
+				fmt.Fprintf(os.Stderr, "failed to close layout file: %v\n", err)
+			}
+		}()
 		layout := make(stz.WorkspaceLayout)
 		if err := json.NewDecoder(llf).Decode(&layout); err != nil {
 			return err
@@ -230,7 +240,9 @@ func showUsage(fs *flag.FlagSet) {
 }
 
 func runCmd(path, dir string, args ...string) (string, error) {
-	os.Setenv("GO111MODULE", "on")
+	if err := os.Setenv("GO111MODULE", "on"); err != nil {
+		return "", fmt.Errorf("failed to set GO111MODULE: %v", err)
+	}
 	c := exec.Cmd{Path: path, Args: args, Dir: dir}
 	b, err := c.CombinedOutput()
 	if err != nil {

@@ -121,12 +121,12 @@ func ModelizeDesign(d *expr.Design) *Design {
 
 func modelizePerson(p *expr.Person) *Person {
 	return &Person{
-		ID:            p.Element.ID,
-		Name:          p.Element.Name,
-		Description:   p.Element.Description,
-		Tags:          p.Element.Tags,
-		URL:           p.Element.URL,
-		Properties:    p.Element.Properties,
+		ID:            p.ID,
+		Name:          p.Name,
+		Description:   p.Description,
+		Tags:          p.Tags,
+		URL:           p.URL,
+		Properties:    p.Properties,
 		Relationships: modelizeRelationships(p.Relationships),
 		Location:      LocationKind(p.Location),
 	}
