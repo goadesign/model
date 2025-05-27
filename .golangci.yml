@@ -16,6 +16,3 @@ linters:
       - linters:
           - staticcheck
         text: "ST1001"
-      - linters:
-          - typecheck
-        text: "pattern webapp/dist/.*: no matching files found"
