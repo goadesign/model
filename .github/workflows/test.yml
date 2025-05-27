@@ -21,6 +21,12 @@ jobs:
         with:
           go-version: '1.23'
 
+      - name: Build UI
+        run: |
+          cd cmd/mdl/webapp
+          npm install
+          npm run build
+
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v8
         with:
