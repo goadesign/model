@@ -98,8 +98,8 @@ The webapp now uses **ELK.js** (Eclipse Layout Kernel) for automatic diagram lay
 - **Shift + ?** or **Shift + F1**: Show/hide keyboard shortcuts help
 
 #### Advanced Editing
-- **Alt + Click**: Add vertex to relationship edge
-- **Alt + Shift + Click**: Add label anchor to relationship edge
+- **Alt + Click**: Add vertex to relationship edge (Option + Click on Mac)
+- **Alt + Shift + Click**: Add label anchor to relationship edge (Option + Shift + Click on Mac)
 
 ## Technical Implementation
 

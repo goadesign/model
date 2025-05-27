@@ -21,7 +21,7 @@ GO_FILES=$(shell find . -type f -name '*.go')
 # React app source files and dependencies
 WEBAPP_DIR=cmd/mdl/webapp
 WEBAPP_SRC_FILES=$(shell find $(WEBAPP_DIR)/src -type f \( -name '*.tsx' -o -name '*.ts' -o -name '*.css' -o -name '*.html' \) 2>/dev/null || true)
-WEBAPP_CONFIG_FILES=$(WEBAPP_DIR)/package.json $(WEBAPP_DIR)/package-lock.json $(WEBAPP_DIR)/tsconfig.json $(WEBAPP_DIR)/webpack.config.js $(WEBAPP_DIR)/webpack.config.base.js $(WEBAPP_DIR)/.babelrc.js
+WEBAPP_CONFIG_FILES=$(WEBAPP_DIR)/package.json $(WEBAPP_DIR)/tsconfig.json $(WEBAPP_DIR)/webpack.config.js $(WEBAPP_DIR)/webpack.config.base.js $(WEBAPP_DIR)/.babelrc.js
 WEBAPP_BUILD_OUTPUT=$(WEBAPP_DIR)/dist/main.js
 
 # Only list test and build dependencies
@@ -53,6 +53,11 @@ endif
 test:
 	go test ./... --coverprofile=cover.out
 
+# Ensure package-lock.json exists or is updated if package.json changes
+$(WEBAPP_DIR)/package-lock.json: $(WEBAPP_DIR)/package.json
+	@echo "Generating/updating package-lock.json..."
+	@cd $(WEBAPP_DIR) && npm install --package-lock-only
+
 # Install npm dependencies if package.json or package-lock.json changed
 $(WEBAPP_DIR)/node_modules/.install-timestamp: $(WEBAPP_DIR)/package.json $(WEBAPP_DIR)/package-lock.json
 	@echo "Installing npm dependencies..."
@@ -60,6 +65,8 @@ $(WEBAPP_DIR)/node_modules/.install-timestamp: $(WEBAPP_DIR)/package.json $(WEBA
 	@touch $(WEBAPP_DIR)/node_modules/.install-timestamp
 
 # Build React app only if source files or config changed
+# package-lock.json is not a direct dependency here because its generation is handled by the rule above,
+# and npm install (triggered by .install-timestamp) will use it.
 $(WEBAPP_BUILD_OUTPUT): $(WEBAPP_SRC_FILES) $(WEBAPP_CONFIG_FILES) $(WEBAPP_DIR)/node_modules/.install-timestamp
 	@echo "Building React app..."
 	@cd $(WEBAPP_DIR) && npm run build
