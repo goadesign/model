@@ -11,12 +11,11 @@ linters:
     - staticcheck
     - unused
     - misspell
-
-issues:
-  exclude-rules:
-    - text: "pattern webapp/dist/.*: no matching files found"
-      linters:
-        - typecheck
-    - linters:
-        - staticcheck
-      text: "ST1001"
+  exclusions:
+    rules:
+      - linters:
+          - staticcheck
+        text: "ST1001"
+      - linters:
+          - typecheck
+        text: "pattern webapp/dist/.*: no matching files found"
