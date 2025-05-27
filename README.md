@@ -146,7 +146,7 @@ under the current path. For example:
 ```bash
 mdl serve goa.design/model/examples/basic/model -dir gen
 Watching: /home/raphael/go/src/goa.design/model/examples/basic/model
-mdl v1.10.0, editor started. Open http://localhost:8080 in your browser.
+mdl v1.11.0, editor started. Open http://localhost:8080 in your browser.
 ```
 
 Modifying and saving the DSL while the editor is running causes it to
@@ -228,13 +228,13 @@ in this repo.
 
 ### Using Model as a library
 
-The [mdl](https://pkg.go.dev/goa.design/model@v1.10.0/mdl?tab=doc) package
-[RunDSL](https://pkg.go.dev/goa.design/model@v1.10.0/mdl?tab=doc#RunDSL)
+The [mdl](https://pkg.go.dev/goa.design/model@v1.11.0/mdl?tab=doc) package
+[RunDSL](https://pkg.go.dev/goa.design/model@v1.11.0/mdl?tab=doc#RunDSL)
 method runs the DSL and produces data structures that contain all the
 information needed to render the views it defines.
 
-The [stz](https://pkg.go.dev/goa.design/model@v1.10.0/stz?tab=doc) package
-[RunDSL](https://pkg.go.dev/goa.design/model@v1.10.0/stz?tab=doc#RunDSL)
+The [stz](https://pkg.go.dev/goa.design/model@v1.11.0/stz?tab=doc) package
+[RunDSL](https://pkg.go.dev/goa.design/model@v1.11.0/stz?tab=doc#RunDSL)
 method runs the DSL and produces a data structure that can be serialized into
 JSON and uploaded to the [Structurizr service](https://structurizr.com).
 
@@ -363,7 +363,7 @@ view that is scoped to a parent element.
 ### Resources
 
 The DSL package
-[documentation](https://pkg.go.dev/goa.design/model@v1.10.0/dsl?tab=doc) lists
+[documentation](https://pkg.go.dev/goa.design/model@v1.11.0/dsl?tab=doc) lists
 all the DSL keywords and their usage.
 
 The file [DSL.md](https://github.com/goadesign/model/blob/master/DSL.md)
