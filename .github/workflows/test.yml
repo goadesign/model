@@ -38,8 +38,8 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        go: ['1.23']
-        os: ['ubuntu-latest', 'windows-latest']
+        go: ['1.24']
+        os: ['ubuntu-latest']
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -55,7 +55,6 @@ jobs:
         run: go mod download
 
       - name: Build UI
-        if: matrix.os == 'ubuntu-latest'
         run: |
           cd cmd/mdl/webapp
           npm install
