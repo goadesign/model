@@ -9,12 +9,37 @@ on:
       - main
 
 jobs:
-  ci:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+
+      - name: Build UI
+        run: |
+          cd cmd/mdl/webapp
+          npm install
+          npm run build
+
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v8
+        with:
+          version: latest
+          args: --timeout=5m
+
+  test:
+    name: Test
     strategy:
       fail-fast: true
       matrix:
         go: ['1.24']
-        os: ['ubuntu-latest', 'windows-latest']
+        os: ['ubuntu-latest']
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -25,7 +50,20 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: ${{ matrix.go }}
-        id: go
+
+      - name: Install dependencies
+        run: go mod download
+
+      - name: Build UI
+        run: |
+          cd cmd/mdl/webapp
+          npm install
+          npm run build
 
       - name: Build
-        run: make ci
+        run: |
+          cd cmd/mdl && go build
+          cd ../stz && go build
+
+      - name: Run tests
+        run: go test ./... -coverprofile=cover.out

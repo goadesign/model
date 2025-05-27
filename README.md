@@ -104,7 +104,7 @@ directory.
 
 ## Installation
 
-Model uses Go modules and thus requires Go version 1.11 or greater. Assuming
+Model requires Go version 1.23 or greater. Assuming
 a working installation of Go, the `mdl` and `stz` tools can be installed
 using:
 
@@ -137,8 +137,8 @@ description of the corresponding software architecture.
 
 ### Using `mdl`
 
-The `mdl serve` command starts a local HTTP server that serves a graphical
-editor. The command takes the Go import path to the package containing the
+The `mdl serve` command starts a local HTTP server that serves an interactive
+graphical editor with advanced layout and editing capabilities. The command takes the Go import path to the package containing the
 DSL as argument. The path to the directory used to save the SVG files can be
 provided via the `-dir` flag, by default the editor creates a `gen` folder
 under the current path. For example:
@@ -146,12 +146,28 @@ under the current path. For example:
 ```bash
 mdl serve goa.design/model/examples/basic/model -dir gen
 Watching: /home/raphael/go/src/goa.design/model/examples/basic/model
-mdl v1.9.7, editor started. Open http://localhost:8080 in your browser.
+mdl v1.10.0, editor started. Open http://localhost:8080 in your browser.
 ```
 
 Modifying and saving the DSL while the editor is running causes it to
 automatically update and reflect the latest changes making it convenient to
 work on the model while editing the view layouts.
+
+#### Interactive Editor Features
+
+The graphical editor provides a rich set of interactive features:
+
+- **Intuitive Navigation**: Pan by dragging, zoom with scroll wheel, or use keyboard shortcuts
+- **Smart Selection**: Click to select, Shift+click for multi-selection, Shift+drag for box selection
+- **Automatic Layout**: Multiple algorithms (Layered, Force, Tree, Radial, etc.) powered by ELK.js
+- **Precise Alignment**: Align and distribute selected elements with toolbar buttons or keyboard shortcuts
+- **Flexible Connections**: Multiple routing styles (orthogonal, straight, curved)
+- **Full Undo/Redo**: Complete history tracking for all changes with Ctrl+Z/Ctrl+Y (Cmd+Z/Cmd+Y on Mac)
+- **Cross-Platform Keyboard Shortcuts**: Full keyboard support with platform-specific shortcuts (Cmd on Mac, Ctrl on PC)
+- **Dynamic Page Titles**: Browser tab title updates to show the current view name being edited
+- **Toolbar Integration**: Modern toolbar with tooltips showing platform-appropriate keyboard shortcuts
+- **Zoom Controls**: Fit-to-view, zoom to 100%, and incremental zoom with proper coordinate handling
+- **Grid System**: Toggle-able grid overlay with snap-to-grid functionality for precise element positioning
 
 The `mdl gen` command generates the JSON representation of a design, it accepts
 the Go import path to the package containing the design DSL as argument. For
@@ -162,7 +178,7 @@ mdl gen goa.design/model/examples/basic/model -out design.json
 ```
 
 The generated file `design.json` contains a JSON representation of the
-[Design](https://pkg.go.dev/goa.design/model@v1.7.0/mdl#Design) struct.
+[Design](https://pkg.go.dev/goa.design/model@v1.10.0/mdl#Design) struct.
 
 ### Using `stz`
 
@@ -366,7 +382,7 @@ selected by either dragging over the selection or by using SHIFT + CLICK.
 Selecting multiple elements automatically selects the relationships between
 these elements as well.
 
-New vertices can be created on relationship lines using ALT + CLICK, existing
+New vertices can be created on relationship lines using ALT + CLICK (Option + Click on Mac), existing
 vertices can be deleted with BACKSPACE or DELETE. See the table below for a
 complete list of editor shortcuts.
 
@@ -383,7 +399,7 @@ automatically restores the element positions.
 
 ### Keyboard Shortcuts
 
-The editor supports a number of keyboard shortcuts listed below:
+The editor supports a number of keyboard shortcuts listed below. On Mac, use CMD instead of CTRL for all shortcuts:
 
 | Category             | Shortcut                   | Effect                               |
 | -------------------- | ---------------------------|------------------------------------- |
@@ -391,37 +407,48 @@ The editor supports a number of keyboard shortcuts listed below:
 | File                 | CTRL + S                   | Save SVG                             |
 | History              | CTRL + Z                   | Undo                                 |
 | History              | CTRL + SHIFT + Z, CTRL + Y | Redo                                 |
-| Relationship editing | ALT + CLICK                | Add relationship vertex              |
-| Relationship editing | ALT + SHIFT + CLICK        | Add label anchor relationship vertex |
+| Relationship editing | ALT + CLICK                | Add relationship vertex (Option + Click on Mac) |
+| Relationship editing | ALT + SHIFT + CLICK        | Add label anchor relationship vertex (Option + Shift + Click on Mac) |
 | Relationship editing | DELETE, BACKSPACE          | Remove relationship vertex           |
 | Zoom                 | CTRL + =, CTRL + wheel     | Zoom in                              |
 | Zoom                 | CTRL + -, CTRL + wheel     | Zoom out                             |
 | Zoom                 | CTRL + 9                   | Zoom - fit                           |
 | Zoom                 | CTRL + 0                   | Zoom 100%                            |
+| Zoom                 | CTRL + HOME                | Reset diagram position to top-left   |
 | Select               | CTRL + A                   | Select all                           |
 | Select               | ESC                        | Deselect                             |
-| Move                 | UP                         | Move up                              |
-| Move                 | SHIFT + UP                 | Move up fast                         |
-| Move                 | DOWN                       | Move down                            |
-| Move                 | SHIFT + DOWN               | Move down fast                       |
-| Move                 | RIGHT                      | Move right                           |
-| Move                 | SHIFT + RIGHT              | Move right fast                      |
-| Move                 | LEFT                       | Move left                            |
-| Move                 | SHIFT + LEFT               | Move left fast                       |
+| Move                 | UP                         | Move up (grid increment)              |
+| Move                 | SHIFT + UP                 | Move up (fine - 1 pixel)             |
+| Move                 | DOWN                       | Move down (grid increment)            |
+| Move                 | SHIFT + DOWN               | Move down (fine - 1 pixel)           |
+| Move                 | RIGHT                      | Move right (grid increment)           |
+| Move                 | SHIFT + RIGHT              | Move right (fine - 1 pixel)          |
+| Move                 | LEFT                       | Move left (grid increment)            |
+| Move                 | SHIFT + LEFT               | Move left (fine - 1 pixel)           |
+| View                 | T                          | Toggle between pan and select mode   |
+| Alignment            | CTRL + SHIFT + H           | Align selected elements horizontally |
+| Alignment            | CTRL + SHIFT + A           | Align selected elements vertically   |
+| Alignment            | CTRL + ALT + H             | Distribute selected elements horizontally |
+| Alignment            | CTRL + ALT + V             | Distribute selected elements vertically |
+| Layout               | CTRL + L                   | Auto layout all elements             |
+| Grid                 | CTRL + G                   | Toggle grid visibility               |
+| Grid                 | CTRL + SHIFT + G           | Toggle snap to grid                  |
+| Grid                 | CTRL + ALT + G             | Snap all elements to grid            |
 
 ### TBD
 
 While functional, the editor isn't considered feature complete yet. Here is
 the list of features that will be added in the future:
 
-- [x] Snap to grid
+- [x] Grid system with snap-to-grid functionality
 - [ ] Better SVG clipping on save
 - [ ] Autolayout on start if no pre-existing layout information
-- [ ] Support for both vertical and horizontal ranking with autolayout
-- [ ] Keyboard shortcuts for vertical and horizontal align
+- [x] Keyboard shortcuts for vertical and horizontal align
 - [ ] Autosave toggle
-- [ ] Distribute horizontally and vertically
-- [ ] Toolbar icons
+- [x] Distribute horizontally and vertically
+- [x] Toolbar icons with keyboard shortcut tooltips
+- [x] Cross-platform keyboard shortcuts (Mac/PC support)
+- [x] Dynamic page titles showing current view
 
 ### Examples
 

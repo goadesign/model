@@ -124,7 +124,7 @@ func (d *DeploymentNode) ContainerInstanceByID(containerID string, instanceID in
 //
 // Note that in theory there could be be multiple containers with the given name
 // coming from different software systems in a single deployment node. In
-// practice the likelyhood of this happening seems pretty slim so we'll keep it
+// practice the likelihood of this happening seems pretty slim so we'll keep it
 // simple for now...
 func (d *DeploymentNode) ContainerInstanceByName(name string, instanceID int) *ContainerInstance {
 	for _, ci := range d.ContainerInstances {

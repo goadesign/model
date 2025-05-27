@@ -166,13 +166,13 @@ func Test_Validate_DuplicatePeople(t *testing.T) {
 		People:  mPeople,
 		Systems: mSystem,
 	}
-	duplicate_person_verr := errors.New("person \"Brian\": name already in use")
+	duplicatePersonVerr := errors.New("person \"Brian\": name already in use")
 	tests := []struct {
 		name  string
 		model Model
 		want  error
 	}{
-		{name: "KnownPerson", model: mDuplicatePeople, want: duplicate_person_verr},
+		{name: "KnownPerson", model: mDuplicatePeople, want: duplicatePersonVerr},
 	}
 	for i, tt := range tests {
 		tt := tt
@@ -204,13 +204,13 @@ func Test_Validate_DuplicateSystems(t *testing.T) {
 		People:  mPeople,
 		Systems: mSystem,
 	}
-	duplicate_person_verr := errors.New("software system \"BigBank\": name already in use")
+	duplicatePersonVerr := errors.New("software system \"BigBank\": name already in use")
 	tests := []struct {
 		name  string
 		model Model
 		want  error
 	}{
-		{name: "KnownSystem", model: mDuplicateSystems, want: duplicate_person_verr},
+		{name: "KnownSystem", model: mDuplicateSystems, want: duplicatePersonVerr},
 	}
 	for i, tt := range tests {
 		tt := tt
@@ -254,13 +254,13 @@ func Test_Validate_DuplicateContainers(t *testing.T) {
 		People:  mPeople,
 		Systems: mSystem,
 	}
-	duplicate_person_verr := errors.New("container \"Box\": name already in use")
+	duplicatePersonVerr := errors.New("container \"Box\": name already in use")
 	tests := []struct {
 		name  string
 		model Model
 		want  error
 	}{
-		{name: "KnownSystem", model: mDuplicateSystems, want: duplicate_person_verr},
+		{name: "KnownSystem", model: mDuplicateSystems, want: duplicatePersonVerr},
 	}
 	for i, tt := range tests {
 		tt := tt
@@ -307,13 +307,13 @@ func Test_Validate_DuplicateComponents(t *testing.T) {
 		People:  mPeople,
 		Systems: mSystem,
 	}
-	duplicate_person_verr := errors.New("component \"Widget\": name already in use")
+	duplicatePersonVerr := errors.New("component \"Widget\": name already in use")
 	tests := []struct {
 		name  string
 		model Model
 		want  error
 	}{
-		{name: "KnownSystem", model: mDuplicateSystems, want: duplicate_person_verr},
+		{name: "KnownSystem", model: mDuplicateSystems, want: duplicatePersonVerr},
 	}
 	for i, tt := range tests {
 		tt := tt

@@ -19,28 +19,129 @@ body {
 }
 
 .toolbar {
-    flex-grow: 0;
-    padding: 10px 20px;
-    background: ghostwhite;
     display: flex;
     justify-content: space-between;
+    align-items: center;
+    padding: 4px 10px;
+    background-color: #f0f0f0;
+    border-bottom: 1px solid #cccccc;
 }
-.toolbar * {
-    vertical-align: text-bottom;
+
+.toolbar > div {
+    display: flex;
+    align-items: center;
+}
+
+.toolbar button.grp, .toolbar button.action {
+    background-color: #f8f8f8;
+    border: 1px solid #c0c0c0;
+    padding: 5px 8px;
+    margin: 0 2px;
+    border-radius: 3px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.toolbar button.grp:hover, .toolbar button.action:hover {
+    background-color: #e9e9e9;
+    border-color: #a0a0a0;
+}
+
+.toolbar button.grp:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Style for the active toggle button state */
+.toolbar button.active-toggle {
+    background: linear-gradient(to bottom, #4a90e2, #357abd) !important;
+    border-color: #2968a3;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.2);
+}
+
+.toolbar button.active-toggle:hover {
+    background: linear-gradient(to bottom, #5ba0f2, #4585c7) !important;
+}
+
+/* Drag mode toggle button styles */
+.toolbar button.mode-toggle {
+    position: relative;
+    border: none;
+    width: 40px; /* Fixed width for consistent appearance */
+    min-height: 28px;
+}
+
+.toolbar button.mode-toggle.pan-mode {
+    background: linear-gradient(to bottom, #abb8db, #8f9fc9) !important;
+    color: white;
+    box-shadow: 2px 2px 2px rgba(0, 0, 0, .2) !important;
+}
+
+.toolbar button.mode-toggle.pan-mode:hover {
+    background: linear-gradient(to bottom, #bcc7e0, #abb8db) !important;
+}
+
+.toolbar button.mode-toggle.pan-mode:active {
+    background: #6a7db0 !important;
+    box-shadow: 2px 2px 2px rgba(0, 0, 0, .2) !important;
+}
+
+.toolbar button.mode-toggle.select-mode {
+    background: linear-gradient(to bottom, #4a90e2, #357abd) !important;
+    color: white;
+    box-shadow: 2px 2px 2px rgba(0, 0, 0, .2) !important;
+}
+
+.toolbar button.mode-toggle.select-mode:hover {
+    background: linear-gradient(to bottom, #5ba0f2, #4585c7) !important;
+}
+
+.toolbar button.mode-toggle.select-mode:active {
+    background: linear-gradient(to bottom, #357abd, #2968a3) !important;
+    box-shadow: 2px 2px 2px rgba(0, 0, 0, .2) !important;
+}
+
+/* Ensure Font Awesome icons are sized appropriately if not already handled */
+.toolbar button .fas {
+    font-size: 1em;
+    vertical-align: middle;
+}
+
+.toolbar-group {
+    display: flex;
+    align-items: center;
+    margin-right: 25px; /* Large space between groups */
+}
+
+.toolbar-group:last-child {
+    margin-right: 0; /* Remove right margin from the last group (help button) */
 }
 
 button {
     border: none;
     background: linear-gradient(to bottom, #abb8db, #8f9fc9);
     border-radius: 3px;
-    padding: 3px 7px;
+    padding: 6px 10px;
     color: #fff;
     outline: none;
     box-shadow: 2px 2px 2px rgba(0, 0, 0, .2);
-    margin-right: 5px;
+    margin-right: 5px; /* Small space between buttons in a group */
+    min-width: 32px;
+    min-height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    line-height: 1;
+    font-family: "Segoe UI", "Segoe UI Symbol", "Segoe UI Emoji", system-ui, -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+}
+button:last-child {
+    margin-right: 0;
 }
 button.grp {
-    margin-right: 15px;
+    margin-right: 0;
 }
 button:active {
     background: #6a7db0;
@@ -55,6 +156,28 @@ button.action:disabled {
     background: #c1c1c1;
 }
 
+select {
+    border: 1px solid #ccc;
+    background: white;
+    border-radius: 3px;
+    padding: 3px 7px;
+    color: #666;
+    outline: none;
+    margin-right: 5px;
+    font-size: 12px;
+}
+
+select:disabled {
+    background: #f5f5f5;
+    color: #999;
+}
+
+button:disabled {
+    background: #c1c1c1;
+    color: #999;
+    cursor: not-allowed;
+}
+
 #root > div > svg {
     position: absolute;
     user-select: none;
@@ -66,14 +189,30 @@ button.action:disabled {
 }
 .edge .v-dot {
     fill: transparent;
-    stroke: none;
+    stroke: transparent;
     stroke-width: 3px;
+    cursor: pointer;
+    transition: stroke 0.15s ease;
+}
+.edge .v-dot:hover {
+    stroke: #999;
+    fill: rgba(153, 153, 153, 0.1);
 }
 .edge .v-dot.selected {
     stroke: #29c229;
+    fill: rgba(41, 194, 41, 0.1);
+}
+.edge .v-dot.selected:hover {
+    stroke: #29c229;
+    fill: rgba(41, 194, 41, 0.2);
 }
 .edge .v-dot.auto.selected {
     stroke: #777;
+    fill: rgba(119, 119, 119, 0.1);
+}
+.edge .v-dot.auto.selected:hover {
+    stroke: #777;
+    fill: rgba(119, 119, 119, 0.2);
 }
 circle#prj {
     fill: none;
@@ -100,7 +239,21 @@ g.node text {
     stroke: #fff;
 }
 #icon-cube {
-    fill: #ee974b;
+    fill: #aaa;
+}
+
+/* Ensure all button icons are uncolored */
+button .icon,
+button svg,
+button path {
+    fill: currentColor !important;
+    stroke: none !important;
+}
+
+/* Font Awesome icon styling in buttons */
+button i {
+    font-size: 12px;
+    color: inherit;
 }
 
 rect.elastic {
@@ -132,4 +285,83 @@ rect.elastic.on {
 .popover td {
     padding-right: 20px;
     font-size: 14px;
+}
+
+/* Simple tooltip system with smart positioning */
+button[data-tooltip],
+select[data-tooltip],
+.tooltip-wrapper {
+    position: relative;
+}
+
+button[data-tooltip]:hover::after,
+select[data-tooltip]:hover::after,
+.tooltip-wrapper:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    top: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    z-index: 1000;
+    pointer-events: none;
+    margin-top: 5px;
+    animation: tooltip-appear 0.1s ease-out;
+    min-width: 120px;
+    max-width: calc(100vw - 20px);
+    box-sizing: border-box;
+    
+    /* Default centered positioning */
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+button[data-tooltip]:hover::before,
+select[data-tooltip]:hover::before,
+.tooltip-wrapper:hover::before {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 4px solid transparent;
+    border-bottom-color: rgba(0, 0, 0, 0.9);
+    z-index: 1000;
+    pointer-events: none;
+    margin-top: 1px;
+    animation: tooltip-appear 0.1s ease-out;
+}
+
+/* Special handling for rightmost elements that might overflow */
+.toolbar-group:nth-last-child(-n+2) button[data-tooltip]:hover::after {
+    /* Apply to last 2 toolbar groups (save and help buttons) */
+    left: auto;
+    right: 0;
+    transform: none;
+}
+
+.toolbar-group:nth-last-child(-n+2) button[data-tooltip]:hover::before {
+    /* Apply to last 2 toolbar groups (save and help buttons) */
+    left: auto;
+    right: 16px;
+    transform: none;
+}
+
+@keyframes tooltip-appear {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}
+
+/* Ensure buttons have relative positioning for tooltips */
+button, select {
+    position: relative;
 }

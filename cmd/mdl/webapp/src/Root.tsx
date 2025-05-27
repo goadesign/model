@@ -1,115 +1,117 @@
-import React, {FC, useState} from "react";
-import {getZoom, getZoomAuto, GraphData, setZoom} from "./graph-view/graph";
-import {Graph} from "./graph-view/graph-react";
-import {BrowserRouter as Router, Routes, Route, useNavigate, useSearchParams} from 'react-router-dom'
-import {listViews, parseView, ViewsList} from "./parseModel";
-import {findShortcut, HELP, Help, SAVE} from "./shortcuts";
+import React, { FC, useState, useCallback, useEffect } from "react";
+import { GraphData } from "./graph-view/graph";
+import { Graph } from "./graph-view/graph-react";
+import { BrowserRouter as Router, Routes, Route, useSearchParams } from 'react-router-dom';
+import { listViews } from "./parseModel";
+import { Help } from "./shortcuts";
+import { useGraph, useAutoLayout, useSave, useKeyboardShortcuts, clearGraphCache } from "./hooks";
+import { Toolbar } from "./components/Toolbar";
+import { removeEmptyProps, getCurrentViewID } from "./utils";
 
-
-export const Root: FC<{model: any, layout: any}> = ({model, layout}) => <Router><Routes>
-	<Route path="/" element={<ModelPane key={getCrtID()} model={model} layouts={layout}/>}/>
-</Routes></Router>
-
-const getCrtID = () => {
-	const p = new URLSearchParams(document.location.search)
-	return p.get('id') || ''
+// Types
+interface ModelData {
+  model: any;
+  layout: any;
 }
 
+export const Root: FC<ModelData> = ({ model, layout }) => (
+  <Router>
+    <Routes>
+      <Route path="/" element={<ModelPane model={model} layouts={layout} />} />
+    </Routes>
+  </Router>
+);
 
-// we keep graphs here, in case they are edited but not saved
-const graphs: {[key: string]: GraphData} = {}
 export const refreshGraph = () => {
-	delete graphs[getCrtID()]
-}
+  const currentID = getCurrentViewID();
+  clearGraphCache(currentID);
+};
 
-let toggHelp: () => void
-let saveLayout: () => void
-window.addEventListener('keydown', e => {
-	const shortcut = findShortcut(e)
-	if (toggHelp && shortcut == HELP) {
-		toggHelp()
-	} else if (saveLayout && shortcut == SAVE) {
-		saveLayout()
-		e.preventDefault()
-	}
-})
+const ModelPane: FC<{ model: any; layouts: any }> = ({ model, layouts }) => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const currentID = decodeURI(searchParams.get('id') || '');
+  
+  // UI State
+  const [helpVisible, setHelpVisible] = useState(false);
+  const [dragMode, setDragMode] = useState<'pan' | 'select'>('pan');
+  
+  // Get or create graph for current view
+  const graph = useGraph(model, layouts, currentID);
+  
+  // Custom hooks for functionality
+  const { layouting, handleAutoLayout } = useAutoLayout(graph || ({} as GraphData));
+  const { saving, handleSave } = useSave(graph || ({} as GraphData), currentID);
+  
+  if (!graph) {
+    return <ViewRedirect model={model} />;
+  }
 
-const ModelPane: FC<{model: any, layouts: any}> = ({model, layouts}) => {
+  const handleToggleHelp = useCallback(() => {
+    setHelpVisible(!helpVisible);
+  }, [helpVisible]);
 
-	const [saving, setSaving] = useState(false)
-	const [helpOn, setHelpOn] = useState(false)
+  // Update document title when view changes
+  useEffect(() => {
+    if (graph && graph.name) {
+      document.title = `${graph.name} - Model`;
+    }
+  }, [graph]);
 
-	const [searchParams, setSearchParams] = useSearchParams()
-	const crtID = decodeURI(searchParams.get('id') || '')
+  // Setup keyboard shortcuts
+  useKeyboardShortcuts(handleToggleHelp, handleSave, graph, dragMode, setDragMode, handleAutoLayout);
 
-	const graph = graphs[crtID] || parseView(model, layouts, crtID)
-	if (!graph) {
-		const lst = listViews(model)
-		document.location.href = '?id=' + lst[0].key
-		return <>Redirecting to {lst[0].title}</>
-	}
-	graphs[crtID] = graph
+  const handleViewChange = useCallback((id: string) => {
+    setSearchParams({ id: encodeURIComponent(id) });
+  }, [setSearchParams]);
 
-	saveLayout = () => {
-		setSaving(true)
+  const handleSelect = useCallback((id: string | null) => {
+    if (id) {
+      const element = graph.metadata.elements.find((m: any) => m.id === id);
+      console.log(removeEmptyProps(element));
+    }
+  }, [graph]);
 
-		fetch('data/save?id=' + encodeURIComponent(crtID), {
-			method: 'post',
-			body: graph.exportSVG()
-		}).then(ret => {
-			if (ret.status != 202) {
-				alert('Error saving\nSee terminal output.')
-			}
-			setSaving(false)
-			graph.setSaved()
-		})
-	}
-
-	toggHelp = () => setHelpOn(!helpOn)
-
-	return <>
-		<div className="toolbar">
-			<div>
-				View:
-				<select
-					onChange={e => setSearchParams({id: encodeURIComponent(e.target.value)})} value={crtID}>
-					<option disabled value="" hidden>...</option>
-					{listViews(model).map(m => <option key={m.key}
-											value={m.key}>{camelToWords(m.section) + ': ' + m.title}</option>)}
-				</select>
-			</div>
-			<div>
-				<button onClick={() => graph.undo()} title="Undo last change">Undo</button>
-				<button className="grp" onClick={() => graph.redo()} title="Redo undone actions">Redo</button>
-
-				<button onClick={() => graph.alignSelectionH()} title="Align selected objects horizontally">H Align</button>
-				<button className="grp" onClick={() => graph.alignSelectionV()} title="Align selected objects vertically">V Align</button>
-				<button className="grp" onClick={() => graph.autoLayout()} title="Automatic layout using DagreJS">Auto Layout</button>
-				<button onClick={() => setZoom(getZoom() - .05)} title="Zoom out">Zoom -</button>
-				<button onClick={() => setZoom(getZoom() + .05)} title="Zoom in">Zoom +</button>
-				<button onClick={() => {
-					graph.alignTopLeft()
-					setZoom(getZoomAuto())
-				}} title="Zoom/Move to make all graph visible">Fit</button>
-				<button onClick={() => setZoom(1)}>Zoom 100%</button>
-				<button className="action" disabled={saving} onClick={() => saveLayout()}>Save View</button>
-				<button onClick={() => setHelpOn(!helpOn)}>Help</button>
-			</div>
-		</div>
-		<Graph key={crtID}
-			   data={graph}
-			   // print metadata in console
-			   onSelect={id => id && console.log(removeEmptyProps(graph.metadata.elements.find((m: any) => m.id == id)))}
+	return (
+		<>
+			<Toolbar
+				model={model}
+				currentID={currentID}
+				onViewChange={handleViewChange}
+				graph={graph}
+				onAutoLayout={handleAutoLayout}
+				onSave={handleSave}
+				onToggleHelp={handleToggleHelp}
+				saving={saving}
+				layouting={layouting}
+				dragMode={dragMode}
+				setDragMode={setDragMode}
 			/>
-		{helpOn && <Help/>}
-	</>
-}
+			<Graph 
+				key={currentID}
+				data={graph}
+				onSelect={handleSelect}
+				dragMode={dragMode}
+			/>
+			{helpVisible && <Help />}
+		</>
+	);
+};
 
-function removeEmptyProps(o: any) {
-	return JSON.parse(JSON.stringify(o))
-}
+const ViewRedirect: FC<{ model: any }> = ({ model }) => {
+  const views = listViews(model);
+  
+  React.useEffect(() => {
+    // Set default title when no view is selected
+    document.title = 'Model - Architecture Diagrams as Code';
+    
+    if (views.length > 0) {
+      document.location.href = '?id=' + views[0].key;
+    }
+  }, [views]);
 
-function camelToWords(camel: string) {
-	let split = camel.replace( /([A-Z])/g, " $1" );
-	return split.charAt(0).toUpperCase() + split.slice(1);
-}
+  if (views.length > 0) {
+    return <>Redirecting to {views[0].title}</>;
+  }
+  return <>No views available</>;
+};
+

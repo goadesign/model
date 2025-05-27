@@ -1,177 +1,217 @@
+interface LiveReloadOptions {
+	minDelay: number;
+	maxDelay: number;
+	handshakeTimeout: number;
+}
+
+interface LiveReloadMessage {
+	command: string;
+	protocols?: string[];
+	ver?: string;
+	path?: string;
+}
+
 class Timer {
-	private readonly func: () => void
-	private readonly _handler: () => void
-	private running: boolean
-	private id: number
+	private readonly callback: () => void;
+	private readonly handler: () => void;
+	private running: boolean = false;
+	private timeoutId: ReturnType<typeof setTimeout> | null = null;
 
-	constructor(func: () => void) {
-		this.func = func;
-		this.running = false;
-		this.id = null;
-
-		this._handler = () => {
+	constructor(callback: () => void) {
+		this.callback = callback;
+		this.handler = () => {
 			this.running = false;
-			this.id = null;
-			this.func();
+			this.timeoutId = null;
+			this.callback();
 		};
 	}
 
-	start(timeout: number) {
+	start(timeout: number): void {
 		if (this.running) {
-			clearTimeout(this.id);
+			this.stop();
 		}
-		this.id = setTimeout(this._handler, timeout);
+		this.timeoutId = setTimeout(this.handler, timeout);
 		this.running = true;
 	}
 
-	stop() {
-		if (this.running) {
-			clearTimeout(this.id);
+	stop(): void {
+		if (this.running && this.timeoutId !== null) {
+			clearTimeout(this.timeoutId);
 			this.running = false;
-			this.id = null;
+			this.timeoutId = null;
 		}
 	}
 
-	isRunning() {
-		return this.running
+	isRunning(): boolean {
+		return this.running;
 	}
 }
 
-const options = {
-	minDelay: 1000,
-	maxDelay: 60000,
-	handshakeTimeout: 5000
-};
-
 /**
- * RefreshConnector implements livereload protocol to listen for changed files via websocket.
- * 
+ * RefreshConnector implements the livereload protocol to listen for file changes via WebSocket
  */
 export class RefreshConnector {
-	private readonly _uri: string
-	private socket: WebSocket;
-	private _nextDelay: number;
-	private _connectionDesired: boolean;
-	private _handshakeTimeout: Timer;
-	private _disconnectionReason: string;
-	private _reconnectTimer: Timer;
-	private handler: (path: string) => void;
+	private static readonly DEFAULT_OPTIONS: LiveReloadOptions = {
+		minDelay: 1000,
+		maxDelay: 60000,
+		handshakeTimeout: 5000
+	};
 
-	constructor(handler: (file: string) => void) {
-		this.handler = handler
+	private static readonly LIVERELOAD_PROTOCOLS = [
+		'http://livereload.com/protocols/official-9',
+		'http://livereload.com/protocols/2.x-remote-control'
+	];
 
-		this._uri = `ws://localhost:35729/livereload`;
+	private readonly uri: string;
+	private readonly options: LiveReloadOptions;
+	private readonly fileChangeHandler: (path: string) => void;
+	
+	private socket: WebSocket | null = null;
+	private nextDelay: number;
+	private connectionDesired: boolean = false;
+	private disconnectionReason: string = '';
+	
+	private readonly handshakeTimeout: Timer;
+	private readonly reconnectTimer: Timer;
 
-		this._nextDelay = options.minDelay;
-		this._connectionDesired = false;
+	constructor(fileChangeHandler: (file: string) => void, options?: Partial<LiveReloadOptions>) {
+		this.fileChangeHandler = fileChangeHandler;
+		this.options = { ...RefreshConnector.DEFAULT_OPTIONS, ...options };
+		this.uri = 'ws://localhost:35729/livereload';
+		this.nextDelay = this.options.minDelay;
 
+		this.handshakeTimeout = new Timer(() => this.handleHandshakeTimeout());
+		this.reconnectTimer = new Timer(() => this.attemptReconnection());
+	}
 
-		this._handshakeTimeout = new Timer(() => {
-			if (!this._isSocketConnected()) {
-				return;
-			}
-			this._disconnectionReason = 'handshake-timeout';
-			return this.socket.close();
-		});
+	connect(): void {
+		this.connectionDesired = true;
 
-		this._reconnectTimer = new Timer(() => {
-			if (!this._connectionDesired) {
-				// shouldn't hit this, but just in case
-				return;
-			}
-			return this.connect();
-		});
+		if (this.isSocketConnected()) {
+			return;
+		}
 
+		this.prepareForConnection();
+		this.createWebSocket();
+	}
+
+	disconnect(): void {
+		this.connectionDesired = false;
+		this.reconnectTimer.stop();
+
+		if (this.isSocketConnected()) {
+			this.disconnectionReason = 'manual';
+			this.socket!.close();
+		}
+	}
+
+	private isSocketConnected(): boolean {
+		return this.socket !== null && this.socket.readyState === WebSocket.OPEN;
+	}
+
+	private prepareForConnection(): void {
+		this.reconnectTimer.stop();
+		this.disconnectionReason = 'cannot-connect';
+	}
+
+	private createWebSocket(): void {
+		this.socket = new WebSocket(this.uri);
+		this.socket.onopen = () => this.handleOpen();
+		this.socket.onclose = () => this.handleClose();
+		this.socket.onmessage = (event) => this.handleMessage(event);
+		this.socket.onerror = () => this.handleError();
+	}
+
+	private handleOpen(): void {
+		this.disconnectionReason = 'handshake-failed';
+		this.startHandshake();
+	}
+
+	private handleClose(): void {
+		console.log(`WebSocket disconnected: ${this.disconnectionReason}. Retry in ${this.nextDelay}ms`);
+		this.scheduleReconnection();
+	}
+
+	private handleMessage(event: MessageEvent): void {
+		try {
+			const message: LiveReloadMessage = JSON.parse(event.data);
+			this.processMessage(message);
+		} catch (error) {
+			console.error('Failed to parse WebSocket message:', error);
+		}
+	}
+
+	private handleError(): void {
+		// Error handling is done in onclose
+	}
+
+	private processMessage(message: LiveReloadMessage): void {
+		switch (message.command) {
+			case 'hello':
+				this.handleHelloMessage();
+				break;
+			case 'reload':
+				this.handleReloadMessage(message);
+				break;
+			default:
+				console.log('Unknown WebSocket message received:', message);
+		}
+	}
+
+	private handleHelloMessage(): void {
+		this.handshakeTimeout.stop();
+		this.nextDelay = this.options.minDelay;
+	}
+
+	private handleReloadMessage(message: LiveReloadMessage): void {
+		// The livereload server closes connection after sending reload
+		// We must reconnect
+		this.reconnectTimer.stop();
 		this.connect();
-	}
 
-	_isSocketConnected() {
-		return this.socket && (this.socket.readyState === WebSocket.OPEN);
-	}
-
-	connect() {
-		this._connectionDesired = true;
-
-		if (this._isSocketConnected()) {
-			return;
-		}
-
-		// prepare for a new connection
-		this._reconnectTimer.stop();
-		this._disconnectionReason = 'cannot-connect';
-
-		this.socket = new WebSocket(this._uri);
-		this.socket.onopen = e => this._onopen();
-		this.socket.onclose = () => this._onclose();
-		this.socket.onmessage = e => this._onmessage(e);
-		this.socket.onerror = e => null;
-	}
-
-	disconnect() {
-		this._connectionDesired = false;
-		this._reconnectTimer.stop(); // in case it was running
-
-		if (!this._isSocketConnected()) {
-			return;
-		}
-		this._disconnectionReason = 'manual';
-		return this.socket.close();
-	}
-
-	_scheduleReconnection() {
-		if (!this._connectionDesired) {
-			// don't reconnect after manual disconnection
-			return;
-		}
-		if (!this._reconnectTimer.isRunning()) {
-			this._reconnectTimer.start(this._nextDelay);
-			this._nextDelay = Math.min(options.maxDelay, this._nextDelay * 2);
+		if (message.path) {
+			this.fileChangeHandler(message.path);
 		}
 	}
 
-	_sendCommand(command: any) {
-		if (this._isSocketConnected())
-			this.socket.send(JSON.stringify(command));
+	private startHandshake(): void {
+		const helloMessage: LiveReloadMessage = {
+			command: 'hello',
+			protocols: RefreshConnector.LIVERELOAD_PROTOCOLS,
+			ver: '3.3.1'
+		};
+		
+		this.sendCommand(helloMessage);
+		this.handshakeTimeout.start(this.options.handshakeTimeout);
 	}
 
-	_closeOnError() {
-		this._handshakeTimeout.stop();
-		this._disconnectionReason = 'error';
-		return this.socket.close();
+	private handleHandshakeTimeout(): void {
+		if (this.isSocketConnected()) {
+			this.disconnectionReason = 'handshake-timeout';
+			this.socket!.close();
+		}
 	}
 
-	_onopen() {
-		// console.log('WS connected')
-		this._disconnectionReason = 'handshake-failed';
-
-		// start handshake
-		const protocols = [
-			'http://livereload.com/protocols/official-9',
-			'http://livereload.com/protocols/2.x-remote-control'
-		];
-		const hello = {command: 'hello', protocols: protocols, ver: '3.3.1'};
-		this._sendCommand(hello);
-		return this._handshakeTimeout.start(options.handshakeTimeout);
+	private attemptReconnection(): void {
+		if (this.connectionDesired) {
+			this.connect();
+		}
 	}
 
-	_onclose() {
-		console.log(`WS disconnected: ${this._disconnectionReason}. Retry in ${this._nextDelay}`);
-		return this._scheduleReconnection();
+	private scheduleReconnection(): void {
+		if (!this.connectionDesired) {
+			return; // Don't reconnect after manual disconnection
+		}
+
+		if (!this.reconnectTimer.isRunning()) {
+			this.reconnectTimer.start(this.nextDelay);
+			this.nextDelay = Math.min(this.options.maxDelay, this.nextDelay * 2);
+		}
 	}
 
-	_onmessage(e: WebSocketMessageEvent) {
-		const msg = JSON.parse(e.data)
-		if (msg && msg.command == 'hello') {
-			this._handshakeTimeout.stop();
-			this._nextDelay = options.minDelay;
-		} else if (msg.command == 'reload') {
-			// the livereload server stops connection after sending that. we must connect back
-			this._reconnectTimer.stop()
-			this.connect()
-
-			this.handler.apply(null, [msg.path])
-		} else {
-			console.log('WS unknown message received:', msg);
+	private sendCommand(command: LiveReloadMessage): void {
+		if (this.isSocketConnected()) {
+			this.socket!.send(JSON.stringify(command));
 		}
 	}
 }

@@ -156,7 +156,7 @@ func get(out, wid, key, secret string, debug bool) error {
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(out, b, 0644)
+	return os.WriteFile(out, b, 0600)
 }
 
 func put(path, wid, key, secret string, debug bool) error {
@@ -211,7 +211,7 @@ func put(path, wid, key, secret string, debug bool) error {
 	if err != nil {
 		return err
 	}
-	if err := os.WriteFile(layoutPath, b, 0777); err != nil {
+	if err := os.WriteFile(layoutPath, b, 0600); err != nil {
 		return err
 	}
 

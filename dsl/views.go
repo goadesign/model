@@ -1569,7 +1569,7 @@ func RemoveUnrelated() {
 	eval.IncompatibleDSL()
 }
 
-// DefaultImplementation sets tje default implementation for the auto layout.
+// DefaultImplementation sets the default implementation for the auto layout.
 var DefaultImplementation = ImplementationDagre
 
 // DefaultRankSeparation sets the default rank separation for auto layout.

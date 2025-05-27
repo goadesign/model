@@ -1,6 +1,16 @@
 version: "2"
 
+run:
+  timeout: 5m
+
 linters:
+  enable:
+    - errcheck
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+    - misspell
   exclusions:
     rules:
       - linters:

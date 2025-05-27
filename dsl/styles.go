@@ -16,26 +16,42 @@ type (
 )
 
 const (
-	// Shapes allowed in ElementStyle
+	// ShapeBox represents a box shape for elements.
 	ShapeBox ShapeKind = iota + 1
+	// ShapeCircle represents a circle shape for elements.
 	ShapeCircle
+	// ShapeCylinder represents a cylinder shape for elements.
 	ShapeCylinder
+	// ShapeEllipse represents an ellipse shape for elements.
 	ShapeEllipse
+	// ShapeHexagon represents a hexagon shape for elements.
 	ShapeHexagon
+	// ShapeRoundedBox represents a rounded box shape for elements.
 	ShapeRoundedBox
+	// ShapeComponent represents a component shape for elements.
 	ShapeComponent
+	// ShapeFolder represents a folder shape for elements.
 	ShapeFolder
+	// ShapeMobileDeviceLandscape represents a mobile device landscape shape for elements.
 	ShapeMobileDeviceLandscape
+	// ShapeMobileDevicePortrait represents a mobile device portrait shape for elements.
 	ShapeMobileDevicePortrait
+	// ShapePerson represents a person shape for elements.
 	ShapePerson
+	// ShapePipe represents a pipe shape for elements.
 	ShapePipe
+	// ShapeRobot represents a robot shape for elements.
 	ShapeRobot
+	// ShapeWebBrowser represents a web browser shape for elements.
 	ShapeWebBrowser
 )
 
 const (
+	// BorderSolid represents a solid border style.
 	BorderSolid BorderKind = iota + 1
+	// BorderDashed represents a dashed border style.
 	BorderDashed
+	// BorderDotted represents a dotted border style.
 	BorderDotted
 )
 

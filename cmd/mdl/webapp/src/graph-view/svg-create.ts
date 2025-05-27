@@ -1,71 +1,65 @@
 import {svgTextWrap} from "./svg-text";
 
 export const create = {
-	element(type: string, attrs?: { [key: string]: string | number }, className?:string) {
-		const el = document.createElementNS('http://www.w3.org/2000/svg', type)
-		attrs && Object.entries(attrs).forEach(([k, v]) => el.setAttribute(k, String(v)))
-		className && el.classList.add(className)
-		return el
+	element(type: string, attrs: Record<string, string | number> = {}, className?: string) {
+		const el = document.createElementNS('http://www.w3.org/2000/svg', type);
+		Object.entries(attrs).forEach(([k, v]) => el.setAttribute(k, String(v)));
+		if (className) el.classList.add(className);
+		return el;
 	},
 
-	use(id:string, attrs: {[key: string]: string|number}) {
-		const el = create.element('use', attrs)
-		el.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', '#'+id)
-		return el
+	use(id: string, attrs: Record<string, string | number> = {}) {
+		const el = this.element('use', attrs);
+		el.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', '#' + id);
+		return el;
 	},
 
-	path(path: string, attrs? :{ [key: string]: string | number }, className?: string) {
-		const p = create.element("path", attrs, className)
-		p.setAttribute("d", path)
-		return p
+	path(path: string, attrs: Record<string, string | number> = {}, className?: string) {
+		const p = this.element("path", {...attrs, d: path}, className);
+		return p;
 	},
 
-	text(text: string, x: number = 0, y: number = 0, anchor = '') {
-		const t = create.element('text', {x, y}) as SVGTextElement
-		anchor && t.setAttribute('text-anchor', anchor)
-		if (text != '') t.append(text)
-		return t
+	text(text: string, attrs: Record<string, string | number> = {}) {
+		const t = this.element('text', attrs) as SVGTextElement;
+		if (text) t.textContent = text;
+		return t;
 	},
 
-	textArea(text: string, width: number, fontSize:number, bold: boolean, x=0, y=0, anchor='') {
-		const attrs: {[key: string]: string} = {
+	textArea(text: string, width: number, fontSize: number, bold: boolean, x = 0, y = 0, anchor = '') {
+		const attrs: Record<string, string> = {
 			'font-size': `${fontSize}px`,
 			'font-weight': bold ? 'bold' : 'normal'
-		}
-		let {lines, maxW} = svgTextWrap(text, width, attrs)
-		const txt = create.text('', 0, y, anchor)
+		};
+		const {lines, maxW} = svgTextWrap(text, width, attrs);
+		const txt = this.text('', {x: 0, y, 'text-anchor': anchor || undefined});
+		
 		lines.forEach((line, i) => {
-			const span = create.element('tspan', {x, dy: `${fontSize+2}px`})
-			for (let attr in attrs) {
-				span.setAttribute(attr, attrs[attr]);
-			}
-			span.append(line)
-			txt.append(span)
-		})
-		return {txt, dy: (lines.length+1) * (fontSize+2), maxW}
+			const span = this.element('tspan', {x, dy: `${fontSize + 2}px`, ...attrs});
+			span.textContent = line;
+			txt.append(span);
+		});
+		
+		return {txt, dy: (lines.length + 1) * (fontSize + 2), maxW};
 	},
 
-	rect(width: number, height: number, x = 0, y = 0, r = 0, className = '') {
-		return create.element('rect',
-			{x, y, rx: r, ry: r, width, height}, className) as SVGRectElement
+	rect(width: number, height: number, x = 0, y = 0, r = 0, className?: string) {
+		return this.element('rect', {x, y, rx: r, ry: r, width, height}, className) as SVGRectElement;
 	},
 
 	icon(icon: string, x = 0, y = 0) {
-		return create.use(icon, {x, y})
+		return this.use(icon, {x, y});
 	},
 
-	expand(x: number, y: number, ex: boolean) {
-		const g = create.element('g', {}, 'expand') as SVGGElement
-		setPosition(g, x, y)
+	expand(x: number, y: number, expanded: boolean) {
+		const g = this.element('g', {transform: `translate(${x},${y})`}, 'expand') as SVGGElement;
 		g.append(
-			create.rect(19, 19, 0, 0, 1),
-			create.text(ex ? '-' : '+', 10, 14, 'middle')
-		)
-		g.setAttribute('transform', `translate(${x},${y})`)
-		return g
+			this.rect(19, 19, 0, 0, 1),
+			this.text(expanded ? '-' : '+', {x: 10, y: 14, 'text-anchor': 'middle'})
+		);
+		return g;
 	}
-}
+};
 
 export function setPosition(g: SVGGElement, x: number, y: number) {
-	g.setAttribute('transform', `translate(${x},${y})`)
+	g.setAttribute('transform', `translate(${x},${y})`);
 }
