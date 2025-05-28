@@ -2,7 +2,6 @@ cmd/mdl/mdl
 cmd/stz/stz
 cmd/mdl/webapp/node_modules
 cmd/mdl/webapp/dist-static
-cmd/mdl/webapp/dist
 cmd/mdl/webapp/package-lock.json
 
 /gen
