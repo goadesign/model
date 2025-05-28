@@ -3,7 +3,7 @@
 
 The code snippet below describes the entire syntax of the DSL. The complete
 reference can be found in the `dsl`
-[package documentation](https://pkg.go.dev/goa.design/model@v1.11.0/dsl?tab=doc)
+[package documentation](https://pkg.go.dev/goa.design/model@v1.11.1/dsl?tab=doc)
 
 ```Go
 // Design defines the architecture design containing the models and views.
