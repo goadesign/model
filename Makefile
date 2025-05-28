@@ -14,7 +14,7 @@
 #
 MAJOR=1
 MINOR=11
-BUILD=0
+BUILD=1
 
 GO_FILES=$(shell find . -type f -name '*.go')
 
