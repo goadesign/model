@@ -347,7 +347,7 @@ function webbrowser(parent: D3Element, bbox: BBox, node: D3Node) {
 }
 
 export const shapes: { [key: string]: (parent: SVGElement, node: D3Node) => SVGElement } = {
-	box: (parent: SVGElement, node: D3Node) => rect(new D3Element(parent), node, node).node(),
+	rectangle: (parent: SVGElement, node: D3Node) => rect(new D3Element(parent), node, node).node(),
 	roundedbox: (parent: SVGElement, node: D3Node) => rect(new D3Element(parent), node, node, true).node(),
 	component: (parent: SVGElement, node: D3Node) => component(new D3Element(parent), node, node).node(),
 	cylinder: (parent: SVGElement, node: D3Node) => cylinder(new D3Element(parent), node, node).node(),
