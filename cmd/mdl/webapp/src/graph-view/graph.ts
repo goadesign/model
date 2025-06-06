@@ -125,7 +125,7 @@ const defaultNodeStyle: NodeStyle = {
 	opacity: .9,
 	stroke: '#999',
 	fontSize: 22,
-	shape: 'Rectangle'
+	shape: 'Box'
 }
 
 interface Edge {
@@ -202,7 +202,7 @@ export class GraphData {
 		
 		// ALWAYS use fixed dimensions - ignore any width/height from incoming styles
 		// This ensures visual consistency regardless of model data
-		const shape = style.shape || 'Rectangle';
+		const shape = style.shape || 'Box';
 		const isPersonShape = shape.toLowerCase() === 'person';
 		const isCylinderShape = shape.toLowerCase() === 'cylinder';
 		
@@ -1201,9 +1201,9 @@ function buildNode(n: Node, data: GraphData) {
 	n.selected && g.classList.add('selected')
 	setPosition(g, n.x, n.y)
 
-	// Ensure we use the correct shape from style, defaulting to Rectangle
-	const shapeType = n.style.shape || 'Rectangle';
-	const shapeFn = shapes[shapeType.toLowerCase()] || shapes.rectangle
+	// Ensure we use the correct shape from style, defaulting to Box
+	const shapeType = n.style.shape || 'Box';
+	const shapeFn = shapes[shapeType.toLowerCase()] || shapes.box
 	const shape: SVGElement = shapeFn(g, n);
 
 	shape.classList.add('nodeBorder')
