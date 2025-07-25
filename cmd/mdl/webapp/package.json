@@ -20,7 +20,7 @@
 	},
 	"devDependencies": {
 		"@babel/core": "7.28.0",
-		"@babel/preset-env": "7.27.2",
+		"@babel/preset-env": "7.28.0",
 		"@babel/preset-react": "7.27.1",
 		"@babel/preset-typescript": "7.27.1",
 		"@pmmmwh/react-refresh-webpack-plugin": "^0.6.1",
