@@ -282,6 +282,37 @@ export async function autoLayout(graph: GraphData, options: LayoutOptions = {}):
 		extractNodes(layoutedGraph);
 		processEdges(layoutedGraph);
 
+		// Normalize coordinates to start near (0,0) to prevent huge canvas sizes
+		// while preserving relative positioning between elements
+		if (nodes.length > 0) {
+			// Find the minimum coordinates across all elements
+			const minX = Math.min(...nodes.map(n => n.x));
+			const minY = Math.min(...nodes.map(n => n.y));
+			
+			// Add some padding so content doesn't start at exact (0,0)
+			const padding = 50;
+			const offsetX = -minX + padding;
+			const offsetY = -minY + padding;
+			
+			// Normalize all node positions
+			nodes.forEach(node => {
+				node.x += offsetX;
+				node.y += offsetY;
+			});
+			
+			// Normalize all edge positions
+			edges.forEach(edge => {
+				edge.vertices.forEach(vertex => {
+					vertex.x += offsetX;
+					vertex.y += offsetY;
+				});
+				if (edge.label) {
+					edge.label.x += offsetX;
+					edge.label.y += offsetY;
+				}
+			});
+		}
+
 		return { nodes, edges };
 
 	} catch (error) {

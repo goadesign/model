@@ -474,28 +474,29 @@ export class GraphData {
 		
 		// Add padding around content
 		const padding = 50
-		const exportBounds = {
-			x: contentBounds.x - padding,
-			y: contentBounds.y - padding,
-			width: contentBounds.width + (padding * 2),
-			height: contentBounds.height + (padding * 2)
-		}
 		
-		// Calculate offset for export positioning
+		// Calculate final export dimensions (always positive)
+		const exportWidth = contentBounds.width + (padding * 2)
+		const exportHeight = contentBounds.height + (padding * 2)
+		
+		// Calculate offset to move content to start at (padding, padding) within the export area
 		const offsetX = -contentBounds.x + padding
 		const offsetY = -contentBounds.y + padding
 		
 		// Apply export positioning to the cloned SVG elements
 		const exportZoomGroup = exportSvg.querySelector('g.zoom') as SVGGElement
 		if (exportZoomGroup) {
-			// Reset zoom to 1 and apply offset transform
+			// Reset zoom to 1 and apply offset transform to position content properly
 			exportZoomGroup.setAttribute('transform', `scale(1) translate(${offsetX}, ${offsetY})`)
 		}
 		
-		// Set proper viewBox and dimensions for export
-		exportSvg.setAttribute('viewBox', `${exportBounds.x} ${exportBounds.y} ${exportBounds.width} ${exportBounds.height}`)
-		exportSvg.setAttribute('width', String(exportBounds.width))
-		exportSvg.setAttribute('height', String(exportBounds.height))
+		// Set proper viewBox and dimensions for export - viewBox always starts at (0,0)
+		exportSvg.setAttribute('viewBox', `0 0 ${exportWidth} ${exportHeight}`)
+		exportSvg.setAttribute('width', String(exportWidth))
+		exportSvg.setAttribute('height', String(exportHeight))
+		
+		// Add required SVG namespace for browser compatibility
+		exportSvg.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
 		
 		// Inject metadata with current layout
 		const script = document.createElement('script')
@@ -505,7 +506,7 @@ export class GraphData {
 		exportSvg.insertBefore(script, exportSvg.firstChild)
 		
 		// Get the export SVG as string
-		const src = exportSvg.outerHTML.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"')
+		const src = exportSvg.outerHTML
 		
 		// No restoration needed since we never touched the original SVG!
 		return src
@@ -570,6 +571,67 @@ export class GraphData {
 						width: 20,
 						height: 20
 					})
+				})
+			}
+			
+			// Add edge label bounds
+			if (edge.label && edge.label.trim()) {
+				// Calculate label position (similar to buildEdgeLabel logic)
+				const position = (edge.style.position || 50) / 100
+				let vertices: Point[] = edge.vertices ? edge.vertices.concat() : []
+				
+				// Find label position
+				let pLabel: Point
+				const labelVertex = vertices.find(v => (v as any).label)
+				if (labelVertex) {
+					pLabel = labelVertex
+				} else if (vertices.length > 0) {
+					// Calculate position along edge path
+					const distance = (p1: Point, p2: Point) =>
+						Math.sqrt((p2.x - p1.x) * (p2.x - p1.x) + (p2.y - p1.y) * (p2.y - p1.y))
+					
+					const allVertices = [edge.from, ...vertices, edge.to]
+					let sum = 0
+					for (let i = 1; i < allVertices.length; i++) {
+						sum += distance(allVertices[i - 1], allVertices[i])
+					}
+					
+					let acc = 0
+					pLabel = {x: edge.from.x, y: edge.from.y}
+					for (let i = 1; i < allVertices.length; i++) {
+						const d = distance(allVertices[i - 1], allVertices[i])
+						if (acc + d > sum * position) {
+							const pos = (sum * position - acc) / d
+							pLabel = {
+								x: allVertices[i - 1].x + (allVertices[i].x - allVertices[i - 1].x) * pos,
+								y: allVertices[i - 1].y + (allVertices[i].y - allVertices[i - 1].y) * pos
+							}
+							break
+						}
+						acc += d
+					}
+				} else {
+					// Direct edge between from and to
+					pLabel = {
+						x: edge.from.x + (edge.to.x - edge.from.x) * position,
+						y: edge.from.y + (edge.to.y - edge.from.y) * position
+					}
+				}
+				
+				// Estimate label dimensions (similar to buildEdgeLabel)
+				const fontSize = edge.style.fontSize || 22
+				const approxCharWidth = fontSize * 0.6
+				const lines = edge.label.split('\n')
+				const maxLineLength = Math.max(...lines.map(line => line.length))
+				const maxW = Math.max(maxLineLength * approxCharWidth, 100) + fontSize
+				const dy = lines.length * fontSize * 1.2
+				
+				// Add label bounds
+				elements.push({
+					x: pLabel.x - maxW / 2,
+					y: pLabel.y - dy / 2,
+					width: maxW,
+					height: dy
 				})
 			}
 		})
