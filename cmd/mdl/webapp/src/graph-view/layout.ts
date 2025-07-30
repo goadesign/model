@@ -1,5 +1,4 @@
 import {GraphData, Node, Group} from "./graph";
-import ELK from "elkjs/lib/elk.bundled.js";
 
 export interface LayoutOptions {
 	direction?: 'UP' | 'DOWN' | 'LEFT' | 'RIGHT';
@@ -99,13 +98,13 @@ function getELKOptions(
 	return baseOptions;
 }
 
-// Create ELK instance
-const elk = new ELK();
-
 export async function autoLayout(graph: GraphData, options: LayoutOptions = {}): Promise<{
 	nodes: Array<{id: string, x: number, y: number}>,
 	edges: Array<{id: string, vertices: Array<{x: number, y: number}>, label?: {x: number, y: number}}>
 }> {
+	// Dynamically import ELK only when auto-layout is used
+	const ELK = await import('elkjs/lib/elk.bundled.js').then(module => module.default);
+	const elk = new ELK();
 	// Get systematic spacing configuration
 	const rootSpacing = getEffectiveSpacing(options, false);
 	

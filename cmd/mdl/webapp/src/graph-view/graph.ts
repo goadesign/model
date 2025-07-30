@@ -163,7 +163,8 @@ export class GraphData {
 	private _undo: Undo<Layout>;
 	private _gridVisible: boolean = true;
 	private _snapToGrid: boolean = true;
-	private _gridSize: number = 20;
+	private _gridSize: number = 25;
+	private _skipAutoFit: boolean = false;
 
 	constructor(id?: string, name?: string) {
 		this.id = id;
@@ -214,8 +215,9 @@ export class GraphData {
 			width = 200;
 			height = 240;
 		} else if (isCylinderShape) {
-			width = 200;
-			height = 160;
+			// Make cylinders wider to better accommodate text content
+			width = 280; // Same width as boxes for consistency
+			height = 180; // Same height as boxes for consistency
 		} else {
 			// Standard rectangular shapes
 			width = 280;
@@ -314,7 +316,7 @@ export class GraphData {
 		})
 	}
 
-	moveNode(n: Node, x: number, y: number, disableSnap: boolean = false) {
+	moveNode(n: Node, x: number, y: number, disableSnap: boolean = false, skipUndo: boolean = false) {
 		if (!n) return
 		
 		// Apply snap-to-grid if enabled and not explicitly disabled
@@ -326,17 +328,21 @@ export class GraphData {
 		
 		if (n.x == x && n.y == y) return
 		
-		this._undo.beforeChange()
+		if (!skipUndo) {
+			this._undo.beforeChange()
+		}
 		n.x = x;
 		n.y = y;
 		setPosition(n.ref, x, y)
 		this.redrawEdges(n);
 		this.redrawGroups(n)
-		this._undo.change()
+		if (!skipUndo) {
+			this._undo.change()
+		}
 	}
 
-	moveEdgeVertex(v: EdgeVertex, x: number, y: number, disableSnap: boolean = false) {
-		// Apply snap-to-grid if enabled and not explicitly disabled
+	moveEdgeVertex(v: EdgeVertex, x: number, y: number, disableSnap: boolean = false, skipUndo: boolean = false) {
+		
 		if (this._snapToGrid && !disableSnap) {
 			const snapped = this.snapToGrid(x, y);
 			x = snapped.x;
@@ -345,16 +351,20 @@ export class GraphData {
 		// Use exact coordinates (no rounding needed with modern grid system)
 		
 		if (v.x == x && v.y == y) return
-		this._undo.beforeChange()
+		if (!skipUndo) {
+			this._undo.beforeChange()
+		}
 		v.x = x;
 		v.y = y;
 		this.redrawEdge(v.edge)
-		this._undo.change()
+		if (!skipUndo) {
+			this._undo.change()
+		}
 	}
 
 	moveSelected(dx: number, dy: number, disableSnap: boolean = false) {
-		this.nodes().forEach(n => n.selected && this.moveNode(n, n.x + dx, n.y + dy, disableSnap))
-		this.edgeVertices.forEach(v => v.selected && this.moveEdgeVertex(v, v.x + dx, v.y + dy, disableSnap))
+		this.nodes().forEach(n => n.selected && this.moveNode(n, n.x + dx, n.y + dy, disableSnap, false))
+		this.edgeVertices.forEach(v => v.selected && this.moveEdgeVertex(v, v.x + dx, v.y + dy, disableSnap, false))
 	}
 
 	insertEdgeVertex(edge: Edge, p: Point, pos: number, isLabel: boolean) {
@@ -403,20 +413,22 @@ export class GraphData {
 		const offsetX = -contentBounds.x + padding
 		const offsetY = -contentBounds.y + padding
 		
+		// Set flag to prevent React useEffect from calling fitToView during this operation
+		this._skipAutoFit = true
+		
 		this._undo.beforeChange()
 		
 		this.nodesMap.forEach(node => {
-			this.moveNode(node, node.x + offsetX, node.y + offsetY)
+			this.moveNode(node, node.x + offsetX, node.y + offsetY, true, true) // Disable snap and undo during reset
 		})
 		
 		this.edgeVertices.forEach(vertex => {
-			this.moveEdgeVertex(vertex, vertex.x + offsetX, vertex.y + offsetY)
+			this.moveEdgeVertex(vertex, vertex.x + offsetX, vertex.y + offsetY, true, true) // Disable snap and undo during reset
 		})
 		
 		this._undo.change()
 		
-		// Clear view state so this reset position is not overridden
-		clearViewState(this.id)
+		// DON'T clear view state here - let resetPanTransform handle it to avoid React useEffect recursion
 	}
 	
 	// Reset pan transform to (0,0) while preserving zoom
@@ -425,10 +437,31 @@ export class GraphData {
 		const zoomGroup = svg.querySelector('g.zoom') as SVGGElement
 		if (zoomGroup) {
 			zoomGroup.setAttribute('transform', `scale(${currentZoom}) translate(0, 0)`)
-			updatePanning()
+			updatePanningOptimized(this)
 		}
 		
 		// Clear view state so this reset is not overridden
+		clearViewState(this.id)
+		
+		// Reset the skip auto fit flag after reset is complete
+		this._skipAutoFit = false
+	}
+	
+	// Check if auto-fit should be skipped (used by React useEffect)
+	shouldSkipAutoFit(): boolean {
+		return this._skipAutoFit
+	}
+
+	// Reset view to default state: 100% zoom, centered at origin
+	resetView() {
+		const zoomGroup = svg.querySelector('g.zoom') as SVGGElement
+		if (zoomGroup) {
+			// Reset to 100% zoom, centered at origin
+			zoomGroup.setAttribute('transform', 'scale(1) translate(0, 0)')
+			updatePanning()
+		}
+		
+		// Clear any saved view state so this reset position is not overridden
 		clearViewState(this.id)
 	}
 
@@ -514,137 +547,78 @@ export class GraphData {
 
 	// Calculate the actual bounds of all content including nodes, edges, and groups
 	calculateContentBounds(): BBox {
-		const elements: BBox[] = []
+		let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity
 		
-		// Add node bounds (including their actual dimensions)
+		// Process nodes (including their actual dimensions)
 		this.nodes().forEach(node => {
-			elements.push({
-				x: node.x - node.width / 2,
-				y: node.y - node.height / 2,
-				width: node.width,
-				height: node.height
-			})
-		})
-		
-		// Add edge vertex bounds
-		this.edgeVertices.forEach(vertex => {
-			elements.push({
-				x: vertex.x - 5, // Small padding for vertex dots
-				y: vertex.y - 5,
-				width: 10,
-				height: 10
-			})
-		})
-		
-		// Add group bounds
-		this.groupsMap.forEach(group => {
-			elements.push({
-				x: group.x - group.width / 2,
-				y: group.y - group.height / 2,
-				width: group.width,
-				height: group.height
-			})
-		})
-		
-		// Add edge path bounds (approximate)
-		this.edges.forEach(edge => {
-			// Add edge endpoints
-			elements.push({
-				x: edge.from.x - 10,
-				y: edge.from.y - 10,
-				width: 20,
-				height: 20
-			})
-			elements.push({
-				x: edge.to.x - 10,
-				y: edge.to.y - 10,
-				width: 20,
-				height: 20
-			})
+			const left = node.x - node.width / 2
+			const right = node.x + node.width / 2
+			const top = node.y - node.height / 2
+			const bottom = node.y + node.height / 2
 			
-			// Add edge vertices
+			minX = Math.min(minX, left)
+			maxX = Math.max(maxX, right)
+			minY = Math.min(minY, top)
+			maxY = Math.max(maxY, bottom)
+		})
+		
+		// Process edge vertices (much faster than complex label calculations)
+		this.edgeVertices.forEach(vertex => {
+			minX = Math.min(minX, vertex.x - 5)
+			maxX = Math.max(maxX, vertex.x + 5)
+			minY = Math.min(minY, vertex.y - 5)
+			maxY = Math.max(maxY, vertex.y + 5)
+		})
+		
+		// Process groups
+		this.groupsMap.forEach(group => {
+			const left = group.x - group.width / 2
+			const right = group.x + group.width / 2
+			const top = group.y - group.height / 2
+			const bottom = group.y + group.height / 2
+			
+			minX = Math.min(minX, left)
+			maxX = Math.max(maxX, right)
+			minY = Math.min(minY, top)
+			maxY = Math.max(maxY, bottom)
+		})
+		
+		// Process edges (simplified - just endpoints and vertices, skip complex label calculations)
+		this.edges.forEach(edge => {
+			// Edge endpoints
+			minX = Math.min(minX, edge.from.x - 10, edge.to.x - 10)
+			maxX = Math.max(maxX, edge.from.x + 10, edge.to.x + 10)
+			minY = Math.min(minY, edge.from.y - 10, edge.to.y - 10)
+			maxY = Math.max(maxY, edge.from.y + 10, edge.to.y + 10)
+			
+			// Edge vertices (if any)
 			if (edge.vertices) {
 				edge.vertices.forEach(vertex => {
-					elements.push({
-						x: vertex.x - 10,
-						y: vertex.y - 10,
-						width: 20,
-						height: 20
-					})
+					minX = Math.min(minX, vertex.x - 10)
+					maxX = Math.max(maxX, vertex.x + 10)
+					minY = Math.min(minY, vertex.y - 10)
+					maxY = Math.max(maxY, vertex.y + 10)
 				})
 			}
 			
-			// Add edge label bounds
+			// Simplified label bounds (avoid expensive path calculations)
 			if (edge.label && edge.label.trim()) {
-				// Calculate label position (similar to buildEdgeLabel logic)
-				const position = (edge.style.position || 50) / 100
-				let vertices: Point[] = edge.vertices ? edge.vertices.concat() : []
+				// Just use approximate center between from and to nodes
+				const centerX = (edge.from.x + edge.to.x) / 2
+				const centerY = (edge.from.y + edge.to.y) / 2
+				const approxLabelSize = edge.label.length * 10 + 50 // Rough estimate
 				
-				// Find label position
-				let pLabel: Point
-				const labelVertex = vertices.find(v => (v as any).label)
-				if (labelVertex) {
-					pLabel = labelVertex
-				} else if (vertices.length > 0) {
-					// Calculate position along edge path
-					const distance = (p1: Point, p2: Point) =>
-						Math.sqrt((p2.x - p1.x) * (p2.x - p1.x) + (p2.y - p1.y) * (p2.y - p1.y))
-					
-					const allVertices = [edge.from, ...vertices, edge.to]
-					let sum = 0
-					for (let i = 1; i < allVertices.length; i++) {
-						sum += distance(allVertices[i - 1], allVertices[i])
-					}
-					
-					let acc = 0
-					pLabel = {x: edge.from.x, y: edge.from.y}
-					for (let i = 1; i < allVertices.length; i++) {
-						const d = distance(allVertices[i - 1], allVertices[i])
-						if (acc + d > sum * position) {
-							const pos = (sum * position - acc) / d
-							pLabel = {
-								x: allVertices[i - 1].x + (allVertices[i].x - allVertices[i - 1].x) * pos,
-								y: allVertices[i - 1].y + (allVertices[i].y - allVertices[i - 1].y) * pos
-							}
-							break
-						}
-						acc += d
-					}
-				} else {
-					// Direct edge between from and to
-					pLabel = {
-						x: edge.from.x + (edge.to.x - edge.from.x) * position,
-						y: edge.from.y + (edge.to.y - edge.from.y) * position
-					}
-				}
-				
-				// Estimate label dimensions (similar to buildEdgeLabel)
-				const fontSize = edge.style.fontSize || 22
-				const approxCharWidth = fontSize * 0.6
-				const lines = edge.label.split('\n')
-				const maxLineLength = Math.max(...lines.map(line => line.length))
-				const maxW = Math.max(maxLineLength * approxCharWidth, 100) + fontSize
-				const dy = lines.length * fontSize * 1.2
-				
-				// Add label bounds
-				elements.push({
-					x: pLabel.x - maxW / 2,
-					y: pLabel.y - dy / 2,
-					width: maxW,
-					height: dy
-				})
+				minX = Math.min(minX, centerX - approxLabelSize)
+				maxX = Math.max(maxX, centerX + approxLabelSize)
+				minY = Math.min(minY, centerY - 25)
+				maxY = Math.max(maxY, centerY + 25)
 			}
 		})
 		
-		if (elements.length === 0) {
+		// Handle empty graph
+		if (minX === Infinity) {
 			return { x: 0, y: 0, width: 100, height: 100 }
 		}
-		
-		// Calculate overall bounds
-		const minX = Math.min(...elements.map(e => e.x))
-		const minY = Math.min(...elements.map(e => e.y))
-		const maxX = Math.max(...elements.map(e => e.x + e.width))
-		const maxY = Math.max(...elements.map(e => e.y + e.height))
 		
 		return {
 			x: minX,
@@ -676,19 +650,61 @@ export class GraphData {
 	}
 
 	importLayout(layout: { [key: string]: any }, rerender = false) {
+		// First pass: collect all coordinate values to find bounds
+		const coordinates: Array<{x: number, y: number}> = [];
+		
+		Object.entries(layout).forEach(([k, v]) => {
+			if (!k.startsWith('e-') && v.x !== undefined && v.y !== undefined) {
+				// Node coordinates
+				coordinates.push({x: v.x, y: v.y});
+			} else if (k.startsWith('e-') && Array.isArray(v)) {
+				// Edge vertex coordinates
+				v.forEach((vertex: any) => {
+					if (vertex.x !== undefined && vertex.y !== undefined) {
+						coordinates.push({x: vertex.x, y: vertex.y});
+					}
+				});
+			}
+		});
+		
+		// Calculate normalization offset if we have coordinates
+		let offsetX = 0;
+		let offsetY = 0;
+		
+		if (coordinates.length > 0) {
+			const minX = Math.min(...coordinates.map(c => c.x));
+			const minY = Math.min(...coordinates.map(c => c.y));
+			
+			// Only normalize if coordinates are problematic (negative or very large)
+			if (minX < -100 || minY < -100 || Math.max(...coordinates.map(c => c.x)) > 3000 || Math.max(...coordinates.map(c => c.y)) > 2000) {
+				const padding = 50;
+				offsetX = -minX + padding;
+				offsetY = -minY + padding;
+			}
+		}
+		
+		// Second pass: apply coordinates with normalization
 		Object.entries(layout).forEach(([k, v]) => {
 			// nodes
 			const n = this.nodesMap.get(k)
 			if (n) {
-				n.x = v.x
-				n.y = v.y
+				n.x = v.x + offsetX
+				n.y = v.y + offsetY
 			} else
 				// edge vertices
 			if (k.startsWith('e-')) {
 				const edge = this.edges.find(e => e.id == k.slice(2))
 				if (!edge) return;
 				edge.vertices && edge.vertices.forEach(v => this.edgeVertices.delete(v.id))
-				edge.vertices = v.map((p: Point) => edge.initVertex(p))
+				edge.vertices = v.map((p: Point) => {
+					const normalizedPoint = { 
+						x: p.x + offsetX, 
+						y: p.y + offsetY 
+					} as Point;
+					// Preserve any additional properties like 'label'
+					Object.assign(normalizedPoint, p, { x: p.x + offsetX, y: p.y + offsetY });
+					return edge.initVertex(normalizedPoint);
+				})
 				return;
 			}
 		})
@@ -704,11 +720,13 @@ export class GraphData {
 		try {
 			const auto = await autoLayout(this, options)
 			
+			this._undo.beforeChange()
+			
 			// Apply node positions
 			auto.nodes.forEach(an => {
 				const n = this.nodesMap.get(an.id)
 				if (n) {
-					this.moveNode(n, an.x, an.y)
+					this.moveNode(n, an.x, an.y, false, true) // Skip undo for individual moves
 				}
 			})
 			
@@ -747,6 +765,8 @@ export class GraphData {
 			// Fit the layout to the viewport with optimal positioning
 			this.fitToView()
 			
+			this._undo.change()
+			
 		} catch (error) {
 			console.error('Auto layout failed:', error)
 			// Could show user notification here
@@ -757,16 +777,16 @@ export class GraphData {
 		const lst: Point[] = this.nodes().filter(n => n.selected)
 		lst.push(...Array.from(this.edgeVertices.values()).filter(v => v.selected))
 		let minY = Math.min(...lst.map(p => p.y))
-		this.nodesMap.forEach(n => n.selected && this.moveNode(n, n.x, minY))
-		this.edgeVertices.forEach(v => v.selected && this.moveEdgeVertex(v, v.x, minY))
+		this.nodesMap.forEach(n => n.selected && this.moveNode(n, n.x, minY, false, false))
+		this.edgeVertices.forEach(v => v.selected && this.moveEdgeVertex(v, v.x, minY, false, false))
 	}
 
 	alignSelectionH() {
 		const lst: Point[] = this.nodes().filter(n => n.selected)
 		lst.push(...Array.from(this.edgeVertices.values()).filter(v => v.selected))
 		let minX = Math.min(...lst.map(p => p.x))
-		this.nodesMap.forEach(n => n.selected && this.moveNode(n, minX, n.y))
-		this.edgeVertices.forEach(v => v.selected && this.moveEdgeVertex(v, minX, v.y))
+		this.nodesMap.forEach(n => n.selected && this.moveNode(n, minX, n.y, false, false))
+		this.edgeVertices.forEach(v => v.selected && this.moveEdgeVertex(v, minX, v.y, false, false))
 	}
 
 	distributeSelectionH() {
@@ -790,10 +810,10 @@ export class GraphData {
 			const newX = minX + (index * spacing)
 			if ('title' in element) {
 				// It's a Node
-				this.moveNode(element as Node, newX, element.y)
+				this.moveNode(element as Node, newX, element.y, false, true)
 			} else {
 				// It's an EdgeVertex
-				this.moveEdgeVertex(element as EdgeVertex, newX, element.y)
+				this.moveEdgeVertex(element as EdgeVertex, newX, element.y, false, true)
 			}
 		})
 		
@@ -821,10 +841,10 @@ export class GraphData {
 			const newY = minY + (index * spacing)
 			if ('title' in element) {
 				// It's a Node
-				this.moveNode(element as Node, element.x, newY)
+				this.moveNode(element as Node, element.x, newY, false, true)
 			} else {
 				// It's an EdgeVertex
-				this.moveEdgeVertex(element as EdgeVertex, element.x, newY)
+				this.moveEdgeVertex(element as EdgeVertex, element.x, newY, false, true)
 			}
 		})
 		
@@ -870,25 +890,26 @@ export class GraphData {
 		const contentCenterX = contentBounds.x + contentBounds.width / 2
 		const contentCenterY = contentBounds.y + contentBounds.height / 2
 		
-		// Calculate viewport center in drawing coordinates (after zoom)
-		const viewportCenterX = viewportWidth / (2 * finalZoom)
-		const viewportCenterY = viewportHeight / (2 * finalZoom)
+		// Calculate viewport center in screen coordinates
+		const viewportCenterX = viewportWidth / 2
+		const viewportCenterY = viewportHeight / 2
 		
 		// Calculate translation needed to center content in viewport
-		const translateX = viewportCenterX - contentCenterX
-		const translateY = viewportCenterY - contentCenterY
+		// With translate(x,y) scale(zoom), translation is in screen coordinates
+		const translateX = viewportCenterX - (contentCenterX * finalZoom)
+		const translateY = viewportCenterY - (contentCenterY * finalZoom)
 		
 		// Apply zoom and translation transform
 		const zoomGroup = svg.querySelector('g.zoom') as SVGGElement
 		if (zoomGroup) {
-			zoomGroup.setAttribute('transform', `scale(${finalZoom}) translate(${translateX}, ${translateY})`)
+			zoomGroup.setAttribute('transform', `translate(${translateX}, ${translateY}) scale(${finalZoom})`)
 		}
 		
 		// Update panning
 		updatePanning()
 		
-		// Clear view state so this fit is not overridden
-		clearViewState(this.id)
+		// Save view state so this fit position is preserved after reload
+		saveViewState(this.id)
 	}
 
 	// Save current layout state for restoration
@@ -934,7 +955,7 @@ export class GraphData {
 		this.nodes().forEach(node => {
 			const snappedX = Math.round(node.x / this._gridSize) * this._gridSize;
 			const snappedY = Math.round(node.y / this._gridSize) * this._gridSize;
-			this.moveNode(node, snappedX, snappedY);
+			this.moveNode(node, snappedX, snappedY, false, true);
 		});
 		this._undo.change();
 	}
@@ -979,9 +1000,9 @@ export class GraphData {
 		const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
 		path.setAttribute('d', `M ${this._gridSize} 0 L 0 0 0 ${this._gridSize}`);
 		path.setAttribute('fill', 'none');
-		path.setAttribute('stroke', '#e0e0e0');
+		path.setAttribute('stroke', '#d0d0d0');
 		path.setAttribute('stroke-width', '1');
-		path.setAttribute('opacity', '0.5');
+		path.setAttribute('opacity', '0.8');
 
 		pattern.appendChild(path);
 		defs.appendChild(pattern);
@@ -1281,8 +1302,8 @@ function buildNode(n: Node, data: GraphData) {
 	const tg = create.element('g') as SVGGElement
 	let cy = Number(g.getAttribute('label-offset-y')) || 0
 	
-	// Optimized padding strategy - use minimal padding but ensure text fits
-	const textPadding = 12; // Much smaller padding for better space utilization
+	// Consistent text width calculation for all shapes
+	const textPadding = 12; // Standard padding
 	const maxTextWidth = Math.max(w - (textPadding * 2), 80); // Ensure reasonable minimum width
 	
 	{
@@ -1395,9 +1416,10 @@ function mouseToDrawing(e: MouseEvent): Point {
 	const currentTransform = getCurrentTransform()
 	
 	// Convert screen coordinates to drawing coordinates accounting for zoom and pan
+	// The transform values are in screen coordinates, so we need to divide by zoom and subtract
 	return {
-		x: (e.clientX - b.x) / z - currentTransform.x,
-		y: (e.clientY - b.y) / z - currentTransform.y
+		x: (e.clientX - b.x - currentTransform.x) / z,
+		y: (e.clientY - b.y - currentTransform.y) / z
 	}
 }
 
@@ -1460,13 +1482,13 @@ function addCustomCursorInteraction(svg: SVGSVGElement, conn: {
 					svg.appendChild(rect)
 				}
 			},
-			update(dx: number, dy: number) {
+			update(e: MouseEvent) {
 				if (!rect) return
-				const zoom = conn.getZoom()
 				
-				// Calculate current drawing position by adding scaled delta to start position
-				const currentDrawingX = startDrawingX + dx / zoom
-				const currentDrawingY = startDrawingY + dy / zoom
+				// Convert current mouse position to drawing coordinates (accounts for zoom and pan)
+				const currentPt = mouseToDrawing(e)
+				const currentDrawingX = currentPt.x
+				const currentDrawingY = currentPt.y
 				
 				// Calculate rectangle bounds in drawing coordinates
 				const x = Math.min(startDrawingX, currentDrawingX)
@@ -1523,7 +1545,7 @@ function addCustomCursorInteraction(svg: SVGSVGElement, conn: {
 		if (!zoomGroup) return
 		
 		const zoom = getZoom()
-		zoomGroup.setAttribute('transform', `scale(${zoom}) translate(${x}, ${y})`)
+		zoomGroup.setAttribute('transform', `translate(${x}, ${y}) scale(${zoom})`)
 	}
 
 	function onMouseDown(e: MouseEvent) {
@@ -1587,7 +1609,7 @@ function addCustomCursorInteraction(svg: SVGSVGElement, conn: {
 		}
 	}
 
-	function onMouseMove(dx: number, dy: number) {
+	function onMouseMove(e: MouseEvent, dx: number, dy: number) {
 		// Check if we've moved enough to consider this a drag
 		const dragThreshold = 3 // pixels
 		if (!hasDragged && (Math.abs(dx) > dragThreshold || Math.abs(dy) > dragThreshold)) {
@@ -1605,21 +1627,26 @@ function addCustomCursorInteraction(svg: SVGSVGElement, conn: {
 		}
 		
 		if (isPanning) {
-			// Pan the view - scale mouse delta by zoom factor
-			const zoom = conn.getZoom()
-			const newX = initialTransform.x + dx / zoom
-			const newY = initialTransform.y + dy / zoom
+			// Pan the view - apply mouse delta directly (no zoom division needed)
+			// setTransform expects screen coordinates, dx/dy are already screen pixel deltas
+			const newX = initialTransform.x + dx
+			const newY = initialTransform.y + dy
 			setTransform(newX, newY)
 		} else if (ini.length > 0 && hasDragged) {
 			// Move selected nodes/vertices (only if we've actually started dragging)
+			// dx, dy are screen pixel deltas, convert to drawing coordinate deltas
+			const zoom = conn.getZoom()
+			const drawingDx = dx / zoom
+			const drawingDy = dy / zoom
 			ini.forEach(item => {
-				const sc = conn.getZoom()
-				conn.moveNode(item.n, item.x + dx / sc, item.y + dy / sc)
+				// item.x, item.y are initial drawing coordinates
+				// Add the drawing coordinate delta to get new position
+				conn.moveNode(item.n, item.x + drawingDx, item.y + drawingDy)
 			})
 			conn.setDragging(true)
 		} else if (elastic) {
 			// Update selection box
-			elastic.update(dx, dy)
+			elastic.update(e)
 			conn.setDragging(true)
 		}
 	}
@@ -1675,7 +1702,7 @@ function addCustomCursorInteraction(svg: SVGSVGElement, conn: {
 		function onMouseMoveHandler(e: MouseEvent | TouchEvent) {
 			if (!md) return
 			e = convertEvent(e)
-			onMouseMove(e.clientX - md.ex, e.clientY - md.ey)
+			onMouseMove(e, e.clientX - md.ex, e.clientY - md.ey)
 		}
 
 		function removeListeners() {
@@ -1808,7 +1835,11 @@ export function addCursorInteraction(svg: SVGSVGElement, dragMode: 'pan' | 'sele
 		const newZoom = Math.max(0.1, Math.min(5, currentZoom - delta)) // Clamp zoom between 0.1 and 5
 		
 		if (newZoom !== currentZoom) {
-			setZoomCentered(newZoom, e.clientX, e.clientY)
+			// Convert absolute screen coordinates to SVG-relative coordinates
+			const rect = svg.getBoundingClientRect()
+			const svgX = e.clientX - rect.left
+			const svgY = e.clientY - rect.top
+			setZoomCentered(newZoom, svgX, svgY)
 			e.preventDefault()
 			
 			// Save view state after user wheel zoom
@@ -1840,16 +1871,19 @@ export function addCursorInteraction(svg: SVGSVGElement, dragMode: 'pan' | 'sele
 				gd().redo()
 				break
 			case ZOOM_IN:
-				const newZoomIn = Math.min(5, getZoom() + .05)
+				const newZoomIn = Math.min(5, getZoom() * 1.2)
+				// Center zoom on viewport center like mouse wheel
 				setZoomCentered(newZoomIn)
 				saveViewState(gd().id) // Save after user keyboard zoom
 				break
 			case ZOOM_OUT:
-				const newZoomOut = Math.max(0.1, getZoom() - .05)
+				const newZoomOut = Math.max(0.1, getZoom() / 1.2)
+				// Center zoom on viewport center like mouse wheel
 				setZoomCentered(newZoomOut)
 				saveViewState(gd().id) // Save after user keyboard zoom
 				break
 			case ZOOM_100:
+				// Center zoom on viewport center like mouse wheel
 				setZoomCentered(1)
 				saveViewState(gd().id) // Save after user keyboard zoom
 				break
@@ -1956,19 +1990,29 @@ export function addCursorInteraction(svg: SVGSVGElement, dragMode: 'pan' | 'sele
 }
 
 export function getZoom() {
+	if (!svg) return 1
 	const el = svg.querySelector('g.zoom') as SVGGElement
-	if (el.transform.baseVal.numberOfItems == 0) return 1
-	return el.transform.baseVal.getItem(0).matrix.a
+	if (!el) return 1
+	
+	// Parse zoom from transform attribute to match how we set it
+	const transform = el.getAttribute('transform') || ''
+	const scaleMatch = transform.match(/scale\(([^)]+)\)/)
+	if (scaleMatch) {
+		return parseFloat(scaleMatch[1]) || 1
+	}
+	return 1
 }
 
 const svgPadding = 20
 
 export function setZoom(zoom: number) {
+	if (!svg) return
 	const el = svg.querySelector('g.zoom') as SVGGElement
+	if (!el) return
 	
 	// Preserve existing translation when setting zoom
 	const currentTransform = getCurrentTransform()
-	el.setAttribute('transform', `scale(${zoom}) translate(${currentTransform.x}, ${currentTransform.y})`)
+	el.setAttribute('transform', `translate(${currentTransform.x}, ${currentTransform.y}) scale(${zoom})`)
 	
 	// also set panning size
 	updatePanning()
@@ -1980,30 +2024,44 @@ export function setZoomCentered(newZoom: number, centerX?: number, centerY?: num
 	
 	// If no center point provided, use viewport center
 	if (centerX === undefined || centerY === undefined) {
-		const rect = svg.getBoundingClientRect()
-		centerX = rect.width / 2
-		centerY = rect.height / 2
+		// Use the parent container's dimensions for the visible viewport
+		// The SVG might be larger than the visible area due to overflow
+		const container = svg.parentElement
+		if (container) {
+			centerX = container.clientWidth / 2
+			centerY = container.clientHeight / 2
+		} else {
+			// Fallback to SVG dimensions if no parent
+			centerX = svg.clientWidth / 2
+			centerY = svg.clientHeight / 2
+		}
 	}
 	
 	// Get current transform
 	const currentTransform = getCurrentTransform()
 	
-	// Calculate the point in the drawing coordinate system
-	const drawingX = (centerX / oldZoom) - currentTransform.x
-	const drawingY = (centerY / oldZoom) - currentTransform.y
+	// Convert screen coordinates to drawing coordinates
+	// For transform order translate(tx, ty) scale(s):
+	// screen_point = (drawing_point * scale) + translation
+	// So: drawing_point = (screen_point - translation) / scale
+	const drawingX = (centerX - currentTransform.x) / oldZoom
+	const drawingY = (centerY - currentTransform.y) / oldZoom
 	
-	// Calculate new translation to keep the same point under the cursor
-	const newTranslateX = (centerX / newZoom) - drawingX
-	const newTranslateY = (centerY / newZoom) - drawingY
+	// Calculate new translation to keep the same drawing point at the same screen position
+	// screen_point = (drawing_point * new_scale) + new_translation
+	// So: new_translation = screen_point - (drawing_point * new_scale)
+	const newTranslateX = centerX - (drawingX * newZoom)
+	const newTranslateY = centerY - (drawingY * newZoom)
 	
 	// Apply the new transform
-	el.setAttribute('transform', `scale(${newZoom}) translate(${newTranslateX}, ${newTranslateY})`)
+	el.setAttribute('transform', `translate(${newTranslateX}, ${newTranslateY}) scale(${newZoom})`)
 	
 	// Update panning
 	updatePanning()
 }
 
 function getCurrentTransform() {
+	if (!svg) return { x: 0, y: 0 }
 	const el = svg.querySelector('g.zoom') as SVGGElement
 	if (!el) return { x: 0, y: 0 }
 	
@@ -2019,9 +2077,12 @@ function getCurrentTransform() {
 }
 
 function updatePanning() {
+	if (!svg) return
 	const el = svg.querySelector('g.zoom') as SVGGElement
+	if (!el) return
 	const bb = el.getBBox()
 	const zoom = getZoom()
+	if (!svg.parentElement) return
 	const w = Math.max(svg.parentElement.clientWidth / zoom, bb.x + bb.width + svgPadding)
 	const h = Math.max(svg.parentElement.clientHeight / zoom, bb.y + bb.height + svgPadding)
 	svg.setAttribute('width', String(w * zoom))
@@ -2029,6 +2090,16 @@ function updatePanning() {
 	
 	// Note: View state saving removed from here to prevent interference with reset/fit functions
 	// View state is now only saved on user interactions and page unload
+}
+
+// Optimized version that uses pre-calculated content bounds instead of expensive getBBox()
+function updatePanningOptimized(graphData: GraphData) {
+	const bb = graphData.calculateContentBounds() // Use already calculated bounds
+	const zoom = getZoom()
+	const w = Math.max(svg.parentElement.clientWidth / zoom, bb.x + bb.width + svgPadding)
+	const h = Math.max(svg.parentElement.clientHeight / zoom, bb.y + bb.height + svgPadding)
+	svg.setAttribute('width', String(w * zoom))
+	svg.setAttribute('height', String(h * zoom))
 }
 
 export const getZoomAuto = () => {

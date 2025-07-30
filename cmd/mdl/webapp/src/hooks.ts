@@ -132,8 +132,7 @@ export const useKeyboardShortcuts = (
         } else if (shortcut === AUTO_LAYOUT && onAutoLayout) {
           onAutoLayout();
         } else if (shortcut === RESET_POSITION) {
-          graph.alignTopLeft();
-          graph.resetPanTransform();
+          graph.resetView();
         } else if (shortcut === TOGGLE_GRID) {
           graph.toggleGrid();
         } else if (shortcut === TOGGLE_SNAP_TO_GRID) {

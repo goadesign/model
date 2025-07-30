@@ -33,8 +33,8 @@ body {
 }
 
 .toolbar button.grp, .toolbar button.action {
-    background-color: #f8f8f8;
-    border: 1px solid #c0c0c0;
+    background: linear-gradient(to bottom, #abb8db, #8f9fc9);
+    border: 1px solid #8f9fc9;
     padding: 5px 8px;
     margin: 0 2px;
     border-radius: 3px;
@@ -42,11 +42,13 @@ body {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    color: white;
+    box-shadow: 2px 2px 2px rgba(0, 0, 0, .2);
 }
 
 .toolbar button.grp:hover, .toolbar button.action:hover {
-    background-color: #e9e9e9;
-    border-color: #a0a0a0;
+    background: linear-gradient(to bottom, #bcc7e0, #abb8db);
+    border-color: #abb8db;
 }
 
 .toolbar button.grp:disabled {
@@ -59,54 +61,80 @@ body {
     background: linear-gradient(to bottom, #4a90e2, #357abd) !important;
     border-color: #2968a3;
     box-shadow: inset 0 1px 2px rgba(0,0,0,0.2);
+    color: white;
 }
 
 .toolbar button.active-toggle:hover {
     background: linear-gradient(to bottom, #5ba0f2, #4585c7) !important;
 }
 
-/* Drag mode toggle button styles */
+/* Drag mode toggle button styles - default uses select mode colors (lighter blue) */
 .toolbar button.mode-toggle {
     position: relative;
-    border: none;
+    border: 1px solid #8f9fc9;
     width: 40px; /* Fixed width for consistent appearance */
     min-height: 28px;
+    /* Default inactive state uses same colors as select mode */
+    background: linear-gradient(to bottom, #abb8db, #8f9fc9);
+    border-color: #8f9fc9;
+    color: white;
+    box-shadow: 2px 2px 2px rgba(0, 0, 0, .2);
 }
 
+.toolbar button.mode-toggle:hover {
+    background: linear-gradient(to bottom, #bcc7e0, #abb8db);
+    border-color: #abb8db;
+}
+
+/* Pan mode (enabled) - now uses darker blue */
 .toolbar button.mode-toggle.pan-mode {
-    background: linear-gradient(to bottom, #abb8db, #8f9fc9) !important;
+    background: linear-gradient(to bottom, #4a90e2, #357abd);
+    border-color: #2968a3;
     color: white;
-    box-shadow: 2px 2px 2px rgba(0, 0, 0, .2) !important;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.2);
 }
 
 .toolbar button.mode-toggle.pan-mode:hover {
-    background: linear-gradient(to bottom, #bcc7e0, #abb8db) !important;
+    background: linear-gradient(to bottom, #5ba0f2, #4585c7);
 }
 
 .toolbar button.mode-toggle.pan-mode:active {
-    background: #6a7db0 !important;
-    box-shadow: 2px 2px 2px rgba(0, 0, 0, .2) !important;
+    background: linear-gradient(to bottom, #357abd, #2968a3);
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.2);
 }
 
+/* Select mode (enabled) - now uses lighter blue */
 .toolbar button.mode-toggle.select-mode {
-    background: linear-gradient(to bottom, #4a90e2, #357abd) !important;
+    background: linear-gradient(to bottom, #abb8db, #8f9fc9);
+    border-color: #8f9fc9;
     color: white;
-    box-shadow: 2px 2px 2px rgba(0, 0, 0, .2) !important;
+    box-shadow: 2px 2px 2px rgba(0, 0, 0, .2);
 }
 
 .toolbar button.mode-toggle.select-mode:hover {
-    background: linear-gradient(to bottom, #5ba0f2, #4585c7) !important;
+    background: linear-gradient(to bottom, #bcc7e0, #abb8db);
+    border-color: #abb8db;
 }
 
 .toolbar button.mode-toggle.select-mode:active {
-    background: linear-gradient(to bottom, #357abd, #2968a3) !important;
-    box-shadow: 2px 2px 2px rgba(0, 0, 0, .2) !important;
+    background: linear-gradient(to bottom, #8f9fc9, #7a8bb5);
+    box-shadow: 2px 2px 2px rgba(0, 0, 0, .2);
 }
 
 /* Ensure Font Awesome icons are sized appropriately if not already handled */
 .toolbar button .fas {
     font-size: 1em;
     vertical-align: middle;
+}
+
+/* Zoom percentage display */
+.toolbar button.zoom-display {
+    font-family: 'SF Mono', Monaco, 'Roboto Mono', Consolas, monospace;
+    font-size: 11px;
+    font-weight: 600;
+    min-width: 50px;  /* Wider to prevent size change between 99% and 100% */
+    padding: 6px 8px;
+    text-align: center;
 }
 
 .toolbar-group {
@@ -136,6 +164,34 @@ button {
     font-size: 14px;
     line-height: 1;
     font-family: "Segoe UI", "Segoe UI Symbol", "Segoe UI Emoji", system-ui, -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* Make all regular buttons have the same blue background as select mode toggle */
+.toolbar button.grp {
+    background: linear-gradient(to bottom, #4a90e2, #357abd) !important;
+    border-color: #2968a3 !important;
+}
+
+.toolbar button.grp:hover {
+    background: linear-gradient(to bottom, #5ba0f2, #4585c7) !important;
+}
+
+.toolbar button.grp:active {
+    background: linear-gradient(to bottom, #357abd, #2968a3) !important;
+}
+
+/* Also apply to buttons without specific classes (like help button) */
+.toolbar button:not(.mode-toggle):not(.action):not(.active-toggle):not(.zoom-display) {
+    background: linear-gradient(to bottom, #4a90e2, #357abd) !important;
+    border-color: #2968a3 !important;
+}
+
+.toolbar button:not(.mode-toggle):not(.action):not(.active-toggle):not(.zoom-display):hover {
+    background: linear-gradient(to bottom, #5ba0f2, #4585c7) !important;
+}
+
+.toolbar button:not(.mode-toggle):not(.action):not(.active-toggle):not(.zoom-display):active {
+    background: linear-gradient(to bottom, #357abd, #2968a3) !important;
 }
 button:last-child {
     margin-right: 0;
