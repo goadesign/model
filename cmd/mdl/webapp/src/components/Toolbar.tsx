@@ -129,10 +129,10 @@ const UndoRedoButtons: FC<{ graph: GraphData }> = ({ graph }) => {
   const modKey = getModifierKeyName();
   return (
     <>
-      <button className="grp" onClick={() => graph.undo()} data-tooltip={`Undo the last change made to the diagram (${modKey}+Z)`}>
+      <button onClick={() => graph.undo()} data-tooltip={`Undo the last change made to the diagram (${modKey}+Z)`}>
         <i className="fas fa-undo"></i>
       </button>
-      <button className="grp" onClick={() => graph.redo()} data-tooltip={`Redo the last undone action (${modKey}+Shift+Z / ${modKey}+Y)`}>
+      <button onClick={() => graph.redo()} data-tooltip={`Redo the last undone action (${modKey}+Shift+Z / ${modKey}+Y)`}>
         <i className="fas fa-redo"></i>
       </button>
     </>
@@ -143,16 +143,16 @@ const AlignmentButtons: FC<{ graph: GraphData }> = ({ graph }) => {
   const modKey = getModifierKeyName();
   return (
     <>
-      <button className="grp" onClick={() => graph.alignSelectionH()} data-tooltip={`Align all selected elements horizontally (left edges) (${modKey}+Shift+H)`}>
-        <i className="fas fa-arrows-alt-v"></i>
+      <button onClick={() => graph.alignSelectionH()} data-tooltip={`Align all selected elements horizontally (left edges) (${modKey}+Shift+H)`}>
+        <i className="fas fa-align-left"></i>
       </button>
-      <button className="grp" onClick={() => graph.alignSelectionV()} data-tooltip={`Align all selected elements vertically (top edges) (${modKey}+Shift+A)`}>
-        <i className="fas fa-arrows-alt-h"></i>
+      <button onClick={() => graph.alignSelectionV()} data-tooltip={`Align all selected elements vertically (top edges) (${modKey}+Shift+A)`}>
+        <i className="fas fa-align-left" style={{transform: 'rotate(90deg)'}}></i>
       </button>
-      <button className="grp" onClick={() => graph.distributeSelectionH()} data-tooltip={`Distribute selected elements evenly horizontally (equal spacing) (${modKey}+Alt+H)`}>
+      <button onClick={() => graph.distributeSelectionH()} data-tooltip={`Distribute selected elements evenly horizontally (equal spacing) (${modKey}+Alt+H)`}>
         <i className="fas fa-ellipsis-h"></i>
       </button>
-      <button className="grp" onClick={() => graph.distributeSelectionV()} data-tooltip={`Distribute selected elements evenly vertically (equal spacing) (${modKey}+Alt+V)`}>
+      <button onClick={() => graph.distributeSelectionV()} data-tooltip={`Distribute selected elements evenly vertically (equal spacing) (${modKey}+Alt+V)`}>
         <i className="fas fa-ellipsis-v"></i>
       </button>
     </>
@@ -215,14 +215,14 @@ const GridControls: FC<{ graph: GraphData }> = ({ graph }) => {
   return (
     <>
       <button 
-        className={gridVisible ? 'active-toggle' : ''}
+        className={gridVisible ? 'active-toggle' : 'inactive-toggle'}
         onClick={handleToggleGrid} 
         data-tooltip={`Toggle grid visibility (${modKey}+G)`}
       >
         <i className="fas fa-th"></i>
       </button>
       <button 
-        className={snapToGrid ? 'active-toggle' : ''}
+        className={snapToGrid ? 'active-toggle' : 'inactive-toggle'}
         onClick={handleToggleSnap} 
         data-tooltip={`Toggle snap to grid (${modKey}+Shift+G)`}
       >
@@ -260,7 +260,7 @@ const ZoomDisplay: FC = () => {
   return (
     <button 
       onClick={() => setZoomCentered(1)} 
-      className="grp zoom-display"
+      className="zoom-display"
       data-tooltip="Click to reset zoom to 100%"
     >
       {zoom}%
@@ -272,18 +272,18 @@ const ZoomControls: FC<{ graph: GraphData }> = ({ graph }) => {
   const modKey = getModifierKeyName();
   return (
     <>
-      <button className="grp" onClick={() => {
+      <button onClick={() => {
         setZoomCentered(Math.max(0.1, getZoom() / 1.2));
       }} data-tooltip={`Zoom out to see more of the diagram (${modKey}+-)`}>
         <i className="fas fa-search-minus"></i>
       </button>
       <ZoomDisplay />
-      <button className="grp" onClick={() => {
+      <button onClick={() => {
         setZoomCentered(Math.min(5, getZoom() * 1.2));
       }} data-tooltip={`Zoom in to see details more clearly (${modKey}+=)`}>
         <i className="fas fa-search-plus"></i>
       </button>
-      <button className="grp" onClick={() => { graph.fitToView(); }} data-tooltip={`Fit diagram to view (${modKey}+9)`}>
+      <button onClick={() => { graph.fitToView(); }} data-tooltip={`Fit diagram to view (${modKey}+9)`}>
         <i className="fas fa-expand"></i>
       </button>
     </>
