@@ -28,17 +28,27 @@ import {
 	ZOOM_IN,
 	ZOOM_OUT
 } from "../shortcuts";
+import {
+	Point,
+	BBox,
+	NodeStyle,
+	EdgeStyle,
+	DEFAULT_EDGE_STYLE,
+	DEFAULT_NODE_STYLE,
+	SVG_STYLES,
+	SVG_PADDING,
+	DEFAULT_GRID_SIZE,
+	applyStyle,
+	calculateDistance
+} from "./constants";
+import {
+	calculateEdgeVertices,
+	calculateLabelPosition,
+	createEdgeSegments
+} from "./edge-utils";
 
 
-interface Point {
-	x: number;
-	y: number;
-}
-
-interface BBox extends Point {
-	width: number;
-	height: number;
-}
+// Point and BBox interfaces are now imported from constants
 
 export interface Group extends BBox {
 	id: string;
@@ -62,72 +72,16 @@ export interface Node extends BBox {
 	style: NodeStyle
 }
 
-export interface NodeStyle {
-	// Width of element, in pixels.
-	width?: number
-	// Height of element, in pixels.
-	height?: number
-	// Background color of element as HTML RGB hex string (e.g. "#ffffff")
-	background?: string
-	// Stroke color of element as HTML RGB hex string (e.g. "#000000")
-	stroke?: string
-	// Foreground (text) color of element as HTML RGB hex string (e.g. "#ffffff")
-	color?: string
-	// Standard font size used to render text, in pixels.
-	fontSize?: number
-	// Shape used to render element.
-	shape?: string
-	// URL of PNG/JPG/GIF file or Base64 data URI representation.
-	icon?: string
-	// Type of border used to render element.
-	border?: string
-	// Opacity used to render element; 0-100.
-	opacity?: number
-	// Whether element metadata should be shown.
-	metadata?: boolean
-	// Whether element description should be shown.
-	description?: boolean
-}
+// NodeStyle interface is now imported from constants
 
-// RelationshipStyle defines a relationship style.
-export interface EdgeStyle {
-	// Thickness of line, in pixels.
-	thickness?: number
-	// Color of line as HTML RGB hex string (e.g. "#ffffff").
-	color?: string
-	// Standard font size used to render relationship annotation, in pixels.
-	fontSize?: number
-	// Width of relationship annotation, in pixels.
-	width?: number
-	// Whether line is rendered dashed or not.
-	dashed?: boolean
-	// Position of annotation along the line; 0 (start) to 100 (end).
-	position?: number
-	// Opacity used to render line; 0-100.
-	opacity?: number
-	// Arrow style
-	arrowStyle?: 'normal' | 'large' | 'small' | 'none'
-}
+// EdgeStyle interface is now imported from constants
 
-const defaultEdgeStyle: EdgeStyle = {
-	thickness: 3,
-	color: '#999',
-	opacity: 1,
-	fontSize: 22,
-	dashed: true,
-}
+// Default styles are now imported from constants
+const defaultEdgeStyle = DEFAULT_EDGE_STYLE;
+const defaultNodeStyle = DEFAULT_NODE_STYLE;
 
-const defaultNodeStyle: NodeStyle = {
-	width: 280,
-	height: 180,
-	background: 'rgba(255, 255, 255, .9)',
-	color: '#666',
-	opacity: .9,
-	stroke: '#999',
-	fontSize: 22,
-	shape: 'Box'
-}
-
+// Edge and EdgeVertex interfaces are now defined in edge-utils.ts
+// Using local interfaces for compatibility with existing code
 interface Edge {
 	id: string;
 	label: string;
@@ -1123,106 +1077,17 @@ function buildEdge(data: GraphData, edge: Edge) {
 
 	const position = (edge.style.position || 50) / 100
 
-	// if vertices exists, follow them
-	let vertices: Point[] = edge.vertices ? edge.vertices.concat() : [];
-	// remove auto vertices, they will be regenerated
-	const tmp = (vertices as EdgeVertex[]);
-	tmp.forEach(v => v.auto && data.edgeVertices.delete(v.id))
-	vertices = tmp.filter(v => !v.auto)
+	// Calculate edge vertices using utility function
+	const vertices = calculateEdgeVertices(edge, data)
 
-	if (vertices.length == 0) {
-		// for edges with same "from" and "to", we must spread the labels so they don't overlap
-		// lookup the other "same" edges
-		const sameEdges = data.edges.filter(e => e.from == edge.from && e.to == edge.to)
-		let spreadPos = 0
-		if (sameEdges.length > 1) {
-			const idx = sameEdges.indexOf(edge) // my index in the list of same edges
-			spreadPos = idx - (sameEdges.length - 1) / 2
-
-			let spreadX = 0, spreadY = 0;
-			if (Math.abs(n1.x - n2.x) > Math.abs(n1.y - n2.y)) {
-				spreadY = spreadPos * 70
-			} else {
-				spreadX = spreadPos * 200
-			}
-			const v = edge.initVertex({
-				x: (n1.x + n2.x) / 2 + spreadX,
-				y: (n1.y + n2.y) / 2 + spreadY
-			})
-			v.label = true
-			v.auto = true
-			vertices.push(v)
-		} else {
-			// If there are no user-defined vertices and not a multi-edge scenario,
-			// we don't create any auto-vertices here. AutoLayout will provide them.
-			// The path will be a straight line between n1 and n2 (after intersection points are calculated).
-			// ELK/autoLayout is responsible for providing bend points for non-straight lines.
-		}
-	}
-
-	vertices.unshift(n1)
-	vertices.push(n2)
-
-	vertices[0] = n1.intersect(vertices[1])
-	vertices[vertices.length - 1] = n2.intersect(vertices[vertices.length - 2])
-
-	// where along the edge is the label?
-	// position of label
-	let pLabel: Point = vertices.find(v => (v as EdgeVertex).label)
-	if (!pLabel) {
-		const distance = (p1: Point, p2: Point) =>
-			Math.sqrt((p2.x - p1.x) * (p2.x - p1.x) + (p2.y - p1.y) * (p2.y - p1.y))
-
-		let sum = 0 // total length of the edge, sum of segments
-		for (let i = 1; i < vertices.length; i++) {
-			sum += distance(vertices[i - 1], vertices[i])
-		}
-		pLabel = {x: n1.x, y: n1.y} // fallback for corner cases
-		let acc = 0
-		for (let i = 1; i < vertices.length; i++) {
-			const d = distance(vertices[i - 1], vertices[i])
-			if (acc + d > sum * position) {
-				const pos = (sum * position - acc) / d
-				pLabel = {
-					x: vertices[i - 1].x + (vertices[i].x - vertices[i - 1].x) * pos,
-					y: vertices[i - 1].y + (vertices[i].y - vertices[i - 1].y) * pos
-				}
-				break
-			}
-			acc += d
-		}
-	}
+	// Calculate label position using utility function
+	const pLabel = calculateLabelPosition(vertices, position, n1)
 
 	const {bg, txt, bbox} = buildEdgeLabel(pLabel, edge)
 	g.append(bg, txt)
 
-	const segments: Segment[] = []
-	for (let i = 1; i < vertices.length; i++) {
-		segments.push({p: vertices[i - 1], q: vertices[i]})
-	}
-	// splice edge over label box
-	intersectPolylineBox(segments, bbox)
-
-	// Generate path based on routing style - SIMPLIFIED
-	let path: string
-	
-	// Always draw a polyline through the segments.
-	// If segments.length is 1 (meaning direct connection or only label vertex), it will be a straight line.
-	// If autoLayout provided bend points, those will be in `segments`.
-	if (segments.length > 0) {
-		path = `M${segments[0].p.x},${segments[0].p.y}`
-		for (let i = 0; i < segments.length; i++) {
-			const s = segments[i]
-			// For polylines, we just draw line segments to each vertex point.
-			// The ELK 'POLYLINE' routing should give us the necessary bend points.
-			path += ` L${s.q.x},${s.q.y}`
-		}
-	} else {
-		// Fallback for edges with no segments (should ideally not happen if n1 and n2 are defined)
-		// Draw a straight line between n1 and n2 directly if no vertices/segments exist.
-		// Note: Intersection points are calculated before this, so n1/n2 are already adjusted.
-		path = `M${n1.x},${n1.y} L${n2.x},${n2.y}`
-	}
+	// Create edge segments and path using utility function
+	const {segments, path} = createEdgeSegments(vertices, bbox, n1, n2)
 
 	const p = create.path(path, {'marker-end': 'url(#arrow)'}, 'edge')
 	p.setAttribute('fill', 'none')
@@ -1291,7 +1156,9 @@ function buildNode(n: Node, data: GraphData) {
 
 	shape.classList.add('nodeBorder')
 
+	// Apply generic styles first
 	applyStyle(shape, styles.nodeBorder)
+	// Then apply tag-specific styles to override generic ones
 	shape.setAttribute('fill', n.style.background)
 	shape.setAttribute('stroke', n.style.stroke)
 	// Consistent border width for all elements
@@ -2003,7 +1870,7 @@ export function getZoom() {
 	return 1
 }
 
-const svgPadding = 20
+// svgPadding is now imported as SVG_PADDING from constants.ts
 
 export function setZoom(zoom: number) {
 	if (!svg) return
@@ -2083,8 +1950,8 @@ function updatePanning() {
 	const bb = el.getBBox()
 	const zoom = getZoom()
 	if (!svg.parentElement) return
-	const w = Math.max(svg.parentElement.clientWidth / zoom, bb.x + bb.width + svgPadding)
-	const h = Math.max(svg.parentElement.clientHeight / zoom, bb.y + bb.height + svgPadding)
+	const w = Math.max(svg.parentElement.clientWidth / zoom, bb.x + bb.width + SVG_PADDING)
+	const h = Math.max(svg.parentElement.clientHeight / zoom, bb.y + bb.height + SVG_PADDING)
 	svg.setAttribute('width', String(w * zoom))
 	svg.setAttribute('height', String(h * zoom))
 	
@@ -2096,8 +1963,8 @@ function updatePanning() {
 function updatePanningOptimized(graphData: GraphData) {
 	const bb = graphData.calculateContentBounds() // Use already calculated bounds
 	const zoom = getZoom()
-	const w = Math.max(svg.parentElement.clientWidth / zoom, bb.x + bb.width + svgPadding)
-	const h = Math.max(svg.parentElement.clientHeight / zoom, bb.y + bb.height + svgPadding)
+	const w = Math.max(svg.parentElement.clientWidth / zoom, bb.x + bb.width + SVG_PADDING)
+	const h = Math.max(svg.parentElement.clientHeight / zoom, bb.y + bb.height + SVG_PADDING)
 	svg.setAttribute('width', String(w * zoom))
 	svg.setAttribute('height', String(h * zoom))
 }
@@ -2134,8 +2001,7 @@ const setBorderStyle = (el: SVGElement, style: string) => {
 const styles = {
 	//node styles
 	nodeBorder: {
-		fill: "rgba(255, 255, 255, 0.86)",
-		stroke: "#aaa",
+		// Don't set fill and stroke here - let tag-specific styles handle colors
 		filter: 'url(#shadow)',
 	},
 	nodeText: {
@@ -2167,19 +2033,6 @@ const styles = {
 		"font-size": 22,
 		cursor: "default"
 	}
-}
-
-const applyStyle = (el: SVGElement, style: { [key: string]: string | number }) => {
-	Object.keys(style).forEach(name => {
-		if (name == 'font-size') {
-			if (typeof (style[name]) != 'number') {
-				console.error(`All font-sizes in styles have to be numbers representing px! Found:`, style)
-			}
-			el.setAttribute(name, style[name] + 'px')
-		} else {
-			el.setAttribute(name, String(style[name]))
-		}
-	})
 }
 
 // View state persistence - similar to undo cache but for zoom/pan
