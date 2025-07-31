@@ -52,7 +52,6 @@ export const useAutoLayout = (graph: GraphData) => {
     try {
       const options: LayoutOptions = {
         direction: 'DOWN',
-        compactLayout: true
       };
       await graph.autoLayout(options);
     } catch (error) {
@@ -171,4 +170,4 @@ export const clearGraphCache = (currentID?: string) => {
   } else {
     Object.keys(graphs).forEach(key => delete graphs[key]);
   }
-}; 
+};

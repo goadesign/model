@@ -18,11 +18,11 @@ interface SpacingConfig {
 
 // Default spacing configuration
 const DEFAULT_SPACING: SpacingConfig = {
-	nodeSpacing: 80,
+	nodeSpacing: 100,
 	layerSpacing: 100,
-	componentSpacing: 40,
+	componentSpacing: 50,
 	padding: 50,
-	groupMultiplier: 0.6,
+	groupMultiplier: 0.8,
 };
 
 // Helper function to get effective spacing for a context
@@ -69,7 +69,7 @@ function getELKOptions(
 ): Record<string, string> {
 	const {
 		direction = 'DOWN',
-		compactLayout = true
+		compactLayout = false
 	} = userOptions;
 	
 	const baseOptions: Record<string, string> = {
@@ -88,6 +88,9 @@ function getELKOptions(
 		'elk.layered.nodePlacement.strategy': 'NETWORK_SIMPLEX',
 		'elk.layered.cycleBreaking.strategy': 'GREEDY',
 		'elk.layered.crossingMinimization.strategy': 'LAYER_SWEEP',
+		'elk.layered.crossingMinimization.semiInteractive': 'false',
+		'elk.layered.considerModelOrder.strategy': 'NODES_AND_EDGES',
+		'elk.layered.thoroughness': '15',
 	};
 	
 	if (compactLayout) {
@@ -219,12 +222,78 @@ export async function autoLayout(graph: GraphData, options: LayoutOptions = {}):
 			});
 		};
 
-		// Extract edges from layout result
-		const processEdges = (container: any) => {
+		// Process original edges and extract routing node positions
+		graph.edges.forEach(originalEdge => {
+			const vertices: Array<{x: number, y: number}> = [];
+			let label: {x: number, y: number} | undefined;
+
+			// Store routing nodes with their vertex numbers for proper sorting
+			const routingNodesWithIndex: Array<{x: number, y: number, index: number}> = [];
+			
+			// Find routing nodes and store with their index
+			const findRoutingNodesWithIndex = (searchContainer: any, offsetX = 0, offsetY = 0) => {
+				searchContainer.children?.forEach((child: any) => {
+					const vertexMatch = child.id.match(new RegExp(`^${originalEdge.id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}-vertex-(\\d+)$`));
+					if (vertexMatch) {
+						routingNodesWithIndex.push({
+							x: offsetX + (child.x || 0) + (child.width || 0) / 2,
+							y: offsetY + (child.y || 0) + (child.height || 0) / 2,
+							index: parseInt(vertexMatch[1])
+						});
+					}
+					if (child.children) {
+						findRoutingNodesWithIndex(child, offsetX + (child.x || 0), offsetY + (child.y || 0));
+					}
+				});
+			};
+			
+			findRoutingNodesWithIndex(layoutedGraph);
+			
+			// Sort by vertex index and add to vertices array
+			routingNodesWithIndex.sort((a, b) => a.index - b.index);
+			vertices.push(...routingNodesWithIndex.map(node => ({x: node.x, y: node.y})));
+
+			// Calculate label position if edge has a label
+			if (originalEdge.label && originalEdge.label.trim() && vertices.length >= 2) {
+				const midIndex = Math.floor(vertices.length / 2);
+				if (vertices.length % 2 === 0) {
+					// Even number of vertices, interpolate between middle two
+					const v1 = vertices[midIndex - 1];
+					const v2 = vertices[midIndex];
+					label = {
+						x: (v1.x + v2.x) / 2,
+						y: (v1.y + v2.y) / 2
+					};
+				} else {
+					// Odd number of vertices, use middle vertex
+					label = vertices[midIndex];
+				}
+			}
+
+			edges.push({
+				id: originalEdge.id,
+				vertices,
+				label
+			});
+		});
+
+		// Also process any remaining edges from ELK layout (fallback)
+		const processRemainingEdges = (container: any) => {
 			container.edges?.forEach((edge: any) => {
+				// Skip segment edges (they are internal routing edges)
+				if (edge.id.includes('-segment-')) {
+					return;
+				}
+
+				// Skip if we already processed this edge from original graph
+				if (edges.some(e => e.id === edge.id)) {
+					return;
+				}
+
 				const vertices: Array<{x: number, y: number}> = [];
 				let label: {x: number, y: number} | undefined;
 
+				// Fallback to sections if no routing nodes found
 				if (edge.sections && edge.sections.length > 0) {
 					const section = edge.sections[0];
 					
@@ -273,13 +342,13 @@ export async function autoLayout(graph: GraphData, options: LayoutOptions = {}):
 			// Process child containers
 			container.children?.forEach((child: any) => {
 				if (child.edges) {
-					processEdges(child);
+					processRemainingEdges(child);
 				}
 			});
 		};
 
 		extractNodes(layoutedGraph);
-		processEdges(layoutedGraph);
+		processRemainingEdges(layoutedGraph);
 
 		// Normalize coordinates to start near (0,0) to prevent huge canvas sizes
 		// while preserving relative positioning between elements

@@ -1416,14 +1416,17 @@ function addCustomCursorInteraction(svg: SVGSVGElement, conn: {
 	}
 
 	function onMouseDown(e: MouseEvent) {
-		e.preventDefault(); 
+		e.preventDefault();
 		hasDragged = false
 		pendingSelectionChange = null
 
 		const node = conn.nodeFromEvent(e)
 		
+		// Determine effective mode: invert if shift is held
+		const effectiveMode = e.shiftKey ? (dragMode === 'pan' ? 'select' : 'pan') : dragMode
+		
 		if (!node) { // Clicked on empty space
-			if (dragMode === 'pan') {
+			if (effectiveMode === 'pan') {
 				// Pan mode: pan and deselect
 				isPanning = true;
 				elastic = null;
@@ -1443,35 +1446,45 @@ function addCustomCursorInteraction(svg: SVGSVGElement, conn: {
 			return;
 		}
 
-		// Clicked on a node/vertex - selection/drag logic (works in both modes)
-		isPanning = false; // Ensure no panning if a node is clicked
-		elastic = null; // Ensure no selection box if a node is clicked
-		const nodes = conn.getSelection()
-		
-		if (e.shiftKey) {
-			// Shift+click: immediately change selection (no dragging expected)
-			if (conn.isSelected(node)) {
-				const index = nodes.findIndex(n => n.id === node.id)
-				if (index >= 0) nodes.splice(index, 1)
-			} else {
-				nodes.push(node)
-			}
-			conn.setSelection(nodes)
-			ini = nodes.map(n => ({ x: n.x, y: n.y, n }))
+		// Clicked on a node/vertex - behavior depends on effective mode
+		if (effectiveMode === 'pan') {
+			// Pan mode: select the element, don't pan
+			isPanning = false;
+			elastic = null;
+			// Always select the clicked element in pan mode
+			conn.setSelection([node]);
+			ini = [{ x: node.x, y: node.y, n: node }];
 		} else {
-			// Regular click: defer selection change until we know if it's a drag or click
-			if (conn.isSelected(node) && nodes.length > 1) {
-				// Clicking on a selected node in a multi-selection - prepare to drag all
+			// Select mode: selection/drag logic
+			isPanning = false; // Ensure no panning if a node is clicked
+			elastic = null; // Ensure no selection box if a node is clicked
+			const nodes = conn.getSelection()
+			
+			if (e.shiftKey && dragMode === 'select') {
+				// Shift+click in select mode: immediately change selection (no dragging expected)
+				if (conn.isSelected(node)) {
+					const index = nodes.findIndex(n => n.id === node.id)
+					if (index >= 0) nodes.splice(index, 1)
+				} else {
+					nodes.push(node)
+				}
+				conn.setSelection(nodes)
 				ini = nodes.map(n => ({ x: n.x, y: n.y, n }))
-				// Don't change selection yet - wait to see if user drags
-			} else if (!conn.isSelected(node)) {
-				// Clicking on an unselected node - defer selection change
-				pendingSelectionChange = { node, shiftKey: e.shiftKey }
-				// For now, prepare to drag just this node
-				ini = [{ x: node.x, y: node.y, n: node }]
 			} else {
-				// Clicking on the only selected node - prepare to drag it
-				ini = [{ x: node.x, y: node.y, n: node }]
+				// Regular click: defer selection change until we know if it's a drag or click
+				if (conn.isSelected(node) && nodes.length > 1) {
+					// Clicking on a selected node in a multi-selection - prepare to drag all
+					ini = nodes.map(n => ({ x: n.x, y: n.y, n }))
+					// Don't change selection yet - wait to see if user drags
+				} else if (!conn.isSelected(node)) {
+					// Clicking on an unselected node - defer selection change
+					pendingSelectionChange = { node, shiftKey: e.shiftKey }
+					// For now, prepare to drag just this node
+					ini = [{ x: node.x, y: node.y, n: node }]
+				} else {
+					// Clicking on the only selected node - prepare to drag it
+					ini = [{ x: node.x, y: node.y, n: node }]
+				}
 			}
 		}
 	}
