@@ -49,6 +49,7 @@ interface Edge {
 	ref?: SVGGElement;
 	style: EdgeStyle;
 	initVertex: (p: Point) => EdgeVertex;
+	userDeletedVertices?: boolean; // Track if user explicitly deleted vertices
 }
 
 interface GraphData {
@@ -69,12 +70,13 @@ export function calculateEdgeVertices(edge: Edge, data: GraphData): Point[] {
 	
 	// if vertices exists, follow them
 	let vertices: Point[] = edge.vertices ? edge.vertices.concat() : [];
-	// remove auto vertices, they will be regenerated
+	// Only remove label auto vertices (not routing vertices from ELK)
 	const tmp = (vertices as EdgeVertex[]);
-	tmp.forEach(v => v.auto && data.edgeVertices.delete(v.id))
-	vertices = tmp.filter(v => !v.auto)
+	tmp.forEach(v => v.auto && v.label && data.edgeVertices.delete(v.id))
+	vertices = tmp.filter(v => !(v.auto && v.label))
 
-	if (vertices.length == 0) {
+	if (vertices.length == 0 && !edge.userDeletedVertices) {
+		// Only create auto vertices if user hasn't explicitly deleted them
 		// for edges with same "from" and "to", we must spread the labels so they don't overlap
 		// lookup the other "same" edges
 		const sameEdges = data.edges.filter(e => e.from == edge.from && e.to == edge.to)

@@ -90,7 +90,8 @@ interface Edge {
 	vertices?: EdgeVertex[];
 	ref?: SVGGElement;
 	style: EdgeStyle;
-	initVertex: (p: Point) => EdgeVertex
+	initVertex: (p: Point) => EdgeVertex;
+	userDeletedVertices?: boolean; // Track if user explicitly deleted vertices
 }
 
 interface EdgeVertex extends Point {
@@ -103,7 +104,7 @@ interface EdgeVertex extends Point {
 }
 
 interface Layout {
-	[k: string]: Point | (Point & { label: boolean })[]
+	[k: string]: Point | (Point & { label: boolean })[] | boolean
 }
 
 export class GraphData {
@@ -218,7 +219,8 @@ export class GraphData {
 			label,
 			vertices: null as EdgeVertex[],
 			style: {...defaultEdgeStyle, ...style},
-			initVertex
+			initVertex,
+			userDeletedVertices: false
 		}
 		this.edges.push(edge)
 		if (vertices) {
@@ -336,12 +338,16 @@ export class GraphData {
 
 	deleteEdgeVertex(v: EdgeVertex) {
 		this._undo.beforeChange()
-		if (v.auto) {
-			v.auto = true
-		} else {
-			v.edge.vertices.splice(v.edge.vertices.indexOf(v), 1)
+		
+		const index = v.edge.vertices.indexOf(v)
+		if (index >= 0) {
+			v.edge.vertices.splice(index, 1)
 			this.edgeVertices.delete(v.id)
+			
+			// Mark that user explicitly deleted vertices from this edge
+			v.edge.userDeletedVertices = true
 		}
+		
 		this.redrawEdge(v.edge)
 		this._undo.change()
 	}
@@ -593,8 +599,20 @@ export class GraphData {
 		this.nodes().forEach(n => ret[n.id] = {x: n.x, y: n.y})
 		this.edges.forEach(e => {
 			if (!e.vertices) return
-			const lst = e.vertices.filter(v => !v.auto).map(v => ({x: v.x, y: v.y, label: v.label}));
-			(lst.length || full) && (ret[`e-${e.id}`] = lst)
+			// Save all vertices (both user and auto-generated), preserving their properties
+			const lst = e.vertices.map(v => ({
+				x: v.x, 
+				y: v.y, 
+				label: v.label,
+				auto: v.auto // Preserve auto flag so we know which are ELK-generated
+			}));
+			if (lst.length || full) {
+				ret[`e-${e.id}`] = lst
+			}
+			// Also save the userDeletedVertices flag as metadata
+			if (e.userDeletedVertices) {
+				ret[`e-${e.id}-deleted`] = true
+			}
 		})
 		return ret
 	}
@@ -646,7 +664,7 @@ export class GraphData {
 				n.y = v.y + offsetY
 			} else
 				// edge vertices
-			if (k.startsWith('e-')) {
+			if (k.startsWith('e-') && !k.endsWith('-deleted')) {
 				const edge = this.edges.find(e => e.id == k.slice(2))
 				if (!edge) return;
 				edge.vertices && edge.vertices.forEach(v => this.edgeVertices.delete(v.id))
@@ -655,10 +673,23 @@ export class GraphData {
 						x: p.x + offsetX, 
 						y: p.y + offsetY 
 					} as Point;
-					// Preserve any additional properties like 'label'
+					// Preserve any additional properties like 'label' and 'auto'
 					Object.assign(normalizedPoint, p, { x: p.x + offsetX, y: p.y + offsetY });
-					return edge.initVertex(normalizedPoint);
+					const vertex = edge.initVertex(normalizedPoint);
+					// Ensure auto flag is preserved after initVertex
+					if ((p as any).auto) {
+						vertex.auto = true;
+					}
+					return vertex;
 				})
+				return;
+			}
+			if (k.endsWith('-deleted')) {
+				const edgeId = k.slice(2, -8); // Remove 'e-' prefix and '-deleted' suffix
+				const edge = this.edges.find(e => e.id == edgeId)
+				if (edge && v === true) {
+					edge.userDeletedVertices = true
+				}
 				return;
 			}
 		})
@@ -684,15 +715,20 @@ export class GraphData {
 				}
 			})
 			
-			// Clear existing edge vertices before applying new layout
-			this.edgeVertices.clear()
-			
 			// Apply edge routing from ELK layout
 			auto.edges.forEach(ae => {
 				const edge = this.edges.find(e => e.id == ae.id)
 				if (edge) {
-					// Clear existing vertices
+					// Clear existing vertices for this edge only
+					if (edge.vertices) {
+						edge.vertices.forEach(v => {
+							if (v.id) {
+								this.edgeVertices.delete(v.id)
+							}
+						})
+					}
 					edge.vertices = []
+					edge.userDeletedVertices = false
 					
 					// Add routing vertices from ELK (these are proper bend points, not nodes)
 					if (ae.vertices && ae.vertices.length > 0) {
@@ -1098,7 +1134,18 @@ function buildEdge(data: GraphData, edge: Edge) {
 	g.append(p)
 
 	// drag handlers
-	edge.vertices = vertices.slice(1, -1).map(p => edge.initVertex(p))
+	edge.vertices = vertices.slice(1, -1).map(p => {
+		// Preserve existing EdgeVertex objects to maintain IDs and selection state
+		if ('id' in p && 'edge' in p) {
+			// This is already an EdgeVertex, preserve it
+			const v = p as EdgeVertex;
+			v.edge = edge; // Ensure edge reference is correct
+			return v;
+		} else {
+			// This is a new Point, convert to EdgeVertex
+			return edge.initVertex(p);
+		}
+	})
 	edge.vertices.forEach((p, i) => {
 		const v = p as EdgeVertex
 		v.ref = create.element('circle', {id: v.id, cx: p.x, cy: p.y, r: 7, fill: 'none'}, 'v-dot')
@@ -1451,9 +1498,17 @@ function addCustomCursorInteraction(svg: SVGSVGElement, conn: {
 			// Pan mode: select the element, don't pan
 			isPanning = false;
 			elastic = null;
-			// Always select the clicked element in pan mode
-			conn.setSelection([node]);
-			ini = [{ x: node.x, y: node.y, n: node }];
+			
+			const nodes = conn.getSelection()
+			if (conn.isSelected(node)) {
+				// Clicking on a selected node - prepare to drag all selected elements
+				ini = nodes.map(n => ({ x: n.x, y: n.y, n }))
+				// No selection change needed since we're clicking on already selected element
+			} else {
+				// Clicking on an unselected node - select only this element
+				conn.setSelection([node]);
+				ini = [{ x: node.x, y: node.y, n: node }];
+			}
 		} else {
 			// Select mode: selection/drag logic
 			isPanning = false; // Ensure no panning if a node is clicked
@@ -1472,17 +1527,15 @@ function addCustomCursorInteraction(svg: SVGSVGElement, conn: {
 				ini = nodes.map(n => ({ x: n.x, y: n.y, n }))
 			} else {
 				// Regular click: defer selection change until we know if it's a drag or click
-				if (conn.isSelected(node) && nodes.length > 1) {
-					// Clicking on a selected node in a multi-selection - prepare to drag all
+				if (conn.isSelected(node)) {
+					// Clicking on a selected node - prepare to drag all selected elements
 					ini = nodes.map(n => ({ x: n.x, y: n.y, n }))
-					// Don't change selection yet - wait to see if user drags
-				} else if (!conn.isSelected(node)) {
-					// Clicking on an unselected node - defer selection change
-					pendingSelectionChange = { node, shiftKey: e.shiftKey }
-					// For now, prepare to drag just this node
-					ini = [{ x: node.x, y: node.y, n: node }]
+					// No pending selection change needed since we're clicking on already selected element
+					pendingSelectionChange = null
 				} else {
-					// Clicking on the only selected node - prepare to drag it
+					// Clicking on an unselected node - defer selection change until we determine if it's a click or drag
+					pendingSelectionChange = { node, shiftKey: e.shiftKey }
+					// For now, prepare to drag just the clicked node (we'll update selection when drag starts)
 					ini = [{ x: node.x, y: node.y, n: node }]
 				}
 			}
@@ -1501,6 +1554,7 @@ function addCustomCursorInteraction(svg: SVGSVGElement, conn: {
 				nodes.length = 0
 				nodes.push(pendingSelectionChange.node)
 				conn.setSelection(nodes)
+				// Update ini to drag only the newly selected node
 				ini = [{ x: pendingSelectionChange.node.x, y: pendingSelectionChange.node.y, n: pendingSelectionChange.node }]
 				pendingSelectionChange = null
 			}
@@ -1734,13 +1788,16 @@ export function addCursorInteraction(svg: SVGSVGElement, dragMode: 'pan' | 'sele
 
 	const keyDownHandler = (e: KeyboardEvent) => {
 		const shortcut = findShortcut(e)
+		
+		
 		if (shortcut) {
 			e.preventDefault() // Prevent browser default for all recognized shortcuts
 		}
 		
 		switch (shortcut) {
 			case DEL_VERTEX:
-				Array.from(gd().edgeVertices.values()).filter(v => v.selected).forEach(v => {
+				const selectedVertices = Array.from(gd().edgeVertices.values()).filter(v => v.selected);
+				selectedVertices.forEach(v => {
 					gd().deleteEdgeVertex(v)
 				})
 				break
