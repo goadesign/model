@@ -104,6 +104,7 @@ export const SVG_STYLES = {
 	groupText: {
 		fill: "#666",
 		"font-size": 22,
+		"font-weight": "bold",
 		cursor: "default"
 	}
 };

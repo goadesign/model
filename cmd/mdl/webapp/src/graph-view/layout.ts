@@ -18,10 +18,10 @@ interface SpacingConfig {
 
 // Balanced spacing configuration - optimized for clean routing
 const DEFAULT_SPACING: SpacingConfig = {
-	nodeSpacing: 160,      // Compact horizontal spacing
-	layerSpacing: 90,      // Balanced vertical spacing between layers  
-	componentSpacing: 80,  // Tighter separation between disconnected components
-	padding: 40,           // Less padding around the entire layout
+	nodeSpacing: 120,      // More compact horizontal spacing
+	layerSpacing: 70,      // Tighter vertical spacing between layers  
+	componentSpacing: 60,  // Closer separation between disconnected components
+	padding: 30,           // Less padding around the entire layout
 	groupMultiplier: 0.65, // Moderate compaction within groups
 };
 
@@ -73,58 +73,44 @@ function getELKOptions(
 	} = userOptions;
 	
 	const baseOptions: Record<string, string> = {
-		'elk.algorithm': 'layered',
+		'elk.algorithm': 'layered', // Back to layered for better orthogonal routing
 		'elk.direction': direction,
 		'elk.spacing.nodeNode': spacing.nodeSpacing.toString(),
 		'elk.spacing.componentComponent': spacing.componentSpacing.toString(),
 		'elk.padding': `[top=${spacing.padding},left=${spacing.padding},bottom=${spacing.padding},right=${spacing.padding}]`,
 		
-		// Layer spacing - balanced for clean routing
+		// Layer spacing for clean routing
 		'elk.layered.spacing.nodeNodeBetweenLayers': spacing.layerSpacing.toString(),
-		'elk.layered.spacing.edgeNodeBetweenLayers': '70', // Sufficient space for edge routing around nodes
-		'elk.layered.spacing.edgeEdgeBetweenLayers': '35',  // More space between parallel edges to prevent crowding
+		'elk.layered.spacing.edgeNodeBetweenLayers': '40', // Tighter spacing around nodes
+		'elk.layered.spacing.edgeEdgeBetweenLayers': '30',  // Tighter space between edges
 		
-		// ORTHOGONAL edge routing with automatic vertex creation
+		// ORTHOGONAL edge routing for cleaner layout
 		'elk.edgeRouting': 'ORTHOGONAL',
-		'elk.layered.unnecessaryBendpoints': 'true', // Clean up unnecessary bend points
+		'elk.layered.unnecessaryBendpoints': 'false',
 		
-		// Improved orthogonal routing settings
-		'elk.layered.edgeRouting.orthogonal.mode': 'BOX', // Try BOX mode for cleaner routing
-		'elk.layered.edgeRouting.orthogonal.spacing': '30', // More spacing for cleaner orthogonal routing
-		'elk.layered.edgeRouting.orthogonal.bendPoint': 'AUTO',
+		// Orthogonal routing configuration - try to minimize detours
+		'elk.layered.edgeRouting.orthogonal.mode': 'DIRECTION_BASED',
+		'elk.layered.edgeRouting.orthogonal.spacing': '15', // Tighter edge spacing
+		'elk.layered.edgeRouting.orthogonal.nodeOverlapRatio': '0.1',
 		
-		// Standard crossing minimization
-		'elk.layered.crossingMinimization.strategy': 'LAYER_SWEEP',
-		'elk.layered.crossingMinimization.greedySwitch.type': 'TWO_SIDED', 
-		'elk.layered.crossingMinimization.greedySwitchCrossingReduction': 'true',
-		
-		// Node placement optimized for edge routing
-		'elk.layered.nodePlacement.strategy': 'NETWORK_SIMPLEX',
-		'elk.layered.nodePlacement.favorStraightEdges': 'false',
-		
-		// Cycle breaking for complex graphs
-		'elk.layered.cycleBreaking.strategy': 'GREEDY_MODEL_ORDER',
-		
-		// Prevent edge merging to maintain individual routing
-		'elk.layered.mergeEdges': 'false',
-		'elk.layered.mergeHierarchyEdges': 'false',
+		// Compaction options
+		'elk.layered.compaction.connectedComponents': 'true',
+		'elk.layered.compaction.postCompaction.strategy': 'LEFT_RIGHT',
 		
 		// Separate components to reduce complexity
 		'elk.separateConnectedComponents': 'true',
 		
-		// Enable hierarchical layout handling for groups
-		'elk.hierarchyHandling': 'INCLUDE_CHILDREN',
+		// Flatten hierarchy for better edge routing
+		'elk.hierarchyHandling': 'SEPARATE_CHILDREN',
+		'elk.layered.considerModelOrder.strategy': 'NONE', // Ignore model ordering constraints
 		
-		// Enhanced edge label handling - prevent overlaps
+		// Enhanced edge label handling - keep labels close to edges
 		'elk.edgeLabels.placement': 'CENTER',
 		'elk.edgeLabels.inline': 'false',
-		'elk.spacing.edgeLabel': '40', // More space around edge labels to prevent overlaps
-		'elk.edgeLabels.considerModelOrder': 'true',
-		'elk.edgeLabels.useShortLabels': 'false',
-		
-		// Additional orthogonal routing options for better vertex creation
-		'elk.layered.edgeRouting.orthogonal.addUnnecessaryBendpoints': 'false',
-		'elk.layered.edgeRouting.orthogonal.nodeOverlapRatio': '0.05' // Less overlap tolerance for cleaner routing
+		'elk.spacing.edgeLabel': '20', // Reduced spacing - keep labels closer
+		'elk.edgeLabels.avoidOverlap': 'false', // Disable aggressive collision avoidance
+		'elk.edgeLabels.considerModelOrder': 'false',
+		'elk.layered.edgeLabels.sideSelection': 'ALWAYS_DOWN', // Consistent label placement
 	};
 	
 	// Additional compact layout options if requested
@@ -160,13 +146,22 @@ export async function autoLayout(graph: GraphData, options: LayoutOptions = {}):
 		if (!node.id) return; // Skip nodes without IDs
 		
 		nodeMap.set(node.id, node);
+		
+		// Ensure minimum dimensions and validate node size data
+		const nodeWidth = Math.max(node.width || 200, 150); // Min width 150px
+		const nodeHeight = Math.max(node.height || 100, 80); // Min height 80px
+		
+		// Add padding to node dimensions for ELK to account for arrow size
+		// This makes ELK route edges to a slightly larger boundary
+		const arrowPadding = 40; // About 8 arrow lengths (arrow is 5px in markerWidth)
+		
 		elkGraph.children.push({
 			id: node.id,
 			// Provide current position as hint to ELK
 			x: node.x,
 			y: node.y,
-			width: node.width || 200,
-			height: node.height || 100,
+			width: nodeWidth + (arrowPadding * 2),
+			height: nodeHeight + (arrowPadding * 2),
 			layoutOptions: {
 				// Allow ELK to move nodes but consider current positions
 				'elk.position': '',
@@ -176,76 +171,43 @@ export async function autoLayout(graph: GraphData, options: LayoutOptions = {}):
 		});
 	});
 
-	// Handle grouped nodes hierarchically with ELK hierarchyHandling enabled
-	const processedGroups = new Set<string>();
-	const nodeToGroupMap = new Map<string, string>();
-	
-	graph.groupsMap.forEach(group => {
-		if (!group.id) return; // Skip groups without IDs
-		
-		if (!processedGroups.has(group.id)) {
-			processedGroups.add(group.id);
-			
-			// Get group-specific spacing with more compaction
-			const groupSpacing = getEffectiveSpacing(options, true);
-			
-			// Create group node
-			const groupNode = {
-				id: group.id,
-				children: [] as any[],
-				edges: [] as any[],
-				layoutOptions: getELKOptions(groupSpacing, options)
-			};
-
-			// Add group members as children and track membership  
-			group.nodes.forEach(member => {
-				if (!isGroup(member)) {
-					nodeToGroupMap.set(member.id, group.id);
-					// Move node from root to group
-					const nodeIndex = elkGraph.children.findIndex(n => n.id === member.id);
-					if (nodeIndex >= 0) {
-						const node = elkGraph.children.splice(nodeIndex, 1)[0];
-						// Ensure moved node has proper structure and dimensions
-						if (!node.layoutOptions) {
-							node.layoutOptions = {};
-						}
-						// Force ELK to use exact node dimensions in groups too
-						node.layoutOptions['elk.nodeSize.constraints'] = '[FIXED_SIZE]';
-						groupNode.children.push(node);
-					}
-				}
-			});
-
-			// Add group to root if it has children
-			if (groupNode.children.length > 0) {
-				elkGraph.children.push(groupNode);
-			}
-		}
-	});
+	// EXPERIMENTAL: Skip group processing - treat all nodes as flat
+	// This should eliminate group-based routing detours
 
 	// Add all edges to root level for optimal ELK routing visibility
 	let addedEdges = 0;
 	graph.edges.forEach(edge => {
 		// Skip edges without proper IDs
 		if (!edge.id || !edge.from?.id || !edge.to?.id) return;
+		
+		// Verify source and target nodes exist in our node map
+		if (!nodeMap.has(edge.from.id) || !nodeMap.has(edge.to.id)) {
+			console.warn(`Skipping edge ${edge.id}: source ${edge.from.id} or target ${edge.to.id} not found in nodes`);
+			return;
+		}
+		
 		addedEdges++;
+		
+		// Calculate more accurate label dimensions for ELK
+		const labelWidth = edge.label && edge.label.trim() ? 
+			Math.min(edge.label.length * 7, 200) : 0; // More realistic width estimate
+		
 		
 		const elkEdge = {
 			id: edge.id,
 			sources: [edge.from.id],
 			targets: [edge.to.id],
-			// Include comprehensive label information for ELK awareness
+			// Include label information with much smaller dimensions
 			labels: edge.label && edge.label.trim() ? [{
 				id: `${edge.id}-label`,
 				text: edge.label,
-				// Estimate label dimensions for ELK layout calculations
-				width: Math.max(edge.label.length * 8, 50), // Rough character width estimation
-				height: 20, // Standard label height
+				// Much more conservative label size estimates
+				width: labelWidth,
+				height: 20, // More realistic label height
 				layoutOptions: {
 					'elk.edgeLabels.placement': 'CENTER',
-					'elk.edgeLabels.inline': 'false',
-					// Force ELK to consider label dimensions
-					'elk.nodeSize.constraints': '[FIXED_SIZE]'
+					'elk.edgeLabels.inline': 'false'
+					// Remove the FIXED_SIZE constraint that might be forcing detours
 				}
 			}] : []
 		};
@@ -254,10 +216,11 @@ export async function autoLayout(graph: GraphData, options: LayoutOptions = {}):
 		elkGraph.edges.push(elkEdge);
 	});
 
-	// Basic validation - ensure root graph structure is valid
+	// Enhanced validation - ensure ELK gets complete data
 	if (!elkGraph.id || !elkGraph.children) {
 		throw new Error('Invalid ELK graph structure');
 	}
+	
 
 	try {
 		const layoutedGraph = await elk.layout(elkGraph);
@@ -265,6 +228,9 @@ export async function autoLayout(graph: GraphData, options: LayoutOptions = {}):
 		// Extract results
 		const nodes: Array<{id: string, x: number, y: number}> = [];
 		const edges: Array<{id: string, vertices: Array<{x: number, y: number}>, label?: {x: number, y: number}}> = [];
+
+		// Same padding we added to nodes for ELK
+		const arrowPadding = 40;
 
 		// Extract nodes from layout result
 		const extractNodes = (container: any, offsetX = 0, offsetY = 0) => {
@@ -274,6 +240,8 @@ export async function autoLayout(graph: GraphData, options: LayoutOptions = {}):
 					extractNodes(child, offsetX + (child.x || 0), offsetY + (child.y || 0));
 				} else {
 					// This is a node
+					// Adjust for the padding we added - ELK positioned based on padded size
+					// So we need to shift by the padding amount to get the real center
 					nodes.push({
 						id: child.id,
 						x: offsetX + (child.x || 0) + (child.width || 0) / 2,
@@ -320,23 +288,27 @@ export async function autoLayout(graph: GraphData, options: LayoutOptions = {}):
 					});
 				}
 
-				// Find the original edge to get label info
+				// Extract ELK's calculated label positions (respect collision avoidance!)
 				const originalEdge = graph.edges.find(e => e.id === elkEdge.id);
-				
-				// Calculate label position if edge has a label and vertices
-				if (originalEdge?.label && originalEdge.label.trim() && vertices.length >= 2) {
-					const midIndex = Math.floor(vertices.length / 2);
-					if (vertices.length % 2 === 0) {
-						// Even number of vertices, interpolate between middle two
-						const v1 = vertices[midIndex - 1];
-						const v2 = vertices[midIndex];
-						label = {
-							x: (v1.x + v2.x) / 2,
-							y: (v1.y + v2.y) / 2
-						};
-					} else {
-						// Odd number of vertices, use middle vertex
-						label = vertices[midIndex];
+				if (originalEdge?.label && originalEdge.label.trim()) {
+					if (elkEdge.labels && elkEdge.labels.length > 0) {
+						const elkLabel = elkEdge.labels[0]; // Get first label
+						if (elkLabel.x !== undefined && elkLabel.y !== undefined) {
+							label = {
+								x: offsetX + elkLabel.x + (elkLabel.width || 0) / 2, // Center of label
+								y: offsetY + elkLabel.y + (elkLabel.height || 0) / 2
+							};
+						}
+					} else if (vertices.length >= 2) {
+						// Fallback: use middle of edge if ELK didn't provide label position
+						const midIndex = Math.floor(vertices.length / 2);
+						if (vertices.length % 2 === 0) {
+							const v1 = vertices[midIndex - 1];
+							const v2 = vertices[midIndex];
+							label = { x: (v1.x + v2.x) / 2, y: (v1.y + v2.y) / 2 };
+						} else {
+							label = vertices[midIndex];
+						}
 					}
 				}
 
@@ -441,6 +413,4 @@ function createFallbackLayout(graph: GraphData): {
 	return { nodes, edges };
 }
 
-function isGroup(member: Node | Group): member is Group {
-	return 'nodes' in member;
-}
+// Removed unused isGroup function since we skip group processing

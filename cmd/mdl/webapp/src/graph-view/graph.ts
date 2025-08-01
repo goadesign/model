@@ -92,6 +92,7 @@ interface Edge {
 	style: EdgeStyle;
 	initVertex: (p: Point) => EdgeVertex;
 	userDeletedVertices?: boolean; // Track if user explicitly deleted vertices
+	labelVertex?: EdgeVertex; // ELK-calculated label position (separate from routing vertices)
 }
 
 interface EdgeVertex extends Point {
@@ -358,10 +359,6 @@ export class GraphData {
 
 	undo() {
 		this._undo.undo()
-	}
-
-	redo() {
-		this._undo.redo()
 	}
 
 	// moves the entire graph to be aligned top-left of the drawing area
@@ -739,12 +736,37 @@ export class GraphData {
 						})
 					}
 					
-					// Handle edge label positioning
+					// Handle edge label positioning - create proper interactive label vertices
 					if (ae.label) {
+						
+						// Remove any existing label vertices (ELK or user-created)
+						if (edge.vertices) {
+							edge.vertices.forEach(v => {
+								if (v.label) {
+									this.edgeVertices.delete(v.id)
+								}
+							})
+							edge.vertices = edge.vertices.filter(v => !v.label)
+						}
+						
+						// Create a proper label vertex that behaves like a user-created vertex
 						const labelVertex = edge.initVertex(ae.label)
 						labelVertex.label = true
-						labelVertex.auto = true
-						edge.vertices.push(labelVertex)
+						labelVertex.auto = true // Mark as auto-generated so it can be cleaned up
+						
+						// Insert label vertex at the optimal position in the routing path
+						// Find the best position to insert it and project it onto that line segment
+						edge.vertices = edge.vertices || []
+						const insertPos = findOptimalLabelPosition(edge.vertices, ae.label, edge.from, edge.to)
+						
+						// Project the label position onto the line segment where it will be inserted
+						const projectedPos = projectLabelOntoSegment(edge.vertices, ae.label, insertPos, edge.from, edge.to)
+						labelVertex.x = projectedPos.x
+						labelVertex.y = projectedPos.y
+						
+						edge.vertices.splice(insertPos, 0, labelVertex)
+						this.edgeVertices.set(labelVertex.id, labelVertex)
+						
 					}
 					
 					// Redraw the edge with new routing
@@ -1116,8 +1138,8 @@ function buildEdge(data: GraphData, edge: Edge) {
 	// Calculate edge vertices using utility function
 	const vertices = calculateEdgeVertices(edge, data)
 
-	// Calculate label position using utility function
-	const pLabel = calculateLabelPosition(vertices, position, n1)
+	// Calculate label position using utility function - pass edge for ELK label lookup
+	const pLabel = calculateLabelPosition(vertices, position, n1, edge)
 
 	const {bg, txt, bbox} = buildEdgeLabel(pLabel, edge)
 	g.append(bg, txt)
@@ -1132,6 +1154,8 @@ function buildEdge(data: GraphData, edge: Edge) {
 	p.setAttribute('stroke-linecap', 'round')
 	edge.style.dashed && p.setAttribute('stroke-dasharray', '8')
 	g.append(p)
+	
+	// Debug visualization removed - arrow issue fixed
 
 	// drag handlers
 	edge.vertices = vertices.slice(1, -1).map(p => {
@@ -2101,6 +2125,7 @@ const styles = {
 	groupText: {
 		fill: "#666",
 		"font-size": 22,
+		"font-weight": "bold",
 		cursor: "default"
 	}
 }
@@ -2147,4 +2172,121 @@ export function restoreViewState(graphId: string): boolean {
 // Clear view state for a graph
 export function clearViewState(graphId: string) {
 	viewStateCache.delete(graphId);
+}
+
+/**
+ * Find the optimal position to insert a label vertex into the routing path
+ * to minimize disruption to the existing route
+ */
+function findOptimalLabelPosition(vertices: Point[], labelPos: Point, fromNode: Point, toNode: Point): number {
+	// If no existing vertices, insert at the beginning
+	if (vertices.length === 0) {
+		return 0;
+	}
+	
+	// Build the full routing path including start/end nodes
+	const fullPath = [fromNode, ...vertices, toNode];
+	
+	// Find the closest point on the path to the label position
+	let minDistance = Infinity;
+	let bestSegmentIndex = 0;
+	
+	for (let i = 0; i < fullPath.length - 1; i++) {
+		const segmentStart = fullPath[i];
+		const segmentEnd = fullPath[i + 1];
+		
+		// Calculate distance from label position to this segment
+		const distance = distanceToSegment(labelPos, segmentStart, segmentEnd);
+		
+		if (distance < minDistance) {
+			minDistance = distance;
+			bestSegmentIndex = i;
+		}
+	}
+	
+	// Convert full path index to vertices array index
+	// bestSegmentIndex 0 means between fromNode and vertices[0] -> insert at 0
+	// bestSegmentIndex 1 means between vertices[0] and vertices[1] -> insert at 1
+	// etc.
+	return bestSegmentIndex;
+}
+
+/**
+ * Calculate distance from a point to a line segment
+ */
+function distanceToSegment(point: Point, segmentStart: Point, segmentEnd: Point): number {
+	const A = point.x - segmentStart.x;
+	const B = point.y - segmentStart.y;
+	const C = segmentEnd.x - segmentStart.x;
+	const D = segmentEnd.y - segmentStart.y;
+	
+	const dot = A * C + B * D;
+	const lenSq = C * C + D * D;
+	
+	if (lenSq === 0) {
+		// Segment is actually a point
+		return Math.sqrt(A * A + B * B);
+	}
+	
+	let param = dot / lenSq;
+	
+	let xx, yy;
+	
+	if (param < 0) {
+		xx = segmentStart.x;
+		yy = segmentStart.y;
+	} else if (param > 1) {
+		xx = segmentEnd.x;
+		yy = segmentEnd.y;
+	} else {
+		xx = segmentStart.x + param * C;
+		yy = segmentStart.y + param * D;
+	}
+	
+	const dx = point.x - xx;
+	const dy = point.y - yy;
+	return Math.sqrt(dx * dx + dy * dy);
+}
+
+/**
+ * Project a label position onto the line segment where it will be inserted
+ */
+function projectLabelOntoSegment(vertices: Point[], labelPos: Point, insertPos: number, fromNode: Point, toNode: Point): Point {
+	// Build the full routing path including start/end nodes
+	const fullPath = [fromNode, ...vertices, toNode];
+	
+	// The segment where we're inserting is between fullPath[insertPos] and fullPath[insertPos + 1]
+	const segmentStart = fullPath[insertPos];
+	const segmentEnd = fullPath[insertPos + 1];
+	
+	// Project the label position onto this line segment
+	return projectPointOntoSegment(labelPos, segmentStart, segmentEnd);
+}
+
+/**
+ * Project a point onto a line segment (closest point on the segment)
+ */
+function projectPointOntoSegment(point: Point, segmentStart: Point, segmentEnd: Point): Point {
+	const A = point.x - segmentStart.x;
+	const B = point.y - segmentStart.y;
+	const C = segmentEnd.x - segmentStart.x;
+	const D = segmentEnd.y - segmentStart.y;
+	
+	const dot = A * C + B * D;
+	const lenSq = C * C + D * D;
+	
+	if (lenSq === 0) {
+		// Segment is actually a point, return that point
+		return { x: segmentStart.x, y: segmentStart.y };
+	}
+	
+	let param = dot / lenSq;
+	
+	// Clamp to segment (don't extend beyond endpoints)
+	param = Math.max(0, Math.min(1, param));
+	
+	return {
+		x: segmentStart.x + param * C,
+		y: segmentStart.y + param * D
+	};
 }

@@ -68,12 +68,12 @@ interface GraphData {
 export function calculateEdgeVertices(edge: Edge, data: GraphData): Point[] {
 	const n1 = edge.from, n2 = edge.to;
 	
+	
 	// if vertices exists, follow them
 	let vertices: Point[] = edge.vertices ? edge.vertices.concat() : [];
-	// Only remove label auto vertices (not routing vertices from ELK)
+	// Don't remove label vertices - they should be preserved for rendering
+	// (The autoLayout process handles replacing old ones with new ones)
 	const tmp = (vertices as EdgeVertex[]);
-	tmp.forEach(v => v.auto && v.label && data.edgeVertices.delete(v.id))
-	vertices = tmp.filter(v => !(v.auto && v.label))
 
 	if (vertices.length == 0 && !edge.userDeletedVertices) {
 		// Only create auto vertices if user hasn't explicitly deleted them
@@ -109,8 +109,155 @@ export function calculateEdgeVertices(edge: Edge, data: GraphData): Point[] {
 	vertices.unshift(n1)
 	vertices.push(n2)
 
-	vertices[0] = n1.intersect(vertices[1])
-	vertices[vertices.length - 1] = n2.intersect(vertices[vertices.length - 2])
+	// Calculate intersection points with node boundaries
+	// Find first non-label vertex for start intersection
+	let firstRoutingVertex = vertices[vertices.length - 1]; // Default to end node
+	let foundFirstRoutingVertex = false;
+	for (let i = 1; i < vertices.length - 1; i++) {
+		if (!(vertices[i] as any).label) {
+			firstRoutingVertex = vertices[i];
+			foundFirstRoutingVertex = true;
+			break;
+		}
+	}
+	
+	// Find last non-label vertex for end intersection  
+	let lastRoutingVertex = vertices[0]; // Default to start node
+	let foundLastRoutingVertex = false;
+	for (let i = vertices.length - 2; i > 0; i--) {
+		if (!(vertices[i] as any).label) {
+			lastRoutingVertex = vertices[i];
+			foundLastRoutingVertex = true;
+			break;
+		}
+	}
+	
+	// For connections without routing vertices, ensure we have proper direction
+	// The defaults are already correct: firstRoutingVertex = n2, lastRoutingVertex = n1
+	
+	
+	// Calculate proper node boundary intersection
+	const calculateNodeIntersection = (node: any, targetPoint: Point): Point => {
+		const nodeShape = node.style?.shape?.toLowerCase() || 'box';
+		const dx = targetPoint.x - node.x;
+		const dy = targetPoint.y - node.y;
+		const nodeCenter = { x: node.x, y: node.y };
+		
+		// If target is at center, default to right edge
+		if (Math.abs(dx) < 0.01 && Math.abs(dy) < 0.01) {
+			return { x: node.x + node.width / 2, y: node.y };
+		}
+		
+		if (nodeShape === 'cylinder') {
+			// Cylinder shape intersection (same as shapes.ts)
+			const w = node.width;
+			const rx = w / 2;
+			const ry = rx / (5.5 + w / 70);
+			const halfHeight = node.height / 2;
+			
+			// First calculate rectangular bounds intersection
+			const angle = Math.atan2(dy, dx);
+			const cos = Math.cos(angle);
+			const sin = Math.sin(angle);
+			
+			// Check intersection with rectangular bounds
+			let t = Infinity;
+			if (Math.abs(cos) > 0.01) {
+				t = Math.min(t, Math.abs(rx / cos));
+			}
+			if (Math.abs(sin) > 0.01) {
+				t = Math.min(t, Math.abs(halfHeight / sin));
+			}
+			
+			const rectX = node.x + cos * t;
+			const rectY = node.y + sin * t;
+			
+			// Check if we need elliptical intersection for top/bottom curves
+			const topCurveY = node.y - halfHeight + ry;
+			const bottomCurveY = node.y + halfHeight - ry;
+			
+			if (rectY < topCurveY || rectY > bottomCurveY) {
+				// Use ellipse intersection for curved parts
+				const ellipseY = rectY < topCurveY ? node.y - halfHeight + ry : node.y + halfHeight - ry;
+				// Solve for ellipse intersection
+				const a = 1 / (rx * rx);
+				const b = -2 * node.x / (rx * rx);
+				const c = (node.x * node.x) / (rx * rx) + ((ellipseY - node.y) * (ellipseY - node.y)) / (ry * ry) - 1;
+				
+				const discriminant = b * b - 4 * a * c;
+				if (discriminant >= 0) {
+					const sqrt_d = Math.sqrt(discriminant);
+					const x1 = (-b + sqrt_d) / (2 * a);
+					const x2 = (-b - sqrt_d) / (2 * a);
+					
+					// Choose the intersection in the direction of the target
+					const intersectX = dx > 0 ? Math.max(x1, x2) : Math.min(x1, x2);
+					return { x: intersectX, y: ellipseY };
+				}
+			}
+			
+			return { x: rectX, y: rectY };
+			
+		} else if (nodeShape === 'circle') {
+			const radius = node.width / 2;
+			const angle = Math.atan2(dy, dx);
+			return {
+				x: node.x + Math.cos(angle) * radius,
+				y: node.y + Math.sin(angle) * radius
+			};
+			
+		} else if (nodeShape === 'ellipse') {
+			const rx = node.width * 0.55;
+			const ry = node.width * 0.45;
+			const angle = Math.atan2(dy, dx);
+			const cos = Math.cos(angle);
+			const sin = Math.sin(angle);
+			
+			// Parametric ellipse intersection
+			const t = Math.sqrt((rx * rx * sin * sin) + (ry * ry * cos * cos));
+			return {
+				x: node.x + (rx * cos * ry) / t,
+				y: node.y + (ry * sin * rx) / t
+			};
+			
+		} else {
+			// Default rectangular intersection
+			const halfWidth = node.width / 2;
+			const halfHeight = node.height / 2;
+			const angle = Math.atan2(dy, dx);
+			const cos = Math.cos(angle);
+			const sin = Math.sin(angle);
+			
+			// Calculate which edge we hit first
+			let t = Infinity;
+			if (Math.abs(cos) > 0.01) {
+				t = Math.min(t, Math.abs(halfWidth / cos));
+			}
+			if (Math.abs(sin) > 0.01) {
+				t = Math.min(t, Math.abs(halfHeight / sin));
+			}
+			
+			return {
+				x: node.x + cos * t,
+				y: node.y + sin * t
+			};
+		}
+	};
+	
+	// Calculate intersections, but use the direction from center to NEXT vertex in sequence
+	// This ensures the line exits the node in the direction it needs to go
+	
+	// For start intersection: use direction from node center to first routing vertex
+	let startIntersection = calculateNodeIntersection(n1, firstRoutingVertex);
+	
+	// For end intersection: use direction from node center to last routing vertex  
+	let endIntersection = calculateNodeIntersection(n2, lastRoutingVertex);
+	
+	// Start intersection: NO offset needed - intersection already gives perfect boundary point
+	// End intersection: NO offset needed - the arrow marker now has refX="0" so the tip is at the endpoint
+	
+	vertices[0] = startIntersection;
+	vertices[vertices.length - 1] = endIntersection;
 	
 	return vertices;
 }
@@ -118,7 +265,7 @@ export function calculateEdgeVertices(edge: Edge, data: GraphData): Point[] {
 /**
  * Calculate the position for edge label along the edge path
  */
-export function calculateLabelPosition(vertices: Point[], position: number, fallback: Point): Point {
+export function calculateLabelPosition(vertices: Point[], position: number, fallback: Point, edge?: any): Point {
 	// where along the edge is the label?
 	// position of label
 	let pLabel: Point = vertices.find(v => (v as any).label)
@@ -152,6 +299,11 @@ export function createEdgeSegments(vertices: Point[], bbox: BBox, n1: Point, n2:
 	const segments: Segment[] = []
 	for (let i = 1; i < vertices.length; i++) {
 		segments.push({p: vertices[i - 1], q: vertices[i]})
+	}
+	
+	// Debug the final segment that will have the arrow
+	if (segments.length > 0) {
+		const lastSegment = segments[segments.length - 1];
 	}
 	// splice edge over label box
 	intersectPolylineBox(segments, bbox)
