@@ -426,6 +426,7 @@ The editor supports a number of keyboard shortcuts listed below. On Mac, use CMD
 | Move                 | LEFT                       | Move left (grid increment)            |
 | Move                 | SHIFT + LEFT               | Move left (fine - 1 pixel)           |
 | View                 | T                          | Toggle between pan and select mode   |
+| View                 | SHIFT + drag               | Invert drag mode (pan becomes select, select becomes pan) |
 | Alignment            | CTRL + SHIFT + H           | Align selected elements horizontally |
 | Alignment            | CTRL + SHIFT + A           | Align selected elements vertically   |
 | Alignment            | CTRL + ALT + H             | Distribute selected elements horizontally |
@@ -441,7 +442,7 @@ While functional, the editor isn't considered feature complete yet. Here is
 the list of features that will be added in the future:
 
 - [x] Grid system with snap-to-grid functionality
-- [ ] Better SVG clipping on save
+- [x] Better SVG clipping on save
 - [ ] Autolayout on start if no pre-existing layout information
 - [x] Keyboard shortcuts for vertical and horizontal align
 - [ ] Autosave toggle

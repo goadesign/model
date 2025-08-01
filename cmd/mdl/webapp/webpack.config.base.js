@@ -51,6 +51,35 @@ module.exports = {
 	].filter(Boolean),
 	optimization: {
 		runtimeChunk: 'single',
+		splitChunks: {
+			chunks: 'all',
+			cacheGroups: {
+				vendor: {
+					test: /[\/\\]node_modules[\/\\]/,
+					name: 'vendors',
+					chunks: 'all',
+					priority: 10,
+				},
+				fontawesome: {
+					test: /[\/\\]node_modules[\/\\]@fortawesome[\/\\]/,
+					name: 'fontawesome',
+					chunks: 'all',
+					priority: 20,
+				},
+				elkjs: {
+					test: /[\/\\]node_modules[\/\\]elkjs[\/\\]/,
+					name: 'elkjs',
+					chunks: 'all',
+					priority: 20,
+				},
+				svgtools: {
+					test: /[\/\\]node_modules[\/\\]svg-editor-tools[\/\\]/,
+					name: 'svg-editor-tools',
+					chunks: 'all',
+					priority: 20,
+				},
+			},
+		},
 	},
 	devServer: {
 		historyApiFallback: true,

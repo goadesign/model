@@ -28,17 +28,27 @@ import {
 	ZOOM_IN,
 	ZOOM_OUT
 } from "../shortcuts";
+import {
+	Point,
+	BBox,
+	NodeStyle,
+	EdgeStyle,
+	DEFAULT_EDGE_STYLE,
+	DEFAULT_NODE_STYLE,
+	SVG_STYLES,
+	SVG_PADDING,
+	DEFAULT_GRID_SIZE,
+	applyStyle,
+	calculateDistance
+} from "./constants";
+import {
+	calculateEdgeVertices,
+	calculateLabelPosition,
+	createEdgeSegments
+} from "./edge-utils";
 
 
-interface Point {
-	x: number;
-	y: number;
-}
-
-interface BBox extends Point {
-	width: number;
-	height: number;
-}
+// Point and BBox interfaces are now imported from constants
 
 export interface Group extends BBox {
 	id: string;
@@ -62,72 +72,16 @@ export interface Node extends BBox {
 	style: NodeStyle
 }
 
-export interface NodeStyle {
-	// Width of element, in pixels.
-	width?: number
-	// Height of element, in pixels.
-	height?: number
-	// Background color of element as HTML RGB hex string (e.g. "#ffffff")
-	background?: string
-	// Stroke color of element as HTML RGB hex string (e.g. "#000000")
-	stroke?: string
-	// Foreground (text) color of element as HTML RGB hex string (e.g. "#ffffff")
-	color?: string
-	// Standard font size used to render text, in pixels.
-	fontSize?: number
-	// Shape used to render element.
-	shape?: string
-	// URL of PNG/JPG/GIF file or Base64 data URI representation.
-	icon?: string
-	// Type of border used to render element.
-	border?: string
-	// Opacity used to render element; 0-100.
-	opacity?: number
-	// Whether element metadata should be shown.
-	metadata?: boolean
-	// Whether element description should be shown.
-	description?: boolean
-}
+// NodeStyle interface is now imported from constants
 
-// RelationshipStyle defines a relationship style.
-export interface EdgeStyle {
-	// Thickness of line, in pixels.
-	thickness?: number
-	// Color of line as HTML RGB hex string (e.g. "#ffffff").
-	color?: string
-	// Standard font size used to render relationship annotation, in pixels.
-	fontSize?: number
-	// Width of relationship annotation, in pixels.
-	width?: number
-	// Whether line is rendered dashed or not.
-	dashed?: boolean
-	// Position of annotation along the line; 0 (start) to 100 (end).
-	position?: number
-	// Opacity used to render line; 0-100.
-	opacity?: number
-	// Arrow style
-	arrowStyle?: 'normal' | 'large' | 'small' | 'none'
-}
+// EdgeStyle interface is now imported from constants
 
-const defaultEdgeStyle: EdgeStyle = {
-	thickness: 3,
-	color: '#999',
-	opacity: 1,
-	fontSize: 22,
-	dashed: true,
-}
+// Default styles are now imported from constants
+const defaultEdgeStyle = DEFAULT_EDGE_STYLE;
+const defaultNodeStyle = DEFAULT_NODE_STYLE;
 
-const defaultNodeStyle: NodeStyle = {
-	width: 280,
-	height: 180,
-	background: 'rgba(255, 255, 255, .9)',
-	color: '#666',
-	opacity: .9,
-	stroke: '#999',
-	fontSize: 22,
-	shape: 'Box'
-}
-
+// Edge and EdgeVertex interfaces are now defined in edge-utils.ts
+// Using local interfaces for compatibility with existing code
 interface Edge {
 	id: string;
 	label: string;
@@ -136,7 +90,9 @@ interface Edge {
 	vertices?: EdgeVertex[];
 	ref?: SVGGElement;
 	style: EdgeStyle;
-	initVertex: (p: Point) => EdgeVertex
+	initVertex: (p: Point) => EdgeVertex;
+	userDeletedVertices?: boolean; // Track if user explicitly deleted vertices
+	labelVertex?: EdgeVertex; // ELK-calculated label position (separate from routing vertices)
 }
 
 interface EdgeVertex extends Point {
@@ -149,7 +105,7 @@ interface EdgeVertex extends Point {
 }
 
 interface Layout {
-	[k: string]: Point | (Point & { label: boolean })[]
+	[k: string]: Point | (Point & { label: boolean })[] | boolean
 }
 
 export class GraphData {
@@ -163,7 +119,8 @@ export class GraphData {
 	private _undo: Undo<Layout>;
 	private _gridVisible: boolean = true;
 	private _snapToGrid: boolean = true;
-	private _gridSize: number = 20;
+	private _gridSize: number = 25;
+	private _skipAutoFit: boolean = false;
 
 	constructor(id?: string, name?: string) {
 		this.id = id;
@@ -195,6 +152,10 @@ export class GraphData {
 		if (this._undo.length()) {
 			this.importLayout(this._undo.currentState())
 		}
+		
+		// Save initial state so first action is undoable
+		this._undo.beforeChange()
+		this._undo.change()
 	}
 
 	addNode(id: string, label: string, sub: string, description: string, style: NodeStyle) {
@@ -214,8 +175,9 @@ export class GraphData {
 			width = 200;
 			height = 240;
 		} else if (isCylinderShape) {
-			width = 200;
-			height = 160;
+			// Make cylinders wider to better accommodate text content
+			width = 280; // Same width as boxes for consistency
+			height = 180; // Same height as boxes for consistency
 		} else {
 			// Standard rectangular shapes
 			width = 280;
@@ -231,7 +193,6 @@ export class GraphData {
 			id, title: label, sub, description, style: {...defaultNodeStyle, ...cleanStyle},
 			x: 0, y: 0, width, height, intersect: null
 		}
-		// console.log(label, id, style, {...defaultNodeStyle, ...style})
 		this.nodesMap.set(n.id, n)
 	}
 
@@ -262,7 +223,8 @@ export class GraphData {
 			label,
 			vertices: null as EdgeVertex[],
 			style: {...defaultEdgeStyle, ...style},
-			initVertex
+			initVertex,
+			userDeletedVertices: false
 		}
 		this.edges.push(edge)
 		if (vertices) {
@@ -314,7 +276,7 @@ export class GraphData {
 		})
 	}
 
-	moveNode(n: Node, x: number, y: number, disableSnap: boolean = false) {
+	moveNode(n: Node, x: number, y: number, disableSnap: boolean = false, skipUndo: boolean = false) {
 		if (!n) return
 		
 		// Apply snap-to-grid if enabled and not explicitly disabled
@@ -326,17 +288,21 @@ export class GraphData {
 		
 		if (n.x == x && n.y == y) return
 		
-		this._undo.beforeChange()
+		if (!skipUndo) {
+			this._undo.beforeChange()
+		}
 		n.x = x;
 		n.y = y;
 		setPosition(n.ref, x, y)
 		this.redrawEdges(n);
 		this.redrawGroups(n)
-		this._undo.change()
+		if (!skipUndo) {
+			this._undo.change()
+		}
 	}
 
-	moveEdgeVertex(v: EdgeVertex, x: number, y: number, disableSnap: boolean = false) {
-		// Apply snap-to-grid if enabled and not explicitly disabled
+	moveEdgeVertex(v: EdgeVertex, x: number, y: number, disableSnap: boolean = false, skipUndo: boolean = false) {
+		
 		if (this._snapToGrid && !disableSnap) {
 			const snapped = this.snapToGrid(x, y);
 			x = snapped.x;
@@ -345,16 +311,20 @@ export class GraphData {
 		// Use exact coordinates (no rounding needed with modern grid system)
 		
 		if (v.x == x && v.y == y) return
-		this._undo.beforeChange()
+		if (!skipUndo) {
+			this._undo.beforeChange()
+		}
 		v.x = x;
 		v.y = y;
 		this.redrawEdge(v.edge)
-		this._undo.change()
+		if (!skipUndo) {
+			this._undo.change()
+		}
 	}
 
 	moveSelected(dx: number, dy: number, disableSnap: boolean = false) {
-		this.nodes().forEach(n => n.selected && this.moveNode(n, n.x + dx, n.y + dy, disableSnap))
-		this.edgeVertices.forEach(v => v.selected && this.moveEdgeVertex(v, v.x + dx, v.y + dy, disableSnap))
+		this.nodes().forEach(n => n.selected && this.moveNode(n, n.x + dx, n.y + dy, disableSnap, false))
+		this.edgeVertices.forEach(v => v.selected && this.moveEdgeVertex(v, v.x + dx, v.y + dy, disableSnap, false))
 	}
 
 	insertEdgeVertex(edge: Edge, p: Point, pos: number, isLabel: boolean) {
@@ -372,12 +342,16 @@ export class GraphData {
 
 	deleteEdgeVertex(v: EdgeVertex) {
 		this._undo.beforeChange()
-		if (v.auto) {
-			v.auto = true
-		} else {
-			v.edge.vertices.splice(v.edge.vertices.indexOf(v), 1)
+		
+		const index = v.edge.vertices.indexOf(v)
+		if (index >= 0) {
+			v.edge.vertices.splice(index, 1)
 			this.edgeVertices.delete(v.id)
+			
+			// Mark that user explicitly deleted vertices from this edge
+			v.edge.userDeletedVertices = true
 		}
+		
 		this.redrawEdge(v.edge)
 		this._undo.change()
 	}
@@ -403,20 +377,22 @@ export class GraphData {
 		const offsetX = -contentBounds.x + padding
 		const offsetY = -contentBounds.y + padding
 		
+		// Set flag to prevent React useEffect from calling fitToView during this operation
+		this._skipAutoFit = true
+		
 		this._undo.beforeChange()
 		
 		this.nodesMap.forEach(node => {
-			this.moveNode(node, node.x + offsetX, node.y + offsetY)
+			this.moveNode(node, node.x + offsetX, node.y + offsetY, true, true) // Disable snap and undo during reset
 		})
 		
 		this.edgeVertices.forEach(vertex => {
-			this.moveEdgeVertex(vertex, vertex.x + offsetX, vertex.y + offsetY)
+			this.moveEdgeVertex(vertex, vertex.x + offsetX, vertex.y + offsetY, true, true) // Disable snap and undo during reset
 		})
 		
 		this._undo.change()
 		
-		// Clear view state so this reset position is not overridden
-		clearViewState(this.id)
+		// DON'T clear view state here - let resetPanTransform handle it to avoid React useEffect recursion
 	}
 	
 	// Reset pan transform to (0,0) while preserving zoom
@@ -425,10 +401,31 @@ export class GraphData {
 		const zoomGroup = svg.querySelector('g.zoom') as SVGGElement
 		if (zoomGroup) {
 			zoomGroup.setAttribute('transform', `scale(${currentZoom}) translate(0, 0)`)
-			updatePanning()
+			updatePanningOptimized(this)
 		}
 		
 		// Clear view state so this reset is not overridden
+		clearViewState(this.id)
+		
+		// Reset the skip auto fit flag after reset is complete
+		this._skipAutoFit = false
+	}
+	
+	// Check if auto-fit should be skipped (used by React useEffect)
+	shouldSkipAutoFit(): boolean {
+		return this._skipAutoFit
+	}
+
+	// Reset view to default state: 100% zoom, centered at origin
+	resetView() {
+		const zoomGroup = svg.querySelector('g.zoom') as SVGGElement
+		if (zoomGroup) {
+			// Reset to 100% zoom, centered at origin
+			zoomGroup.setAttribute('transform', 'scale(1) translate(0, 0)')
+			updatePanning()
+		}
+		
+		// Clear any saved view state so this reset position is not overridden
 		clearViewState(this.id)
 	}
 
@@ -474,28 +471,29 @@ export class GraphData {
 		
 		// Add padding around content
 		const padding = 50
-		const exportBounds = {
-			x: contentBounds.x - padding,
-			y: contentBounds.y - padding,
-			width: contentBounds.width + (padding * 2),
-			height: contentBounds.height + (padding * 2)
-		}
 		
-		// Calculate offset for export positioning
+		// Calculate final export dimensions (always positive)
+		const exportWidth = contentBounds.width + (padding * 2)
+		const exportHeight = contentBounds.height + (padding * 2)
+		
+		// Calculate offset to move content to start at (padding, padding) within the export area
 		const offsetX = -contentBounds.x + padding
 		const offsetY = -contentBounds.y + padding
 		
 		// Apply export positioning to the cloned SVG elements
 		const exportZoomGroup = exportSvg.querySelector('g.zoom') as SVGGElement
 		if (exportZoomGroup) {
-			// Reset zoom to 1 and apply offset transform
+			// Reset zoom to 1 and apply offset transform to position content properly
 			exportZoomGroup.setAttribute('transform', `scale(1) translate(${offsetX}, ${offsetY})`)
 		}
 		
-		// Set proper viewBox and dimensions for export
-		exportSvg.setAttribute('viewBox', `${exportBounds.x} ${exportBounds.y} ${exportBounds.width} ${exportBounds.height}`)
-		exportSvg.setAttribute('width', String(exportBounds.width))
-		exportSvg.setAttribute('height', String(exportBounds.height))
+		// Set proper viewBox and dimensions for export - viewBox always starts at (0,0)
+		exportSvg.setAttribute('viewBox', `0 0 ${exportWidth} ${exportHeight}`)
+		exportSvg.setAttribute('width', String(exportWidth))
+		exportSvg.setAttribute('height', String(exportHeight))
+		
+		// Add required SVG namespace for browser compatibility
+		exportSvg.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
 		
 		// Inject metadata with current layout
 		const script = document.createElement('script')
@@ -505,7 +503,7 @@ export class GraphData {
 		exportSvg.insertBefore(script, exportSvg.firstChild)
 		
 		// Get the export SVG as string
-		const src = exportSvg.outerHTML.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"')
+		const src = exportSvg.outerHTML
 		
 		// No restoration needed since we never touched the original SVG!
 		return src
@@ -513,76 +511,78 @@ export class GraphData {
 
 	// Calculate the actual bounds of all content including nodes, edges, and groups
 	calculateContentBounds(): BBox {
-		const elements: BBox[] = []
+		let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity
 		
-		// Add node bounds (including their actual dimensions)
+		// Process nodes (including their actual dimensions)
 		this.nodes().forEach(node => {
-			elements.push({
-				x: node.x - node.width / 2,
-				y: node.y - node.height / 2,
-				width: node.width,
-				height: node.height
-			})
-		})
-		
-		// Add edge vertex bounds
-		this.edgeVertices.forEach(vertex => {
-			elements.push({
-				x: vertex.x - 5, // Small padding for vertex dots
-				y: vertex.y - 5,
-				width: 10,
-				height: 10
-			})
-		})
-		
-		// Add group bounds
-		this.groupsMap.forEach(group => {
-			elements.push({
-				x: group.x - group.width / 2,
-				y: group.y - group.height / 2,
-				width: group.width,
-				height: group.height
-			})
-		})
-		
-		// Add edge path bounds (approximate)
-		this.edges.forEach(edge => {
-			// Add edge endpoints
-			elements.push({
-				x: edge.from.x - 10,
-				y: edge.from.y - 10,
-				width: 20,
-				height: 20
-			})
-			elements.push({
-				x: edge.to.x - 10,
-				y: edge.to.y - 10,
-				width: 20,
-				height: 20
-			})
+			const left = node.x - node.width / 2
+			const right = node.x + node.width / 2
+			const top = node.y - node.height / 2
+			const bottom = node.y + node.height / 2
 			
-			// Add edge vertices
+			minX = Math.min(minX, left)
+			maxX = Math.max(maxX, right)
+			minY = Math.min(minY, top)
+			maxY = Math.max(maxY, bottom)
+		})
+		
+		// Process edge vertices (much faster than complex label calculations)
+		this.edgeVertices.forEach(vertex => {
+			minX = Math.min(minX, vertex.x - 5)
+			maxX = Math.max(maxX, vertex.x + 5)
+			minY = Math.min(minY, vertex.y - 5)
+			maxY = Math.max(maxY, vertex.y + 5)
+		})
+		
+		// Process groups
+		this.groupsMap.forEach(group => {
+			const left = group.x - group.width / 2
+			const right = group.x + group.width / 2
+			const top = group.y - group.height / 2
+			const bottom = group.y + group.height / 2
+			
+			minX = Math.min(minX, left)
+			maxX = Math.max(maxX, right)
+			minY = Math.min(minY, top)
+			maxY = Math.max(maxY, bottom)
+		})
+		
+		// Process edges (simplified - just endpoints and vertices, skip complex label calculations)
+		this.edges.forEach(edge => {
+			// Edge endpoints
+			minX = Math.min(minX, edge.from.x - 10, edge.to.x - 10)
+			maxX = Math.max(maxX, edge.from.x + 10, edge.to.x + 10)
+			minY = Math.min(minY, edge.from.y - 10, edge.to.y - 10)
+			maxY = Math.max(maxY, edge.from.y + 10, edge.to.y + 10)
+			
+			// Edge vertices (if any)
 			if (edge.vertices) {
 				edge.vertices.forEach(vertex => {
-					elements.push({
-						x: vertex.x - 10,
-						y: vertex.y - 10,
-						width: 20,
-						height: 20
-					})
+					minX = Math.min(minX, vertex.x - 10)
+					maxX = Math.max(maxX, vertex.x + 10)
+					minY = Math.min(minY, vertex.y - 10)
+					maxY = Math.max(maxY, vertex.y + 10)
 				})
+			}
+			
+			// Simplified label bounds (avoid expensive path calculations)
+			if (edge.label && edge.label.trim()) {
+				// Just use approximate center between from and to nodes
+				const centerX = (edge.from.x + edge.to.x) / 2
+				const centerY = (edge.from.y + edge.to.y) / 2
+				const approxLabelSize = edge.label.length * 10 + 50 // Rough estimate
+				
+				minX = Math.min(minX, centerX - approxLabelSize)
+				maxX = Math.max(maxX, centerX + approxLabelSize)
+				minY = Math.min(minY, centerY - 25)
+				maxY = Math.max(maxY, centerY + 25)
 			}
 		})
 		
-		if (elements.length === 0) {
+		// Handle empty graph
+		if (minX === Infinity) {
 			return { x: 0, y: 0, width: 100, height: 100 }
 		}
-		
-		// Calculate overall bounds
-		const minX = Math.min(...elements.map(e => e.x))
-		const minY = Math.min(...elements.map(e => e.y))
-		const maxX = Math.max(...elements.map(e => e.x + e.width))
-		const maxY = Math.max(...elements.map(e => e.y + e.height))
 		
 		return {
 			x: minX,
@@ -603,8 +603,20 @@ export class GraphData {
 		this.nodes().forEach(n => ret[n.id] = {x: n.x, y: n.y})
 		this.edges.forEach(e => {
 			if (!e.vertices) return
-			const lst = e.vertices.filter(v => !v.auto).map(v => ({x: v.x, y: v.y, label: v.label}));
-			(lst.length || full) && (ret[`e-${e.id}`] = lst)
+			// Save all vertices (both user and auto-generated), preserving their properties
+			const lst = e.vertices.map(v => ({
+				x: v.x, 
+				y: v.y, 
+				label: v.label,
+				auto: v.auto // Preserve auto flag so we know which are ELK-generated
+			}));
+			if (lst.length || full) {
+				ret[`e-${e.id}`] = lst
+			}
+			// Also save the userDeletedVertices flag as metadata
+			if (e.userDeletedVertices) {
+				ret[`e-${e.id}-deleted`] = true
+			}
 		})
 		return ret
 	}
@@ -614,19 +626,74 @@ export class GraphData {
 	}
 
 	importLayout(layout: { [key: string]: any }, rerender = false) {
+		// First pass: collect all coordinate values to find bounds
+		const coordinates: Array<{x: number, y: number}> = [];
+		
+		Object.entries(layout).forEach(([k, v]) => {
+			if (!k.startsWith('e-') && v.x !== undefined && v.y !== undefined) {
+				// Node coordinates
+				coordinates.push({x: v.x, y: v.y});
+			} else if (k.startsWith('e-') && Array.isArray(v)) {
+				// Edge vertex coordinates
+				v.forEach((vertex: any) => {
+					if (vertex.x !== undefined && vertex.y !== undefined) {
+						coordinates.push({x: vertex.x, y: vertex.y});
+					}
+				});
+			}
+		});
+		
+		// Calculate normalization offset if we have coordinates
+		let offsetX = 0;
+		let offsetY = 0;
+		
+		if (coordinates.length > 0) {
+			const minX = Math.min(...coordinates.map(c => c.x));
+			const minY = Math.min(...coordinates.map(c => c.y));
+			
+			// Only normalize if coordinates are problematic (negative or very large)
+			if (minX < -100 || minY < -100 || Math.max(...coordinates.map(c => c.x)) > 3000 || Math.max(...coordinates.map(c => c.y)) > 2000) {
+				const padding = 50;
+				offsetX = -minX + padding;
+				offsetY = -minY + padding;
+			}
+		}
+		
+		// Second pass: apply coordinates with normalization
 		Object.entries(layout).forEach(([k, v]) => {
 			// nodes
 			const n = this.nodesMap.get(k)
 			if (n) {
-				n.x = v.x
-				n.y = v.y
+				n.x = v.x + offsetX
+				n.y = v.y + offsetY
 			} else
 				// edge vertices
-			if (k.startsWith('e-')) {
+			if (k.startsWith('e-') && !k.endsWith('-deleted')) {
 				const edge = this.edges.find(e => e.id == k.slice(2))
 				if (!edge) return;
 				edge.vertices && edge.vertices.forEach(v => this.edgeVertices.delete(v.id))
-				edge.vertices = v.map((p: Point) => edge.initVertex(p))
+				edge.vertices = v.map((p: Point) => {
+					const normalizedPoint = { 
+						x: p.x + offsetX, 
+						y: p.y + offsetY 
+					} as Point;
+					// Preserve any additional properties like 'label' and 'auto'
+					Object.assign(normalizedPoint, p, { x: p.x + offsetX, y: p.y + offsetY });
+					const vertex = edge.initVertex(normalizedPoint);
+					// Ensure auto flag is preserved after initVertex
+					if ((p as any).auto) {
+						vertex.auto = true;
+					}
+					return vertex;
+				})
+				return;
+			}
+			if (k.endsWith('-deleted')) {
+				const edgeId = k.slice(2, -8); // Remove 'e-' prefix and '-deleted' suffix
+				const edge = this.edges.find(e => e.id == edgeId)
+				if (edge && v === true) {
+					edge.userDeletedVertices = true
+				}
 				return;
 			}
 		})
@@ -642,23 +709,30 @@ export class GraphData {
 		try {
 			const auto = await autoLayout(this, options)
 			
+			this._undo.beforeChange()
+			
 			// Apply node positions
 			auto.nodes.forEach(an => {
 				const n = this.nodesMap.get(an.id)
 				if (n) {
-					this.moveNode(n, an.x, an.y)
+					this.moveNode(n, an.x, an.y, false, true) // Skip undo for individual moves
 				}
 			})
-			
-			// Clear existing edge vertices before applying new layout
-			this.edgeVertices.clear()
 			
 			// Apply edge routing from ELK layout
 			auto.edges.forEach(ae => {
 				const edge = this.edges.find(e => e.id == ae.id)
 				if (edge) {
-					// Clear existing vertices
+					// Clear existing vertices for this edge only
+					if (edge.vertices) {
+						edge.vertices.forEach(v => {
+							if (v.id) {
+								this.edgeVertices.delete(v.id)
+							}
+						})
+					}
 					edge.vertices = []
+					edge.userDeletedVertices = false
 					
 					// Add routing vertices from ELK (these are proper bend points, not nodes)
 					if (ae.vertices && ae.vertices.length > 0) {
@@ -669,12 +743,37 @@ export class GraphData {
 						})
 					}
 					
-					// Handle edge label positioning
+					// Handle edge label positioning - create proper interactive label vertices
 					if (ae.label) {
+						
+						// Remove any existing label vertices (ELK or user-created)
+						if (edge.vertices) {
+							edge.vertices.forEach(v => {
+								if (v.label) {
+									this.edgeVertices.delete(v.id)
+								}
+							})
+							edge.vertices = edge.vertices.filter(v => !v.label)
+						}
+						
+						// Create a proper label vertex that behaves like a user-created vertex
 						const labelVertex = edge.initVertex(ae.label)
 						labelVertex.label = true
-						labelVertex.auto = true
-						edge.vertices.push(labelVertex)
+						labelVertex.auto = true // Mark as auto-generated so it can be cleaned up
+						
+						// Insert label vertex at the optimal position in the routing path
+						// Find the best position to insert it and project it onto that line segment
+						edge.vertices = edge.vertices || []
+						const insertPos = findOptimalLabelPosition(edge.vertices, ae.label, edge.from, edge.to)
+						
+						// Project the label position onto the line segment where it will be inserted
+						const projectedPos = projectLabelOntoSegment(edge.vertices, ae.label, insertPos, edge.from, edge.to)
+						labelVertex.x = projectedPos.x
+						labelVertex.y = projectedPos.y
+						
+						edge.vertices.splice(insertPos, 0, labelVertex)
+						this.edgeVertices.set(labelVertex.id, labelVertex)
+						
 					}
 					
 					// Redraw the edge with new routing
@@ -684,6 +783,8 @@ export class GraphData {
 			
 			// Fit the layout to the viewport with optimal positioning
 			this.fitToView()
+			
+			this._undo.change()
 			
 		} catch (error) {
 			console.error('Auto layout failed:', error)
@@ -695,16 +796,16 @@ export class GraphData {
 		const lst: Point[] = this.nodes().filter(n => n.selected)
 		lst.push(...Array.from(this.edgeVertices.values()).filter(v => v.selected))
 		let minY = Math.min(...lst.map(p => p.y))
-		this.nodesMap.forEach(n => n.selected && this.moveNode(n, n.x, minY))
-		this.edgeVertices.forEach(v => v.selected && this.moveEdgeVertex(v, v.x, minY))
+		this.nodesMap.forEach(n => n.selected && this.moveNode(n, n.x, minY, false, false))
+		this.edgeVertices.forEach(v => v.selected && this.moveEdgeVertex(v, v.x, minY, false, false))
 	}
 
 	alignSelectionH() {
 		const lst: Point[] = this.nodes().filter(n => n.selected)
 		lst.push(...Array.from(this.edgeVertices.values()).filter(v => v.selected))
 		let minX = Math.min(...lst.map(p => p.x))
-		this.nodesMap.forEach(n => n.selected && this.moveNode(n, minX, n.y))
-		this.edgeVertices.forEach(v => v.selected && this.moveEdgeVertex(v, minX, v.y))
+		this.nodesMap.forEach(n => n.selected && this.moveNode(n, minX, n.y, false, false))
+		this.edgeVertices.forEach(v => v.selected && this.moveEdgeVertex(v, minX, v.y, false, false))
 	}
 
 	distributeSelectionH() {
@@ -728,10 +829,10 @@ export class GraphData {
 			const newX = minX + (index * spacing)
 			if ('title' in element) {
 				// It's a Node
-				this.moveNode(element as Node, newX, element.y)
+				this.moveNode(element as Node, newX, element.y, false, true)
 			} else {
 				// It's an EdgeVertex
-				this.moveEdgeVertex(element as EdgeVertex, newX, element.y)
+				this.moveEdgeVertex(element as EdgeVertex, newX, element.y, false, true)
 			}
 		})
 		
@@ -759,10 +860,10 @@ export class GraphData {
 			const newY = minY + (index * spacing)
 			if ('title' in element) {
 				// It's a Node
-				this.moveNode(element as Node, element.x, newY)
+				this.moveNode(element as Node, element.x, newY, false, true)
 			} else {
 				// It's an EdgeVertex
-				this.moveEdgeVertex(element as EdgeVertex, element.x, newY)
+				this.moveEdgeVertex(element as EdgeVertex, element.x, newY, false, true)
 			}
 		})
 		
@@ -808,25 +909,26 @@ export class GraphData {
 		const contentCenterX = contentBounds.x + contentBounds.width / 2
 		const contentCenterY = contentBounds.y + contentBounds.height / 2
 		
-		// Calculate viewport center in drawing coordinates (after zoom)
-		const viewportCenterX = viewportWidth / (2 * finalZoom)
-		const viewportCenterY = viewportHeight / (2 * finalZoom)
+		// Calculate viewport center in screen coordinates
+		const viewportCenterX = viewportWidth / 2
+		const viewportCenterY = viewportHeight / 2
 		
 		// Calculate translation needed to center content in viewport
-		const translateX = viewportCenterX - contentCenterX
-		const translateY = viewportCenterY - contentCenterY
+		// With translate(x,y) scale(zoom), translation is in screen coordinates
+		const translateX = viewportCenterX - (contentCenterX * finalZoom)
+		const translateY = viewportCenterY - (contentCenterY * finalZoom)
 		
 		// Apply zoom and translation transform
 		const zoomGroup = svg.querySelector('g.zoom') as SVGGElement
 		if (zoomGroup) {
-			zoomGroup.setAttribute('transform', `scale(${finalZoom}) translate(${translateX}, ${translateY})`)
+			zoomGroup.setAttribute('transform', `translate(${translateX}, ${translateY}) scale(${finalZoom})`)
 		}
 		
 		// Update panning
 		updatePanning()
 		
-		// Clear view state so this fit is not overridden
-		clearViewState(this.id)
+		// Save view state so this fit position is preserved after reload
+		saveViewState(this.id)
 	}
 
 	// Save current layout state for restoration
@@ -872,7 +974,7 @@ export class GraphData {
 		this.nodes().forEach(node => {
 			const snappedX = Math.round(node.x / this._gridSize) * this._gridSize;
 			const snappedY = Math.round(node.y / this._gridSize) * this._gridSize;
-			this.moveNode(node, snappedX, snappedY);
+			this.moveNode(node, snappedX, snappedY, false, true);
 		});
 		this._undo.change();
 	}
@@ -917,9 +1019,9 @@ export class GraphData {
 		const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
 		path.setAttribute('d', `M ${this._gridSize} 0 L 0 0 0 ${this._gridSize}`);
 		path.setAttribute('fill', 'none');
-		path.setAttribute('stroke', '#e0e0e0');
+		path.setAttribute('stroke', '#d0d0d0');
 		path.setAttribute('stroke-width', '1');
-		path.setAttribute('opacity', '0.5');
+		path.setAttribute('opacity', '0.8');
 
 		pattern.appendChild(path);
 		defs.appendChild(pattern);
@@ -1040,106 +1142,17 @@ function buildEdge(data: GraphData, edge: Edge) {
 
 	const position = (edge.style.position || 50) / 100
 
-	// if vertices exists, follow them
-	let vertices: Point[] = edge.vertices ? edge.vertices.concat() : [];
-	// remove auto vertices, they will be regenerated
-	const tmp = (vertices as EdgeVertex[]);
-	tmp.forEach(v => v.auto && data.edgeVertices.delete(v.id))
-	vertices = tmp.filter(v => !v.auto)
+	// Calculate edge vertices using utility function
+	const vertices = calculateEdgeVertices(edge, data)
 
-	if (vertices.length == 0) {
-		// for edges with same "from" and "to", we must spread the labels so they don't overlap
-		// lookup the other "same" edges
-		const sameEdges = data.edges.filter(e => e.from == edge.from && e.to == edge.to)
-		let spreadPos = 0
-		if (sameEdges.length > 1) {
-			const idx = sameEdges.indexOf(edge) // my index in the list of same edges
-			spreadPos = idx - (sameEdges.length - 1) / 2
-
-			let spreadX = 0, spreadY = 0;
-			if (Math.abs(n1.x - n2.x) > Math.abs(n1.y - n2.y)) {
-				spreadY = spreadPos * 70
-			} else {
-				spreadX = spreadPos * 200
-			}
-			const v = edge.initVertex({
-				x: (n1.x + n2.x) / 2 + spreadX,
-				y: (n1.y + n2.y) / 2 + spreadY
-			})
-			v.label = true
-			v.auto = true
-			vertices.push(v)
-		} else {
-			// If there are no user-defined vertices and not a multi-edge scenario,
-			// we don't create any auto-vertices here. AutoLayout will provide them.
-			// The path will be a straight line between n1 and n2 (after intersection points are calculated).
-			// ELK/autoLayout is responsible for providing bend points for non-straight lines.
-		}
-	}
-
-	vertices.unshift(n1)
-	vertices.push(n2)
-
-	vertices[0] = n1.intersect(vertices[1])
-	vertices[vertices.length - 1] = n2.intersect(vertices[vertices.length - 2])
-
-	// where along the edge is the label?
-	// position of label
-	let pLabel: Point = vertices.find(v => (v as EdgeVertex).label)
-	if (!pLabel) {
-		const distance = (p1: Point, p2: Point) =>
-			Math.sqrt((p2.x - p1.x) * (p2.x - p1.x) + (p2.y - p1.y) * (p2.y - p1.y))
-
-		let sum = 0 // total length of the edge, sum of segments
-		for (let i = 1; i < vertices.length; i++) {
-			sum += distance(vertices[i - 1], vertices[i])
-		}
-		pLabel = {x: n1.x, y: n1.y} // fallback for corner cases
-		let acc = 0
-		for (let i = 1; i < vertices.length; i++) {
-			const d = distance(vertices[i - 1], vertices[i])
-			if (acc + d > sum * position) {
-				const pos = (sum * position - acc) / d
-				pLabel = {
-					x: vertices[i - 1].x + (vertices[i].x - vertices[i - 1].x) * pos,
-					y: vertices[i - 1].y + (vertices[i].y - vertices[i - 1].y) * pos
-				}
-				break
-			}
-			acc += d
-		}
-	}
+	// Calculate label position using utility function - pass edge for ELK label lookup
+	const pLabel = calculateLabelPosition(vertices, position, n1, edge)
 
 	const {bg, txt, bbox} = buildEdgeLabel(pLabel, edge)
 	g.append(bg, txt)
 
-	const segments: Segment[] = []
-	for (let i = 1; i < vertices.length; i++) {
-		segments.push({p: vertices[i - 1], q: vertices[i]})
-	}
-	// splice edge over label box
-	intersectPolylineBox(segments, bbox)
-
-	// Generate path based on routing style - SIMPLIFIED
-	let path: string
-	
-	// Always draw a polyline through the segments.
-	// If segments.length is 1 (meaning direct connection or only label vertex), it will be a straight line.
-	// If autoLayout provided bend points, those will be in `segments`.
-	if (segments.length > 0) {
-		path = `M${segments[0].p.x},${segments[0].p.y}`
-		for (let i = 0; i < segments.length; i++) {
-			const s = segments[i]
-			// For polylines, we just draw line segments to each vertex point.
-			// The ELK 'POLYLINE' routing should give us the necessary bend points.
-			path += ` L${s.q.x},${s.q.y}`
-		}
-	} else {
-		// Fallback for edges with no segments (should ideally not happen if n1 and n2 are defined)
-		// Draw a straight line between n1 and n2 directly if no vertices/segments exist.
-		// Note: Intersection points are calculated before this, so n1/n2 are already adjusted.
-		path = `M${n1.x},${n1.y} L${n2.x},${n2.y}`
-	}
+	// Create edge segments and path using utility function
+	const {segments, path} = createEdgeSegments(vertices, bbox, n1, n2)
 
 	const p = create.path(path, {'marker-end': 'url(#arrow)'}, 'edge')
 	p.setAttribute('fill', 'none')
@@ -1148,9 +1161,22 @@ function buildEdge(data: GraphData, edge: Edge) {
 	p.setAttribute('stroke-linecap', 'round')
 	edge.style.dashed && p.setAttribute('stroke-dasharray', '8')
 	g.append(p)
+	
+	// Debug visualization removed - arrow issue fixed
 
 	// drag handlers
-	edge.vertices = vertices.slice(1, -1).map(p => edge.initVertex(p))
+	edge.vertices = vertices.slice(1, -1).map(p => {
+		// Preserve existing EdgeVertex objects to maintain IDs and selection state
+		if ('id' in p && 'edge' in p) {
+			// This is already an EdgeVertex, preserve it
+			const v = p as EdgeVertex;
+			v.edge = edge; // Ensure edge reference is correct
+			return v;
+		} else {
+			// This is a new Point, convert to EdgeVertex
+			return edge.initVertex(p);
+		}
+	})
 	edge.vertices.forEach((p, i) => {
 		const v = p as EdgeVertex
 		v.ref = create.element('circle', {id: v.id, cx: p.x, cy: p.y, r: 7, fill: 'none'}, 'v-dot')
@@ -1208,7 +1234,9 @@ function buildNode(n: Node, data: GraphData) {
 
 	shape.classList.add('nodeBorder')
 
+	// Apply generic styles first
 	applyStyle(shape, styles.nodeBorder)
+	// Then apply tag-specific styles to override generic ones
 	shape.setAttribute('fill', n.style.background)
 	shape.setAttribute('stroke', n.style.stroke)
 	// Consistent border width for all elements
@@ -1219,8 +1247,8 @@ function buildNode(n: Node, data: GraphData) {
 	const tg = create.element('g') as SVGGElement
 	let cy = Number(g.getAttribute('label-offset-y')) || 0
 	
-	// Optimized padding strategy - use minimal padding but ensure text fits
-	const textPadding = 12; // Much smaller padding for better space utilization
+	// Consistent text width calculation for all shapes
+	const textPadding = 12; // Standard padding
 	const maxTextWidth = Math.max(w - (textPadding * 2), 80); // Ensure reasonable minimum width
 	
 	{
@@ -1333,9 +1361,10 @@ function mouseToDrawing(e: MouseEvent): Point {
 	const currentTransform = getCurrentTransform()
 	
 	// Convert screen coordinates to drawing coordinates accounting for zoom and pan
+	// The transform values are in screen coordinates, so we need to divide by zoom and subtract
 	return {
-		x: (e.clientX - b.x) / z - currentTransform.x,
-		y: (e.clientY - b.y) / z - currentTransform.y
+		x: (e.clientX - b.x - currentTransform.x) / z,
+		y: (e.clientY - b.y - currentTransform.y) / z
 	}
 }
 
@@ -1398,13 +1427,13 @@ function addCustomCursorInteraction(svg: SVGSVGElement, conn: {
 					svg.appendChild(rect)
 				}
 			},
-			update(dx: number, dy: number) {
+			update(e: MouseEvent) {
 				if (!rect) return
-				const zoom = conn.getZoom()
 				
-				// Calculate current drawing position by adding scaled delta to start position
-				const currentDrawingX = startDrawingX + dx / zoom
-				const currentDrawingY = startDrawingY + dy / zoom
+				// Convert current mouse position to drawing coordinates (accounts for zoom and pan)
+				const currentPt = mouseToDrawing(e)
+				const currentDrawingX = currentPt.x
+				const currentDrawingY = currentPt.y
 				
 				// Calculate rectangle bounds in drawing coordinates
 				const x = Math.min(startDrawingX, currentDrawingX)
@@ -1461,18 +1490,21 @@ function addCustomCursorInteraction(svg: SVGSVGElement, conn: {
 		if (!zoomGroup) return
 		
 		const zoom = getZoom()
-		zoomGroup.setAttribute('transform', `scale(${zoom}) translate(${x}, ${y})`)
+		zoomGroup.setAttribute('transform', `translate(${x}, ${y}) scale(${zoom})`)
 	}
 
 	function onMouseDown(e: MouseEvent) {
-		e.preventDefault(); 
+		e.preventDefault();
 		hasDragged = false
 		pendingSelectionChange = null
 
 		const node = conn.nodeFromEvent(e)
 		
+		// Determine effective mode: invert if shift is held
+		const effectiveMode = e.shiftKey ? (dragMode === 'pan' ? 'select' : 'pan') : dragMode
+		
 		if (!node) { // Clicked on empty space
-			if (dragMode === 'pan') {
+			if (effectiveMode === 'pan') {
 				// Pan mode: pan and deselect
 				isPanning = true;
 				elastic = null;
@@ -1492,40 +1524,56 @@ function addCustomCursorInteraction(svg: SVGSVGElement, conn: {
 			return;
 		}
 
-		// Clicked on a node/vertex - selection/drag logic (works in both modes)
-		isPanning = false; // Ensure no panning if a node is clicked
-		elastic = null; // Ensure no selection box if a node is clicked
-		const nodes = conn.getSelection()
-		
-		if (e.shiftKey) {
-			// Shift+click: immediately change selection (no dragging expected)
+		// Clicked on a node/vertex - behavior depends on effective mode
+		if (effectiveMode === 'pan') {
+			// Pan mode: select the element, don't pan
+			isPanning = false;
+			elastic = null;
+			
+			const nodes = conn.getSelection()
 			if (conn.isSelected(node)) {
-				const index = nodes.findIndex(n => n.id === node.id)
-				if (index >= 0) nodes.splice(index, 1)
-			} else {
-				nodes.push(node)
-			}
-			conn.setSelection(nodes)
-			ini = nodes.map(n => ({ x: n.x, y: n.y, n }))
-		} else {
-			// Regular click: defer selection change until we know if it's a drag or click
-			if (conn.isSelected(node) && nodes.length > 1) {
-				// Clicking on a selected node in a multi-selection - prepare to drag all
+				// Clicking on a selected node - prepare to drag all selected elements
 				ini = nodes.map(n => ({ x: n.x, y: n.y, n }))
-				// Don't change selection yet - wait to see if user drags
-			} else if (!conn.isSelected(node)) {
-				// Clicking on an unselected node - defer selection change
-				pendingSelectionChange = { node, shiftKey: e.shiftKey }
-				// For now, prepare to drag just this node
-				ini = [{ x: node.x, y: node.y, n: node }]
+				// No selection change needed since we're clicking on already selected element
 			} else {
-				// Clicking on the only selected node - prepare to drag it
-				ini = [{ x: node.x, y: node.y, n: node }]
+				// Clicking on an unselected node - select only this element
+				conn.setSelection([node]);
+				ini = [{ x: node.x, y: node.y, n: node }];
+			}
+		} else {
+			// Select mode: selection/drag logic
+			isPanning = false; // Ensure no panning if a node is clicked
+			elastic = null; // Ensure no selection box if a node is clicked
+			const nodes = conn.getSelection()
+			
+			if (e.shiftKey && dragMode === 'select') {
+				// Shift+click in select mode: immediately change selection (no dragging expected)
+				if (conn.isSelected(node)) {
+					const index = nodes.findIndex(n => n.id === node.id)
+					if (index >= 0) nodes.splice(index, 1)
+				} else {
+					nodes.push(node)
+				}
+				conn.setSelection(nodes)
+				ini = nodes.map(n => ({ x: n.x, y: n.y, n }))
+			} else {
+				// Regular click: defer selection change until we know if it's a drag or click
+				if (conn.isSelected(node)) {
+					// Clicking on a selected node - prepare to drag all selected elements
+					ini = nodes.map(n => ({ x: n.x, y: n.y, n }))
+					// No pending selection change needed since we're clicking on already selected element
+					pendingSelectionChange = null
+				} else {
+					// Clicking on an unselected node - defer selection change until we determine if it's a click or drag
+					pendingSelectionChange = { node, shiftKey: e.shiftKey }
+					// For now, prepare to drag just the clicked node (we'll update selection when drag starts)
+					ini = [{ x: node.x, y: node.y, n: node }]
+				}
 			}
 		}
 	}
 
-	function onMouseMove(dx: number, dy: number) {
+	function onMouseMove(e: MouseEvent, dx: number, dy: number) {
 		// Check if we've moved enough to consider this a drag
 		const dragThreshold = 3 // pixels
 		if (!hasDragged && (Math.abs(dx) > dragThreshold || Math.abs(dy) > dragThreshold)) {
@@ -1537,27 +1585,33 @@ function addCustomCursorInteraction(svg: SVGSVGElement, conn: {
 				nodes.length = 0
 				nodes.push(pendingSelectionChange.node)
 				conn.setSelection(nodes)
+				// Update ini to drag only the newly selected node
 				ini = [{ x: pendingSelectionChange.node.x, y: pendingSelectionChange.node.y, n: pendingSelectionChange.node }]
 				pendingSelectionChange = null
 			}
 		}
 		
 		if (isPanning) {
-			// Pan the view - scale mouse delta by zoom factor
-			const zoom = conn.getZoom()
-			const newX = initialTransform.x + dx / zoom
-			const newY = initialTransform.y + dy / zoom
+			// Pan the view - apply mouse delta directly (no zoom division needed)
+			// setTransform expects screen coordinates, dx/dy are already screen pixel deltas
+			const newX = initialTransform.x + dx
+			const newY = initialTransform.y + dy
 			setTransform(newX, newY)
 		} else if (ini.length > 0 && hasDragged) {
 			// Move selected nodes/vertices (only if we've actually started dragging)
+			// dx, dy are screen pixel deltas, convert to drawing coordinate deltas
+			const zoom = conn.getZoom()
+			const drawingDx = dx / zoom
+			const drawingDy = dy / zoom
 			ini.forEach(item => {
-				const sc = conn.getZoom()
-				conn.moveNode(item.n, item.x + dx / sc, item.y + dy / sc)
+				// item.x, item.y are initial drawing coordinates
+				// Add the drawing coordinate delta to get new position
+				conn.moveNode(item.n, item.x + drawingDx, item.y + drawingDy)
 			})
 			conn.setDragging(true)
 		} else if (elastic) {
 			// Update selection box
-			elastic.update(dx, dy)
+			elastic.update(e)
 			conn.setDragging(true)
 		}
 	}
@@ -1613,7 +1667,7 @@ function addCustomCursorInteraction(svg: SVGSVGElement, conn: {
 		function onMouseMoveHandler(e: MouseEvent | TouchEvent) {
 			if (!md) return
 			e = convertEvent(e)
-			onMouseMove(e.clientX - md.ex, e.clientY - md.ey)
+			onMouseMove(e, e.clientX - md.ex, e.clientY - md.ey)
 		}
 
 		function removeListeners() {
@@ -1746,7 +1800,11 @@ export function addCursorInteraction(svg: SVGSVGElement, dragMode: 'pan' | 'sele
 		const newZoom = Math.max(0.1, Math.min(5, currentZoom - delta)) // Clamp zoom between 0.1 and 5
 		
 		if (newZoom !== currentZoom) {
-			setZoomCentered(newZoom, e.clientX, e.clientY)
+			// Convert absolute screen coordinates to SVG-relative coordinates
+			const rect = svg.getBoundingClientRect()
+			const svgX = e.clientX - rect.left
+			const svgY = e.clientY - rect.top
+			setZoomCentered(newZoom, svgX, svgY)
 			e.preventDefault()
 			
 			// Save view state after user wheel zoom
@@ -1761,13 +1819,16 @@ export function addCursorInteraction(svg: SVGSVGElement, dragMode: 'pan' | 'sele
 
 	const keyDownHandler = (e: KeyboardEvent) => {
 		const shortcut = findShortcut(e)
+		
+		
 		if (shortcut) {
 			e.preventDefault() // Prevent browser default for all recognized shortcuts
 		}
 		
 		switch (shortcut) {
 			case DEL_VERTEX:
-				Array.from(gd().edgeVertices.values()).filter(v => v.selected).forEach(v => {
+				const selectedVertices = Array.from(gd().edgeVertices.values()).filter(v => v.selected);
+				selectedVertices.forEach(v => {
 					gd().deleteEdgeVertex(v)
 				})
 				break
@@ -1778,16 +1839,19 @@ export function addCursorInteraction(svg: SVGSVGElement, dragMode: 'pan' | 'sele
 				gd().redo()
 				break
 			case ZOOM_IN:
-				const newZoomIn = Math.min(5, getZoom() + .05)
+				const newZoomIn = Math.min(5, getZoom() * 1.2)
+				// Center zoom on viewport center like mouse wheel
 				setZoomCentered(newZoomIn)
 				saveViewState(gd().id) // Save after user keyboard zoom
 				break
 			case ZOOM_OUT:
-				const newZoomOut = Math.max(0.1, getZoom() - .05)
+				const newZoomOut = Math.max(0.1, getZoom() / 1.2)
+				// Center zoom on viewport center like mouse wheel
 				setZoomCentered(newZoomOut)
 				saveViewState(gd().id) // Save after user keyboard zoom
 				break
 			case ZOOM_100:
+				// Center zoom on viewport center like mouse wheel
 				setZoomCentered(1)
 				saveViewState(gd().id) // Save after user keyboard zoom
 				break
@@ -1894,19 +1958,29 @@ export function addCursorInteraction(svg: SVGSVGElement, dragMode: 'pan' | 'sele
 }
 
 export function getZoom() {
+	if (!svg) return 1
 	const el = svg.querySelector('g.zoom') as SVGGElement
-	if (el.transform.baseVal.numberOfItems == 0) return 1
-	return el.transform.baseVal.getItem(0).matrix.a
+	if (!el) return 1
+	
+	// Parse zoom from transform attribute to match how we set it
+	const transform = el.getAttribute('transform') || ''
+	const scaleMatch = transform.match(/scale\(([^)]+)\)/)
+	if (scaleMatch) {
+		return parseFloat(scaleMatch[1]) || 1
+	}
+	return 1
 }
 
-const svgPadding = 20
+// svgPadding is now imported as SVG_PADDING from constants.ts
 
 export function setZoom(zoom: number) {
+	if (!svg) return
 	const el = svg.querySelector('g.zoom') as SVGGElement
+	if (!el) return
 	
 	// Preserve existing translation when setting zoom
 	const currentTransform = getCurrentTransform()
-	el.setAttribute('transform', `scale(${zoom}) translate(${currentTransform.x}, ${currentTransform.y})`)
+	el.setAttribute('transform', `translate(${currentTransform.x}, ${currentTransform.y}) scale(${zoom})`)
 	
 	// also set panning size
 	updatePanning()
@@ -1918,30 +1992,44 @@ export function setZoomCentered(newZoom: number, centerX?: number, centerY?: num
 	
 	// If no center point provided, use viewport center
 	if (centerX === undefined || centerY === undefined) {
-		const rect = svg.getBoundingClientRect()
-		centerX = rect.width / 2
-		centerY = rect.height / 2
+		// Use the parent container's dimensions for the visible viewport
+		// The SVG might be larger than the visible area due to overflow
+		const container = svg.parentElement
+		if (container) {
+			centerX = container.clientWidth / 2
+			centerY = container.clientHeight / 2
+		} else {
+			// Fallback to SVG dimensions if no parent
+			centerX = svg.clientWidth / 2
+			centerY = svg.clientHeight / 2
+		}
 	}
 	
 	// Get current transform
 	const currentTransform = getCurrentTransform()
 	
-	// Calculate the point in the drawing coordinate system
-	const drawingX = (centerX / oldZoom) - currentTransform.x
-	const drawingY = (centerY / oldZoom) - currentTransform.y
+	// Convert screen coordinates to drawing coordinates
+	// For transform order translate(tx, ty) scale(s):
+	// screen_point = (drawing_point * scale) + translation
+	// So: drawing_point = (screen_point - translation) / scale
+	const drawingX = (centerX - currentTransform.x) / oldZoom
+	const drawingY = (centerY - currentTransform.y) / oldZoom
 	
-	// Calculate new translation to keep the same point under the cursor
-	const newTranslateX = (centerX / newZoom) - drawingX
-	const newTranslateY = (centerY / newZoom) - drawingY
+	// Calculate new translation to keep the same drawing point at the same screen position
+	// screen_point = (drawing_point * new_scale) + new_translation
+	// So: new_translation = screen_point - (drawing_point * new_scale)
+	const newTranslateX = centerX - (drawingX * newZoom)
+	const newTranslateY = centerY - (drawingY * newZoom)
 	
 	// Apply the new transform
-	el.setAttribute('transform', `scale(${newZoom}) translate(${newTranslateX}, ${newTranslateY})`)
+	el.setAttribute('transform', `translate(${newTranslateX}, ${newTranslateY}) scale(${newZoom})`)
 	
 	// Update panning
 	updatePanning()
 }
 
 function getCurrentTransform() {
+	if (!svg) return { x: 0, y: 0 }
 	const el = svg.querySelector('g.zoom') as SVGGElement
 	if (!el) return { x: 0, y: 0 }
 	
@@ -1957,16 +2045,29 @@ function getCurrentTransform() {
 }
 
 function updatePanning() {
+	if (!svg) return
 	const el = svg.querySelector('g.zoom') as SVGGElement
+	if (!el) return
 	const bb = el.getBBox()
 	const zoom = getZoom()
-	const w = Math.max(svg.parentElement.clientWidth / zoom, bb.x + bb.width + svgPadding)
-	const h = Math.max(svg.parentElement.clientHeight / zoom, bb.y + bb.height + svgPadding)
+	if (!svg.parentElement) return
+	const w = Math.max(svg.parentElement.clientWidth / zoom, bb.x + bb.width + SVG_PADDING)
+	const h = Math.max(svg.parentElement.clientHeight / zoom, bb.y + bb.height + SVG_PADDING)
 	svg.setAttribute('width', String(w * zoom))
 	svg.setAttribute('height', String(h * zoom))
 	
 	// Note: View state saving removed from here to prevent interference with reset/fit functions
 	// View state is now only saved on user interactions and page unload
+}
+
+// Optimized version that uses pre-calculated content bounds instead of expensive getBBox()
+function updatePanningOptimized(graphData: GraphData) {
+	const bb = graphData.calculateContentBounds() // Use already calculated bounds
+	const zoom = getZoom()
+	const w = Math.max(svg.parentElement.clientWidth / zoom, bb.x + bb.width + SVG_PADDING)
+	const h = Math.max(svg.parentElement.clientHeight / zoom, bb.y + bb.height + SVG_PADDING)
+	svg.setAttribute('width', String(w * zoom))
+	svg.setAttribute('height', String(h * zoom))
 }
 
 export const getZoomAuto = () => {
@@ -2001,8 +2102,7 @@ const setBorderStyle = (el: SVGElement, style: string) => {
 const styles = {
 	//node styles
 	nodeBorder: {
-		fill: "rgba(255, 255, 255, 0.86)",
-		stroke: "#aaa",
+		// Don't set fill and stroke here - let tag-specific styles handle colors
 		filter: 'url(#shadow)',
 	},
 	nodeText: {
@@ -2032,21 +2132,9 @@ const styles = {
 	groupText: {
 		fill: "#666",
 		"font-size": 22,
+		"font-weight": "bold",
 		cursor: "default"
 	}
-}
-
-const applyStyle = (el: SVGElement, style: { [key: string]: string | number }) => {
-	Object.keys(style).forEach(name => {
-		if (name == 'font-size') {
-			if (typeof (style[name]) != 'number') {
-				console.error(`All font-sizes in styles have to be numbers representing px! Found:`, style)
-			}
-			el.setAttribute(name, style[name] + 'px')
-		} else {
-			el.setAttribute(name, String(style[name]))
-		}
-	})
 }
 
 // View state persistence - similar to undo cache but for zoom/pan
@@ -2091,4 +2179,121 @@ export function restoreViewState(graphId: string): boolean {
 // Clear view state for a graph
 export function clearViewState(graphId: string) {
 	viewStateCache.delete(graphId);
+}
+
+/**
+ * Find the optimal position to insert a label vertex into the routing path
+ * to minimize disruption to the existing route
+ */
+function findOptimalLabelPosition(vertices: Point[], labelPos: Point, fromNode: Point, toNode: Point): number {
+	// If no existing vertices, insert at the beginning
+	if (vertices.length === 0) {
+		return 0;
+	}
+	
+	// Build the full routing path including start/end nodes
+	const fullPath = [fromNode, ...vertices, toNode];
+	
+	// Find the closest point on the path to the label position
+	let minDistance = Infinity;
+	let bestSegmentIndex = 0;
+	
+	for (let i = 0; i < fullPath.length - 1; i++) {
+		const segmentStart = fullPath[i];
+		const segmentEnd = fullPath[i + 1];
+		
+		// Calculate distance from label position to this segment
+		const distance = distanceToSegment(labelPos, segmentStart, segmentEnd);
+		
+		if (distance < minDistance) {
+			minDistance = distance;
+			bestSegmentIndex = i;
+		}
+	}
+	
+	// Convert full path index to vertices array index
+	// bestSegmentIndex 0 means between fromNode and vertices[0] -> insert at 0
+	// bestSegmentIndex 1 means between vertices[0] and vertices[1] -> insert at 1
+	// etc.
+	return bestSegmentIndex;
+}
+
+/**
+ * Calculate distance from a point to a line segment
+ */
+function distanceToSegment(point: Point, segmentStart: Point, segmentEnd: Point): number {
+	const A = point.x - segmentStart.x;
+	const B = point.y - segmentStart.y;
+	const C = segmentEnd.x - segmentStart.x;
+	const D = segmentEnd.y - segmentStart.y;
+	
+	const dot = A * C + B * D;
+	const lenSq = C * C + D * D;
+	
+	if (lenSq === 0) {
+		// Segment is actually a point
+		return Math.sqrt(A * A + B * B);
+	}
+	
+	let param = dot / lenSq;
+	
+	let xx, yy;
+	
+	if (param < 0) {
+		xx = segmentStart.x;
+		yy = segmentStart.y;
+	} else if (param > 1) {
+		xx = segmentEnd.x;
+		yy = segmentEnd.y;
+	} else {
+		xx = segmentStart.x + param * C;
+		yy = segmentStart.y + param * D;
+	}
+	
+	const dx = point.x - xx;
+	const dy = point.y - yy;
+	return Math.sqrt(dx * dx + dy * dy);
+}
+
+/**
+ * Project a label position onto the line segment where it will be inserted
+ */
+function projectLabelOntoSegment(vertices: Point[], labelPos: Point, insertPos: number, fromNode: Point, toNode: Point): Point {
+	// Build the full routing path including start/end nodes
+	const fullPath = [fromNode, ...vertices, toNode];
+	
+	// The segment where we're inserting is between fullPath[insertPos] and fullPath[insertPos + 1]
+	const segmentStart = fullPath[insertPos];
+	const segmentEnd = fullPath[insertPos + 1];
+	
+	// Project the label position onto this line segment
+	return projectPointOntoSegment(labelPos, segmentStart, segmentEnd);
+}
+
+/**
+ * Project a point onto a line segment (closest point on the segment)
+ */
+function projectPointOntoSegment(point: Point, segmentStart: Point, segmentEnd: Point): Point {
+	const A = point.x - segmentStart.x;
+	const B = point.y - segmentStart.y;
+	const C = segmentEnd.x - segmentStart.x;
+	const D = segmentEnd.y - segmentStart.y;
+	
+	const dot = A * C + B * D;
+	const lenSq = C * C + D * D;
+	
+	if (lenSq === 0) {
+		// Segment is actually a point, return that point
+		return { x: segmentStart.x, y: segmentStart.y };
+	}
+	
+	let param = dot / lenSq;
+	
+	// Clamp to segment (don't extend beyond endpoints)
+	param = Math.max(0, Math.min(1, param));
+	
+	return {
+		x: segmentStart.x + param * C,
+		y: segmentStart.y + param * D
+	};
 }

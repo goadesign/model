@@ -58,7 +58,7 @@ function rect(parent: D3Element, bbox: BBox, node: D3Node, rounded = false) {
 function cylinder(parent: D3Element, bbox: BBox, node: D3Node) {
 	const w = bbox.width;
 	const rx = w / 2;
-	const ry = rx / (2.5 + w / 70);
+	const ry = rx / (5.5 + w / 70); // Make ellipse even flatter - increased to 5.5
 	const h = bbox.height;
 
 	const shape =

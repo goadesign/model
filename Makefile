@@ -31,7 +31,7 @@ DEPEND=\
 	github.com/golangci/golangci-lint/cmd/golangci-lint@latest \
 	github.com/mjibson/esc@latest
 
-all: lint test build
+all: build-ui test build
 
 ci: depend all
 
@@ -80,7 +80,7 @@ build-ui-force:
 	@cd $(WEBAPP_DIR) && npm install
 	@cd $(WEBAPP_DIR) && npm run build
 
-build: build-ui
+build:
 	@cd cmd/mdl && go install
 	@cd cmd/stz && go install
 

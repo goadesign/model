@@ -1,5 +1,5 @@
-import React, { FC, useState } from 'react';
-import { getZoomAuto, GraphData, setZoom, getZoom } from '../graph-view/graph';
+import React, { FC, useState, useEffect } from 'react';
+import { getZoomAuto, GraphData, setZoom, getZoom, setZoomCentered } from '../graph-view/graph';
 import { listViews } from '../parseModel';
 import { camelToWords } from '../utils';
 import { getModifierKeyName } from '../utils/platform';
@@ -104,7 +104,7 @@ const ToolbarActions: FC<{
       <ZoomControls graph={graph} />
     </div>
     <div className="toolbar-group">
-      <SaveButton onSave={onSave} saving={saving} />
+      <SaveButton onSave={onSave} saving={saving} graph={graph} />
     </div>
     <div className="toolbar-group">
       <HelpButton onToggleHelp={onToggleHelp} />
@@ -144,10 +144,10 @@ const AlignmentButtons: FC<{ graph: GraphData }> = ({ graph }) => {
   return (
     <>
       <button onClick={() => graph.alignSelectionH()} data-tooltip={`Align all selected elements horizontally (left edges) (${modKey}+Shift+H)`}>
-        <i className="fas fa-arrows-alt-v"></i>
+        <i className="fas fa-align-left"></i>
       </button>
       <button onClick={() => graph.alignSelectionV()} data-tooltip={`Align all selected elements vertically (top edges) (${modKey}+Shift+A)`}>
-        <i className="fas fa-arrows-alt-h"></i>
+        <i className="fas fa-align-left" style={{transform: 'rotate(90deg)'}}></i>
       </button>
       <button onClick={() => graph.distributeSelectionH()} data-tooltip={`Distribute selected elements evenly horizontally (equal spacing) (${modKey}+Alt+H)`}>
         <i className="fas fa-ellipsis-h"></i>
@@ -166,6 +166,7 @@ const LayoutControls: FC<{
   const modKey = getModifierKeyName();
   return (
     <button 
+      className="auto-arrange"
       onClick={onAutoLayout} 
       disabled={layouting} 
       data-tooltip={`Automatically arrange all elements using the Layered algorithm (${modKey}+L)`}
@@ -215,14 +216,14 @@ const GridControls: FC<{ graph: GraphData }> = ({ graph }) => {
   return (
     <>
       <button 
-        className={gridVisible ? 'active-toggle' : ''}
+        className={gridVisible ? 'active-toggle' : 'inactive-toggle'}
         onClick={handleToggleGrid} 
         data-tooltip={`Toggle grid visibility (${modKey}+G)`}
       >
         <i className="fas fa-th"></i>
       </button>
       <button 
-        className={snapToGrid ? 'active-toggle' : ''}
+        className={snapToGrid ? 'active-toggle' : 'inactive-toggle'}
         onClick={handleToggleSnap} 
         data-tooltip={`Toggle snap to grid (${modKey}+Shift+G)`}
       >
@@ -239,24 +240,52 @@ const GridControls: FC<{ graph: GraphData }> = ({ graph }) => {
   );
 };
 
+const ZoomDisplay: FC = () => {
+  const [zoom, setZoomState] = useState(100);
+
+  useEffect(() => {
+    const updateZoom = () => {
+      const currentZoom = Math.round(getZoom() * 100);
+      setZoomState(currentZoom);
+    };
+
+    // Update zoom initially
+    updateZoom();
+
+    // Update zoom every 100ms to catch changes from wheel/keyboard/etc
+    const interval = setInterval(updateZoom, 100);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <button 
+      onClick={() => setZoomCentered(1)} 
+      className="zoom-display"
+      data-tooltip="Click to reset zoom to 100%"
+    >
+      {zoom}%
+    </button>
+  );
+};
+
 const ZoomControls: FC<{ graph: GraphData }> = ({ graph }) => {
   const modKey = getModifierKeyName();
   return (
     <>
-      <button onClick={() => setZoom(Math.max(0.1, getZoom() - 0.05))} data-tooltip={`Zoom out to see more of the diagram (${modKey}+-)`}>
+      <button onClick={() => {
+        setZoomCentered(Math.max(0.1, getZoom() / 1.2));
+      }} data-tooltip={`Zoom out to see more of the diagram (${modKey}+-)`}>
         <i className="fas fa-search-minus"></i>
       </button>
-      <button onClick={() => setZoom(Math.min(5, getZoom() + 0.05))} data-tooltip={`Zoom in to see details more clearly (${modKey}+=)`}>
+      <ZoomDisplay />
+      <button onClick={() => {
+        setZoomCentered(Math.min(5, getZoom() * 1.2));
+      }} data-tooltip={`Zoom in to see details more clearly (${modKey}+=)`}>
         <i className="fas fa-search-plus"></i>
       </button>
-      <button onClick={() => graph.fitToView()} data-tooltip={`Automatically fit the entire diagram in the visible area (${modKey}+9)`}>
-        <i className="fas fa-expand-arrows-alt"></i>
-      </button>
-      <button onClick={() => setZoom(1)} data-tooltip={`Reset zoom to 100% (actual size) (${modKey}+0)`}>
-        <i className="fas fa-search"></i>
-      </button>
-      <button onClick={() => { graph.alignTopLeft(); graph.resetPanTransform(); }} data-tooltip={`Reset position and view (${modKey}+Home)`}>
-        <i className="fas fa-home"></i>
+      <button onClick={() => { graph.fitToView(); }} data-tooltip={`Fit diagram to view (${modKey}+9)`}>
+        <i className="fas fa-expand"></i>
       </button>
     </>
   );
@@ -265,10 +294,33 @@ const ZoomControls: FC<{ graph: GraphData }> = ({ graph }) => {
 const SaveButton: FC<{
   onSave: () => void;
   saving: boolean;
-}> = ({ onSave, saving }) => {
+  graph: GraphData;
+}> = ({ onSave, saving, graph }) => {
+  const [hasChanges, setHasChanges] = useState(false);
   const modKey = getModifierKeyName();
+  
+  // Check for changes periodically
+  useEffect(() => {
+    const checkChanges = () => {
+      setHasChanges(graph.changed());
+    };
+    
+    // Initial check
+    checkChanges();
+    
+    // Check every 100ms for changes
+    const interval = setInterval(checkChanges, 100);
+    
+    return () => clearInterval(interval);
+  }, [graph]);
+  
   return (
-    <button className="action" disabled={saving} onClick={onSave} data-tooltip={`Save the current diagram layout (${modKey}+S)`}>
+    <button 
+      className={hasChanges ? "grp" : "action"} 
+      disabled={saving} 
+      onClick={onSave} 
+      data-tooltip={`Save the current diagram layout (${modKey}+S)`}
+    >
       {saving ? <i className="fas fa-spinner fa-spin"></i> : <i className="fas fa-save"></i>}
     </button>
   );
@@ -282,4 +334,4 @@ const HelpButton: FC<{
       <i className="fas fa-question-circle"></i>
     </button>
   );
-}; 
+};

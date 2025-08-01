@@ -1,5 +1,5 @@
 import React, {FC, useEffect, useRef, useState} from "react";
-import {buildGraph, getZoomAuto, GraphData, Node, setZoom, addCursorInteraction, restoreViewState, saveViewState} from "./graph";
+import {buildGraph, GraphData, Node, addCursorInteraction, restoreViewState, saveViewState} from "./graph";
 
 interface Props {
 	data: GraphData;
@@ -23,9 +23,10 @@ export const Graph: FC<Props> = ({data, onSelect, dragMode}) => {
 		ref.current.append(g.svg);
 		setGraphState(g);
 		
-		// Try to restore previous view state, otherwise use auto zoom
-		if (!restoreViewState(data.id)) {
-			setZoom(getZoomAuto());
+		// Try to restore previous view state, otherwise use auto fit
+		// Skip auto fit if we're in the middle of a reset operation to prevent infinite loop
+		if (!restoreViewState(data.id) && !data.shouldSkipAutoFit()) {
+			data.fitToView();
 		}
 
 		// Save view state before page unload
@@ -49,7 +50,7 @@ export const Graph: FC<Props> = ({data, onSelect, dragMode}) => {
 				ref.current.innerHTML = '';
 			}
 		};
-	}, [data, onSelect, dragMode]);
+	}, [data, onSelect]);
 
 	// Effect for updating drag mode on existing graph
 	useEffect(() => {

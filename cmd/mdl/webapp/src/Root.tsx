@@ -1,12 +1,13 @@
-import React, { FC, useState, useCallback, useEffect } from "react";
+import React, { FC, useState, useCallback, useEffect, Suspense, lazy } from "react";
 import { GraphData } from "./graph-view/graph";
-import { Graph } from "./graph-view/graph-react";
 import { BrowserRouter as Router, Routes, Route, useSearchParams } from 'react-router-dom';
 import { listViews } from "./parseModel";
-import { Help } from "./shortcuts";
 import { useGraph, useAutoLayout, useSave, useKeyboardShortcuts, clearGraphCache } from "./hooks";
 import { Toolbar } from "./components/Toolbar";
 import { removeEmptyProps, getCurrentViewID } from "./utils";
+
+const Help = lazy(() => import("./shortcuts").then(module => ({ default: module.Help })));
+const Graph = lazy(() => import("./graph-view/graph-react").then(module => ({ default: module.Graph })));
 
 // Types
 interface ModelData {
@@ -86,13 +87,19 @@ const ModelPane: FC<{ model: any; layouts: any }> = ({ model, layouts }) => {
 				dragMode={dragMode}
 				setDragMode={setDragMode}
 			/>
-			<Graph 
-				key={currentID}
-				data={graph}
-				onSelect={handleSelect}
-				dragMode={dragMode}
-			/>
-			{helpVisible && <Help />}
+			<Suspense fallback={<div>Loading graph...</div>}>
+				<Graph 
+					key={currentID}
+					data={graph}
+					onSelect={handleSelect}
+					dragMode={dragMode}
+				/>
+			</Suspense>
+			{helpVisible && (
+				<Suspense fallback={<div>Loading help...</div>}>
+					<Help />
+				</Suspense>
+			)}
 		</>
 	);
 };

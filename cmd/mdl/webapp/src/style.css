@@ -32,81 +32,95 @@ body {
     align-items: center;
 }
 
-.toolbar button.grp, .toolbar button.action {
-    background-color: #f8f8f8;
-    border: 1px solid #c0c0c0;
+.toolbar button {
     padding: 5px 8px;
     margin: 0 2px;
-    border-radius: 3px;
     cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
 }
 
-.toolbar button.grp:hover, .toolbar button.action:hover {
-    background-color: #e9e9e9;
-    border-color: #a0a0a0;
-}
-
-.toolbar button.grp:disabled {
+.toolbar button:disabled {
     opacity: 0.5;
     cursor: not-allowed;
-}
-
-/* Style for the active toggle button state */
-.toolbar button.active-toggle {
-    background: linear-gradient(to bottom, #4a90e2, #357abd) !important;
-    border-color: #2968a3;
-    box-shadow: inset 0 1px 2px rgba(0,0,0,0.2);
-}
-
-.toolbar button.active-toggle:hover {
-    background: linear-gradient(to bottom, #5ba0f2, #4585c7) !important;
 }
 
 /* Drag mode toggle button styles */
 .toolbar button.mode-toggle {
     position: relative;
-    border: none;
-    width: 40px; /* Fixed width for consistent appearance */
+    border: 1px solid #8f9fc9;
+    width: 40px;
     min-height: 28px;
-}
-
-.toolbar button.mode-toggle.pan-mode {
-    background: linear-gradient(to bottom, #abb8db, #8f9fc9) !important;
+    background: linear-gradient(to bottom, #abb8db, #8f9fc9);
+    border-color: #8f9fc9;
     color: white;
-    box-shadow: 2px 2px 2px rgba(0, 0, 0, .2) !important;
+    box-shadow: 2px 2px 2px rgba(0, 0, 0, .2);
 }
 
-.toolbar button.mode-toggle.pan-mode:hover {
-    background: linear-gradient(to bottom, #bcc7e0, #abb8db) !important;
-}
-
-.toolbar button.mode-toggle.pan-mode:active {
-    background: #6a7db0 !important;
-    box-shadow: 2px 2px 2px rgba(0, 0, 0, .2) !important;
-}
-
-.toolbar button.mode-toggle.select-mode {
-    background: linear-gradient(to bottom, #4a90e2, #357abd) !important;
-    color: white;
-    box-shadow: 2px 2px 2px rgba(0, 0, 0, .2) !important;
-}
-
-.toolbar button.mode-toggle.select-mode:hover {
-    background: linear-gradient(to bottom, #5ba0f2, #4585c7) !important;
+.toolbar button.mode-toggle:hover {
+    background: linear-gradient(to bottom, #bcc7e0, #abb8db);
+    border-color: #abb8db;
 }
 
 .toolbar button.mode-toggle.select-mode:active {
-    background: linear-gradient(to bottom, #357abd, #2968a3) !important;
-    box-shadow: 2px 2px 2px rgba(0, 0, 0, .2) !important;
+    background: linear-gradient(to bottom, #8f9fc9, #7a8bb5);
+}
+
+/* Pan mode and active toggle - darker blue */
+.toolbar button.mode-toggle.pan-mode,
+.toolbar button.active-toggle {
+    background: linear-gradient(to bottom, #4a90e2, #357abd);
+    border-color: #2968a3;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.2);
+}
+
+.toolbar button.mode-toggle.pan-mode:hover,
+.toolbar button.active-toggle:hover {
+    background: linear-gradient(to bottom, #5ba0f2, #4585c7);
+}
+
+.toolbar button.mode-toggle.pan-mode:active {
+    background: linear-gradient(to bottom, #357abd, #2968a3);
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.2);
+}
+
+/* Toggle buttons when inactive - gray styling */
+.toolbar button.inactive-toggle {
+    background: #c1c1c1;
+    color: #999;
+    border-color: #c1c1c1;
+    box-shadow: none;
+}
+
+.toolbar button.inactive-toggle:hover {
+    background: #b1b1b1;
+}
+
+.toolbar button.inactive-toggle:active {
+    background: #a1a1a1;
+}
+
+/* Toggle buttons when disabled and not active - gray like other disabled buttons */
+.toolbar button.mode-toggle:disabled:not(.pan-mode):not(.active-toggle),
+.toolbar button.active-toggle:disabled:not(.active-toggle) {
+    background: #c1c1c1;
+    color: #999;
+    border-color: #c1c1c1;
+    box-shadow: none;
 }
 
 /* Ensure Font Awesome icons are sized appropriately if not already handled */
 .toolbar button .fas {
     font-size: 1em;
     vertical-align: middle;
+}
+
+/* Zoom percentage display */
+.toolbar button.zoom-display {
+    font-family: 'SF Mono', Monaco, 'Roboto Mono', Consolas, monospace;
+    font-size: 11px;
+    font-weight: 600;
+    min-width: 50px;  /* Wider to prevent size change between 99% and 100% */
+    padding: 6px 8px;
+    text-align: center;
 }
 
 .toolbar-group {
@@ -121,13 +135,14 @@ body {
 
 button {
     border: none;
-    background: linear-gradient(to bottom, #abb8db, #8f9fc9);
+    background: linear-gradient(to bottom, #4a90e2, #357abd);
+    border-color: #2968a3;
     border-radius: 3px;
     padding: 6px 10px;
     color: #fff;
     outline: none;
     box-shadow: 2px 2px 2px rgba(0, 0, 0, .2);
-    margin-right: 5px; /* Small space between buttons in a group */
+    margin-right: 5px;
     min-width: 32px;
     min-height: 28px;
     display: inline-flex;
@@ -136,24 +151,55 @@ button {
     font-size: 14px;
     line-height: 1;
     font-family: "Segoe UI", "Segoe UI Symbol", "Segoe UI Emoji", system-ui, -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+    position: relative;
 }
+
+button:hover {
+    background: linear-gradient(to bottom, #5ba0f2, #4585c7);
+}
+
+button:active {
+    background: linear-gradient(to bottom, #357abd, #2968a3);
+}
+
 button:last-child {
     margin-right: 0;
 }
+
+/* Save button when no changes - gray */
+button.action {
+    background: #c1c1c1;
+    color: #999;
+}
+
+button.action:active {
+    background: #b1b1b1;
+}
+
+/* Save button when there are changes - orange */
 button.grp {
+    background: linear-gradient(to bottom, #ee9564, #de7d48);
     margin-right: 0;
 }
-button:active {
-    background: #6a7db0;
-}
-button.action {
-    background: linear-gradient(to bottom, #ee9564, #de7d48);
-}
-button.action:active {
+
+button.grp:active {
     background: #d67540;
 }
-button.action:disabled {
-    background: #c1c1c1;
+
+/* Auto-arrange button with AI purple to blue gradient */
+button.auto-arrange {
+    background: linear-gradient(135deg, #6A4C93, #4a90e2);
+    border-color: #4a4c93;
+}
+
+button.auto-arrange:hover {
+    background: linear-gradient(135deg, #7B5DAD, #5ba0f2);
+    border-color: #5a5ca3;
+}
+
+button.auto-arrange:active {
+    background: linear-gradient(135deg, #593B83, #357abd);
+    border-color: #3a3c83;
 }
 
 select {
@@ -175,7 +221,6 @@ select:disabled {
 button:disabled {
     background: #c1c1c1;
     color: #999;
-    cursor: not-allowed;
 }
 
 #root > div > svg {
@@ -288,23 +333,23 @@ rect.elastic.on {
 }
 
 /* Simple tooltip system with smart positioning */
-button[data-tooltip],
-select[data-tooltip],
-.tooltip-wrapper {
+[data-tooltip] {
     position: relative;
 }
 
-button[data-tooltip]:hover::after,
-select[data-tooltip]:hover::after,
-.tooltip-wrapper:hover::after {
+[data-tooltip]:hover::after {
     content: attr(data-tooltip);
     position: absolute;
     top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
     background: rgba(0, 0, 0, 0.9);
     color: white;
     padding: 6px 12px;
     border-radius: 4px;
-    font-size: 12px;
+    font-size: 12px !important;
+    font-family: sans-serif !important;
+    font-weight: normal !important;
     white-space: nowrap;
     z-index: 1000;
     pointer-events: none;
@@ -313,15 +358,9 @@ select[data-tooltip]:hover::after,
     min-width: 120px;
     max-width: calc(100vw - 20px);
     box-sizing: border-box;
-    
-    /* Default centered positioning */
-    left: 50%;
-    transform: translateX(-50%);
 }
 
-button[data-tooltip]:hover::before,
-select[data-tooltip]:hover::before,
-.tooltip-wrapper:hover::before {
+[data-tooltip]:hover::before {
     content: '';
     position: absolute;
     top: 100%;
@@ -361,7 +400,6 @@ select[data-tooltip]:hover::before,
     }
 }
 
-/* Ensure buttons have relative positioning for tooltips */
-button, select {
+select {
     position: relative;
 }

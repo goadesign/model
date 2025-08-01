@@ -52,7 +52,6 @@ export const useAutoLayout = (graph: GraphData) => {
     try {
       const options: LayoutOptions = {
         direction: 'DOWN',
-        compactLayout: true
       };
       await graph.autoLayout(options);
     } catch (error) {
@@ -132,8 +131,7 @@ export const useKeyboardShortcuts = (
         } else if (shortcut === AUTO_LAYOUT && onAutoLayout) {
           onAutoLayout();
         } else if (shortcut === RESET_POSITION) {
-          graph.alignTopLeft();
-          graph.resetPanTransform();
+          graph.resetView();
         } else if (shortcut === TOGGLE_GRID) {
           graph.toggleGrid();
         } else if (shortcut === TOGGLE_SNAP_TO_GRID) {
@@ -172,4 +170,4 @@ export const clearGraphCache = (currentID?: string) => {
   } else {
     Object.keys(graphs).forEach(key => delete graphs[key]);
   }
-}; 
+};
