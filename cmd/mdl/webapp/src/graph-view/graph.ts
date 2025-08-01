@@ -152,6 +152,10 @@ export class GraphData {
 		if (this._undo.length()) {
 			this.importLayout(this._undo.currentState())
 		}
+		
+		// Save initial state so first action is undoable
+		this._undo.beforeChange()
+		this._undo.change()
 	}
 
 	addNode(id: string, label: string, sub: string, description: string, style: NodeStyle) {
@@ -358,6 +362,10 @@ export class GraphData {
 
 	undo() {
 		this._undo.undo()
+	}
+
+	redo() {
+		this._undo.redo()
 	}
 
 	// moves the entire graph to be aligned top-left of the drawing area
