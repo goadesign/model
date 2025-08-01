@@ -166,6 +166,7 @@ const LayoutControls: FC<{
   const modKey = getModifierKeyName();
   return (
     <button 
+      className="auto-arrange"
       onClick={onAutoLayout} 
       disabled={layouting} 
       data-tooltip={`Automatically arrange all elements using the Layered algorithm (${modKey}+L)`}

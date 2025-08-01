@@ -186,6 +186,22 @@ button.grp:active {
     background: #d67540;
 }
 
+/* Auto-arrange button with AI purple to blue gradient */
+button.auto-arrange {
+    background: linear-gradient(135deg, #6A4C93, #4a90e2);
+    border-color: #4a4c93;
+}
+
+button.auto-arrange:hover {
+    background: linear-gradient(135deg, #7B5DAD, #5ba0f2);
+    border-color: #5a5ca3;
+}
+
+button.auto-arrange:active {
+    background: linear-gradient(135deg, #593B83, #357abd);
+    border-color: #3a3c83;
+}
+
 select {
     border: 1px solid #ccc;
     background: white;
