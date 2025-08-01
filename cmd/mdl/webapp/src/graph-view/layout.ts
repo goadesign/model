@@ -229,8 +229,6 @@ export async function autoLayout(graph: GraphData, options: LayoutOptions = {}):
 		const nodes: Array<{id: string, x: number, y: number}> = [];
 		const edges: Array<{id: string, vertices: Array<{x: number, y: number}>, label?: {x: number, y: number}}> = [];
 
-		// Same padding we added to nodes for ELK
-		const arrowPadding = 40;
 
 		// Extract nodes from layout result
 		const extractNodes = (container: any, offsetX = 0, offsetY = 0) => {
@@ -259,7 +257,7 @@ export async function autoLayout(graph: GraphData, options: LayoutOptions = {}):
 
 				// Process edge sections to get bend points
 				if (elkEdge.sections && elkEdge.sections.length > 0) {
-					elkEdge.sections.forEach((section: any, sectionIndex: number) => {
+					elkEdge.sections.forEach((section: any) => {
 						// Add start point if it exists
 						if (section.startPoint) {
 							vertices.push({
@@ -270,7 +268,7 @@ export async function autoLayout(graph: GraphData, options: LayoutOptions = {}):
 						
 						// Add bend points (this is where ELK puts the routing vertices!)
 						if (section.bendPoints && section.bendPoints.length > 0) {
-							section.bendPoints.forEach((bp: any, bpIndex: number) => {
+							section.bendPoints.forEach((bp: any) => {
 								vertices.push({
 									x: offsetX + bp.x, 
 									y: offsetY + bp.y

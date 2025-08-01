@@ -112,22 +112,18 @@ export function calculateEdgeVertices(edge: Edge, data: GraphData): Point[] {
 	// Calculate intersection points with node boundaries
 	// Find first non-label vertex for start intersection
 	let firstRoutingVertex = vertices[vertices.length - 1]; // Default to end node
-	let foundFirstRoutingVertex = false;
 	for (let i = 1; i < vertices.length - 1; i++) {
 		if (!(vertices[i] as any).label) {
 			firstRoutingVertex = vertices[i];
-			foundFirstRoutingVertex = true;
 			break;
 		}
 	}
 	
 	// Find last non-label vertex for end intersection  
 	let lastRoutingVertex = vertices[0]; // Default to start node
-	let foundLastRoutingVertex = false;
 	for (let i = vertices.length - 2; i > 0; i--) {
 		if (!(vertices[i] as any).label) {
 			lastRoutingVertex = vertices[i];
-			foundLastRoutingVertex = true;
 			break;
 		}
 	}

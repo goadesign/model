@@ -189,7 +189,6 @@ export class GraphData {
 			id, title: label, sub, description, style: {...defaultNodeStyle, ...cleanStyle},
 			x: 0, y: 0, width, height, intersect: null
 		}
-		// console.log(label, id, style, {...defaultNodeStyle, ...style})
 		this.nodesMap.set(n.id, n)
 	}
 
