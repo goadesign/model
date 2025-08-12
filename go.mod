@@ -10,7 +10,7 @@ require (
 	github.com/kylelemons/godebug v1.1.0
 	github.com/stretchr/testify v1.10.0
 	goa.design/goa/v3 v3.21.5
-	golang.org/x/tools v0.35.0
+	golang.org/x/tools v0.36.0
 )
 
 require (
@@ -22,9 +22,9 @@ require (
 	github.com/kr/pretty v0.1.0 // indirect
 	github.com/manveru/faker v0.0.0-20171103152722-9fbc68a78c4d // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	golang.org/x/mod v0.26.0 // indirect
+	golang.org/x/mod v0.27.0 // indirect
 	golang.org/x/sync v0.16.0 // indirect
-	golang.org/x/sys v0.34.0 // indirect
+	golang.org/x/sys v0.35.0 // indirect
 	golang.org/x/text v0.26.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
