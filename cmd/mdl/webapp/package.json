@@ -7,7 +7,7 @@
 	"dependencies": {
 		"@fortawesome/fontawesome-free": "^7.0.0",
 		"clean-webpack-plugin": "^4.0.0",
-		"copy-webpack-plugin": "^13.0.0",
+		"copy-webpack-plugin": "^13.0.1",
 		"elkjs": "^0.10.0",
 		"file-loader": "^6.2.0",
 		"react": "^19.1.1",
