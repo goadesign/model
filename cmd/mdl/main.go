@@ -401,16 +401,11 @@ type navigateExec func(url string, svgPath string, timeout time.Duration) error
 
 // withChromedp wraps the chromedp session lifecycle
 func withChromedp(fn func(exec navigateExec) error) error {
-	// Import here
-	type (
-		Ctx = interface{}
-	)
-	// Use a helper that actually uses chromedp to avoid unresolved identifiers when building
-	return runChromedp(fn)
+	return chromedpExec(fn)
 }
 
-// runChromedp encapsulates direct chromedp usage.
-func runChromedp(fn func(exec navigateExec) error) error {
+// chromedpExec encapsulates direct chromedp usage.
+func chromedpExec(fn func(exec navigateExec) error) error {
 	// Use an explicit exec allocator with flags suitable for CI environments
 	allocatorOpts := append(chromedp.DefaultExecAllocatorOptions[:],
 		chromedp.Flag("headless", true),
