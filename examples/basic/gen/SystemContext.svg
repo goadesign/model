@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" id="graph" width="1458" height="945"><script type="application/json"><![CDATA[{
+<svg id="graph" width="380" height="760" viewBox="0 0 380 760" xmlns="http://www.w3.org/2000/svg"><script type="application/json"><![CDATA[{
   "name": "SystemContext",
   "description": "An example of a System Context diagram.",
   "elements": [
@@ -14,13 +14,31 @@
   ],
   "layout": {
     "122st75": {
-      "x": 872,
-      "y": 250
+      "x": 50,
+      "y": 500
     },
     "1qbyk9e": {
-      "x": 250,
-      "y": 250
-    }
+      "x": 50,
+      "y": 50
+    },
+    "e-1t0pjo3": [
+      {
+        "x": 50,
+        "y": 210,
+        "auto": true
+      },
+      {
+        "x": 50,
+        "y": 290,
+        "label": true,
+        "auto": true
+      },
+      {
+        "x": 50,
+        "y": 370,
+        "auto": true
+      }
+    ]
   }
 }]]></script>
 <defs>
@@ -36,7 +54,7 @@
 	<filter id="shadow">
 		<feDropShadow dx="3" dy="3" stdDeviation="5" flood-color="#00000030" flood-opacity="1"></feDropShadow>
 	</filter>
-</defs><g class="zoom" transform="scale(1)"><g class="groups"></g><g class="edges"><g class="edge" id="1t0pjo3" data-from="1qbyk9e" data-to="122st75"><rect x="524.9416675567627" y="231.5" rx="0" ry="0" width="72.11666488647461" height="37" fill="none" stroke="none"></rect><text x="0" y="231.5" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" font-size="22" fill="#999" data-field="label"><tspan x="561" dy="24px" font-size="22px" font-weight="normal">Uses</tspan></text><path marker-end="url(#arrow)" class="edge" d="M400,250 L524.9416675567627,250 M597.0583324432373,250 L722,250" fill="none" stroke="#999" stroke-width="3" stroke-linecap="round" stroke-dasharray="8"></path></g></g><g class="nodes"><g class="node" id="122st75" transform="translate(872,250)"><rect rx="3" ry="3" x="-150" y="-150" width="300" height="300" class="nodeBorder" fill="#1168bd" stroke="#999" filter="url(#shadow)" stroke-width="4.3" opacity="0.9"></rect><g transform="translate(0,-58)"><text x="0" y="0" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" fill="#ffffff" data-field="name"><tspan x="0" dy="24px" font-size="22px" font-weight="bold">Software System</tspan></text><text x="0" y="48" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" fill="#ffffff" font-size="16.5">[system]</text><text x="0" y="68" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" fill="#ffffff" data-field="description"><tspan x="0" dy="24px" font-size="22px" font-weight="normal">My software system.</tspan></text></g></g><g class="node" id="1qbyk9e" transform="translate(250,250)" label-offset-y="120"><path d="M 114,100 A150,150 0,0,0 0 150
-		L27.272727272727273,300 L272.72727272727275,300 L300,150
-		A150,150 0,0,0 186 100 
-		A50,50 0,1,0 114 100" transform="translate(-150,-150)" class="nodeBorder" fill="#08427b" stroke="#999" filter="url(#shadow)" stroke-width="4.3" opacity="0.9"></path><g transform="translate(0,-130)"><text x="0" y="120" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" fill="#ffffff" data-field="name"><tspan x="0" dy="24px" font-size="22px" font-weight="bold">User</tspan></text><text x="0" y="168" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" fill="#ffffff" font-size="16.5">[person]</text><text x="0" y="188" text-anchor="middle" font-family="Arial, sans-serif" stroke="none" fill="#ffffff" data-field="description"><tspan x="0" dy="24px" font-size="22px" font-weight="normal">A user of my software</tspan><tspan x="0" dy="24px" font-size="22px" font-weight="normal">system.</tspan></text></g></g></g></g></svg>
+<pattern id="grid-pattern" width="25" height="25" patternUnits="userSpaceOnUse"><path d="M 25 0 L 0 0 0 25" fill="none" stroke="#d0d0d0" stroke-width="1" opacity="0.8"></path></pattern></defs><g class="zoom" transform="scale(1) translate(140, 120)"><rect id="grid-background" x="-10000" y="-10000" width="20000" height="20000" fill="url(#grid-pattern)" pointer-events="none"></rect><g class="groups"></g><g class="edges"><g class="edge" id="1t0pjo3" data-from="1qbyk9e" data-to="122st75"><rect x="13.9375" y="271.5" rx="0" ry="0" width="72.125" height="37" style="fill: none; stroke: none;"></rect><text x="0" y="271.5" text-anchor="middle" stroke="none" font-size="22" fill="#999" data-field="label" style="font-family: Arial, sans-serif; stroke: none;"><tspan x="50" dy="24px" font-size="22px" font-weight="normal">Uses</tspan></text><path marker-end="url(#arrow)" d="M50.00000000000001,170 L50,210 L50,271.5 L50,370 L50.00000000000001,410" class="edge" fill="none" stroke="#999" stroke-width="3" stroke-linecap="round" stroke-dasharray="8"></path><circle id="v-2q88o18" cx="50" cy="210" r="7" fill="none" class="v-dot auto"></circle><circle id="v-366tp92" cx="50" cy="290" r="7" fill="none" class="v-dot auto"></circle><circle id="v-3dszf9e" cx="50" cy="370" r="7" fill="none" class="v-dot auto"></circle></g></g><g class="nodes"><g class="node" id="122st75" transform="translate(50,500)"><rect rx="3" ry="3" x="-140" y="-90" width="280" height="180" class="nodeBorder" fill="#1168bd" stroke="#999" stroke-width="3" opacity="0.9" style="filter: url(&quot;#shadow&quot;);"></rect><g transform="translate(0,-54)"><text x="0" y="0" text-anchor="middle" fill="#ffffff" data-field="name" style="font-family: Arial, sans-serif; stroke: none;"><tspan x="0" dy="24px" font-size="22px" font-weight="bold">Software System</tspan></text><text x="0" y="54" text-anchor="middle" fill="#ffffff" font-size="16.5" style="font-family: Arial, sans-serif; stroke: none;">[system]</text><text x="0" y="72" text-anchor="middle" fill="#ffffff" data-field="description" style="font-family: Arial, sans-serif; stroke: none;"><tspan x="0" dy="18px" font-size="16px" font-weight="normal">My software system.</tspan></text></g></g><g class="node" id="1qbyk9e" transform="translate(50,50)" label-offset-y="96"><path d="M 76,80 A100,120 0,0,0 0 120
+		L18.181818181818183,240 L181.8181818181818,240 L200,120
+		A100,120 0,0,0 124 80 
+		A33.333333333333336,33.333333333333336 0,1,0 76 80" transform="translate(-100,-120)" class="nodeBorder" fill="#08427b" stroke="#999" stroke-width="3" opacity="0.9" style="filter: url(&quot;#shadow&quot;);"></path><g transform="translate(0,-111)"><text x="0" y="96" text-anchor="middle" fill="#ffffff" data-field="name" style="font-family: Arial, sans-serif; stroke: none;"><tspan x="0" dy="24px" font-size="22px" font-weight="bold">User</tspan></text><text x="0" y="150" text-anchor="middle" fill="#ffffff" font-size="16.5" style="font-family: Arial, sans-serif; stroke: none;">[person]</text><text x="0" y="168" text-anchor="middle" fill="#ffffff" data-field="description" style="font-family: Arial, sans-serif; stroke: none;"><tspan x="0" dy="18px" font-size="16px" font-weight="normal">A user of my software</tspan><tspan x="0" dy="18px" font-size="16px" font-weight="normal">system.</tspan></text></g></g></g></g></svg>

@@ -1,0 +1,65 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Install Chrome
+        uses: browser-actions/setup-chrome@v1
+
+      - name: Verify Chrome
+        run: |
+          google-chrome --version || chromium --version || true
+
+      - name: Cache npm
+        uses: actions/cache@v4
+        with:
+          path: |
+            cmd/mdl/webapp/node_modules
+          key: ${{ runner.os }}-npm-${{ hashFiles('cmd/mdl/webapp/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
+
+      - name: Build UI (with caching)
+        run: |
+          make build-ui
+
+      - name: Depend (install goimports and golangci-lint)
+        run: |
+          make depend
+
+      - name: Go mod cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/go/pkg/mod
+            ~/.cache/go-build
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Lint
+        run: |
+          make lint
+
+      - name: Test
+        env:
+          CHROME_BIN: google-chrome
+        run: |
+          make test
+
+
