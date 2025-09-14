@@ -411,11 +411,18 @@ func withChromedp(fn func(exec navigateExec) error) error {
 
 // runChromedp encapsulates direct chromedp usage.
 func runChromedp(fn func(exec navigateExec) error) error {
-	return chromedpExec(fn)
-}
+	// Use an explicit exec allocator with flags suitable for CI environments
+	allocatorOpts := append(chromedp.DefaultExecAllocatorOptions[:],
+		chromedp.Flag("headless", true),
+		chromedp.Flag("no-sandbox", true),
+		chromedp.Flag("disable-gpu", true),
+		chromedp.Flag("disable-dev-shm-usage", true),
+		chromedp.Flag("disable-setuid-sandbox", true),
+	)
+	allocCtx, allocCancel := chromedp.NewExecAllocator(context.Background(), allocatorOpts...)
+	defer allocCancel()
 
-func chromedpExec(fn func(exec navigateExec) error) error {
-	ctx, cancel := chromedp.NewContext(context.Background())
+	ctx, cancel := chromedp.NewContext(allocCtx)
 	defer cancel()
 
 	exec := func(url string, svgPath string, timeout time.Duration) error {
