@@ -55,23 +55,40 @@ func (s *Server) Serve(outDir, devDistPath string, port int) error {
 	return server.ListenAndServe()
 }
 
-// setupRoutes configures all HTTP routes
+// setupRoutes configures all HTTP routes on the default mux
 func (s *Server) setupRoutes(devDistPath string) {
+	// Backward-compatible default mux setup
+	s.setupRoutesToMux(http.DefaultServeMux, devDistPath)
+}
+
+// setupRoutesToMux configures all HTTP routes on the provided mux
+func (s *Server) setupRoutesToMux(mux *http.ServeMux, devDistPath string) {
 	// Serve static files
 	if devDistPath != "" {
 		// Development mode: serve from filesystem
 		fs := http.FileSystem(http.Dir(devDistPath))
-		http.Handle("/", http.FileServer(fs))
+		mux.Handle("/", http.FileServer(fs))
 	} else {
 		// Production mode: serve from embedded files
 		sub, _ := fs.Sub(distFS, "webapp/dist")
-		http.Handle("/", http.FileServer(http.FS(sub)))
+		mux.Handle("/", http.FileServer(http.FS(sub)))
 	}
 
 	// API endpoints
-	http.HandleFunc("/data/model.json", s.handleModelData)
-	http.HandleFunc("/data/layout.json", s.handleLayoutData)
-	http.HandleFunc("/data/save", s.handleSave)
+	mux.HandleFunc("/data/model.json", s.handleModelData)
+	mux.HandleFunc("/data/layout.json", s.handleLayoutData)
+	mux.HandleFunc("/data/save", s.handleSave)
+}
+
+// ServeOnMux starts an HTTP server using the provided server and mux.
+// It does not set up file watching; callers control lifecycle via the server.
+func (s *Server) ServeOnMux(outDir, devDistPath string, srv *http.Server, mux *http.ServeMux) error {
+	s.outDir = outDir
+	s.setupRoutesToMux(mux, devDistPath)
+	if srv.Handler == nil {
+		srv.Handler = mux
+	}
+	return srv.ListenAndServe()
 }
 
 // handleModelData serves the JSON representation of the architecture model

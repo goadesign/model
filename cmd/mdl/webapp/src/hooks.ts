@@ -47,11 +47,12 @@ export const useGraph = (model: any, layouts: any, currentID: string): GraphData
 export const useAutoLayout = (graph: GraphData) => {
   const [layouting, setLayouting] = useState(false);
 
-  const handleAutoLayout = useCallback(async () => {
+  const handleAutoLayout = useCallback(async (opts?: LayoutOptions) => {
     setLayouting(true);
     try {
       const options: LayoutOptions = {
         direction: 'DOWN',
+        ...(opts || {})
       };
       await graph.autoLayout(options);
     } catch (error) {

@@ -58,6 +58,41 @@ const ModelPane: FC<{ model: any; layouts: any }> = ({ model, layouts }) => {
     }
   }, [graph]);
 
+  // Headless automation: support query params to auto-layout and save
+  useEffect(() => {
+    // Only run when graph changes to avoid duplicate actions
+    const params = Object.fromEntries(searchParams.entries());
+    const auto = params['auto'] === '1' || params['auto'] === 'true';
+    const save = params['save'] === '1' || params['save'] === 'true';
+    const direction = (params['direction'] || '').toUpperCase();
+    const compact = params['compact'] === '1' || params['compact'] === 'true';
+
+    const validDirections = ['UP', 'DOWN', 'LEFT', 'RIGHT'];
+    const layoutOpts: any = {};
+    if (validDirections.includes(direction)) {
+      layoutOpts.direction = direction as any;
+    }
+    if (compact) {
+      layoutOpts.compactLayout = true;
+    }
+
+    let cancelled = false;
+    (async () => {
+      try {
+        if (auto) {
+          await handleAutoLayout(layoutOpts);
+        }
+        if (save) {
+          await handleSave();
+        }
+      } catch (e) {
+        console.error('automation error', e);
+      }
+    })();
+
+    return () => { cancelled = true; };
+  }, [graph, handleAutoLayout, handleSave, searchParams]);
+
   // Setup keyboard shortcuts
   useKeyboardShortcuts(handleToggleHelp, handleSave, graph, dragMode, setDragMode, handleAutoLayout);
 
