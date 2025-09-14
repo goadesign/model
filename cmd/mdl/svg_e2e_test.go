@@ -2,13 +2,31 @@ package main
 
 import (
 	"os"
+	"os/exec"
 	"path/filepath"
 	"testing"
 )
 
+func hasChrome() bool {
+	if os.Getenv("CHROME_BIN") != "" {
+		return true
+	}
+	names := []string{"google-chrome", "chromium", "chromium-browser"}
+	for _, n := range names {
+		if _, err := exec.LookPath(n); err == nil {
+			return true
+		}
+	}
+	return false
+}
+
 // This test runs the full svg command against the basic example.
 // Requires headless Chrome available in environment.
 func TestSVGEndToEnd(t *testing.T) {
+	if !hasChrome() {
+		t.Skip("skipping: Chrome/Chromium not available in PATH")
+	}
+
 	outDir := t.TempDir()
 	cfg := config{
 		dir:       outDir,
