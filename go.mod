@@ -10,7 +10,7 @@ require (
 	github.com/jaschaephraim/lrserver v0.0.0-20240306232639-afed386b3640
 	github.com/kylelemons/godebug v1.1.0
 	github.com/stretchr/testify v1.11.1
-	goa.design/goa/v3 v3.22.2
+	goa.design/goa/v3 v3.22.3
 	golang.org/x/tools v0.37.0
 )
 
