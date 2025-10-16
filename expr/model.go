@@ -339,12 +339,17 @@ func addImpliedRelationships(src ElementHolder, destElem *Element, existing *Rel
 		dest    = Registry[destElem.ID].(ElementHolder)
 	)
 
-	// Make sure the two elements are not in the same lineage.
+	// Make sure one element is not an ancestor or descendant of the other.
+	// Check if dest or any of its parents is the same as src (src is ancestor of dest).
+	for d := dest; d != nil; d = Parent(d) {
+		if d.GetElement().ID == srcElem.ID {
+			return
+		}
+	}
+	// Check if src or any of its parents is the same as dest (dest is ancestor of src).
 	for s := src; s != nil; s = Parent(s) {
-		for d := dest; d != nil; d = Parent(d) {
-			if s.GetElement().ID == d.GetElement().ID {
-				return
-			}
+		if s.GetElement().ID == destElem.ID {
+			return
 		}
 	}
 
