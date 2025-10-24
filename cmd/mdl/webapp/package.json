@@ -14,7 +14,7 @@
 		"react-dom": "^19.1.1",
 		"react-is": "^19.1.0",
 		"react-router": "^7.9.3",
-		"react-router-dom": "^7.9.3",
+		"react-router-dom": "^7.9.4",
 		"svg-editor-tools": "github:dvictor/svg-editor-tools#1.0.1",
 		"yarn": "^1.22.22"
 	},
