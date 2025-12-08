@@ -84,11 +84,11 @@ export const SVG_STYLES = {
 		filter: 'url(#shadow)',
 	},
 	nodeText: {
-		'font-family': 'Arial, sans-serif',
+		'font-family': 'Inter, -apple-system, BlinkMacSystemFont, sans-serif',
 		stroke: "none"
 	},
 	edgeText: {
-		'font-family': 'Arial, sans-serif',
+		'font-family': 'Inter, -apple-system, BlinkMacSystemFont, sans-serif',
 		stroke: "none"
 	},
 	edgeRect: {
@@ -104,7 +104,8 @@ export const SVG_STYLES = {
 	groupText: {
 		fill: "#666",
 		"font-size": 22,
-		"font-weight": "bold",
+		"font-weight": "500",
+		'font-family': 'Inter, -apple-system, BlinkMacSystemFont, sans-serif',
 		cursor: "default"
 	}
 };

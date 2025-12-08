@@ -116,8 +116,9 @@ export class GraphData {
 	edgeVertices: Map<string, EdgeVertex>
 	groupsMap: Map<string, Group>;
 	metadata: any;
+	colorToVarMap: Map<string, string> = new Map(); // For CSS custom properties theming
 	private _undo: Undo<Layout>;
-	private _gridVisible: boolean = true;
+	private _gridVisible: boolean = false;
 	private _snapToGrid: boolean = true;
 	private _gridSize: number = 25;
 	private _skipAutoFit: boolean = false;
@@ -172,7 +173,7 @@ export class GraphData {
 		let height: number;
 		
 		if (isPersonShape) {
-			width = 200;
+			width = 280;
 			height = 240;
 		} else if (isCylinderShape) {
 			// Make cylinders wider to better accommodate text content
@@ -495,6 +496,9 @@ export class GraphData {
 		// Add required SVG namespace for browser compatibility
 		exportSvg.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
 		
+		// Convert inline styles to CSS custom properties for theming support
+		this.convertStylesToCustomProperties(exportSvg)
+		
 		// Inject metadata with current layout
 		const script = document.createElement('script')
 		script.setAttribute('type', 'application/json')
@@ -507,6 +511,28 @@ export class GraphData {
 		
 		// No restoration needed since we never touched the original SVG!
 		return src
+	}
+
+	// Convert inline fill/stroke attributes to CSS custom properties with fallbacks.
+	// This enables theming: container pages can override colors via CSS variables.
+	private convertStylesToCustomProperties(svg: SVGSVGElement) {
+		if (this.colorToVarMap.size === 0) return
+
+		// Process all elements with fill attribute
+		svg.querySelectorAll('[fill]').forEach(el => {
+			const fill = el.getAttribute('fill')
+			if (fill && this.colorToVarMap.has(fill)) {
+				el.setAttribute('fill', `var(${this.colorToVarMap.get(fill)}, ${fill})`)
+			}
+		})
+
+		// Process all elements with stroke attribute
+		svg.querySelectorAll('[stroke]').forEach(el => {
+			const stroke = el.getAttribute('stroke')
+			if (stroke && this.colorToVarMap.has(stroke)) {
+				el.setAttribute('stroke', `var(${this.colorToVarMap.get(stroke)}, ${stroke})`)
+			}
+		})
 	}
 
 	// Calculate the actual bounds of all content including nodes, edges, and groups
@@ -1190,12 +1216,16 @@ function buildEdge(data: GraphData, edge: Edge) {
 }
 
 function buildEdgeLabel(pLabel: Point, edge: Edge) {
+	// Offset label above the edge line
+	const labelOffset = 20; // pixels above the edge
+	const offsetY = pLabel.y - labelOffset;
+	
 	// label
 	const fontSize = edge.style.fontSize
-	let {txt, dy, maxW} = create.textArea(edge.label, 200, fontSize, false, pLabel.x, pLabel.y, 'middle')
+	let {txt, dy, maxW} = create.textArea(edge.label, 200, fontSize, false, pLabel.x, offsetY, 'middle')
 	//move text up to center relative to the edge
 	dy -= fontSize / 2
-	txt.setAttribute('y', String(pLabel.y - dy / 2))
+	txt.setAttribute('y', String(offsetY - dy / 2))
 
 	maxW += fontSize
 	applyStyle(txt, styles.edgeText)
@@ -1203,7 +1233,7 @@ function buildEdgeLabel(pLabel: Point, edge: Edge) {
 	txt.setAttribute('font-size', String(edge.style.fontSize))
 	txt.setAttribute('fill', edge.style.color)
 
-	const bbox = {x: pLabel.x - maxW / 2, y: pLabel.y - dy / 2, width: maxW, height: dy}
+	const bbox = {x: pLabel.x - maxW / 2, y: offsetY - dy / 2, width: maxW, height: dy}
 	const bg = create.rect(bbox.width, bbox.height, bbox.x, bbox.y)
 	applyStyle(bg, styles.edgeRect)
 	txt.setAttribute('data-field', 'label')
@@ -1302,20 +1332,46 @@ function buildGroup(group: Group) {
 
 	let p0: Point = {x: 1e100, y: 1e100}, p1: Point = {x: 0, y: 0}
 	group.nodes.forEach(n => {
-		const b = {x: n.x - n.width / 2, y: n.y - n.height / 2, width: n.width, height: n.height}
+		// Calculate visual bounds accounting for shapes that extend beyond center
+		const shape = (n as Node).style?.shape?.toLowerCase() || 'box'
+		
+		let topExtension = n.height / 2
+		let bottomExtension = n.height / 2
+		
+		if (shape === 'robot') {
+			// Robot shape extends above with antenna
+			// Account for antenna height (h * 0.08) plus some margin
+			const antennaH = n.height * 0.12
+			topExtension = n.height / 2 + antennaH
+			bottomExtension = n.height / 2
+		} else if (shape === 'hexagon') {
+			// Hexagon extends to ±0.866 * (width/2) vertically
+			// For width=280, that's ±121.24px from center
+			const hexHeight = n.width / 2 * 0.866
+			topExtension = hexHeight
+			bottomExtension = hexHeight
+		}
+		
+		const b = {
+			x: n.x - n.width / 2,
+			y: n.y - topExtension,
+			width: n.width,
+			height: topExtension + bottomExtension
+		}
 		p0.x = Math.min(p0.x, b.x)
 		p0.y = Math.min(p0.y, b.y)
 		p1.x = Math.max(p1.x, b.x + b.width)
 		p1.y = Math.max(p1.y, b.y + b.height)
 	})
-	const pad = 25
+	const pad = 25  // Padding around content
+	const labelHeight = 30  // Space for the group label at bottom
 	const w = Math.max(p1.x - p0.x, 200)
-	const h = p1.y - p0.y + pad * 1.5
+	const h = p1.y - p0.y
 	const bb = {
 		x: p0.x - pad,
 		y: p0.y - pad,
 		width: w + pad * 2,
-		height: h + pad * 2,
+		height: h + pad * 2 + labelHeight,
 	}
 	const r = create.rect(bb.width, bb.height, bb.x, bb.y)
 	group.x = bb.x + bb.width / 2
@@ -2130,6 +2186,7 @@ const styles = {
 		"stroke-dasharray": 4,
 	},
 	groupText: {
+		'font-family': 'Arial, sans-serif',
 		fill: "#666",
 		"font-size": 22,
 		"font-weight": "bold",

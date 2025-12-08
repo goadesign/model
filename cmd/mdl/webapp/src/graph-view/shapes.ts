@@ -286,36 +286,113 @@ function pipe(parent: D3Element, bbox: BBox, node: D3Node) {
 }
 
 function robot(parent: D3Element, bbox: BBox, node: D3Node) {
-	const headW = node.width * .45
-	const r = node.width / 16
-	const dy = headW / 2 - r
+	const w = node.width
+	const h = node.height
+	
+	// Small head at top (like person shape but robot-styled)
+	const headSize = Math.min(w * 0.28, h * 0.25)
+	const headR = headSize * 0.2
+	const antennaH = headSize * 0.25
+	const antennaR = headSize * 0.08
+	
+	// Eye dimensions
+	const eyeR = headSize * 0.12
+	const eyeSpacing = headSize * 0.22
+	
+	// Ear dimensions  
+	const earW = headSize * 0.12
+	const earH = headSize * 0.3
+	
+	// Body fills most of the space for text
+	const bodyW = w
+	const bodyTop = -h / 2 + antennaH + headSize
+	const bodyH = h - antennaH - headSize
+	const bodyR = 3
+	
+	// Label offset - similar to person shape (h * 0.4)
+	const labelOffsetY = h * 0.35
+	
 	const shapeSvg = parent
-		.attr('label-offset-y', headW)
+		.attr('label-offset-y', labelOffsetY)
 		.insert('g', ':first-child')
-		.attr('transform', 'translate(0,' + (headW / 4) + ')');
-	// head
+	
+	// Body - main rectangle for text (draw first so it's behind)
 	shapeSvg.insert("rect", ":first-child")
-		.attr("rx", r).attr("ry", r)
-		.attr('x', -headW / 2)
-		.attr('y', -node.height / 2 - headW / 2)
-		.attr('width', headW)
-		.attr('height', headW)
-	// ears
+		.attr("rx", bodyR)
+		.attr("ry", bodyR)
+		.attr('x', -bodyW / 2)
+		.attr('y', bodyTop)
+		.attr('width', bodyW)
+		.attr('height', bodyH)
+	
+	// Head
+	const headTop = -h / 2 + antennaH
+	shapeSvg.insert("rect", ":first-child")
+		.attr("rx", headR)
+		.attr("ry", headR)
+		.attr('x', -headSize / 2)
+		.attr('y', headTop)
+		.attr('width', headSize)
+		.attr('height', headSize)
+	
+	// Antenna
+	shapeSvg.insert("line", ":first-child")
+		.attr('class', 'robot-antenna')
+		.attr('x1', 0)
+		.attr('y1', headTop)
+		.attr('x2', 0)
+		.attr('y2', -h / 2 + antennaR * 2)
+		.attr('stroke-width', antennaR * 0.6)
+		.attr('stroke-linecap', 'round')
+	
+	// Antenna ball
+	shapeSvg.insert("circle", ":first-child")
+		.attr('class', 'robot-antenna-ball')
+		.attr('cx', 0)
+		.attr('cy', -h / 2 + antennaR * 2)
+		.attr('r', antennaR * 1.2)
+	
+	// Eyes
+	const eyeY = headTop + headSize * 0.4
+	shapeSvg.insert("circle", ":first-child")
+		.attr('class', 'robot-eye')
+		.attr('cx', -eyeSpacing)
+		.attr('cy', eyeY)
+		.attr('r', eyeR)
+	shapeSvg.insert("circle", ":first-child")
+		.attr('class', 'robot-eye')
+		.attr('cx', eyeSpacing)
+		.attr('cy', eyeY)
+		.attr('r', eyeR)
+	
+	// Mouth - simple smile
+	const mouthY = headTop + headSize * 0.7
+	const mouthW = headSize * 0.28
 	shapeSvg.insert("path", ":first-child")
-		.attr('d', `
-			M${-headW / 2},${-node.height / 2 + r / 2} h-20 v-40 h20
-			M${headW / 2},${-node.height / 2 + r / 2} h20 v-40 h-20
-		`)
-	// body
+		.attr('class', 'robot-mouth')
+		.attr('d', `M${-mouthW / 2},${mouthY} Q0,${mouthY + mouthW * 0.3} ${mouthW / 2},${mouthY}`)
+		.attr('fill', 'none')
+		.attr('stroke-width', antennaR * 0.5)
+		.attr('stroke-linecap', 'round')
+	
+	// Ears
 	shapeSvg.insert("rect", ":first-child")
-		.attr("rx", r).attr("ry", r)
-		.attr("x", -node.width / 2)
-		.attr("y", -node.height / 2 + dy)
-		.attr("width", node.width)
-		.attr("height", node.height - dy);
+		.attr("rx", earW * 0.25)
+		.attr("ry", earW * 0.25)
+		.attr('x', -headSize / 2 - earW - 1)
+		.attr('y', eyeY - earH / 2)
+		.attr('width', earW)
+		.attr('height', earH)
+	shapeSvg.insert("rect", ":first-child")
+		.attr("rx", earW * 0.25)
+		.attr("ry", earW * 0.25)
+		.attr('x', headSize / 2 + 1)
+		.attr('y', eyeY - earH / 2)
+		.attr('width', earW)
+		.attr('height', earH)
 
 	node.intersect = function (point) {
-		return intersectRect({x: node.x, y: node.y, width: node.width, height: node.height + headW / 2}, point);
+		return intersectRect(node, point);
 	};
 
 	return shapeSvg;

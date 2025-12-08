@@ -198,6 +198,29 @@ export const parseView = (model: Model, layouts: Layouts, viewKey: string) => {
 
 	const styles = model.views.styles
 
+	// Build color-to-variable mapping for CSS custom properties theming
+	const cssClassName = (tag: string) => tag.toLowerCase().replace(/[^a-z0-9-]/g, '-')
+	
+	if (styles?.elements) {
+		styles.elements.forEach(s => {
+			if (s.tag) {
+				const varPrefix = `--mdl-${cssClassName(s.tag)}`
+				if (s.background) graph.colorToVarMap.set(s.background as string, `${varPrefix}-bg`)
+				if (s.color) graph.colorToVarMap.set(s.color as string, `${varPrefix}-color`)
+				if (s.stroke) graph.colorToVarMap.set(s.stroke as string, `${varPrefix}-stroke`)
+			}
+		})
+	}
+
+	if (styles?.relationships) {
+		styles.relationships.forEach(s => {
+			if (s.tag) {
+				const varPrefix = `--mdl-rel-${cssClassName(s.tag)}`
+				if (s.color) graph.colorToVarMap.set(s.color as string, `${varPrefix}-color`)
+			}
+		})
+	}
+
 	//nodes
 	view.elements.forEach((ref) => {
 		// except grouping elements
