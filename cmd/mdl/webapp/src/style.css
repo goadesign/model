@@ -3,7 +3,7 @@ html, body, #root {
 }
 
 body {
-    font-family: sans-serif;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     color: #666;
     margin: 0;
 }
@@ -115,9 +115,10 @@ body {
 
 /* Zoom percentage display */
 .toolbar button.zoom-display {
-    font-family: 'SF Mono', Monaco, 'Roboto Mono', Consolas, monospace;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     font-size: 11px;
     font-weight: 600;
+    font-variant-numeric: tabular-nums;
     min-width: 50px;  /* Wider to prevent size change between 99% and 100% */
     padding: 6px 8px;
     text-align: center;
@@ -150,7 +151,7 @@ button {
     justify-content: center;
     font-size: 14px;
     line-height: 1;
-    font-family: "Segoe UI", "Segoe UI Symbol", "Segoe UI Emoji", system-ui, -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     position: relative;
 }
 
@@ -348,7 +349,7 @@ rect.elastic.on {
     padding: 6px 12px;
     border-radius: 4px;
     font-size: 12px !important;
-    font-family: sans-serif !important;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
     font-weight: normal !important;
     white-space: nowrap;
     z-index: 1000;
@@ -402,4 +403,39 @@ rect.elastic.on {
 
 select {
     position: relative;
+}
+
+/* Robot shape internal elements - inherit stroke from parent node */
+.node .robot-eye-socket {
+    fill: none;
+    stroke: inherit;
+    stroke-width: 2;
+}
+
+.node .robot-eye {
+    fill: currentColor;
+    stroke: none;
+}
+
+.node .robot-mouth {
+    stroke: inherit;
+}
+
+.node .robot-antenna {
+    stroke: inherit;
+}
+
+.node .robot-antenna-ball {
+    fill: currentColor;
+    stroke: inherit;
+    stroke-width: 1.5;
+}
+
+.node .robot-panel {
+    stroke: inherit;
+}
+
+.node .robot-indicator {
+    fill: currentColor;
+    stroke: none;
 }

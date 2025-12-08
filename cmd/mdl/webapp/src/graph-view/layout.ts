@@ -16,12 +16,12 @@ interface SpacingConfig {
 	groupMultiplier: number;
 }
 
-// Balanced spacing configuration - optimized for clean routing
+// Spacing configuration - balanced for readability
 const DEFAULT_SPACING: SpacingConfig = {
-	nodeSpacing: 120,      // More compact horizontal spacing
-	layerSpacing: 70,      // Tighter vertical spacing between layers  
-	componentSpacing: 60,  // Closer separation between disconnected components
-	padding: 30,           // Less padding around the entire layout
+	nodeSpacing: 80,      // Comfortable vertical spacing between nodes in same layer
+	layerSpacing: 60,     // Layer spacing (between nodes in flow direction)
+	componentSpacing: 80, // Separation between disconnected components
+	padding: 40,          // Padding around the entire layout (for group labels)
 	groupMultiplier: 0.65, // Moderate compaction within groups
 };
 
@@ -79,18 +79,18 @@ function getELKOptions(
 		'elk.spacing.componentComponent': spacing.componentSpacing.toString(),
 		'elk.padding': `[top=${spacing.padding},left=${spacing.padding},bottom=${spacing.padding},right=${spacing.padding}]`,
 		
-		// Layer spacing for clean routing
+		// Layer spacing for compact layout
 		'elk.layered.spacing.nodeNodeBetweenLayers': spacing.layerSpacing.toString(),
-		'elk.layered.spacing.edgeNodeBetweenLayers': '40', // Tighter spacing around nodes
-		'elk.layered.spacing.edgeEdgeBetweenLayers': '30',  // Tighter space between edges
+		'elk.layered.spacing.edgeNodeBetweenLayers': '10', // Minimal spacing around nodes
+		'elk.layered.spacing.edgeEdgeBetweenLayers': '10',  // Minimal space between edges
 		
 		// ORTHOGONAL edge routing for cleaner layout
-		'elk.edgeRouting': 'ORTHOGONAL',
+		'elk.edgeRouting': 'POLYLINE',
 		'elk.layered.unnecessaryBendpoints': 'false',
 		
-		// Orthogonal routing configuration - try to minimize detours
+		// Minimal edge routing - straight lines where possible
 		'elk.layered.edgeRouting.orthogonal.mode': 'DIRECTION_BASED',
-		'elk.layered.edgeRouting.orthogonal.spacing': '15', // Tighter edge spacing
+		'elk.layered.edgeRouting.orthogonal.spacing': '5', // Minimal edge spacing
 		'elk.layered.edgeRouting.orthogonal.nodeOverlapRatio': '0.1',
 		
 		// Compaction options
@@ -100,23 +100,31 @@ function getELKOptions(
 		// Separate components to reduce complexity
 		'elk.separateConnectedComponents': 'true',
 		
+		// Node placement strategy for consistent vertical spacing
+		'elk.layered.nodePlacement.strategy': 'NETWORK_SIMPLEX',
+		'elk.layered.nodePlacement.favorStraightEdges': 'true',
+		
+		// Crossing minimization - respect model order for consistent layout
+		'elk.layered.crossingMinimization.strategy': 'LAYER_SWEEP',
+		'elk.layered.crossingMinimization.semiInteractive': 'true',
+		
 		// Flatten hierarchy for better edge routing
 		'elk.hierarchyHandling': 'SEPARATE_CHILDREN',
 		'elk.layered.considerModelOrder.strategy': 'NONE', // Ignore model ordering constraints
 		
-		// Enhanced edge label handling - keep labels close to edges
+		// Edge label handling - minimal space, labels positioned above edges
 		'elk.edgeLabels.placement': 'CENTER',
-		'elk.edgeLabels.inline': 'false',
-		'elk.spacing.edgeLabel': '20', // Reduced spacing - keep labels closer
-		'elk.edgeLabels.avoidOverlap': 'false', // Disable aggressive collision avoidance
+		'elk.edgeLabels.inline': 'true',
+		'elk.spacing.edgeLabel': '5', // Minimal spacing for labels
+		'elk.edgeLabels.avoidOverlap': 'false', // Disable collision avoidance
 		'elk.edgeLabels.considerModelOrder': 'false',
-		'elk.layered.edgeLabels.sideSelection': 'ALWAYS_DOWN', // Consistent label placement
+		'elk.layered.edgeLabels.sideSelection': 'ALWAYS_UP', // Labels above edges
 	};
 	
 	// Additional compact layout options if requested
 	if (compactLayout) {
-		baseOptions['elk.spacing.nodeNode'] = Math.max(spacing.nodeSpacing * 0.7, 60).toString();
-		baseOptions['elk.layered.spacing.nodeNodeBetweenLayers'] = Math.max(spacing.layerSpacing * 0.7, 80).toString();
+		baseOptions['elk.spacing.nodeNode'] = Math.max(spacing.nodeSpacing * 0.7, 30).toString();
+		baseOptions['elk.layered.spacing.nodeNodeBetweenLayers'] = Math.max(spacing.layerSpacing * 0.7, 30).toString();
 	}
 	
 	return baseOptions;
@@ -148,12 +156,13 @@ export async function autoLayout(graph: GraphData, options: LayoutOptions = {}):
 		nodeMap.set(node.id, node);
 		
 		// Ensure minimum dimensions and validate node size data
+		// Use larger height to account for shapes like Robot that extend above the center
 		const nodeWidth = Math.max(node.width || 200, 150); // Min width 150px
-		const nodeHeight = Math.max(node.height || 100, 80); // Min height 80px
+		const nodeHeight = Math.max(node.height || 100, 250); // Min height 250px to account for robot shape
 		
 		// Add padding to node dimensions for ELK to account for arrow size
-		// This makes ELK route edges to a slightly larger boundary
-		const arrowPadding = 40; // About 8 arrow lengths (arrow is 5px in markerWidth)
+		// This makes ELK route edges to a slightly larger boundary so arrow tips stay outside
+		const arrowPadding = 25; // Padding for arrow clearance
 		
 		elkGraph.children.push({
 			id: node.id,
@@ -206,7 +215,7 @@ export async function autoLayout(graph: GraphData, options: LayoutOptions = {}):
 				height: 20, // More realistic label height
 				layoutOptions: {
 					'elk.edgeLabels.placement': 'CENTER',
-					'elk.edgeLabels.inline': 'false'
+					'elk.edgeLabels.inline': 'true'
 					// Remove the FIXED_SIZE constraint that might be forcing detours
 				}
 			}] : []

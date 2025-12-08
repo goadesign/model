@@ -1,8 +1,8 @@
 export const defs = `
 <defs>
-	<marker id="arrow" viewBox="0 0 5 5" refX="4" refY="2.5" 
-		markerWidth="5" markerHeight="5" orient="auto" markerUnits="strokeWidth">
-		<path fill="#aaa" stroke-width="1" stroke="none" d="M0,0 L5,2.5 L0,5 Z" class="arrowHead"/>
+	<marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" 
+		markerWidth="8" markerHeight="8" orient="auto" markerUnits="strokeWidth">
+		<path fill="context-stroke" stroke="none" d="M0,0 L10,5 L0,10 Z" class="arrowHead"/>
 	</marker>
 	<g id="icon-circle" transform="translate(0,-12)" class="icon">
 		<circle cx="7" cy="7" r="7"/>
