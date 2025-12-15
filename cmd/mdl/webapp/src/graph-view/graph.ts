@@ -207,11 +207,28 @@ export class GraphData {
 			v.id = `v-${id}-${i}`
 			this.edgeVertices.set(v.id, v)
 		})
-		const randomID = () => Math.round(Math.random() * 1e10).toString(36)
+		// Deterministic vertex IDs.
+		//
+		// `mdl svg` renders diagrams headlessly and saves the resulting SVG. If we
+		// generate random vertex IDs, the SVG changes on every run even when the
+		// underlying model and layout are unchanged. Use a stable hash instead.
+		const fnv1a36 = (input: string) => {
+			let h = 0x811c9dc5
+			for (let i = 0; i < input.length; i++) {
+				h ^= input.charCodeAt(i)
+				h = Math.imul(h, 0x01000193)
+			}
+			return (h >>> 0).toString(36)
+		}
+		const stableVertexID = (edgeID: string, p: Point) => {
+			const x = (p as any).x
+			const y = (p as any).y
+			return `v-${edgeID}-a-${fnv1a36(`${edgeID}:${x}:${y}`)}`
+		}
 		const initVertex = (p: Point) => {
 			const v = p as EdgeVertex
 			if (!v.id) {
-				v.id = `v-${randomID()}`
+				v.id = stableVertexID(edge.id, p)
 				this.edgeVertices.set(v.id, v)
 			}
 			v.edge = edge
