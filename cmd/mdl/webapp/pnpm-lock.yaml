@@ -30,8 +30,8 @@ importers:
         specifier: ^19.1.1
         version: 19.2.1(react@19.2.1)
       react-is:
-        specifier: ^19.2.0
-        version: 19.2.1
+        specifier: ^19.2.3
+        version: 19.2.3
       react-router:
         specifier: ^7.11.0
         version: 7.11.0(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
@@ -2519,8 +2519,8 @@ packages:
   react-is@16.13.1:
     resolution: {integrity: sha512-24e6ynE2H+OKt4kqsOvNd8kBpV65zoxbA4BVsEOB3ARVWQki/DHzaUoC5KuON/BiccDaCCTZBuOcfZs70kR8bQ==}
 
-  react-is@19.2.1:
-    resolution: {integrity: sha512-L7BnWgRbMwzMAubQcS7sXdPdNLmKlucPlopgAzx7FtYbksWZgEWiuYM5x9T6UqS2Ne0rsgQTq5kY2SGqpzUkYA==}
+  react-is@19.2.3:
+    resolution: {integrity: sha512-qJNJfu81ByyabuG7hPFEbXqNcWSU3+eVus+KJs+0ncpGfMyYdvSmxiJxbWR65lYi1I+/0HBcliO029gc4F+PnA==}
 
   react-refresh@0.18.0:
     resolution: {integrity: sha512-QgT5//D3jfjJb6Gsjxv0Slpj23ip+HtOpnNgnb2S5zU3CB26G/IDPGoy4RJB42wzFE46DRsstbW6tKHoKbhAxw==}
@@ -5898,7 +5898,7 @@ snapshots:
 
   react-is@16.13.1: {}
 
-  react-is@19.2.1: {}
+  react-is@19.2.3: {}
 
   react-refresh@0.18.0: {}
 
