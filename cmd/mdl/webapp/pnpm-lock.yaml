@@ -24,20 +24,20 @@ importers:
         specifier: ^6.2.0
         version: 6.2.0(webpack@5.104.1)
       react:
-        specifier: ^19.1.1
-        version: 19.2.1
+        specifier: ^19.2.3
+        version: 19.2.3
       react-dom:
         specifier: ^19.1.1
-        version: 19.2.1(react@19.2.1)
+        version: 19.2.1(react@19.2.3)
       react-is:
         specifier: ^19.2.3
         version: 19.2.3
       react-router:
         specifier: ^7.11.0
-        version: 7.11.0(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
+        version: 7.11.0(react-dom@19.2.1(react@19.2.3))(react@19.2.3)
       react-router-dom:
         specifier: ^7.11.0
-        version: 7.11.0(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
+        version: 7.11.0(react-dom@19.2.1(react@19.2.3))(react@19.2.3)
       svg-editor-tools:
         specifier: github:dvictor/svg-editor-tools#1.0.1
         version: https://codeload.github.com/dvictor/svg-editor-tools/tar.gz/8a184836e5765b7b1b3561c75733d0c07ea2f1dd
@@ -2543,8 +2543,8 @@ packages:
       react-dom:
         optional: true
 
-  react@19.2.1:
-    resolution: {integrity: sha512-DGrYcCWK7tvYMnWh79yrPHt+vdx9tY+1gPZa7nJQtO/p8bLTDaHp4dzwEhQB7pZ4Xe3ok4XKuEPrVuc+wlpkmw==}
+  react@19.2.3:
+    resolution: {integrity: sha512-Ku/hhYbVjOQnXDZFv2+RibmLFGwFdeeKHFcOTlrt7xplBnya5OGn/hIRDsqDiSUcfORsDC7MPxwork8jBwsIWA==}
     engines: {node: '>=0.10.0'}
 
   readable-stream@2.3.8:
@@ -5881,9 +5881,9 @@ snapshots:
       iconv-lite: 0.4.24
       unpipe: 1.0.0
 
-  react-dom@19.2.1(react@19.2.1):
+  react-dom@19.2.1(react@19.2.3):
     dependencies:
-      react: 19.2.1
+      react: 19.2.3
       scheduler: 0.27.0
 
   react-is@16.13.1: {}
@@ -5892,21 +5892,21 @@ snapshots:
 
   react-refresh@0.18.0: {}
 
-  react-router-dom@7.11.0(react-dom@19.2.1(react@19.2.1))(react@19.2.1):
+  react-router-dom@7.11.0(react-dom@19.2.1(react@19.2.3))(react@19.2.3):
     dependencies:
-      react: 19.2.1
-      react-dom: 19.2.1(react@19.2.1)
-      react-router: 7.11.0(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
+      react: 19.2.3
+      react-dom: 19.2.1(react@19.2.3)
+      react-router: 7.11.0(react-dom@19.2.1(react@19.2.3))(react@19.2.3)
 
-  react-router@7.11.0(react-dom@19.2.1(react@19.2.1))(react@19.2.1):
+  react-router@7.11.0(react-dom@19.2.1(react@19.2.3))(react@19.2.3):
     dependencies:
       cookie: 1.1.1
-      react: 19.2.1
+      react: 19.2.3
       set-cookie-parser: 2.7.2
     optionalDependencies:
-      react-dom: 19.2.1(react@19.2.1)
+      react-dom: 19.2.1(react@19.2.3)
 
-  react@19.2.1: {}
+  react@19.2.3: {}
 
   readable-stream@2.3.8:
     dependencies:
