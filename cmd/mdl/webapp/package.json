@@ -18,7 +18,7 @@
 		"svg-editor-tools": "github:dvictor/svg-editor-tools#1.0.1"
 	},
 	"devDependencies": {
-		"@babel/core": "^7.28.4",
+		"@babel/core": "^7.28.6",
 		"@babel/preset-env": "^7.28.5",
 		"@babel/preset-react": "^7.28.5",
 		"@babel/preset-typescript": "^7.26.0",
