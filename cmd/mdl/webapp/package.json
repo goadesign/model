@@ -12,9 +12,9 @@
 		"file-loader": "^6.2.0",
 		"react": "^19.1.1",
 		"react-dom": "^19.1.1",
-		"react-is": "^19.2.0",
-		"react-router": "^7.9.6",
-		"react-router-dom": "^7.9.4",
+		"react-is": "^19.2.3",
+		"react-router": "^7.13.0",
+		"react-router-dom": "^7.12.0",
 		"svg-editor-tools": "github:dvictor/svg-editor-tools#1.0.1"
 	},
 	"devDependencies": {
@@ -30,7 +30,7 @@
 		"@types/react-syntax-highlighter": "^15.5.13",
 		"babel-loader": "^10.0.0",
 		"css-loader": "^7.1.2",
-		"eslint": "^9.39.1",
+		"eslint": "^9.39.2",
 		"eslint-plugin-react": "^7.37.5",
 		"eslint-plugin-react-hooks": "^7.0.1",
 		"html-loader": "^5.1.0",
@@ -38,9 +38,9 @@
 		"react-refresh": "^0.18.0",
 		"style-loader": "^4.0.0",
 		"typescript": "^5.9.3",
-		"webpack": "^5.102.0",
+		"webpack": "^5.104.1",
 		"webpack-cli": "^6.0.1",
-		"webpack-dev-server": "^5.2.2"
+		"webpack-dev-server": "^5.2.3"
 	},
 	"scripts": {
 		"build": "NODE_ENV=production webpack",
