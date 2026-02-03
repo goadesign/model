@@ -360,7 +360,7 @@ func renderViewsHeadless(baseURL, outDir string, views []string, cfg config) err
 	// Prepare function that opens a headless tab to the URL and waits for SVG file
 	run := func(url string, svgPath string, timeout time.Duration) error {
 		// Defer importing chromedp to here for clarity
-		return withChromedp(func(exec navigateExec) error {
+		return withChromedp(timeout, cfg.debug, func(exec navigateExec) error {
 			return exec(url, svgPath, timeout)
 		})
 	}
@@ -400,20 +400,22 @@ func waitForFile(path string, timeout time.Duration) error {
 type navigateExec func(url string, svgPath string, timeout time.Duration) error
 
 // withChromedp wraps the chromedp session lifecycle
-func withChromedp(fn func(exec navigateExec) error) error {
-	return chromedpExec(fn)
+func withChromedp(timeout time.Duration, debug bool, fn func(exec navigateExec) error) error {
+	return chromedpExec(timeout, debug, fn)
 }
 
 // chromedpExec encapsulates direct chromedp usage.
-func chromedpExec(fn func(exec navigateExec) error) error {
+func chromedpExec(timeout time.Duration, debug bool, fn func(exec navigateExec) error) error {
 	// Use an explicit exec allocator with flags suitable for CI environments
 	allocatorOpts := append(chromedp.DefaultExecAllocatorOptions[:],
-		chromedp.Flag("headless", true),
+		chromedp.WSURLReadTimeout(timeout),
+		chromedp.DisableGPU,
 		chromedp.Flag("no-sandbox", true),
-		chromedp.Flag("disable-gpu", true),
-		chromedp.Flag("disable-dev-shm-usage", true),
 		chromedp.Flag("disable-setuid-sandbox", true),
 	)
+	if debug {
+		allocatorOpts = append(allocatorOpts, chromedp.CombinedOutput(os.Stderr))
+	}
 	allocCtx, allocCancel := chromedp.NewExecAllocator(context.Background(), allocatorOpts...)
 	defer allocCancel()
 
