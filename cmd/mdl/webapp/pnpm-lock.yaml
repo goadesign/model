@@ -24,20 +24,20 @@ importers:
         specifier: ^6.2.0
         version: 6.2.0(webpack@5.105.2)
       react:
-        specifier: ^19.1.1
-        version: 19.2.1
+        specifier: ^19.2.4
+        version: 19.2.4
       react-dom:
         specifier: ^19.1.1
-        version: 19.2.1(react@19.2.1)
+        version: 19.2.1(react@19.2.4)
       react-is:
         specifier: ^19.2.4
         version: 19.2.4
       react-router:
         specifier: ^7.13.0
-        version: 7.13.0(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
+        version: 7.13.0(react-dom@19.2.1(react@19.2.4))(react@19.2.4)
       react-router-dom:
         specifier: ^7.13.0
-        version: 7.13.0(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
+        version: 7.13.0(react-dom@19.2.1(react@19.2.4))(react@19.2.4)
       svg-editor-tools:
         specifier: github:dvictor/svg-editor-tools#1.0.1
         version: https://codeload.github.com/dvictor/svg-editor-tools/tar.gz/8a184836e5765b7b1b3561c75733d0c07ea2f1dd
@@ -58,11 +58,11 @@ importers:
         specifier: ^0.6.1
         version: 0.6.2(react-refresh@0.18.0)(webpack-dev-server@5.2.3)(webpack@5.105.2)
       '@types/react':
-        specifier: ^19.1.13
-        version: 19.2.7
+        specifier: ^19.2.14
+        version: 19.2.14
       '@types/react-dom':
         specifier: ^19.1.9
-        version: 19.2.3(@types/react@19.2.7)
+        version: 19.2.3(@types/react@19.2.14)
       '@types/react-router':
         specifier: ^5.1.20
         version: 5.1.20
@@ -954,8 +954,8 @@ packages:
   '@types/react-syntax-highlighter@15.5.13':
     resolution: {integrity: sha512-uLGJ87j6Sz8UaBAooU0T6lWJ0dBmjZgN1PZTrj05TNql2/XpC6+4HhMT5syIdFUUt+FASfCeLLv4kBygNU+8qA==}
 
-  '@types/react@19.2.7':
-    resolution: {integrity: sha512-MWtvHrGZLFttgeEj28VXHxpmwYbor/ATPYbBfSFZEIRK0ecCFLl2Qo55z52Hss+UV9CRN7trSeq1zbgx7YDWWg==}
+  '@types/react@19.2.14':
+    resolution: {integrity: sha512-ilcTH/UniCkMdtexkoCN0bI7pMcJDvmQFPvuPvmEaYA/NSfFTAgdUSLAoVjaRJm7+6PvcM+q1zYOwS4wTYMF9w==}
 
   '@types/retry@0.12.2':
     resolution: {integrity: sha512-XISRgDJ2Tc5q4TRqvgJtzsRkFYNJzZrhTdtMoGVBttwzzQJkPnS3WWTFc7kuDRoPtPakl+T+OfdEUjYJj7Jbow==}
@@ -2611,8 +2611,8 @@ packages:
       react-dom:
         optional: true
 
-  react@19.2.1:
-    resolution: {integrity: sha512-DGrYcCWK7tvYMnWh79yrPHt+vdx9tY+1gPZa7nJQtO/p8bLTDaHp4dzwEhQB7pZ4Xe3ok4XKuEPrVuc+wlpkmw==}
+  react@19.2.4:
+    resolution: {integrity: sha512-9nfp2hYpCwOjAN+8TZFGhtWEwgvWHXqESH8qT89AT/lWklpLON22Lc8pEtnpsZz7VmawabSU0gCjnj8aC0euHQ==}
     engines: {node: '>=0.10.0'}
 
   readable-stream@2.3.8:
@@ -4277,26 +4277,26 @@ snapshots:
 
   '@types/range-parser@1.2.7': {}
 
-  '@types/react-dom@19.2.3(@types/react@19.2.7)':
+  '@types/react-dom@19.2.3(@types/react@19.2.14)':
     dependencies:
-      '@types/react': 19.2.7
+      '@types/react': 19.2.14
 
   '@types/react-router-dom@5.3.3':
     dependencies:
       '@types/history': 4.7.11
-      '@types/react': 19.2.7
+      '@types/react': 19.2.14
       '@types/react-router': 5.1.20
 
   '@types/react-router@5.1.20':
     dependencies:
       '@types/history': 4.7.11
-      '@types/react': 19.2.7
+      '@types/react': 19.2.14
 
   '@types/react-syntax-highlighter@15.5.13':
     dependencies:
-      '@types/react': 19.2.7
+      '@types/react': 19.2.14
 
-  '@types/react@19.2.7':
+  '@types/react@19.2.14':
     dependencies:
       csstype: 3.2.3
 
@@ -6092,9 +6092,9 @@ snapshots:
       iconv-lite: 0.4.24
       unpipe: 1.0.0
 
-  react-dom@19.2.1(react@19.2.1):
+  react-dom@19.2.1(react@19.2.4):
     dependencies:
-      react: 19.2.1
+      react: 19.2.4
       scheduler: 0.27.0
 
   react-is@16.13.1: {}
@@ -6103,21 +6103,21 @@ snapshots:
 
   react-refresh@0.18.0: {}
 
-  react-router-dom@7.13.0(react-dom@19.2.1(react@19.2.1))(react@19.2.1):
+  react-router-dom@7.13.0(react-dom@19.2.1(react@19.2.4))(react@19.2.4):
     dependencies:
-      react: 19.2.1
-      react-dom: 19.2.1(react@19.2.1)
-      react-router: 7.13.0(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
+      react: 19.2.4
+      react-dom: 19.2.1(react@19.2.4)
+      react-router: 7.13.0(react-dom@19.2.1(react@19.2.4))(react@19.2.4)
 
-  react-router@7.13.0(react-dom@19.2.1(react@19.2.1))(react@19.2.1):
+  react-router@7.13.0(react-dom@19.2.1(react@19.2.4))(react@19.2.4):
     dependencies:
       cookie: 1.1.1
-      react: 19.2.1
+      react: 19.2.4
       set-cookie-parser: 2.7.2
     optionalDependencies:
-      react-dom: 19.2.1(react@19.2.1)
+      react-dom: 19.2.1(react@19.2.4)
 
-  react@19.2.1: {}
+  react@19.2.4: {}
 
   readable-stream@2.3.8:
     dependencies:
