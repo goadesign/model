@@ -34,7 +34,7 @@
 		"eslint-plugin-react": "^7.37.5",
 		"eslint-plugin-react-hooks": "^7.0.1",
 		"html-loader": "^5.1.0",
-		"html-webpack-plugin": "^5.6.4",
+		"html-webpack-plugin": "^5.6.6",
 		"react-refresh": "^0.18.0",
 		"style-loader": "^4.0.0",
 		"typescript": "^5.9.3",
