@@ -1,8 +1,6 @@
 module goa.design/model
 
-go 1.24.0
-
-toolchain go1.24.1
+go 1.25.0
 
 require (
 	github.com/chromedp/chromedp v0.14.2
@@ -11,7 +9,7 @@ require (
 	github.com/kylelemons/godebug v1.1.0
 	github.com/stretchr/testify v1.11.1
 	goa.design/goa/v3 v3.25.3
-	golang.org/x/tools v0.41.0
+	golang.org/x/tools v0.43.0
 )
 
 require (
@@ -29,9 +27,9 @@ require (
 	github.com/kr/pretty v0.1.0 // indirect
 	github.com/manveru/faker v0.0.0-20171103152722-9fbc68a78c4d // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	golang.org/x/mod v0.32.0 // indirect
-	golang.org/x/sync v0.19.0 // indirect
-	golang.org/x/sys v0.40.0 // indirect
+	golang.org/x/mod v0.34.0 // indirect
+	golang.org/x/sync v0.20.0 // indirect
+	golang.org/x/sys v0.42.0 // indirect
 	golang.org/x/text v0.33.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
