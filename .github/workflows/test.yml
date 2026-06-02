@@ -27,11 +27,11 @@ jobs:
           npm install
           npm run build
 
-      - name: golangci-lint
-        uses: golangci/golangci-lint-action@v8
-        with:
-          version: latest
-          args: --timeout=5m
+      - name: Install lint dependencies
+        run: make depend
+
+      - name: Lint
+        run: make lint
 
   test:
     name: Test
@@ -66,4 +66,4 @@ jobs:
           cd ../stz && go build
 
       - name: Run tests
-        run: go test ./... -coverprofile=cover.out
+        run: make test
