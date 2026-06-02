@@ -19,7 +19,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.23'
+          go-version: '1.26'
 
       - name: Build UI
         run: |
@@ -38,7 +38,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        go: ['1.24']
+        go: ['1.26']
         os: ['ubuntu-latest']
     runs-on: ${{ matrix.os }}
 
