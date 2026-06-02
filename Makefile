@@ -16,7 +16,9 @@ MAJOR=1
 MINOR=13
 BUILD=0
 
-GO_FILES=$(shell find . -type f -name '*.go')
+GO_FILES=$(shell find . -path './cmd/mdl/webapp/node_modules' -prune -o -type f -name '*.go' -print)
+GO_DIRS=$(shell go list -f '{{.Dir}}' ./... | grep -v '/cmd/mdl/webapp/node_modules/')
+GO_PACKAGES=$(shell go list ./... | grep -v '/cmd/mdl/webapp/node_modules/')
 
 # React app source files and dependencies
 WEBAPP_DIR=cmd/mdl/webapp
@@ -44,14 +46,14 @@ ifneq ($(GOOS),windows)
 	@if [ "`goimports -l $(GO_FILES) | tee /dev/stderr`" ]; then \
 		echo "^ - Repo contains improperly formatted go files" && echo && exit 1; \
 	fi
-	@output=$$(golangci-lint run ./... | grep -v "^0 issues\\.$$"); \
+	@output=$$(golangci-lint run $(GO_DIRS) | grep -v "^0 issues\\.$$"); \
 	if [ -n "$$output" ]; then \
 		echo "$$output" && echo "^ - golangci-lint errors!" && echo && exit 1; \
 	fi
 endif
 
 test:
-	go test ./... --coverprofile=cover.out
+	go test $(GO_PACKAGES) --coverprofile=cover.out
 
 # Ensure package-lock.json exists or is updated if package.json changes
 $(WEBAPP_DIR)/package-lock.json: $(WEBAPP_DIR)/package.json

@@ -413,6 +413,9 @@ func chromedpExec(timeout time.Duration, debug bool, fn func(exec navigateExec) 
 		chromedp.Flag("no-sandbox", true),
 		chromedp.Flag("disable-setuid-sandbox", true),
 	)
+	if chromeBin := os.Getenv("CHROME_BIN"); chromeBin != "" {
+		allocatorOpts = append(allocatorOpts, chromedp.ExecPath(chromeBin))
+	}
 	if debug {
 		allocatorOpts = append(allocatorOpts, chromedp.CombinedOutput(os.Stderr))
 	}

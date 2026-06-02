@@ -19,7 +19,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.23'
+          go-version: '1.26'
 
       - name: Build UI
         run: |
@@ -27,18 +27,18 @@ jobs:
           npm install
           npm run build
 
-      - name: golangci-lint
-        uses: golangci/golangci-lint-action@v8
-        with:
-          version: latest
-          args: --timeout=5m
+      - name: Install lint dependencies
+        run: make depend
+
+      - name: Lint
+        run: make lint
 
   test:
     name: Test
     strategy:
       fail-fast: true
       matrix:
-        go: ['1.24']
+        go: ['1.26']
         os: ['ubuntu-latest']
     runs-on: ${{ matrix.os }}
 
@@ -66,4 +66,4 @@ jobs:
           cd ../stz && go build
 
       - name: Run tests
-        run: go test ./... -coverprofile=cover.out
+        run: make test
