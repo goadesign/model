@@ -33,8 +33,8 @@ importers:
         specifier: ^19.2.4
         version: 19.2.4
       react-router:
-        specifier: ^7.15.0
-        version: 7.18.0(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
+        specifier: ^8.3.0
+        version: 8.3.0(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
       react-router-dom:
         specifier: ^7.13.1
         version: 7.13.1(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
@@ -1475,6 +1475,9 @@ packages:
   convert-source-map@2.0.0:
     resolution: {integrity: sha512-Kvp459HrV2FEJ1CAsi1Ku+MY3kasH19TFykTz2xWmMeq6bk2NU3XXvfJ+Q61m0xktWwt+1HSYf3JZsTms3aRJg==}
 
+  cookie-es@3.1.1:
+    resolution: {integrity: sha512-UaXxwISYJPTr9hwQxMFYZ7kNhSXboMXP+Z3TRX6f1/NyaGPfuNUZOWP1pUEb75B2HjfklIYLVRfWiFZJyC6Npg==}
+
   cookie-signature@1.0.7:
     resolution: {integrity: sha512-NXdYc3dLr47pBkpUCHtKSwIOQXLVn8dZEuywboCOJY/osA0wFSLlSawr3KN8qXJEyX66FcONTH8EIlVuK0yyFA==}
 
@@ -2741,12 +2744,12 @@ packages:
       react-dom:
         optional: true
 
-  react-router@7.18.0:
-    resolution: {integrity: sha512-pTTGt8J+ji1NOmYnjzT+bAJy/1zD+Jp4ziO6cL7T3ZLvXKtusO7BpFqlRXitqpcPVqllsIXFHRMt+2/k3Xn6HQ==}
-    engines: {node: '>=20.0.0'}
+  react-router@8.3.0:
+    resolution: {integrity: sha512-qyPMvW83jGIct3yiieisxdk9M745anqhpIMKN5m1t6yBMfgVPpt77aHOqs5fUlEJRMCGffg9BaQLH9oPVOL7xQ==}
+    engines: {node: '>=22.22.0'}
     peerDependencies:
-      react: '>=18'
-      react-dom: '>=18'
+      react: '>=19.2.7'
+      react-dom: '>=19.2.7'
     peerDependenciesMeta:
       react-dom:
         optional: true
@@ -5028,6 +5031,8 @@ snapshots:
 
   convert-source-map@2.0.0: {}
 
+  cookie-es@3.1.1: {}
+
   cookie-signature@1.0.7: {}
 
   cookie@0.7.2: {}
@@ -6395,11 +6400,10 @@ snapshots:
     optionalDependencies:
       react-dom: 19.2.1(react@19.2.1)
 
-  react-router@7.18.0(react-dom@19.2.1(react@19.2.1))(react@19.2.1):
+  react-router@8.3.0(react-dom@19.2.1(react@19.2.1))(react@19.2.1):
     dependencies:
-      cookie: 1.1.1
+      cookie-es: 3.1.1
       react: 19.2.1
-      set-cookie-parser: 2.7.2
     optionalDependencies:
       react-dom: 19.2.1(react@19.2.1)
 
