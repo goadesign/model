@@ -3,7 +3,7 @@ module goa.design/model
 go 1.26
 
 require (
-	github.com/chromedp/chromedp v0.15.1
+	github.com/chromedp/chromedp v0.16.0
 	github.com/fsnotify/fsnotify v1.10.1
 	github.com/jaschaephraim/lrserver v0.0.0-20240306232639-afed386b3640
 	github.com/kylelemons/godebug v1.1.0
@@ -13,12 +13,12 @@ require (
 )
 
 require (
-	github.com/chromedp/cdproto v0.0.0-20260427013145-5737772c319b // indirect
+	github.com/chromedp/cdproto v0.0.0-20260714215040-dc233986426f // indirect
 	github.com/chromedp/sysutil v1.1.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dimfeld/httppath v0.0.0-20170720192232-ee938bf73598 // indirect
 	github.com/go-chi/chi/v5 v5.3.0 // indirect
-	github.com/go-json-experiment/json v0.0.0-20260601182631-00ed12fed2a6 // indirect
+	github.com/go-json-experiment/json v0.0.0-20260623181947-01eb4420fa68 // indirect
 	github.com/gobwas/httphead v0.1.0 // indirect
 	github.com/gobwas/pool v0.2.1 // indirect
 	github.com/gobwas/ws v1.4.0 // indirect
