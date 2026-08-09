@@ -3068,7 +3068,7 @@ packages:
     engines: {node: '>= 0.4'}
 
   svg-editor-tools@https://codeload.github.com/dvictor/svg-editor-tools/tar.gz/8a184836e5765b7b1b3561c75733d0c07ea2f1dd:
-    resolution: {tarball: https://codeload.github.com/dvictor/svg-editor-tools/tar.gz/8a184836e5765b7b1b3561c75733d0c07ea2f1dd}
+    resolution: {gitHosted: true, tarball: https://codeload.github.com/dvictor/svg-editor-tools/tar.gz/8a184836e5765b7b1b3561c75733d0c07ea2f1dd}
     version: 1.0.1
 
   tapable@2.3.0:
