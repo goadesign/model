@@ -58,6 +58,9 @@ jobs:
         with:
           version: 10.33.0
 
+      - name: Install Chrome
+        uses: browser-actions/setup-chrome@v2
+
       - name: Install dependencies
         run: go mod download
 
@@ -70,4 +73,6 @@ jobs:
           cd ../stz && go build
 
       - name: Run tests
+        env:
+          CHROME_BIN: google-chrome
         run: make test
