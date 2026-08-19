@@ -13,7 +13,7 @@
 # - "ci" runs "depend" and "all"
 #
 MAJOR=1
-MINOR=13
+MINOR=16
 BUILD=0
 
 GO_FILES=$(shell find . -path './cmd/mdl/webapp/node_modules' -prune -o -type f -name '*.go' -print)
