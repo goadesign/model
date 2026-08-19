@@ -30,16 +30,7 @@ jobs:
         run: |
           google-chrome --version || chromium --version || true
 
-      - name: Cache pnpm
-        uses: actions/cache@v6
-        with:
-          path: |
-            ~/.local/share/pnpm/store
-          key: ${{ runner.os }}-pnpm-${{ hashFiles('cmd/mdl/webapp/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-
-
-      - name: Build UI (with caching)
+      - name: Build UI
         run: |
           make build-ui
 
