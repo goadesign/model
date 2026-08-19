@@ -18,21 +18,26 @@ jobs:
         with:
           go-version-file: go.mod
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: 10.33.0
+
       - name: Install Chrome
-        uses: browser-actions/setup-chrome@v1
+        uses: browser-actions/setup-chrome@v2
 
       - name: Verify Chrome
         run: |
           google-chrome --version || chromium --version || true
 
-      - name: Cache npm
+      - name: Cache pnpm
         uses: actions/cache@v6
         with:
           path: |
-            cmd/mdl/webapp/node_modules
-          key: ${{ runner.os }}-npm-${{ hashFiles('cmd/mdl/webapp/package-lock.json') }}
+            ~/.local/share/pnpm/store
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('cmd/mdl/webapp/pnpm-lock.yaml') }}
           restore-keys: |
-            ${{ runner.os }}-npm-
+            ${{ runner.os }}-pnpm-
 
       - name: Build UI (with caching)
         run: |
