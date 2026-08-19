@@ -435,6 +435,57 @@ func Test_CoalesceRelationships_ExplicitTakesPrecedence(t *testing.T) {
 	assert.NotEqual(t, "HTTP, HTTPS", coalescedRel.Technology, "Should NOT be auto-concatenated technology")
 }
 
+func TestSelectRelationships(t *testing.T) {
+	source := &Element{ID: "source"}
+	selected := &Element{ID: "selected"}
+	other := &Element{ID: "other"}
+	relationships := []*RelationshipView{
+		{Source: source, Destination: selected, RelationshipID: "selected-1"},
+		{Source: source, Destination: selected, RelationshipID: "selected-2"},
+		{Source: source, Destination: other, RelationshipID: "other"},
+		{Source: selected, Destination: source, RelationshipID: "reverse"},
+	}
+	tests := []struct {
+		name      string
+		selectors []*RelationshipSelector
+		want      []string
+	}{
+		{
+			name: "selection disabled",
+			want: []string{"selected-1", "selected-2", "other", "reverse"},
+		},
+		{
+			name: "one directed pair",
+			selectors: []*RelationshipSelector{
+				{Source: source, Destination: selected},
+			},
+			want: []string{"selected-1", "selected-2"},
+		},
+		{
+			name: "multiple directed pairs",
+			selectors: []*RelationshipSelector{
+				{Source: source, Destination: selected},
+				{Source: selected, Destination: source},
+			},
+			want: []string{"selected-1", "selected-2", "reverse"},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			view := ViewProps{
+				RelationshipViews:     append([]*RelationshipView(nil), relationships...),
+				SelectedRelationships: test.selectors,
+			}
+			selectRelationships(&view)
+			got := make([]string, len(view.RelationshipViews))
+			for index, relationship := range view.RelationshipViews {
+				got[index] = relationship.RelationshipID
+			}
+			assert.Equal(t, test.want, got)
+		})
+	}
+}
+
 // setupCoalescingTest creates independent test data for coalescing tests
 func setupCoalescingTest(t *testing.T, testSuffix string, coalescedRel *CoalescedRelationship, coalesceAll bool) (*SoftwareSystem, *SoftwareSystem, ViewProps) {
 	t.Helper()

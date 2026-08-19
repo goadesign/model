@@ -29,6 +29,7 @@ type (
 		RemoveRelationships      []*Relationship
 		RemoveUnreachable        []*Element
 		RemoveUnrelated          bool
+		SelectedRelationships    []*RelationshipSelector
 		CoalescedRelationships   []*CoalescedRelationship
 		CoalesceAllRelationships bool
 	}
@@ -56,6 +57,13 @@ type (
 
 		// RelationshipID is computed in finalize.
 		RelationshipID string
+	}
+
+	// RelationshipSelector identifies one directed pair whose relationships
+	// should remain in a view.
+	RelationshipSelector struct {
+		Source      *Element
+		Destination *Element
 	}
 
 	// AutoLayout describes an automatic layout.

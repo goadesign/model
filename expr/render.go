@@ -146,6 +146,27 @@ func addMissingElementsAndRelationships(vp *ViewProps) {
 	}
 }
 
+// selectRelationships removes relationship views whose directed pair was not
+// selected. An empty selection preserves the existing include-all behavior.
+func selectRelationships(vp *ViewProps) {
+	if len(vp.SelectedRelationships) == 0 {
+		return
+	}
+	selected := make(map[string]struct{}, len(vp.SelectedRelationships))
+	for _, selector := range vp.SelectedRelationships {
+		selected[selector.Source.ID+"->"+selector.Destination.ID] = struct{}{}
+	}
+	count := 0
+	for _, relationship := range vp.RelationshipViews {
+		key := relationship.Source.ID + "->" + relationship.Destination.ID
+		if _, ok := selected[key]; ok {
+			vp.RelationshipViews[count] = relationship
+			count++
+		}
+	}
+	vp.RelationshipViews = vp.RelationshipViews[:count]
+}
+
 func addNeighbors(e *Element, view View) {
 	switch v := view.(type) {
 	case *LandscapeView:

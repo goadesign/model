@@ -244,6 +244,19 @@ func (vs *Views) Validate() error {
 				verr.Add(rv, "could not find relationship %q [%s -> %s] to add to view %q", desc, rv.Source.Name, rv.Destination.Name, v.Key)
 			}
 		}
+		for _, selector := range v.SelectedRelationships {
+			validateElementInView(v, selector.Source, "SelectRelationships", verr)
+			validateElementInView(v, selector.Destination, "SelectRelationships", verr)
+			if !hasSelectedRelationship(selector) {
+				verr.Add(
+					v,
+					"no direct or implied relationship exists from %q to %q selected in view %q",
+					selector.Source.Name,
+					selector.Destination.Name,
+					v.Key,
+				)
+			}
+		}
 
 		// Make sure all elements used to remove unreachable are in scope.
 		for _, e := range v.RemoveUnreachable {
@@ -287,6 +300,7 @@ func (vs *Views) Finalize() {
 		}
 		addMissingElementsAndRelationships(vp)
 		addAnimationStepRelationships(vp)
+		selectRelationships(vp)
 
 		// Then remove elements and relationships that need to be removed
 		// explicitly.
@@ -321,6 +335,41 @@ func (vs *Views) Finalize() {
 		// Process coalesced relationships last.
 		coalesceRelationships(vp)
 	}
+}
+
+// hasSelectedRelationship reports whether the model defines a direct
+// relationship for the selected pair or can derive one from child elements.
+func hasSelectedRelationship(selector *RelationshipSelector) bool {
+	found := false
+	IterateRelationships(func(relationship *Relationship) {
+		if found || relationship.Destination == nil {
+			return
+		}
+		if relationship.Source.ID == selector.Source.ID &&
+			relationship.Destination.ID == selector.Destination.ID {
+			found = true
+			return
+		}
+		if !Root.Model.AddImpliedRelationships {
+			return
+		}
+		source, sourceOK := Registry[relationship.Source.ID].(ElementHolder)
+		destination, destinationOK := Registry[relationship.Destination.ID].(ElementHolder)
+		if !sourceOK || !destinationOK {
+			return
+		}
+		found = topLevel(source).GetElement().ID == selector.Source.ID &&
+			topLevel(destination).GetElement().ID == selector.Destination.ID
+	})
+	return found
+}
+
+// topLevel returns the person or software system that owns an element.
+func topLevel(element ElementHolder) ElementHolder {
+	for parent := Parent(element); parent != nil; parent = Parent(element) {
+		element = parent
+	}
+	return element
 }
 
 // All returns all the views in a single slice.

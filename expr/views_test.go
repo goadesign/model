@@ -920,6 +920,99 @@ func Test_ValidateViews(t *testing.T) {
 
 }
 
+func TestHasSelectedRelationship(t *testing.T) {
+	originalRegistry := Registry
+	originalRoot := Root
+	Registry = make(map[string]any)
+	t.Cleanup(func() {
+		Registry = originalRegistry
+		Root = originalRoot
+	})
+
+	directSource := &SoftwareSystem{Element: &Element{Name: "Direct Source"}}
+	directDestination := &SoftwareSystem{Element: &Element{Name: "Direct Destination"}}
+	impliedSource := &SoftwareSystem{Element: &Element{Name: "Implied Source"}}
+	impliedDestination := &SoftwareSystem{Element: &Element{Name: "Implied Destination"}}
+	for _, system := range []*SoftwareSystem{
+		directSource,
+		directDestination,
+		impliedSource,
+		impliedDestination,
+	} {
+		Identify(system)
+	}
+	direct := &Relationship{
+		Source:      directSource.Element,
+		Destination: directDestination.Element,
+		Description: "Direct",
+	}
+	Identify(direct)
+	sourceContainer := &Container{
+		Element: &Element{Name: "Source Container"},
+		System:  impliedSource,
+	}
+	destinationContainer := &Container{
+		Element: &Element{Name: "Destination Container"},
+		System:  impliedDestination,
+	}
+	Identify(sourceContainer)
+	Identify(destinationContainer)
+	implied := &Relationship{
+		Source:      sourceContainer.Element,
+		Destination: destinationContainer.Element,
+		Description: "Implied",
+	}
+	Identify(implied)
+
+	tests := []struct {
+		name         string
+		addImplied   bool
+		selector     *RelationshipSelector
+		relationship bool
+	}{
+		{
+			name: "direct relationship",
+			selector: &RelationshipSelector{
+				Source:      directSource.Element,
+				Destination: directDestination.Element,
+			},
+			relationship: true,
+		},
+		{
+			name: "implied relationship disabled",
+			selector: &RelationshipSelector{
+				Source:      impliedSource.Element,
+				Destination: impliedDestination.Element,
+			},
+		},
+		{
+			name:       "implied relationship enabled",
+			addImplied: true,
+			selector: &RelationshipSelector{
+				Source:      impliedSource.Element,
+				Destination: impliedDestination.Element,
+			},
+			relationship: true,
+		},
+		{
+			name:       "direction matters",
+			addImplied: true,
+			selector: &RelationshipSelector{
+				Source:      impliedDestination.Element,
+				Destination: impliedSource.Element,
+			},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			Root = &Design{Model: &Model{AddImpliedRelationships: test.addImplied}}
+			if got := hasSelectedRelationship(test.selector); got != test.relationship {
+				t.Errorf("got %t, want %t", got, test.relationship)
+			}
+		})
+	}
+}
+
 func Test_Finalize(t *testing.T) {
 	// set up all the elements needed to test the one function
 	// it's a marathon... rather than a sprint..

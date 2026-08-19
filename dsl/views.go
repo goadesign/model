@@ -1006,6 +1006,63 @@ func Link(source, destination any, args ...any) {
 	v.Props().RelationshipViews = append(v.Props().RelationshipViews, rel)
 }
 
+// SelectRelationships keeps relationships for one directed source and
+// destination pair in a System Landscape view. Calling SelectRelationships at
+// least once establishes an allowlist: relationships for every unselected pair
+// are omitted. Repeated calls add pairs to the allowlist.
+//
+// Selection happens after implied relationships are derived, so the source and
+// destination software systems do not need to declare a direct relationship.
+// Every selected pair must have at least one direct or implied relationship and
+// both elements must be added to the view.
+//
+// SelectRelationships must appear in SystemLandscapeView.
+//
+// Source and destination are identified by reference or by top-level person or
+// software system name.
+//
+// Example:
+//
+//	SystemLandscapeView("landscape", "Selected system relationships", func() {
+//	    Add(Frontend)
+//	    Add(Identity)
+//	    Add(Orders)
+//	    SelectRelationships(Frontend, Identity)
+//	    SelectRelationships(Frontend, Orders)
+//	    CoalesceAllRelationships()
+//	})
+func SelectRelationships(source, destination any) {
+	v, ok := eval.Current().(*expr.LandscapeView)
+	if !ok {
+		eval.IncompatibleDSL()
+		return
+	}
+	src, err := findViewElement(v, source)
+	if err != nil {
+		eval.ReportError("SelectRelationships: " + err.Error())
+		return
+	}
+	dest, err := findViewElement(v, destination)
+	if err != nil {
+		eval.ReportError("SelectRelationships: " + err.Error())
+		return
+	}
+	for _, selector := range v.SelectedRelationships {
+		if selector.Source.ID == src.GetElement().ID && selector.Destination.ID == dest.GetElement().ID {
+			eval.ReportError(
+				"SelectRelationships: relationships from %q to %q already selected",
+				selector.Source.Name,
+				selector.Destination.Name,
+			)
+			return
+		}
+	}
+	v.SelectedRelationships = append(v.SelectedRelationships, &expr.RelationshipSelector{
+		Source:      src.GetElement(),
+		Destination: dest.GetElement(),
+	})
+}
+
 // CoalesceRelationships merges multiple relationships between the same source
 // and destination into a single relationship.
 //

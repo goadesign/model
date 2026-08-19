@@ -3,7 +3,7 @@
 
 The code snippet below describes the entire syntax of the DSL. The complete
 reference can be found in the `dsl`
-[package documentation](https://pkg.go.dev/goa.design/model@v1.16.0/dsl?tab=doc)
+[package documentation](https://pkg.go.dev/goa.design/model@v1.16.1/dsl?tab=doc)
 
 ```Go
 // Design defines the architecture design containing the models and views.
@@ -234,6 +234,11 @@ var _ = Design("[name]", "[description]", func() {
                 // Position of annotation along line; 0 (start) to 100 (end).
                 Position(50)
             })
+
+            // SelectRelationships establishes a directed relationship-pair
+            // allowlist. Once used, only direct or implied relationships for
+            // selected pairs are rendered. Repeat for each pair to keep.
+            SelectRelationships(Source, Destination)
 
             // Add all elements and people in scope.
             AddAll()
