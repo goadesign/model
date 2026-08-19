@@ -58,6 +58,11 @@ export interface Group extends BBox {
 	style: NodeStyle;
 }
 
+export interface NodeLink {
+	href: string;
+	exportHref: string;
+}
+
 export interface Node extends BBox {
 	id: string;
 	title: string;
@@ -70,6 +75,7 @@ export interface Node extends BBox {
 	intersect: (p: Point) => Point
 
 	style: NodeStyle
+	link?: NodeLink
 }
 
 // NodeStyle interface is now imported from constants
@@ -159,7 +165,7 @@ export class GraphData {
 		this._undo.change()
 	}
 
-	addNode(id: string, label: string, sub: string, description: string, style: NodeStyle) {
+	addNode(id: string, label: string, sub: string, description: string, style: NodeStyle, link?: NodeLink) {
 		if (this.nodesMap.has(id)) throw Error('duplicate node: ' + id)
 		
 		// ALWAYS use fixed dimensions - ignore any width/height from incoming styles
@@ -192,7 +198,7 @@ export class GraphData {
 		
 		const n: Node = {
 			id, title: label, sub, description, style: {...defaultNodeStyle, ...cleanStyle},
-			x: 0, y: 0, width, height, intersect: null
+			x: 0, y: 0, width, height, intersect: null, link
 		}
 		this.nodesMap.set(n.id, n)
 	}
@@ -477,6 +483,12 @@ export class GraphData {
 		
 		// Clone the SVG for export (completely separate from the live one)
 		const exportSvg = originalSvg.cloneNode(true) as SVGSVGElement
+
+		// Standalone SVGs navigate to sibling view files instead of editor routes.
+		exportSvg.querySelectorAll('a.nodeLink[data-export-href]').forEach(link => {
+			link.setAttribute('href', link.getAttribute('data-export-href') || '')
+			link.removeAttribute('data-export-href')
+		})
 		
 		// Remove elastic element from export
 		const exportElastic = exportSvg.querySelector('rect.elastic')
@@ -1273,11 +1285,23 @@ function buildNode(n: Node, data: GraphData) {
 	g.setAttribute('id', n.id)
 	n.selected && g.classList.add('selected')
 	setPosition(g, n.x, n.y)
+	const link = n.link
+		? create.element('a', {
+			href: n.link.href,
+			'data-export-href': n.link.exportHref,
+			'aria-label': `Open ${n.title}`,
+		}, 'nodeLink') as SVGAElement
+		: null
+	const content = link || g
+	if (link) {
+		g.classList.add('linked')
+		g.append(link)
+	}
 
 	// Ensure we use the correct shape from style, defaulting to Box
 	const shapeType = n.style.shape || 'Box';
 	const shapeFn = shapes[shapeType.toLowerCase()] || shapes.box
-	const shape: SVGElement = shapeFn(g, n);
+	const shape: SVGElement = shapeFn(content, n);
 
 	shape.classList.add('nodeBorder')
 
@@ -1292,7 +1316,7 @@ function buildNode(n: Node, data: GraphData) {
 	setBorderStyle(shape, n.style.border)
 
 	const tg = create.element('g') as SVGGElement
-	let cy = Number(g.getAttribute('label-offset-y')) || 0
+	let cy = Number(content.getAttribute('label-offset-y')) || 0
 	
 	// Consistent text width calculation for all shapes
 	const textPadding = 12; // Standard padding
@@ -1331,7 +1355,7 @@ function buildNode(n: Node, data: GraphData) {
 
 	// Better vertical centering with improved padding
 	setPosition(tg, 0, -cy / 2)
-	g.append(tg)
+	content.append(tg)
 
 	// @ts-ignore
 	g.__data = n;
@@ -1466,7 +1490,9 @@ function addCustomCursorInteraction(svg: SVGSVGElement, conn: {
 	let panStartY = 0
 	let initialTransform = { x: 0, y: 0 }
 	let pendingSelectionChange: { node: Handle; shiftKey: boolean } | null = null
+	let pendingNavigation: string | null = null
 	let hasDragged = false
+	let suppressLinkClick = false
 	
 	// Store event listeners for cleanup
 	const eventListeners: Array<{ element: Element | Window, event: string, handler: EventListener }> = []
@@ -1570,6 +1596,9 @@ function addCustomCursorInteraction(svg: SVGSVGElement, conn: {
 		e.preventDefault();
 		hasDragged = false
 		pendingSelectionChange = null
+		const target = e.target
+		const link = target instanceof Element ? target.closest('a.nodeLink') : null
+		pendingNavigation = e.shiftKey ? null : link?.getAttribute('href') || null
 
 		const node = conn.nodeFromEvent(e)
 		
@@ -1651,6 +1680,7 @@ function addCustomCursorInteraction(svg: SVGSVGElement, conn: {
 		const dragThreshold = 3 // pixels
 		if (!hasDragged && (Math.abs(dx) > dragThreshold || Math.abs(dy) > dragThreshold)) {
 			hasDragged = true
+			pendingNavigation = null
 			
 			// If we have a pending selection change and we're now dragging, apply it
 			if (pendingSelectionChange) {
@@ -1691,6 +1721,13 @@ function addCustomCursorInteraction(svg: SVGSVGElement, conn: {
 
 	function onMouseUp(e: MouseEvent) {
 		conn.setDragging(false)
+		const navigation = hasDragged ? null : pendingNavigation
+		if (hasDragged) {
+			suppressLinkClick = true
+			window.setTimeout(() => {
+				suppressLinkClick = false
+			}, 0)
+		}
 		
 		// If we have a pending selection change and didn't drag, apply it now (it was just a click)
 		if (pendingSelectionChange && !hasDragged) {
@@ -1721,9 +1758,22 @@ function addCustomCursorInteraction(svg: SVGSVGElement, conn: {
 		
 		// Reset state
 		pendingSelectionChange = null
+		pendingNavigation = null
 		hasDragged = false
 		isPanning = false
 		conn.updatePanning()
+		if (navigation) {
+			window.location.href = navigation
+		}
+	}
+
+	function onClick(e: MouseEvent) {
+		const target = e.target
+		if (!(target instanceof Element) || !target.closest('a.nodeLink')) return
+		e.preventDefault()
+		if (!suppressLinkClick) return
+		e.stopPropagation()
+		suppressLinkClick = false
 	}
 
 	// Add drag and drop functionality
@@ -1777,6 +1827,8 @@ function addCustomCursorInteraction(svg: SVGSVGElement, conn: {
 	}
 
 	addDnd(svg)
+	svg.addEventListener('click', onClick)
+	eventListeners.push({ element: svg, event: 'click', handler: onClick })
 	
 	// Return cleanup function
 	return () => {

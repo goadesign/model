@@ -276,6 +276,10 @@ g.node {
     cursor: default;
 }
 
+g.node.linked {
+    cursor: pointer;
+}
+
 g.node text {
     pointer-events: none;
 }

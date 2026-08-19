@@ -1,4 +1,4 @@
-import {GraphData} from "./graph-view/graph";
+import {GraphData, NodeLink} from "./graph-view/graph";
 
 
 interface Model {
@@ -41,6 +41,7 @@ interface Element {
 	name: string;
 	technology?: string;
 	description?: string;
+	url?: string;
 	parent?: Element;
 	tags?: string;
 	location?: string;
@@ -88,6 +89,7 @@ interface Metadata {
 		properties?: { [key: string]: string };
 		elementViewKey?: string;
 		technology?: string;
+		url?: string;
 	}[]
 }
 
@@ -227,6 +229,7 @@ export const parseView = (model: Model, layouts: Layouts, viewKey: string) => {
 		if (groupingIDs[ref.id]) return
 
 		const el = elements.get(ref.id)
+		const elementViewKey = el ? lookupContainerViewKey(model, el.id) : undefined
 
 		let sub = ''
 		let style = {}
@@ -247,15 +250,17 @@ export const parseView = (model: Model, layouts: Layouts, viewKey: string) => {
 			el ? (el.name || ref.id) : ref.id,
 			sub,
 			(el && el.description) ? el.description : '',
-			style
+			style,
+			nodeLink(el, elementViewKey)
 		)
 		el && metadata.elements.push({
 			id: el.id,
 			tags: el.tags,
 			location: el.location,
 			properties: el.properties,
-			elementViewKey: lookupElementKeyView(model, el.id),
-			technology: el.technology
+			elementViewKey,
+			technology: el.technology,
+			url: el.url
 		})
 	})
 	//edges
@@ -348,6 +353,23 @@ export const parseView = (model: Model, layouts: Layouts, viewKey: string) => {
 	return graph
 }
 
+function nodeLink(element: Element | undefined, elementViewKey: string | undefined): NodeLink | undefined {
+	if (elementViewKey) {
+		const encodedViewKey = encodeURIComponent(elementViewKey)
+		return {
+			href: `?id=${encodedViewKey}`,
+			exportHref: `${encodedViewKey}.svg`,
+		}
+	}
+	if (element?.url) {
+		return {
+			href: element.url,
+			exportHref: element.url,
+		}
+	}
+	return undefined
+}
+
 // lookup the view in all Views sections in the model. return the view and the section
 function getView(model: Model, viewKey: string) {
 	let view: View = null, section: string = ''
@@ -364,17 +386,9 @@ function getView(model: Model, viewKey: string) {
 }
 
 
-function lookupElementKeyView(model: any, softwareSystemId: string) {
-	let key: string = undefined
-	Object.keys(model.views).filter(s => s.endsWith('Views')).some((s: string) => {
-		return ((model.views as any)[s]).some((v: View) => {
-			if (v.softwareSystemId == softwareSystemId) {
-				key = v.key
-				return true
-			}
-		})
-	})
-	return key
+function lookupContainerViewKey(model: Model, softwareSystemId: string) {
+	const view = model.views.containerViews?.find(candidate => candidate.softwareSystemId == softwareSystemId)
+	return view?.key
 }
 
 export const listViews = (model: any) => {

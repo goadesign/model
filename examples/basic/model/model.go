@@ -5,6 +5,7 @@ import . "goa.design/model/dsl"
 var _ = Design("Getting Started", "This is a model of my software system.", func() {
 	var System = SoftwareSystem("Software System", "My software system.", func() {
 		Tag("system")
+		Container("Application", "Implements the software system.", "Go")
 	})
 
 	Person("User", "A user of my software system.", func() {
@@ -14,6 +15,10 @@ var _ = Design("Getting Started", "This is a model of my software system.", func
 
 	Views(func() {
 		SystemContextView(System, "SystemContext", "An example of a System Context diagram.", func() {
+			AddAll()
+			AutoLayout(RankLeftRight)
+		})
+		ContainerView(System, "Container View", "The software system's containers.", func() {
 			AddAll()
 			AutoLayout(RankLeftRight)
 		})

@@ -1,6 +1,8 @@
 package main
 
 import (
+	"encoding/xml"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -43,8 +45,52 @@ func TestSVGEndToEnd(t *testing.T) {
 	if _, err := os.Stat(p); err != nil {
 		t.Fatalf("missing generated svg: %v", err)
 	}
-	// Cleanup generated file explicitly (t.TempDir will be removed automatically)
-	if err := os.Remove(p); err != nil {
-		t.Fatalf("cleanup failed: %v", err)
+	target := filepath.Join(outDir, "Container View.svg")
+	if _, err := os.Stat(target); err != nil {
+		t.Fatalf("missing linked container svg: %v", err)
+	}
+	links := svgLinks(t, p)
+	if len(links) != 1 || links[0] != "Container%20View.svg" {
+		t.Fatalf("expected one container-view link, got %v", links)
+	}
+	// Cleanup generated files explicitly (t.TempDir will be removed automatically).
+	for _, path := range []string{p, target} {
+		if err := os.Remove(path); err != nil {
+			t.Fatalf("cleanup %s: %v", path, err)
+		}
+	}
+}
+
+func svgLinks(t *testing.T, path string) []string {
+	t.Helper()
+	file, err := os.Open(path)
+	if err != nil {
+		t.Fatalf("open svg: %v", err)
+	}
+	defer func() {
+		if err := file.Close(); err != nil {
+			t.Errorf("close svg: %v", err)
+		}
+	}()
+
+	var links []string
+	decoder := xml.NewDecoder(file)
+	for {
+		token, err := decoder.Token()
+		if err == io.EOF {
+			return links
+		}
+		if err != nil {
+			t.Fatalf("decode svg: %v", err)
+		}
+		start, ok := token.(xml.StartElement)
+		if !ok || start.Name.Local != "a" {
+			continue
+		}
+		for _, attr := range start.Attr {
+			if attr.Name.Local == "href" {
+				links = append(links, attr.Value)
+			}
+		}
 	}
 }
