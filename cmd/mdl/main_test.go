@@ -1,7 +1,13 @@
 package main
 
 import (
+	"fmt"
+	"net/http"
+	"net/http/httptest"
+	"path/filepath"
+	"strings"
 	"testing"
+	"time"
 
 	"goa.design/model/mdl"
 )
@@ -47,5 +53,66 @@ func TestCollectViewKeys(t *testing.T) {
 	}
 	if len(want) != 0 {
 		t.Fatalf("missing keys: %v", want)
+	}
+}
+
+func TestNormalizeLayoutDirection(t *testing.T) {
+	tests := []struct {
+		name      string
+		input     string
+		expected  string
+		shouldErr bool
+	}{
+		{name: "view default", input: "", expected: ""},
+		{name: "explicit direction", input: "RIGHT", expected: "RIGHT"},
+		{name: "case normalization", input: "left", expected: "LEFT"},
+		{name: "invalid direction", input: "diagonal", shouldErr: true},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			actual, err := normalizeLayoutDirection(test.input)
+			if test.shouldErr {
+				if err == nil {
+					t.Fatal("expected an error")
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("normalize direction: %v", err)
+			}
+			if actual != test.expected {
+				t.Fatalf("expected %q, got %q", test.expected, actual)
+			}
+		})
+	}
+}
+
+func TestChromedpExecReportsBrowserAutomationError(t *testing.T) {
+	if !hasChrome() {
+		t.Skip("skipping: Chrome/Chromium not available in PATH")
+	}
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "text/html")
+		_, err := fmt.Fprint(w, `<!doctype html>
+<html data-mdl-automation-status="error" data-mdl-automation-error="layout exploded">
+<body></body>
+</html>`)
+		if err != nil {
+			t.Errorf("write automation page: %v", err)
+		}
+	}))
+	defer server.Close()
+
+	output := filepath.Join(t.TempDir(), "missing.svg")
+	timeout := 30 * time.Second
+	err := withChromedp(timeout, false, func(exec navigateExec) error {
+		return exec(server.URL, output, timeout)
+	})
+	if err == nil {
+		t.Fatal("expected browser automation error")
+	}
+	if !strings.Contains(err.Error(), "browser automation failed: layout exploded") {
+		t.Fatalf("expected browser error detail, got %v", err)
 	}
 }

@@ -52,11 +52,10 @@ func TestSVGEndToEnd(t *testing.T) {
 
 	outDir := t.TempDir()
 	cfg := config{
-		dir:       outDir,
-		port:      0,
-		direction: "DOWN",
-		timeout:   30_000_000_000, // 30s
-		all:       true,
+		dir:     outDir,
+		port:    0,
+		timeout: 30_000_000_000, // 30s
+		all:     true,
 	}
 	if err := runSVG("goa.design/model/examples/basic/model", cfg); err != nil {
 		t.Fatalf("runSVG failed: %v", err)
@@ -74,9 +73,29 @@ func TestSVGEndToEnd(t *testing.T) {
 	if len(links) != 1 || links[0] != "Container%20View.svg" {
 		t.Fatalf("expected one container-view link, got %v", links)
 	}
+	if orientation := inspectNodeOrientation(t, p); orientation != "horizontal" {
+		t.Fatalf("expected view-defined left-to-right layout, got %s", orientation)
+	}
 	if overlaps := inspectVerticalEdgeLabelOverlaps(t, p); len(overlaps) > 0 {
 		t.Fatalf("vertical relationship labels overlap their lines: %+v", overlaps)
 	}
+
+	overrideDir := t.TempDir()
+	overrideConfig := config{
+		dir:       overrideDir,
+		port:      0,
+		views:     SliceFlag{"SystemContext"},
+		direction: "DOWN",
+		timeout:   30 * time.Second,
+	}
+	if err := runSVG("goa.design/model/examples/basic/model", overrideConfig); err != nil {
+		t.Fatalf("runSVG with direction override failed: %v", err)
+	}
+	overridePath := filepath.Join(overrideDir, "SystemContext.svg")
+	if orientation := inspectNodeOrientation(t, overridePath); orientation != "vertical" {
+		t.Fatalf("expected explicit top-to-bottom override, got %s", orientation)
+	}
+
 	// Cleanup generated files explicitly (t.TempDir will be removed automatically).
 	for _, path := range []string{p, target} {
 		if err := os.Remove(path); err != nil {
@@ -115,6 +134,29 @@ func TestSVGNodeTextFits(t *testing.T) {
 	}
 	if len(boundaryIntersections) > 0 {
 		t.Fatalf("system boundaries intersect: %v", boundaryIntersections)
+	}
+}
+
+func TestSVGEdgeLabelsAvoidElements(t *testing.T) {
+	if !hasChrome() {
+		t.Skip("skipping: Chrome/Chromium not available in PATH")
+	}
+
+	outDir := t.TempDir()
+	cfg := config{
+		dir:       outDir,
+		port:      0,
+		direction: "DOWN",
+		timeout:   30 * time.Second,
+		all:       true,
+	}
+	if err := runSVG("goa.design/model/examples/label_collision/model", cfg); err != nil {
+		t.Fatalf("runSVG failed: %v", err)
+	}
+
+	path := filepath.Join(outDir, "Label Collision.svg")
+	if collisions := inspectEdgeLabelCollisions(t, path); len(collisions) > 0 {
+		t.Fatalf("relationship labels overlap diagram elements: %v", collisions)
 	}
 }
 
@@ -188,6 +230,76 @@ func inspectNodeTextFit(t *testing.T, path string) ([]nodeOverflow, float64, []s
 	}
 
 	return overflows, height, boundaryIntersections, groupCount
+}
+
+func inspectEdgeLabelCollisions(t *testing.T, path string) []string {
+	t.Helper()
+	testContext, cleanup := newChromeContext(t)
+	defer cleanup()
+
+	var collisions []string
+	fileURL := (&url.URL{Scheme: "file", Path: path}).String()
+	const collisionScript = `(() => {
+		const tolerance = 1;
+		const overlaps = (first, second) =>
+			Math.min(first.right, second.right) - Math.max(first.left, second.left) > tolerance &&
+			Math.min(first.bottom, second.bottom) - Math.max(first.top, second.top) > tolerance;
+		const nodes = [...document.querySelectorAll("g.node")].map((node) => ({
+			name: node.querySelector("[data-field=name]")?.textContent.trim() || node.id,
+			rect: node.querySelector(".nodeBorder")?.getBoundingClientRect(),
+		})).filter((node) => node.rect);
+		const labels = [...document.querySelectorAll("g.edge")].map((edge) => ({
+			name: edge.querySelector(":scope > text")?.textContent.trim() || edge.id,
+			rect: edge.querySelector(":scope > rect")?.getBoundingClientRect(),
+		})).filter((label) => label.rect);
+		const collisions = labels.flatMap((label) =>
+			nodes.filter((node) => overlaps(label.rect, node.rect))
+				.map((node) => label.name + " / node: " + node.name));
+		for (let first = 0; first < labels.length; first++) {
+			for (let second = first + 1; second < labels.length; second++) {
+				if (overlaps(labels[first].rect, labels[second].rect)) {
+					collisions.push(labels[first].name + " / label: " + labels[second].name);
+				}
+			}
+		}
+		return collisions;
+	})()`
+	if err := chromedp.Run(testContext,
+		chromedp.Navigate(fileURL),
+		chromedp.WaitVisible("g.edge", chromedp.ByQuery),
+		chromedp.Evaluate(collisionScript, &collisions),
+	); err != nil {
+		t.Fatalf("inspect relationship label collisions: %v", err)
+	}
+	return collisions
+}
+
+func inspectNodeOrientation(t *testing.T, path string) string {
+	t.Helper()
+	testContext, cleanup := newChromeContext(t)
+	defer cleanup()
+
+	var orientation string
+	fileURL := (&url.URL{Scheme: "file", Path: path}).String()
+	const orientationScript = `(() => {
+		const nodes = [...document.querySelectorAll("g.node")];
+		if (nodes.length < 2) return "unknown";
+		const first = nodes[0].getBoundingClientRect();
+		const second = nodes[1].getBoundingClientRect();
+		const deltaX = Math.abs(
+			(first.left + first.right) / 2 - (second.left + second.right) / 2);
+		const deltaY = Math.abs(
+			(first.top + first.bottom) / 2 - (second.top + second.bottom) / 2);
+		return deltaX > deltaY ? "horizontal" : "vertical";
+	})()`
+	if err := chromedp.Run(testContext,
+		chromedp.Navigate(fileURL),
+		chromedp.WaitVisible("g.node", chromedp.ByQuery),
+		chromedp.Evaluate(orientationScript, &orientation),
+	); err != nil {
+		t.Fatalf("inspect node orientation: %v", err)
+	}
+	return orientation
 }
 
 func inspectVerticalEdgeLabelOverlaps(t *testing.T, path string) []verticalEdgeLabelOverlap {

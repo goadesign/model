@@ -51,13 +51,10 @@ export const useAutoLayout = (graph: GraphData) => {
     setLayouting(true);
     try {
       const options: LayoutOptions = {
-        direction: 'DOWN',
+        direction: graph.layoutDirection || 'DOWN',
         ...(opts || {})
       };
       await graph.autoLayout(options);
-    } catch (error) {
-      console.error('Layout failed:', error);
-      alert('Layout failed. See console for details.');
     } finally {
       setLayouting(false);
     }
@@ -80,13 +77,10 @@ export const useSave = (graph: GraphData, currentID: string) => {
       });
       
       if (response.status !== 202) {
-        alert('Error saving\nSee terminal output.');
-      } else {
-        graph.setSaved();
+        const detail = (await response.text()).trim();
+        throw new Error(detail || `save failed with HTTP ${response.status}`);
       }
-    } catch (error) {
-      console.error('Save failed:', error);
-      alert('Save failed. See console for details.');
+      graph.setSaved();
     } finally {
       setSaving(false);
     }
