@@ -3,10 +3,12 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -18,6 +20,7 @@ import (
 	"goa.design/model/mdl"
 	model "goa.design/model/pkg"
 
+	"github.com/chromedp/cdproto"
 	"github.com/chromedp/chromedp"
 )
 
@@ -42,23 +45,22 @@ type (
 	browserAutomationResult struct {
 		Status string `json:"status"`
 		Error  string `json:"error"`
+		URL    string `json:"url"`
 	}
+
+	browserAutomationEvaluator func(context.Context, *browserAutomationResult) error
 
 	// SliceFlag implements flag.Value for repeated string flags.
 	SliceFlag []string
 )
 
 const (
-	browserAutomationReadyScript = `(() => {
-	const status = document.documentElement.dataset.mdlAutomationStatus;
-	return status === "complete" || status === "error";
-})()`
-
 	browserAutomationResultScript = `(() => {
 	const root = document.documentElement;
 	return {
 		status: root.dataset.mdlAutomationStatus || "",
 		error: root.dataset.mdlAutomationError || "",
+		url: document.location.href,
 	};
 })()`
 )
@@ -403,21 +405,13 @@ func renderViewsHeadless(baseURL, outDir string, views []string, cfg config) err
 		return err
 	}
 	for _, key := range views {
-		// Build URL with automation params
-		q := fmt.Sprintf("?id=%s&auto=1&save=1", key)
-		if direction != "" {
-			q += "&direction=" + direction
-		}
-		if cfg.compact {
-			q += "&compact=1"
-		}
-		url := baseURL + "/" + q
+		renderURL := browserAutomationURL(baseURL, key, direction, cfg.compact)
 
 		// Remove any existing file to ensure fresh wait
 		svgPath := filepath.Join(outDir, key+".svg")
 		_ = os.Remove(svgPath)
 
-		if err := run(url, svgPath, cfg.timeout); err != nil {
+		if err := run(renderURL, svgPath, cfg.timeout); err != nil {
 			return fmt.Errorf("render %s: %w", key, err)
 		}
 		fmt.Println("Saved:", svgPath)
@@ -436,6 +430,22 @@ func normalizeLayoutDirection(direction string) (string, error) {
 			direction,
 		)
 	}
+}
+
+// browserAutomationURL builds an encoded editor URL for one headless render.
+func browserAutomationURL(baseURL, key, direction string, compact bool) string {
+	query := url.Values{
+		"id":   {key},
+		"auto": {"1"},
+		"save": {"1"},
+	}
+	if direction != "" {
+		query.Set("direction", direction)
+	}
+	if compact {
+		query.Set("compact", "1")
+	}
+	return baseURL + "/?" + query.Encode()
 }
 
 // navigateExec abstracts browser navigation and automation result handling.
@@ -474,17 +484,11 @@ func chromedpExec(timeout time.Duration, debug bool, fn func(exec navigateExec) 
 
 		navCtx, navCancel := context.WithTimeout(tabCtx, timeout)
 		defer navCancel()
-		var result browserAutomationResult
-		if err := chromedp.Run(navCtx,
-			chromedp.Navigate(url),
-			chromedp.Poll(
-				browserAutomationReadyScript,
-				nil,
-				chromedp.WithPollingInterval(100*time.Millisecond),
-				chromedp.WithPollingTimeout(0),
-			),
-			chromedp.Evaluate(browserAutomationResultScript, &result),
-		); err != nil {
+		if err := chromedp.Run(navCtx, chromedp.Navigate(url)); err != nil {
+			return fmt.Errorf("navigate to browser automation page: %w", err)
+		}
+		result, err := waitForBrowserAutomation(navCtx, 100*time.Millisecond, evaluateBrowserAutomation)
+		if err != nil {
 			return fmt.Errorf("wait for browser automation status: %w", err)
 		}
 		if result.Status == "error" {
@@ -504,6 +508,55 @@ func chromedpExec(timeout time.Duration, debug bool, fn func(exec navigateExec) 
 	}
 
 	return fn(exec)
+}
+
+// waitForBrowserAutomation polls from a fresh page execution context after
+// navigation so a redirect cannot invalidate the complete wait operation.
+func waitForBrowserAutomation(
+	ctx context.Context,
+	interval time.Duration,
+	evaluate browserAutomationEvaluator,
+) (browserAutomationResult, error) {
+	ticker := time.NewTicker(interval)
+	defer ticker.Stop()
+	var lastResult browserAutomationResult
+	for {
+		var result browserAutomationResult
+		err := evaluate(ctx, &result)
+		if err == nil {
+			lastResult = result
+			if result.Status == "complete" || result.Status == "error" {
+				return result, nil
+			}
+		} else if !isTargetNavigationError(err) {
+			return browserAutomationResult{}, err
+		}
+
+		select {
+		case <-ctx.Done():
+			return browserAutomationResult{}, fmt.Errorf(
+				"%w (last status %q at %q)",
+				ctx.Err(),
+				lastResult.Status,
+				lastResult.URL,
+			)
+		case <-ticker.C:
+		}
+	}
+}
+
+// evaluateBrowserAutomation reads the current page's render status.
+func evaluateBrowserAutomation(ctx context.Context, result *browserAutomationResult) error {
+	return chromedp.Run(ctx, chromedp.Evaluate(browserAutomationResultScript, result))
+}
+
+// isTargetNavigationError reports the Chrome event emitted when a page
+// navigation replaces the JavaScript execution context used for one poll.
+func isTargetNavigationError(err error) bool {
+	var protocolError *cdproto.Error
+	return errors.As(err, &protocolError) &&
+		protocolError.Code == -32000 &&
+		protocolError.Message == "Inspected target navigated or closed"
 }
 
 func loadDesign(pkg string, debug bool) (*mdl.Design, error) {
