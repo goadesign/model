@@ -14,7 +14,7 @@
 #
 MAJOR=1
 MINOR=16
-BUILD=4
+BUILD=5
 
 GO_FILES=$(shell find . -path './cmd/mdl/webapp/node_modules' -prune -o -type f -name '*.go' -print)
 GO_DIRS=$(shell go list -f '{{.Dir}}' ./... | grep -v '/cmd/mdl/webapp/node_modules/')
