@@ -73,16 +73,20 @@ const App: React.FC = () => {
 	};
 
 	useEffect(() => {
-		// Setup refresh connector
-		const refreshConnector = new RefreshConnector(handleFileChange);
-		refreshConnector.connect();
+		const params = new URLSearchParams(document.location.search);
+		// Headless rendering has no watcher and must not receive reloads from an
+		// unrelated interactive editor using the shared LiveReload port.
+		const auto = params.get('auto');
+		const save = params.get('save');
+		const automated = auto === '1' || auto === 'true' || save === '1' || save === 'true';
+		const refreshConnector = automated ? null : new RefreshConnector(handleFileChange);
+		refreshConnector?.connect();
 
 		// Initial data load
 		loadData();
 
-		// Cleanup function
 		return () => {
-			// RefreshConnector cleanup would go here if it had a disconnect method
+			refreshConnector?.disconnect();
 		};
 	}, []);
 

@@ -3,15 +3,19 @@ package main
 import (
 	"context"
 	"encoding/xml"
+	"fmt"
 	"io"
+	"net"
 	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sync/atomic"
 	"testing"
 	"time"
 
 	"github.com/chromedp/chromedp"
+	"github.com/jaschaephraim/lrserver"
 )
 
 type nodeOverflow struct {
@@ -101,6 +105,69 @@ func TestSVGEndToEnd(t *testing.T) {
 		if err := os.Remove(path); err != nil {
 			t.Fatalf("cleanup %s: %v", path, err)
 		}
+	}
+}
+
+// TestSVGHeadlessDoesNotConnectToLiveReload verifies automated rendering is
+// isolated from interactive editor reloads sent on the process-wide port.
+func TestSVGHeadlessDoesNotConnectToLiveReload(t *testing.T) {
+	if !hasChrome() {
+		t.Skip("skipping: Chrome/Chromium not available in PATH")
+	}
+
+	reloadServer := lrserver.New(lrserver.DefaultName, lrserver.DefaultPort)
+	serverDone := make(chan error, 1)
+	go func() {
+		serverDone <- reloadServer.ListenAndServe()
+	}()
+	if err := waitForTCP("127.0.0.1:35729", 5*time.Second); err != nil {
+		select {
+		case serverErr := <-serverDone:
+			t.Skipf("live-reload port unavailable: %v", serverErr)
+		default:
+			t.Fatalf("start live-reload server: %v", err)
+		}
+	}
+	t.Cleanup(func() {
+		if err := reloadServer.Close(); err != nil {
+			t.Errorf("close live-reload server: %v", err)
+		}
+	})
+
+	var connected atomic.Bool
+	stopObserving := make(chan struct{})
+	observerDone := make(chan struct{})
+	go func() {
+		defer close(observerDone)
+		ticker := time.NewTicker(time.Millisecond)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-ticker.C:
+				if reloadServer.IsConnected() {
+					connected.Store(true)
+				}
+			case <-stopObserving:
+				return
+			}
+		}
+	}()
+
+	outDir := t.TempDir()
+	cfg := config{
+		dir:     outDir,
+		port:    0,
+		timeout: 30 * time.Second,
+		views:   SliceFlag{"SystemContext"},
+	}
+	err := runSVG("goa.design/model/examples/basic/model", cfg)
+	close(stopObserving)
+	<-observerDone
+	if err != nil {
+		t.Fatalf("runSVG failed: %v", err)
+	}
+	if connected.Load() {
+		t.Fatal("headless renderer connected to the interactive LiveReload server")
 	}
 }
 
@@ -351,6 +418,22 @@ func inspectVerticalEdgeLabelOverlaps(t *testing.T, path string) []verticalEdgeL
 		t.Fatalf("inspect vertical relationship labels: %v", err)
 	}
 	return overlaps
+}
+
+// waitForTCP waits until a local test server accepts connections.
+func waitForTCP(address string, timeout time.Duration) error {
+	deadline := time.Now().Add(timeout)
+	for time.Now().Before(deadline) {
+		connection, err := net.DialTimeout("tcp", address, 100*time.Millisecond)
+		if err == nil {
+			if closeErr := connection.Close(); closeErr != nil {
+				return closeErr
+			}
+			return nil
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+	return fmt.Errorf("timeout waiting for %s", address)
 }
 
 func newChromeContext(t *testing.T) (context.Context, func()) {
