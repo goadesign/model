@@ -1120,8 +1120,6 @@ let selectListener: (n: Node) => void
 
 
 export const buildGraph = (data: GraphData, onNodeSelect: (n: Node) => void, dragMode: 'pan' | 'select') => {
-	// empty svg
-	svg.innerHTML = defs
 	document.body.append(svg) // make sure svg element is connected, we will measure texts sizes
 	// @ts-ignore
 	svg.__data = data
@@ -1160,6 +1158,10 @@ export const buildGraphView = (data: GraphData) => {
 }
 
 const _buildGraph = (data: GraphData) => {
+	// Every graph owns the reusable SVG definitions referenced by its drawn
+	// elements, including relationship arrowheads, icons, and filters.
+	svg.innerHTML = defs
+
 	//toplevel groups
 	const zoomG = create.element('g', {}, 'zoom') as SVGGElement
 	const nodesG = create.element('g', {}, 'nodes') as SVGGElement
