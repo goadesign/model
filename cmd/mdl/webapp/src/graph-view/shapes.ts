@@ -14,6 +14,27 @@ interface D3Node extends BBox {
 	intersect: (p: Point) => Point
 }
 
+function cylinderRadiusY(width: number) {
+	return width / 2 / (5.5 + width / 70);
+}
+
+export function shapeLabelOffsetY(shape: string, width: number, height: number) {
+	switch (shape.toLowerCase()) {
+		case "cylinder":
+			return 2 * cylinderRadiusY(width);
+		case "person":
+			return height * 0.4;
+		case "folder":
+			return width / 10;
+		case "robot":
+			return height * 0.35;
+		case "webbrowser":
+			return height / 8;
+		default:
+			return 0;
+	}
+}
+
 class D3Element {
 	private readonly _el: SVGElement
 
@@ -58,14 +79,14 @@ function rect(parent: D3Element, bbox: BBox, node: D3Node, rounded = false) {
 function cylinder(parent: D3Element, bbox: BBox, node: D3Node) {
 	const w = bbox.width;
 	const rx = w / 2;
-	const ry = rx / (5.5 + w / 70); // Make ellipse even flatter - increased to 5.5
+	const ry = cylinderRadiusY(w);
 	const h = bbox.height;
 
 	const shape =
 		`M 0,${ry} a${rx},${ry} 0,0,0 ${w} 0 a ${rx},${ry} 0,0,0 ${-w} 0 l 0,${h - 2 * ry} a ${rx},${ry} 0,0,0 ${w} 0 l 0,${-h + 2 * ry}`;
 
 	const shapeSvg = parent
-		.attr('label-offset-y', 2 * ry)
+		.attr('label-offset-y', shapeLabelOffsetY("cylinder", w, h))
 		.insert('path', ':first-child')
 		.attr('d', shape)
 		.attr('transform', 'translate(' + -w / 2 + ',' + -(h / 2) + ')');
@@ -97,7 +118,7 @@ function person(parent: D3Element, bbox: BBox, node: D3Node) {
 		A${w / 6},${w / 6} 0,1,0 ${.38 * w} ${h / 3}`;
 
 	const shapeSvg = parent
-		.attr('label-offset-y', h * .4)
+		.attr('label-offset-y', shapeLabelOffsetY("person", w, h))
 		.insert('path', ':first-child')
 		.attr('d', shape)
 		.attr('transform', 'translate(' + -w / 2 + ',' + -(h / 2) + ')');
@@ -181,7 +202,7 @@ function component(parent: D3Element, bbox: BBox, node: D3Node) {
 function folder(parent: D3Element, bbox: BBox, node: D3Node) {
 	const dy = node.width / 20
 	const shapeSvg = parent
-		.attr('label-offset-y', dy * 2)
+		.attr('label-offset-y', shapeLabelOffsetY("folder", node.width, node.height))
 		.insert('g', ':first-child')
 	shapeSvg.insert("rect", ":first-child")
 		.attr("rx", 3).attr("ry", 3)
@@ -309,11 +330,8 @@ function robot(parent: D3Element, bbox: BBox, node: D3Node) {
 	const bodyH = h - antennaH - headSize
 	const bodyR = 3
 	
-	// Label offset - similar to person shape (h * 0.4)
-	const labelOffsetY = h * 0.35
-	
 	const shapeSvg = parent
-		.attr('label-offset-y', labelOffsetY)
+		.attr('label-offset-y', shapeLabelOffsetY("robot", w, h))
 		.insert('g', ':first-child')
 	
 	// Body - main rectangle for text (draw first so it's behind)
@@ -401,7 +419,7 @@ function robot(parent: D3Element, bbox: BBox, node: D3Node) {
 function webbrowser(parent: D3Element, bbox: BBox, node: D3Node) {
 	const dy = node.height / 8
 	const shapeSvg = parent
-		.attr('label-offset-y', dy)
+		.attr('label-offset-y', shapeLabelOffsetY("webbrowser", node.width, node.height))
 		.insert('g', ':first-child')
 	shapeSvg.insert("path", ":first-child")
 		.attr('d', `

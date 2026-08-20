@@ -148,8 +148,10 @@ export async function autoLayout(graph: GraphData, options: LayoutOptions = {}):
 		edges: [] as any[]
 	};
 
-	// Add ONLY actual nodes to ELK graph (exclude edge vertices)
+	// Build actual ELK nodes first. Groups below take ownership of their direct
+	// members so ELK reserves non-overlapping space for every boundary.
 	const nodeMap = new Map<string, Node>();
+	const elkNodes = new Map<string, any>();
 	graph.nodesMap.forEach(node => {
 		if (!node.id) return; // Skip nodes without IDs
 		
@@ -164,7 +166,7 @@ export async function autoLayout(graph: GraphData, options: LayoutOptions = {}):
 		// This makes ELK route edges to a slightly larger boundary so arrow tips stay outside
 		const arrowPadding = 25; // Padding for arrow clearance
 		
-		elkGraph.children.push({
+		elkNodes.set(node.id, {
 			id: node.id,
 			// Provide current position as hint to ELK
 			x: node.x,
@@ -180,11 +182,76 @@ export async function autoLayout(graph: GraphData, options: LayoutOptions = {}):
 		});
 	});
 
-	// EXPERIMENTAL: Skip group processing - treat all nodes as flat
-	// This should eliminate group-based routing detours
+	const nodeParentGroup = new Map<string, string>();
+	const groupParent = new Map<string, string>();
+	const childGroupIDs = new Set<string>();
 
-	// Add all edges to root level for optimal ELK routing visibility
-	let addedEdges = 0;
+	graph.groupsMap.forEach(group => {
+		group.nodes.forEach(member => {
+			if (isGroup(member)) {
+				if (!groupParent.has(member.id)) {
+					groupParent.set(member.id, group.id);
+				}
+				childGroupIDs.add(member.id);
+				return;
+			}
+			if (!nodeParentGroup.has(member.id)) {
+				nodeParentGroup.set(member.id, group.id);
+			}
+		});
+	});
+
+	const elkGroups = new Map<string, any>();
+	const buildELKGroup = (group: Group): any => {
+		const existing = elkGroups.get(group.id);
+		if (existing) return existing;
+
+		const children = group.nodes.flatMap(member => {
+			if (isGroup(member)) {
+				return groupParent.get(member.id) === group.id ? [buildELKGroup(member)] : [];
+			}
+			const node = elkNodes.get(member.id);
+			return node && nodeParentGroup.get(member.id) === group.id ? [node] : [];
+		});
+		const elkGroup = {
+			id: group.id,
+			children,
+			edges: [] as any[],
+			layoutOptions: getELKOptions(getEffectiveSpacing(options, true), options),
+		};
+		elkGroups.set(group.id, elkGroup);
+		return elkGroup;
+	};
+
+	graph.groupsMap.forEach(group => {
+		if (!childGroupIDs.has(group.id)) {
+			const elkGroup = buildELKGroup(group);
+			if (elkGroup.children.length > 0) {
+				elkGraph.children.push(elkGroup);
+			}
+		}
+	});
+	elkNodes.forEach((node, id) => {
+		if (!nodeParentGroup.has(id)) {
+			elkGraph.children.push(node);
+		}
+	});
+
+	const groupAncestors = (groupID?: string) => {
+		const ancestors: string[] = [];
+		let current = groupID;
+		while (current) {
+			ancestors.push(current);
+			current = groupParent.get(current);
+		}
+		return ancestors;
+	};
+	const lowestCommonGroup = (sourceID: string, destinationID: string) => {
+		const sourceAncestors = groupAncestors(nodeParentGroup.get(sourceID));
+		const destinationAncestors = new Set(groupAncestors(nodeParentGroup.get(destinationID)));
+		return sourceAncestors.find(groupID => destinationAncestors.has(groupID));
+	};
+
 	graph.edges.forEach(edge => {
 		// Skip edges without proper IDs
 		if (!edge.id || !edge.from?.id || !edge.to?.id) return;
@@ -194,8 +261,6 @@ export async function autoLayout(graph: GraphData, options: LayoutOptions = {}):
 			console.warn(`Skipping edge ${edge.id}: source ${edge.from.id} or target ${edge.to.id} not found in nodes`);
 			return;
 		}
-		
-		addedEdges++;
 		
 		// Calculate more accurate label dimensions for ELK
 		const labelWidth = edge.label && edge.label.trim() ? 
@@ -221,8 +286,9 @@ export async function autoLayout(graph: GraphData, options: LayoutOptions = {}):
 			}] : []
 		};
 
-		// All edges at root level for maximum ELK visibility and routing
-		elkGraph.edges.push(elkEdge);
+		const groupID = lowestCommonGroup(edge.from.id, edge.to.id);
+		const edgeContainer = groupID ? elkGroups.get(groupID) : elkGraph;
+		edgeContainer.edges.push(elkEdge);
 	});
 
 	// Enhanced validation - ensure ELK gets complete data
@@ -418,6 +484,10 @@ function createFallbackLayout(graph: GraphData): {
 	});
 
 	return { nodes, edges };
+}
+
+function isGroup(member: Node | Group): member is Group {
+	return "nodes" in member;
 }
 
 // Removed unused isGroup function since we skip group processing
