@@ -12,7 +12,7 @@ import {
 	Segment,
 	uncenterBox
 } from "./intersect";
-import {autoLayout} from "./layout";
+import {autoLayout, LayoutOptions} from "./layout";
 import {Undo} from "./undo";
 import {
 	ADD_LABEL_VERTEX,
@@ -69,6 +69,8 @@ export interface NodeLink {
 	exportHref: string;
 }
 
+export type LayoutDirection = 'UP' | 'DOWN' | 'LEFT' | 'RIGHT';
+
 export interface Node extends BBox {
 	id: string;
 	title: string;
@@ -106,6 +108,7 @@ interface Edge {
 	initVertex: (p: Point) => EdgeVertex;
 	userDeletedVertices?: boolean; // Track if user explicitly deleted vertices
 	labelVertex?: EdgeVertex; // ELK-calculated label position (separate from routing vertices)
+	labelBounds?: BBox;
 }
 
 interface EdgeVertex extends Point {
@@ -129,6 +132,7 @@ export class GraphData {
 	edgeVertices: Map<string, EdgeVertex>
 	groupsMap: Map<string, Group>;
 	metadata: any;
+	layoutDirection?: LayoutDirection;
 	colorToVarMap: Map<string, string> = new Map(); // For CSS custom properties theming
 	private _undo: Undo<Layout>;
 	private _gridVisible: boolean = false;
@@ -758,7 +762,7 @@ export class GraphData {
 		}
 	}
 
-	async autoLayout(options?: import('./layout').LayoutOptions) {
+	async autoLayout(options?: LayoutOptions) {
 		try {
 			const auto = await autoLayout(this, options)
 			
@@ -1172,6 +1176,9 @@ const _buildGraph = (data: GraphData) => {
 		nodesG.append(n.ref)
 	})
 
+	data.edges.forEach(edge => {
+		edge.labelBounds = undefined
+	})
 	data.edges.forEach(e => {
 		buildEdge(data, e)
 		edgesG.append(e.ref)
@@ -1200,7 +1207,7 @@ function buildEdge(data: GraphData, edge: Edge) {
 
 	const labelPlacement = calculateLabelPlacement(vertices, position, n1)
 
-	const {bg, txt, bbox} = buildEdgeLabel(labelPlacement, edge)
+	const {bg, txt, bbox} = buildEdgeLabel(labelPlacement, edge, data)
 	g.append(bg, txt)
 
 	// Create edge segments and path using utility function
@@ -1241,19 +1248,64 @@ function buildEdge(data: GraphData, edge: Edge) {
 	return g
 }
 
-function buildEdgeLabel(placement: EdgeLabelPlacement, edge: Edge) {
+function buildEdgeLabel(placement: EdgeLabelPlacement, edge: Edge, data: GraphData) {
 	const labelGap = 12;
+	const collisionPadding = 8;
 	const fontSize = edge.style.fontSize
 	let {txt, dy, maxW} = create.textArea(edge.label, 200, fontSize, false, placement.x, placement.y, 'middle')
 	dy -= fontSize / 2
 	maxW += fontSize
 
-	const centerX = placement.orientation === 'vertical'
-		? placement.x + maxW / 2 + labelGap
-		: placement.x
-	const centerY = placement.orientation === 'vertical'
-		? placement.y
-		: placement.y - dy / 2 - labelGap
+	const anchors: Point[] = [{x: placement.x, y: placement.y}]
+	if (placement.movable && placement.segment) {
+		for (const fraction of [0.5, 0.35, 0.65, 0.2, 0.8]) {
+			const anchor = {
+				x: placement.segment.p.x +
+					(placement.segment.q.x - placement.segment.p.x) * fraction,
+				y: placement.segment.p.y +
+					(placement.segment.q.y - placement.segment.p.y) * fraction,
+			}
+			if (!anchors.some(existing =>
+				Math.abs(existing.x - anchor.x) < 0.1 &&
+				Math.abs(existing.y - anchor.y) < 0.1
+			)) {
+				anchors.push(anchor)
+			}
+		}
+	}
+
+	const occupied = [
+		...data.nodes().map(node => expandBox(uncenterBox(node), collisionPadding)),
+		...data.edges
+			.filter(other => other !== edge && other.labelBounds)
+			.map(other => expandBox(other.labelBounds, collisionPadding)),
+	]
+	const candidates = anchors.flatMap(anchor => {
+		if (placement.orientation === 'vertical') {
+			return [1, -1].map(side => edgeLabelCandidate(
+				anchor.x + side * (maxW / 2 + labelGap),
+				anchor.y,
+				maxW,
+				dy,
+				anchor,
+				placement,
+				occupied,
+			))
+		}
+		return [-1, 1].map(side => edgeLabelCandidate(
+			anchor.x,
+			anchor.y + side * (dy / 2 + labelGap),
+			maxW,
+			dy,
+			anchor,
+			placement,
+			occupied,
+		))
+	})
+	const selected = candidates.reduce((best, candidate) =>
+		candidate.score < best.score ? candidate : best
+	)
+	const {centerX, centerY, bounds} = selected
 	txt.querySelectorAll('tspan').forEach((span: SVGTSpanElement) => {
 		span.setAttribute('x', String(centerX))
 	})
@@ -1264,14 +1316,65 @@ function buildEdgeLabel(placement: EdgeLabelPlacement, edge: Edge) {
 	txt.setAttribute('font-size', String(edge.style.fontSize))
 	txt.setAttribute('fill', edge.style.color)
 
-	const bbox = {x: centerX - maxW / 2, y: centerY - dy / 2, width: maxW, height: dy}
+	const bbox = {...bounds}
 	const bg = create.rect(bbox.width, bbox.height, bbox.x, bbox.y)
 	applyStyle(bg, styles.edgeRect)
 	txt.setAttribute('data-field', 'label')
+	edge.labelBounds = bounds
 
 	bbox.x += bbox.width / 2
 	bbox.y += bbox.height / 2
 	return {bg, txt, bbox}
+}
+
+function edgeLabelCandidate(
+	centerX: number,
+	centerY: number,
+	width: number,
+	height: number,
+	anchor: Point,
+	placement: EdgeLabelPlacement,
+	occupied: BBox[],
+) {
+	const bounds = {
+		x: centerX - width / 2,
+		y: centerY - height / 2,
+		width,
+		height,
+	}
+	const overlap = occupied.reduce(
+		(total, box) => total + boxOverlapArea(bounds, box),
+		0,
+	)
+	return {
+		centerX,
+		centerY,
+		bounds,
+		score: overlap * 1000 + calculateDistance(anchor, placement),
+	}
+}
+
+function expandBox(box: BBox, padding: number): BBox {
+	return {
+		x: box.x - padding,
+		y: box.y - padding,
+		width: box.width + padding * 2,
+		height: box.height + padding * 2,
+	}
+}
+
+function boxOverlapArea(first: BBox, second: BBox): number {
+	const width = Math.max(
+		0,
+		Math.min(first.x + first.width, second.x + second.width) -
+			Math.max(first.x, second.x),
+	)
+	const height = Math.max(
+		0,
+		Math.min(first.y + first.height, second.y + second.height) -
+			Math.max(first.y, second.y),
+	)
+	return width * height
 }
 
 

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -17,30 +18,50 @@ import (
 	"goa.design/model/mdl"
 	model "goa.design/model/pkg"
 
-	"context"
-
 	"github.com/chromedp/chromedp"
 )
 
-type config struct {
-	debug   bool
-	help    bool
-	out     string
-	dir     string
-	port    int
-	devmode bool
-	devdist string
-	// svg command options
-	views     SliceFlag
-	all       bool
-	direction string
-	compact   bool
-	timeout   time.Duration
-	force     bool
-}
+type (
+	config struct {
+		debug   bool
+		help    bool
+		out     string
+		dir     string
+		port    int
+		devmode bool
+		devdist string
+		// svg command options
+		views     SliceFlag
+		all       bool
+		direction string
+		compact   bool
+		timeout   time.Duration
+		force     bool
+	}
 
-// SliceFlag implements flag.Value for repeated string flags
-type SliceFlag []string
+	browserAutomationResult struct {
+		Status string `json:"status"`
+		Error  string `json:"error"`
+	}
+
+	// SliceFlag implements flag.Value for repeated string flags.
+	SliceFlag []string
+)
+
+const (
+	browserAutomationReadyScript = `(() => {
+	const status = document.documentElement.dataset.mdlAutomationStatus;
+	return status === "complete" || status === "error";
+})()`
+
+	browserAutomationResultScript = `(() => {
+	const root = document.documentElement;
+	return {
+		status: root.dataset.mdlAutomationStatus || "",
+		error: root.dataset.mdlAutomationError || "",
+	};
+})()`
+)
 
 func (s *SliceFlag) String() string { return strings.Join(*s, ",") }
 func (s *SliceFlag) Set(v string) error {
@@ -93,8 +114,7 @@ func parseArgs() config {
 		devmode: os.Getenv("DEVMODE") == "1",
 		devdist: os.Getenv("DEVDIST"),
 		// defaults for svg command
-		direction: "DOWN",
-		timeout:   20 * time.Second,
+		timeout: 20 * time.Second,
 	}
 
 	flag.BoolVar(&cfg.debug, "debug", false, "print debug output")
@@ -106,7 +126,12 @@ func parseArgs() config {
 	// svg command flags (safe to always register)
 	flag.Var(&cfg.views, "view", "view key to render (repeatable)")
 	flag.BoolVar(&cfg.all, "all", false, "render all views")
-	flag.StringVar(&cfg.direction, "direction", cfg.direction, "auto-layout direction: DOWN|UP|LEFT|RIGHT")
+	flag.StringVar(
+		&cfg.direction,
+		"direction",
+		cfg.direction,
+		"override the view auto-layout direction: DOWN|UP|LEFT|RIGHT",
+	)
 	flag.BoolVar(&cfg.compact, "compact", false, "enable compact auto-layout")
 	flag.DurationVar(&cfg.timeout, "timeout", cfg.timeout, "timeout per view (e.g. 15s)")
 	flag.BoolVar(&cfg.force, "force", false, "replace a locally modified installed skill")
@@ -373,9 +398,16 @@ func renderViewsHeadless(baseURL, outDir string, views []string, cfg config) err
 		})
 	}
 
+	direction, err := normalizeLayoutDirection(cfg.direction)
+	if err != nil {
+		return err
+	}
 	for _, key := range views {
 		// Build URL with automation params
-		q := fmt.Sprintf("?id=%s&auto=1&save=1&direction=%s", key, strings.ToUpper(cfg.direction))
+		q := fmt.Sprintf("?id=%s&auto=1&save=1", key)
+		if direction != "" {
+			q += "&direction=" + direction
+		}
 		if cfg.compact {
 			q += "&compact=1"
 		}
@@ -393,18 +425,20 @@ func renderViewsHeadless(baseURL, outDir string, views []string, cfg config) err
 	return nil
 }
 
-func waitForFile(path string, timeout time.Duration) error {
-	deadline := time.Now().Add(timeout)
-	for time.Now().Before(deadline) {
-		if st, err := os.Stat(path); err == nil && st.Size() > 0 {
-			return nil
-		}
-		time.Sleep(100 * time.Millisecond)
+func normalizeLayoutDirection(direction string) (string, error) {
+	normalized := strings.ToUpper(direction)
+	switch normalized {
+	case "", "DOWN", "UP", "LEFT", "RIGHT":
+		return normalized, nil
+	default:
+		return "", fmt.Errorf(
+			"invalid auto-layout direction %q: use DOWN, UP, LEFT, or RIGHT",
+			direction,
+		)
 	}
-	return fmt.Errorf("timeout waiting for %s", path)
 }
 
-// navigateExec abstracts chromedp.Navigate+Wait flow
+// navigateExec abstracts browser navigation and automation result handling.
 type navigateExec func(url string, svgPath string, timeout time.Duration) error
 
 // withChromedp wraps the chromedp session lifecycle
@@ -434,23 +468,37 @@ func chromedpExec(timeout time.Duration, debug bool, fn func(exec navigateExec) 
 	defer cancel()
 
 	exec := func(url string, svgPath string, timeout time.Duration) error {
-		// Use a tab context so the page stays open while we wait for the file
+		// Use a tab context so the page stays open through layout and save.
 		tabCtx, tabCancel := chromedp.NewContext(ctx)
 		defer tabCancel()
 
 		navCtx, navCancel := context.WithTimeout(tabCtx, timeout)
 		defer navCancel()
+		var result browserAutomationResult
 		if err := chromedp.Run(navCtx,
 			chromedp.Navigate(url),
-			// Wait for the graph svg to exist to ensure the app is ready
-			chromedp.WaitVisible(`svg#graph`, chromedp.ByQuery),
+			chromedp.Poll(
+				browserAutomationReadyScript,
+				nil,
+				chromedp.WithPollingInterval(100*time.Millisecond),
+				chromedp.WithPollingTimeout(0),
+			),
+			chromedp.Evaluate(browserAutomationResultScript, &result),
 		); err != nil {
-			return err
+			return fmt.Errorf("wait for browser automation status: %w", err)
 		}
-
-		// Keep tab alive while waiting for saved file
-		if err := waitForFile(svgPath, timeout); err != nil {
-			return err
+		if result.Status == "error" {
+			if result.Error == "" {
+				result.Error = "unknown browser error"
+			}
+			return fmt.Errorf("browser automation failed: %s", result.Error)
+		}
+		st, err := os.Stat(svgPath)
+		if err != nil {
+			return fmt.Errorf("browser reported completion but output %s is unavailable: %w", svgPath, err)
+		}
+		if st.Size() == 0 {
+			return fmt.Errorf("browser reported completion but output %s is empty", svgPath)
 		}
 		return nil
 	}

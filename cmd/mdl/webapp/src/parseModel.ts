@@ -1,4 +1,4 @@
-import {GraphData, NodeLink} from "./graph-view/graph";
+import {GraphData, LayoutDirection, NodeLink} from "./graph-view/graph";
 
 
 interface Model {
@@ -63,10 +63,15 @@ interface Relation {
 	interactionStyle: string;
 }
 
+type RankDirection = 'TopBottom' | 'BottomTop' | 'LeftRight' | 'RightLeft';
+
 interface View {
 	key: string;
 	title: string;
 	description: string
+	automaticLayout?: {
+		rankDirection?: RankDirection;
+	};
 	elements: {
 		id: string
 	}[];
@@ -77,6 +82,13 @@ interface View {
 	}[];
 	softwareSystemId: string;
 }
+
+const layoutDirections: Record<RankDirection, LayoutDirection> = {
+	TopBottom: 'DOWN',
+	BottomTop: 'UP',
+	LeftRight: 'RIGHT',
+	RightLeft: 'LEFT',
+};
 
 interface Metadata {
 	name: string
@@ -171,6 +183,8 @@ export const parseView = (model: Model, layouts: Layouts, viewKey: string) => {
 	if (!view) return null
 
 	const graph = new GraphData(view.key, view.title || view.key)
+	const rankDirection = view.automaticLayout?.rankDirection
+	graph.layoutDirection = rankDirection ? layoutDirections[rankDirection] : undefined
 	const metadata: Metadata = {name: graph.name, description: view.description, version: model.version, elements: []}
 	graph.metadata = metadata
 

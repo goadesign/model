@@ -1,7 +1,7 @@
-import {GraphData, Node, Group} from "./graph";
+import {GraphData, Node, Group, LayoutDirection} from "./graph";
 
 export interface LayoutOptions {
-	direction?: 'UP' | 'DOWN' | 'LEFT' | 'RIGHT';
+	direction?: LayoutDirection;
 	nodeSpacing?: number;
 	layerSpacing?: number;
 	compactLayout?: boolean;

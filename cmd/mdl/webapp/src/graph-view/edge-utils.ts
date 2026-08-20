@@ -64,6 +64,8 @@ interface GraphData {
 
 export interface EdgeLabelPlacement extends Point {
 	orientation: 'horizontal' | 'vertical';
+	segment?: Segment;
+	movable: boolean;
 }
 
 /**
@@ -275,9 +277,12 @@ export function calculateLabelPlacement(
 	let point = {x: fallback.x, y: fallback.y};
 	let segment: Segment | undefined;
 	const labelIndex = vertices.findIndex(vertex => (vertex as EdgeVertex).label);
+	let movable = true;
 
 	if (labelIndex >= 0) {
-		point = vertices[labelIndex];
+		const labelVertex = vertices[labelIndex] as EdgeVertex;
+		point = labelVertex;
+		movable = labelVertex.auto === true;
 		const adjacentSegments: Segment[] = [];
 		if (labelIndex > 0) {
 			adjacentSegments.push({p: vertices[labelIndex - 1], q: point});
@@ -322,6 +327,8 @@ export function calculateLabelPlacement(
 	return {
 		...point,
 		orientation: verticalDistance > horizontalDistance ? 'vertical' : 'horizontal',
+		segment,
+		movable,
 	};
 }
 

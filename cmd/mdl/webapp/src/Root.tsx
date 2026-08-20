@@ -1,5 +1,6 @@
-import React, { FC, useState, useCallback, useEffect, Suspense, lazy } from "react";
-import { GraphData } from "./graph-view/graph";
+import React, { FC, useState, useCallback, useEffect, useRef, Suspense, lazy } from "react";
+import { GraphData, LayoutDirection } from "./graph-view/graph";
+import { LayoutOptions } from "./graph-view/layout";
 import { BrowserRouter as Router, Routes, Route, useSearchParams } from 'react-router-dom';
 import { listViews } from "./parseModel";
 import { useGraph, useAutoLayout, useSave, useKeyboardShortcuts, clearGraphCache } from "./hooks";
@@ -14,6 +15,31 @@ interface ModelData {
   model: any;
   layout: any;
 }
+
+type AutomationStatus = 'running' | 'complete' | 'error';
+
+const setAutomationStatus = (status: AutomationStatus | null, error?: string) => {
+  const root = document.documentElement;
+  if (!status) {
+    delete root.dataset.mdlAutomationStatus;
+    delete root.dataset.mdlAutomationError;
+    return;
+  }
+  root.dataset.mdlAutomationStatus = status;
+  if (error) {
+    root.dataset.mdlAutomationError = error;
+  } else {
+    delete root.dataset.mdlAutomationError;
+  }
+};
+
+const errorMessage = (error: unknown): string =>
+  error instanceof Error ? error.message : String(error);
+
+const reportInteractiveError = (action: string, error: unknown) => {
+  console.error(`${action} failed:`, error);
+  alert(`${action} failed. See console for details.`);
+};
 
 export const Root: FC<ModelData> = ({ model, layout }) => (
   <Router>
@@ -35,6 +61,9 @@ const ModelPane: FC<{ model: any; layouts: any }> = ({ model, layouts }) => {
   // UI State
   const [helpVisible, setHelpVisible] = useState(false);
   const [dragMode, setDragMode] = useState<'pan' | 'select'>('pan');
+  const [readyGraphID, setReadyGraphID] = useState<string | null>(null);
+  const automationKey = useRef<string | null>(null);
+  const automationRun = useRef(0);
   
   // Get or create graph for current view
   const graph = useGraph(model, layouts, currentID);
@@ -51,6 +80,18 @@ const ModelPane: FC<{ model: any; layouts: any }> = ({ model, layouts }) => {
     setHelpVisible(!helpVisible);
   }, [helpVisible]);
 
+  const handleGraphReady = useCallback(() => {
+    setReadyGraphID(currentID);
+  }, [currentID]);
+
+  const handleInteractiveAutoLayout = useCallback(() => {
+    void handleAutoLayout().catch(error => reportInteractiveError('Layout', error));
+  }, [handleAutoLayout]);
+
+  const handleInteractiveSave = useCallback(() => {
+    void handleSave().catch(error => reportInteractiveError('Save', error));
+  }, [handleSave]);
+
   // Update document title when view changes
   useEffect(() => {
     if (graph && graph.name) {
@@ -60,23 +101,39 @@ const ModelPane: FC<{ model: any; layouts: any }> = ({ model, layouts }) => {
 
   // Headless automation: support query params to auto-layout and save
   useEffect(() => {
-    // Only run when graph changes to avoid duplicate actions
     const params = Object.fromEntries(searchParams.entries());
     const auto = params['auto'] === '1' || params['auto'] === 'true';
     const save = params['save'] === '1' || params['save'] === 'true';
+    if (!auto && !save) {
+      automationKey.current = null;
+      automationRun.current++;
+      setAutomationStatus(null);
+      return;
+    }
+    if (readyGraphID !== currentID) {
+      return;
+    }
+
+    const key = `${currentID}:${searchParams.toString()}`;
+    if (automationKey.current === key) {
+      return;
+    }
+    automationKey.current = key;
+    const run = ++automationRun.current;
+    setAutomationStatus('running');
+
     const direction = (params['direction'] || '').toUpperCase();
     const compact = params['compact'] === '1' || params['compact'] === 'true';
 
-    const validDirections = ['UP', 'DOWN', 'LEFT', 'RIGHT'];
-    const layoutOpts: any = {};
-    if (validDirections.includes(direction)) {
-      layoutOpts.direction = direction as any;
+    const validDirections: LayoutDirection[] = ['UP', 'DOWN', 'LEFT', 'RIGHT'];
+    const layoutOpts: LayoutOptions = {};
+    if (validDirections.includes(direction as LayoutDirection)) {
+      layoutOpts.direction = direction as LayoutDirection;
     }
     if (compact) {
       layoutOpts.compactLayout = true;
     }
 
-    let cancelled = false;
     (async () => {
       try {
         if (auto) {
@@ -85,16 +142,28 @@ const ModelPane: FC<{ model: any; layouts: any }> = ({ model, layouts }) => {
         if (save) {
           await handleSave();
         }
-      } catch (e) {
-        console.error('automation error', e);
+        if (automationRun.current === run) {
+          setAutomationStatus('complete');
+        }
+      } catch (error) {
+        const message = errorMessage(error);
+        console.error('Automation failed:', error);
+        if (automationRun.current === run) {
+          setAutomationStatus('error', message);
+        }
       }
     })();
-
-    return () => { cancelled = true; };
-  }, [graph, handleAutoLayout, handleSave, searchParams]);
+  }, [currentID, graph, handleAutoLayout, handleSave, readyGraphID, searchParams]);
 
   // Setup keyboard shortcuts
-  useKeyboardShortcuts(handleToggleHelp, handleSave, graph, dragMode, setDragMode, handleAutoLayout);
+  useKeyboardShortcuts(
+    handleToggleHelp,
+    handleInteractiveSave,
+    graph,
+    dragMode,
+    setDragMode,
+    handleInteractiveAutoLayout,
+  );
 
   const handleViewChange = useCallback((id: string) => {
     setSearchParams({ id: encodeURIComponent(id) });
@@ -114,8 +183,8 @@ const ModelPane: FC<{ model: any; layouts: any }> = ({ model, layouts }) => {
 				currentID={currentID}
 				onViewChange={handleViewChange}
 				graph={graph}
-				onAutoLayout={handleAutoLayout}
-				onSave={handleSave}
+				onAutoLayout={handleInteractiveAutoLayout}
+				onSave={handleInteractiveSave}
 				onToggleHelp={handleToggleHelp}
 				saving={saving}
 				layouting={layouting}
@@ -127,6 +196,7 @@ const ModelPane: FC<{ model: any; layouts: any }> = ({ model, layouts }) => {
 					key={currentID}
 					data={graph}
 					onSelect={handleSelect}
+					onReady={handleGraphReady}
 					dragMode={dragMode}
 				/>
 			</Suspense>
