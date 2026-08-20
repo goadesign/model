@@ -180,6 +180,22 @@ mdl gen goa.design/model/examples/basic/model -out design.json
 The generated file `design.json` contains a JSON representation of the
 [Design](https://pkg.go.dev/goa.design/model@v1.10.0/mdl#Design) struct.
 
+#### Installing the diagram-editing skill
+
+`mdl` includes a Cursor Agent Skill that teaches coding agents how to edit,
+render, and review Model diagrams while preserving C4 ownership and boundary
+semantics. Run this command from the root of a repository that contains Model
+DSL:
+
+```bash
+mdl skill install
+```
+
+The command writes
+`.cursor/skills/editing-model-diagrams/SKILL.md`. Re-running it is safe when
+the installed skill is unchanged. If the repository has modified the installed
+copy, `mdl` preserves it unless `-force` is provided explicitly.
+
 ### Using `stz`
 
 Alternatively, the `stz` tool generates a file containing a

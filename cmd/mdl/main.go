@@ -36,6 +36,7 @@ type config struct {
 	direction string
 	compact   bool
 	timeout   time.Duration
+	force     bool
 }
 
 // SliceFlag implements flag.Value for repeated string flags
@@ -65,6 +66,12 @@ func main() {
 		err = startServer(pkg, cfg)
 	case "svg":
 		err = runSVG(pkg, cfg)
+	case "skill":
+		if pkg != "install" {
+			err = fmt.Errorf(`unknown skill command %q, expected "install"`, pkg)
+		} else {
+			err = runSkillInstall(cfg.force)
+		}
 	case "version":
 		fmt.Printf("%s %s\n", os.Args[0], model.Version())
 	case "", "help":
@@ -102,6 +109,7 @@ func parseArgs() config {
 	flag.StringVar(&cfg.direction, "direction", cfg.direction, "auto-layout direction: DOWN|UP|LEFT|RIGHT")
 	flag.BoolVar(&cfg.compact, "compact", false, "enable compact auto-layout")
 	flag.DurationVar(&cfg.timeout, "timeout", cfg.timeout, "timeout per view (e.g. 15s)")
+	flag.BoolVar(&cfg.force, "force", false, "replace a locally modified installed skill")
 
 	// Parse only the flags, not the command and package
 	args := os.Args[1:]
@@ -472,7 +480,10 @@ func printUsage() {
 	fmt.Fprintf(os.Stderr, "    Generate a JSON representation of the design described in PACKAGE.\n")
 	fmt.Fprintf(os.Stderr, "  %s svg PACKAGE [FLAGS]\n", os.Args[0])
 	fmt.Fprintf(os.Stderr, "    Auto-layout and export SVG diagram(s) for the design described in PACKAGE.\n")
-	fmt.Fprintf(os.Stderr, "\nPACKAGE must be the import path to a Go package containing Model DSL.\n\n")
+	fmt.Fprintf(os.Stderr, "  %s skill install [-force]\n", os.Args[0])
+	fmt.Fprintf(os.Stderr, "    Install the MDL diagram-editing skill in the current repository.\n")
+	fmt.Fprintf(os.Stderr, "\nPACKAGE must be the import path to a Go package containing Model DSL.\n")
+	fmt.Fprintf(os.Stderr, "PACKAGE is required by serve, gen, and svg.\n\n")
 	fmt.Fprintf(os.Stderr, "FLAGS:\n")
 	flag.PrintDefaults()
 }
