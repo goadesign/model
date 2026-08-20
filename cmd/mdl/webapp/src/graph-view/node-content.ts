@@ -31,6 +31,7 @@ function textBlock(
 	field?: string,
 ): TextBlockLayout {
 	const attrs = {
+		"font-family": String(SVG_STYLES.nodeText["font-family"]),
 		"font-size": `${fontSize}px`,
 		"font-weight": bold ? "bold" : "normal",
 	};

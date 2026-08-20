@@ -489,5 +489,3 @@ function createFallbackLayout(graph: GraphData): {
 function isGroup(member: Node | Group): member is Group {
 	return "nodes" in member;
 }
-
-// Removed unused isGroup function since we skip group processing
