@@ -22,6 +22,14 @@ type nodeOverflow struct {
 	Left   float64 `json:"left"`
 }
 
+type verticalEdgeLabelOverlap struct {
+	Source      string  `json:"source"`
+	Destination string  `json:"destination"`
+	LineX       float64 `json:"lineX"`
+	LabelLeft   float64 `json:"labelLeft"`
+	LabelRight  float64 `json:"labelRight"`
+}
+
 func hasChrome() bool {
 	if os.Getenv("CHROME_BIN") != "" {
 		return true
@@ -65,6 +73,9 @@ func TestSVGEndToEnd(t *testing.T) {
 	links := svgLinks(t, p)
 	if len(links) != 1 || links[0] != "Container%20View.svg" {
 		t.Fatalf("expected one container-view link, got %v", links)
+	}
+	if overlaps := inspectVerticalEdgeLabelOverlaps(t, p); len(overlaps) > 0 {
+		t.Fatalf("vertical relationship labels overlap their lines: %+v", overlaps)
 	}
 	// Cleanup generated files explicitly (t.TempDir will be removed automatically).
 	for _, path := range []string{p, target} {
@@ -110,21 +121,8 @@ func TestSVGNodeTextFits(t *testing.T) {
 func inspectNodeTextFit(t *testing.T, path string) ([]nodeOverflow, float64, []string, int) {
 	t.Helper()
 
-	options := append(chromedp.DefaultExecAllocatorOptions[:],
-		chromedp.DisableGPU,
-		chromedp.Flag("no-sandbox", true),
-		chromedp.Flag("disable-setuid-sandbox", true),
-	)
-	if chromeBin := os.Getenv("CHROME_BIN"); chromeBin != "" {
-		options = append(options, chromedp.ExecPath(chromeBin))
-	}
-	allocatorContext, cancelAllocator := chromedp.NewExecAllocator(context.Background(), options...)
-	defer cancelAllocator()
-
-	browserContext, cancelBrowser := chromedp.NewContext(allocatorContext)
-	defer cancelBrowser()
-	testContext, cancelTest := context.WithTimeout(browserContext, 30*time.Second)
-	defer cancelTest()
+	testContext, cleanup := newChromeContext(t)
+	defer cleanup()
 
 	var overflows []nodeOverflow
 	var height float64
@@ -190,6 +188,79 @@ func inspectNodeTextFit(t *testing.T, path string) ([]nodeOverflow, float64, []s
 	}
 
 	return overflows, height, boundaryIntersections, groupCount
+}
+
+func inspectVerticalEdgeLabelOverlaps(t *testing.T, path string) []verticalEdgeLabelOverlap {
+	t.Helper()
+
+	testContext, cleanup := newChromeContext(t)
+	defer cleanup()
+
+	var overlaps []verticalEdgeLabelOverlap
+	fileURL := (&url.URL{Scheme: "file", Path: path}).String()
+	const overlapScript = `(() => {
+		const minimumGap = 4;
+		return [...document.querySelectorAll("g.edge[data-from][data-to]")].flatMap((edge) => {
+			const source = document.getElementById(edge.dataset.from);
+			const destination = document.getElementById(edge.dataset.to);
+			const label = edge.querySelector(":scope > rect");
+			if (!source || !destination || !label) return [];
+
+			const sourceRect = source.getBoundingClientRect();
+			const destinationRect = destination.getBoundingClientRect();
+			const sourceX = (sourceRect.left + sourceRect.right) / 2;
+			const destinationX = (destinationRect.left + destinationRect.right) / 2;
+			const sourceY = (sourceRect.top + sourceRect.bottom) / 2;
+			const destinationY = (destinationRect.top + destinationRect.bottom) / 2;
+			if (Math.abs(sourceX - destinationX) > 0.5 ||
+				Math.abs(sourceY - destinationY) <= 0.5) {
+				return [];
+			}
+
+			const labelRect = label.getBoundingClientRect();
+			if (labelRect.left - sourceX >= minimumGap ||
+				sourceX - labelRect.right >= minimumGap) {
+				return [];
+			}
+			return [{
+				source: edge.dataset.from,
+				destination: edge.dataset.to,
+				lineX: sourceX,
+				labelLeft: labelRect.left,
+				labelRight: labelRect.right,
+			}];
+		});
+	})()`
+	if err := chromedp.Run(testContext,
+		chromedp.Navigate(fileURL),
+		chromedp.WaitVisible("g.edge", chromedp.ByQuery),
+		chromedp.Evaluate(overlapScript, &overlaps),
+	); err != nil {
+		t.Fatalf("inspect vertical relationship labels: %v", err)
+	}
+	return overlaps
+}
+
+func newChromeContext(t *testing.T) (context.Context, func()) {
+	t.Helper()
+
+	options := append(chromedp.DefaultExecAllocatorOptions[:],
+		chromedp.DisableGPU,
+		chromedp.Flag("no-sandbox", true),
+		chromedp.Flag("disable-setuid-sandbox", true),
+	)
+	if chromeBin := os.Getenv("CHROME_BIN"); chromeBin != "" {
+		options = append(options, chromedp.ExecPath(chromeBin))
+	}
+	allocatorContext, cancelAllocator := chromedp.NewExecAllocator(context.Background(), options...)
+	browserContext, cancelBrowser := chromedp.NewContext(allocatorContext)
+	testContext, cancelTest := context.WithTimeout(browserContext, 30*time.Second)
+	cleanup := func() {
+		cancelTest()
+		cancelBrowser()
+		cancelAllocator()
+	}
+	return testContext, cleanup
 }
 
 func svgLinks(t *testing.T, path string) []string {

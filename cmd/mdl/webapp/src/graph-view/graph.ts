@@ -43,8 +43,9 @@ import {
 } from "./constants";
 import {
 	calculateEdgeVertices,
-	calculateLabelPosition,
-	createEdgeSegments
+	calculateLabelPlacement,
+	createEdgeSegments,
+	EdgeLabelPlacement
 } from "./edge-utils";
 import {
 	buildNodeContent,
@@ -1197,10 +1198,9 @@ function buildEdge(data: GraphData, edge: Edge) {
 	// Calculate edge vertices using utility function
 	const vertices = calculateEdgeVertices(edge, data)
 
-	// Calculate label position using utility function - pass edge for ELK label lookup
-	const pLabel = calculateLabelPosition(vertices, position, n1, edge)
+	const labelPlacement = calculateLabelPlacement(vertices, position, n1)
 
-	const {bg, txt, bbox} = buildEdgeLabel(pLabel, edge)
+	const {bg, txt, bbox} = buildEdgeLabel(labelPlacement, edge)
 	g.append(bg, txt)
 
 	// Create edge segments and path using utility function
@@ -1241,25 +1241,30 @@ function buildEdge(data: GraphData, edge: Edge) {
 	return g
 }
 
-function buildEdgeLabel(pLabel: Point, edge: Edge) {
-	// Offset label above the edge line
-	const labelOffset = 20; // pixels above the edge
-	const offsetY = pLabel.y - labelOffset;
-	
-	// label
+function buildEdgeLabel(placement: EdgeLabelPlacement, edge: Edge) {
+	const labelGap = 12;
 	const fontSize = edge.style.fontSize
-	let {txt, dy, maxW} = create.textArea(edge.label, 200, fontSize, false, pLabel.x, offsetY, 'middle')
-	//move text up to center relative to the edge
+	let {txt, dy, maxW} = create.textArea(edge.label, 200, fontSize, false, placement.x, placement.y, 'middle')
 	dy -= fontSize / 2
-	txt.setAttribute('y', String(offsetY - dy / 2))
-
 	maxW += fontSize
+
+	const centerX = placement.orientation === 'vertical'
+		? placement.x + maxW / 2 + labelGap
+		: placement.x
+	const centerY = placement.orientation === 'vertical'
+		? placement.y
+		: placement.y - dy / 2 - labelGap
+	txt.querySelectorAll('tspan').forEach((span: SVGTSpanElement) => {
+		span.setAttribute('x', String(centerX))
+	})
+	txt.setAttribute('y', String(centerY - dy / 2))
+
 	applyStyle(txt, styles.edgeText)
 	txt.setAttribute('stroke', 'none')
 	txt.setAttribute('font-size', String(edge.style.fontSize))
 	txt.setAttribute('fill', edge.style.color)
 
-	const bbox = {x: pLabel.x - maxW / 2, y: offsetY - dy / 2, width: maxW, height: dy}
+	const bbox = {x: centerX - maxW / 2, y: centerY - dy / 2, width: maxW, height: dy}
 	const bg = create.rect(bbox.width, bbox.height, bbox.x, bbox.y)
 	applyStyle(bg, styles.edgeRect)
 	txt.setAttribute('data-field', 'label')
