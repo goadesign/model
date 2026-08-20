@@ -91,6 +91,9 @@ func TestSVGEndToEnd(t *testing.T) {
 	if orientation := inspectNodeOrientation(t, p); orientation != "horizontal" {
 		t.Fatalf("expected view-defined left-to-right layout, got %s", orientation)
 	}
+	if issues := inspectArrowMarkerIssues(t, p); len(issues) > 0 {
+		t.Fatalf("relationship arrow markers are not paintable: %v", issues)
+	}
 	if overlaps := inspectVerticalEdgeLabelOverlaps(t, p); len(overlaps) > 0 {
 		t.Fatalf("vertical relationship labels overlap their lines: %+v", overlaps)
 	}
@@ -501,6 +504,39 @@ func inspectNodeOrientation(t *testing.T, path string) string {
 		t.Fatalf("inspect node orientation: %v", err)
 	}
 	return orientation
+}
+
+// inspectArrowMarkerIssues checks that standalone SVG relationships resolve
+// their marker references to one visible arrowhead definition.
+func inspectArrowMarkerIssues(t *testing.T, path string) []string {
+	t.Helper()
+	testContext, cleanup := newChromeContext(t)
+	defer cleanup()
+
+	var issues []string
+	fileURL := (&url.URL{Scheme: "file", Path: path}).String()
+	const markerScript = `(() => {
+		const markerPath = document.querySelector("defs marker#arrow path");
+		if (!markerPath) return ["missing arrow marker definition"];
+		const markerFill = getComputedStyle(markerPath).fill;
+		const issues = markerFill && markerFill !== "none"
+			? []
+			: ["arrow marker has no visible fill"];
+		for (const path of document.querySelectorAll("g.edge > path")) {
+			if (!getComputedStyle(path).markerEnd.includes("#arrow")) {
+				issues.push("edge " + (path.parentElement?.id || "unknown") + " does not resolve #arrow");
+			}
+		}
+		return issues;
+	})()`
+	if err := chromedp.Run(testContext,
+		chromedp.Navigate(fileURL),
+		chromedp.WaitVisible("g.edge", chromedp.ByQuery),
+		chromedp.Evaluate(markerScript, &issues),
+	); err != nil {
+		t.Fatalf("inspect relationship arrow markers: %v", err)
+	}
+	return issues
 }
 
 func inspectVerticalEdgeLabelOverlaps(t *testing.T, path string) []verticalEdgeLabelOverlap {
