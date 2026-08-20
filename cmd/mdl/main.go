@@ -2,11 +2,13 @@ package main
 
 import (
 	"context"
+	"crypto/sha256"
 	"encoding/json"
 	"flag"
 	"fmt"
 	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -18,6 +20,8 @@ import (
 	"goa.design/model/mdl"
 	model "goa.design/model/pkg"
 
+	cdnetwork "github.com/chromedp/cdproto/network"
+	cdruntime "github.com/chromedp/cdproto/runtime"
 	"github.com/chromedp/chromedp"
 )
 
@@ -39,28 +43,8 @@ type (
 		force     bool
 	}
 
-	browserAutomationResult struct {
-		Status string `json:"status"`
-		Error  string `json:"error"`
-	}
-
 	// SliceFlag implements flag.Value for repeated string flags.
 	SliceFlag []string
-)
-
-const (
-	browserAutomationReadyScript = `(() => {
-	const status = document.documentElement.dataset.mdlAutomationStatus;
-	return status === "complete" || status === "error";
-})()`
-
-	browserAutomationResultScript = `(() => {
-	const root = document.documentElement;
-	return {
-		status: root.dataset.mdlAutomationStatus || "",
-		error: root.dataset.mdlAutomationError || "",
-	};
-})()`
 )
 
 func (s *SliceFlag) String() string { return strings.Join(*s, ",") }
@@ -110,7 +94,7 @@ func parseArgs() config {
 	cfg := config{
 		out:     "design.json",
 		dir:     goacodegen.Gendir,
-		port:    8080,
+		port:    0,
 		devmode: os.Getenv("DEVMODE") == "1",
 		devdist: os.Getenv("DEVDIST"),
 		// defaults for svg command
@@ -122,7 +106,12 @@ func parseArgs() config {
 	flag.BoolVar(&cfg.help, "h", false, "print this information")
 	flag.StringVar(&cfg.out, "out", cfg.out, "set path to generated JSON representation")
 	flag.StringVar(&cfg.dir, "dir", cfg.dir, "set output directory used by editor to save SVG files")
-	flag.IntVar(&cfg.port, "port", cfg.port, "set local HTTP port used to serve diagram editor")
+	flag.IntVar(
+		&cfg.port,
+		"port",
+		cfg.port,
+		"set local HTTP port; serve defaults to 8080 and svg defaults to a private free port",
+	)
 	// svg command flags (safe to always register)
 	flag.Var(&cfg.views, "view", "view key to render (repeatable)")
 	flag.BoolVar(&cfg.all, "all", false, "render all views")
@@ -209,6 +198,9 @@ func startServer(pkg string, cfg config) error {
 	if cfg.devmode && cfg.devdist == "" {
 		cfg.devdist = "./cmd/mdl/webapp/dist"
 	}
+	if cfg.port == 0 {
+		cfg.port = 8080
+	}
 
 	return serve(absDir, pkg, cfg.port, cfg.devdist, cfg.debug)
 }
@@ -236,8 +228,8 @@ func serve(out, pkg string, port int, devdist string, debug bool) error {
 	return server.Serve(out, devdist, port)
 }
 
-// runSVG runs a local server without watch, opens a headless browser per view to trigger
-// auto layout and save, and waits for the SVG files to be written.
+// runSVG serves one fixed model, renders selected views in one browser process,
+// and saves only matched, validated browser results.
 func runSVG(pkg string, cfg config) error {
 	if pkg == "" {
 		return fmt.Errorf(`missing PACKAGE argument, use "--help" for usage`)
@@ -251,13 +243,11 @@ func runSVG(pkg string, cfg config) error {
 		return err
 	}
 
-	// Load design to enumerate views
 	design, err := loadDesign(pkg, cfg.debug)
 	if err != nil {
 		return err
 	}
 
-	// Collect view keys based on flags
 	viewKeys := collectViewKeys(design)
 	selected := make([]string, 0)
 	if cfg.all || len(cfg.views) == 0 && !cfg.all {
@@ -280,55 +270,67 @@ func runSVG(pkg string, cfg config) error {
 		return fmt.Errorf("no views to render; use --all or --view")
 	}
 
-	// Prepare server with custom mux (no watch)
 	server := NewServer(design)
+	digest, err := designDigest(design)
+	if err != nil {
+		return err
+	}
+	broker := newRenderBroker()
 	mux := http.NewServeMux()
+	mux.HandleFunc("/headless/result", broker.handleResult)
 
-	// Pick port: if cfg.port == 0, choose a random free port
-	port := cfg.port
-	if port == 0 {
-		ln, err := net.Listen("tcp", "127.0.0.1:0")
-		if err != nil {
-			return err
-		}
-		port = ln.Addr().(*net.TCPAddr).Port
-		_ = ln.Close()
+	listener, err := net.Listen("tcp", listenAddress(cfg.port))
+	if err != nil {
+		return fmt.Errorf("bind headless server: %w", err)
 	}
 
 	httpServer := &http.Server{
-		Addr:              fmt.Sprintf("127.0.0.1:%d", port),
 		ReadHeaderTimeout: 3 * time.Second,
 	}
 
-	// Start server in background
 	done := make(chan error, 1)
 	go func() {
-		done <- server.ServeOnMux(absDir, cfg.devdist, httpServer, mux)
+		done <- server.ServeOnListener(absDir, cfg.devdist, httpServer, mux, listener)
 	}()
 
-	// Wait for server to accept connections by polling
-	baseURL := fmt.Sprintf("http://127.0.0.1:%d", port)
-	if err := waitForHTTP(baseURL+"/data/model.json", 5*time.Second); err != nil {
-		_ = httpServer.Close()
-		return fmt.Errorf("server did not start: %w", err)
-	}
-
-	// Drive headless browser to render and save
-	if err := renderViewsHeadless(baseURL, absDir, selected, cfg); err != nil {
-		_ = httpServer.Close()
+	baseURL := "http://" + listener.Addr().String()
+	if err := renderViewsHeadless(baseURL, digest, selected, cfg, broker, server); err != nil {
+		if closeErr := httpServer.Close(); closeErr != nil {
+			return fmt.Errorf("%w; close headless server: %v", err, closeErr)
+		}
 		return err
 	}
 
-	// Shutdown server
-	_ = httpServer.Close()
-	// Ensure background server goroutine exits to avoid leaks
+	if err := httpServer.Close(); err != nil {
+		return fmt.Errorf("close headless server: %w", err)
+	}
 	select {
-	case <-done:
-		// server exited
+	case err := <-done:
+		if err != nil && err != http.ErrServerClosed {
+			return fmt.Errorf("headless server: %w", err)
+		}
 	case <-time.After(2 * time.Second):
-		// timeout waiting for server to exit; continue
+		return fmt.Errorf("timeout stopping headless server")
 	}
 	return nil
+}
+
+// designDigest gives every browser result the identity of the exact model JSON.
+func designDigest(design *mdl.Design) (string, error) {
+	data, err := json.Marshal(design)
+	if err != nil {
+		return "", fmt.Errorf("serialize design digest: %w", err)
+	}
+	digest := sha256.Sum256(data)
+	return fmt.Sprintf("%x", digest), nil
+}
+
+// listenAddress uses a caller port or asks the operating system for a free one.
+func listenAddress(port int) string {
+	if port == 0 {
+		return "127.0.0.1:0"
+	}
+	return fmt.Sprintf("127.0.0.1:%d", port)
 }
 
 func collectViewKeys(d *mdl.Design) []string {
@@ -370,59 +372,104 @@ func collectViewKeys(d *mdl.Design) []string {
 	return keys
 }
 
-func waitForHTTP(url string, timeout time.Duration) error {
-	deadline := time.Now().Add(timeout)
-	for time.Now().Before(deadline) {
-		resp, err := http.Get(url) //nolint:gosec
-		if err == nil {
-			_ = resp.Body.Close()
-			if resp.StatusCode >= 200 && resp.StatusCode < 300 {
-				return nil
-			}
-		}
-		time.Sleep(100 * time.Millisecond)
-	}
-	return fmt.Errorf("timeout waiting for %s", url)
-}
-
-// renderViewsHeadless uses chromedp to visit each view and trigger auto-layout and save.
-func renderViewsHeadless(baseURL, outDir string, views []string, cfg config) error {
-	// Lazy import of chromedp via build tag is overkill; add module dependency and use directly
-	// We inline a minimal wrapper to avoid leaking chromedp symbols elsewhere.
-
-	// Prepare function that opens a headless tab to the URL and waits for SVG file
-	run := func(url string, svgPath string, timeout time.Duration) error {
-		// Defer importing chromedp to here for clarity
-		return withChromedp(timeout, cfg.debug, func(exec navigateExec) error {
-			return exec(url, svgPath, timeout)
-		})
-	}
-
+// renderViewsHeadless reuses one browser process and waits for typed HTTP results.
+func renderViewsHeadless(
+	baseURL string,
+	modelDigest string,
+	views []string,
+	cfg config,
+	broker *renderBroker,
+	server *Server,
+) error {
 	direction, err := normalizeLayoutDirection(cfg.direction)
 	if err != nil {
 		return err
 	}
-	for _, key := range views {
-		// Build URL with automation params
-		q := fmt.Sprintf("?id=%s&auto=1&save=1", key)
-		if direction != "" {
-			q += "&direction=" + direction
+	return withChromedp(cfg.timeout, cfg.debug, func(exec navigateExec) error {
+		for _, viewID := range views {
+			if err := renderViewHeadless(
+				baseURL,
+				modelDigest,
+				viewID,
+				direction,
+				cfg,
+				broker,
+				server,
+				exec,
+			); err != nil {
+				return fmt.Errorf("render %s: %w", viewID, err)
+			}
 		}
-		if cfg.compact {
-			q += "&compact=1"
-		}
-		url := baseURL + "/" + q
+		return nil
+	})
+}
 
-		// Remove any existing file to ensure fresh wait
-		svgPath := filepath.Join(outDir, key+".svg")
-		_ = os.Remove(svgPath)
-
-		if err := run(url, svgPath, cfg.timeout); err != nil {
-			return fmt.Errorf("render %s: %w", key, err)
-		}
-		fmt.Println("Saved:", svgPath)
+// renderViewHeadless waits for the exact view and model result before saving it.
+func renderViewHeadless(
+	baseURL string,
+	modelDigest string,
+	viewID string,
+	direction string,
+	cfg config,
+	broker *renderBroker,
+	server *Server,
+	exec navigateExec,
+) error {
+	results, unregister, err := broker.register(viewID, modelDigest)
+	if err != nil {
+		return err
 	}
+	defer unregister()
+
+	deadline := time.Now().Add(cfg.timeout)
+	renderURL := headlessRenderURL(baseURL, modelDigest, viewID, direction, cfg.compact)
+	if err := exec(renderURL, time.Until(deadline)); err != nil {
+		return fmt.Errorf("open headless page: %w", err)
+	}
+	remaining := time.Until(deadline)
+	if remaining <= 0 {
+		return fmt.Errorf("timeout waiting for browser result")
+	}
+	timer := time.NewTimer(remaining)
+	defer timer.Stop()
+
+	var result headlessResult
+	select {
+	case result = <-results:
+	case <-timer.C:
+		return fmt.Errorf("timeout waiting for browser result")
+	}
+	if result.Status == "error" {
+		return fmt.Errorf("browser failed: %s", result.Error)
+	}
+
+	err = server.storeSVG(viewID, strings.NewReader(result.SVG))
+	if err != nil {
+		return fmt.Errorf("save SVG: %w", err)
+	}
+	fmt.Println("Saved:", filepath.Join(server.outDir, viewID+".svg"))
 	return nil
+}
+
+// headlessRenderURL encodes one view request without relying on router state.
+func headlessRenderURL(
+	baseURL string,
+	modelDigest string,
+	viewID string,
+	direction string,
+	compact bool,
+) string {
+	query := url.Values{
+		"digest": {modelDigest},
+		"view":   {viewID},
+	}
+	if direction != "" {
+		query.Set("direction", direction)
+	}
+	if compact {
+		query.Set("compact", "true")
+	}
+	return baseURL + "/headless.html?" + query.Encode()
 }
 
 func normalizeLayoutDirection(direction string) (string, error) {
@@ -438,8 +485,8 @@ func normalizeLayoutDirection(direction string) (string, error) {
 	}
 }
 
-// navigateExec abstracts browser navigation and automation result handling.
-type navigateExec func(url string, svgPath string, timeout time.Duration) error
+// navigateExec opens one isolated page in the shared browser process.
+type navigateExec func(url string, timeout time.Duration) error
 
 // withChromedp wraps the chromedp session lifecycle
 func withChromedp(timeout time.Duration, debug bool, fn func(exec navigateExec) error) error {
@@ -466,39 +513,55 @@ func chromedpExec(timeout time.Duration, debug bool, fn func(exec navigateExec) 
 
 	ctx, cancel := chromedp.NewContext(allocCtx)
 	defer cancel()
+	tabCtx, tabCancel := chromedp.NewContext(ctx)
+	defer tabCancel()
+	if err := chromedp.Run(tabCtx); err != nil {
+		return fmt.Errorf("start headless browser tab: %w", err)
+	}
+	if debug {
+		if err := chromedp.Run(tabCtx, cdnetwork.Enable()); err != nil {
+			return fmt.Errorf("enable browser network diagnostics: %w", err)
+		}
+		chromedp.ListenTarget(tabCtx, func(event any) {
+			switch typed := event.(type) {
+			case *cdruntime.EventExceptionThrown:
+				fmt.Fprintf(
+					os.Stderr,
+					"browser exception: %v\n",
+					typed.ExceptionDetails,
+				)
+			case *cdruntime.EventConsoleAPICalled:
+				for _, argument := range typed.Args {
+					fmt.Fprintf(
+						os.Stderr,
+						"browser console: %s %s\n",
+						argument.Description,
+						string(argument.Value),
+					)
+				}
+			case *cdnetwork.EventRequestWillBeSent:
+				fmt.Fprintf(os.Stderr, "browser request: %s\n", typed.Request.URL)
+			case *cdnetwork.EventResponseReceived:
+				fmt.Fprintf(
+					os.Stderr,
+					"browser response: %d %s\n",
+					typed.Response.Status,
+					typed.Response.URL,
+				)
+			case *cdnetwork.EventLoadingFailed:
+				fmt.Fprintf(os.Stderr, "browser request failed: %s\n", typed.ErrorText)
+			}
+		})
+	}
 
-	exec := func(url string, svgPath string, timeout time.Duration) error {
-		// Use a tab context so the page stays open through layout and save.
-		tabCtx, tabCancel := chromedp.NewContext(ctx)
-		defer tabCancel()
-
+	exec := func(url string, timeout time.Duration) error {
+		if timeout <= 0 {
+			return fmt.Errorf("browser navigation deadline exceeded")
+		}
 		navCtx, navCancel := context.WithTimeout(tabCtx, timeout)
 		defer navCancel()
-		var result browserAutomationResult
-		if err := chromedp.Run(navCtx,
-			chromedp.Navigate(url),
-			chromedp.Poll(
-				browserAutomationReadyScript,
-				nil,
-				chromedp.WithPollingInterval(100*time.Millisecond),
-				chromedp.WithPollingTimeout(0),
-			),
-			chromedp.Evaluate(browserAutomationResultScript, &result),
-		); err != nil {
-			return fmt.Errorf("wait for browser automation status: %w", err)
-		}
-		if result.Status == "error" {
-			if result.Error == "" {
-				result.Error = "unknown browser error"
-			}
-			return fmt.Errorf("browser automation failed: %s", result.Error)
-		}
-		st, err := os.Stat(svgPath)
-		if err != nil {
-			return fmt.Errorf("browser reported completion but output %s is unavailable: %w", svgPath, err)
-		}
-		if st.Size() == 0 {
-			return fmt.Errorf("browser reported completion but output %s is empty", svgPath)
+		if err := chromedp.Run(navCtx, chromedp.Navigate(url)); err != nil {
+			return fmt.Errorf("navigate browser: %w", err)
 		}
 		return nil
 	}

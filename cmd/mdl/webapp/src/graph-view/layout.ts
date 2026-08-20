@@ -1,5 +1,23 @@
-import {GraphData, Node, Group, LayoutDirection} from "./graph";
+// This file connects the editable graph to the layout pipeline. It measures
+// the current SVG once, asks ELK for one complete answer, validates that answer,
+// and returns positions without changing them.
 
+import {resolveAutomatic} from "./automatic-layout";
+import {
+	MeasuredDiagram,
+	MeasuredEdge,
+	MeasuredGroup,
+	MeasuredNode,
+	Rect,
+	ResolvedLayout,
+	ValidatedLayout,
+	validateResolvedLayout,
+} from "./geometry";
+import {Edge, GraphData, Group, LayoutDirection, Node} from "./graph";
+import {calculateEdgeVertices} from "./edge-utils";
+import {resolveManual} from "./manual-layout";
+
+/** LayoutOptions are the explicit choices available to editor and CLI callers. */
 export interface LayoutOptions {
 	direction?: LayoutDirection;
 	nodeSpacing?: number;
@@ -7,485 +25,272 @@ export interface LayoutOptions {
 	compactLayout?: boolean;
 }
 
-// Simplified spacing configuration
-interface SpacingConfig {
-	nodeSpacing: number;
-	layerSpacing: number;
-	componentSpacing: number;
-	padding: number;
-	groupMultiplier: number;
+/** GraphLayout carries checked positions back to the editable graph. */
+export interface GraphLayout {
+	validated: ValidatedLayout;
+	nodes: Array<{id: string; x: number; y: number}>;
+	groups: Array<{id: string; bounds: Rect; titleBounds: Rect}>;
+	edges: Array<{
+		id: string;
+		sections: Array<Array<{x: number; y: number}>>;
+		labelBounds?: Rect;
+	}>;
 }
 
-// Spacing configuration - balanced for readability
-const DEFAULT_SPACING: SpacingConfig = {
-	nodeSpacing: 80,      // Comfortable vertical spacing between nodes in same layer
-	layerSpacing: 60,     // Layer spacing (between nodes in flow direction)
-	componentSpacing: 80, // Separation between disconnected components
-	padding: 40,          // Padding around the entire layout (for group labels)
-	groupMultiplier: 0.65, // Moderate compaction within groups
-};
-
-// Helper function to get effective spacing for a context
-function getEffectiveSpacing(
-	userOptions: LayoutOptions = {},
-	isGroup: boolean = false
-): SpacingConfig {
-	// Apply user overrides to base config
-	const effectiveConfig: SpacingConfig = {
-		nodeSpacing: userOptions.nodeSpacing ?? DEFAULT_SPACING.nodeSpacing,
-		layerSpacing: userOptions.layerSpacing ?? DEFAULT_SPACING.layerSpacing,
-		componentSpacing: DEFAULT_SPACING.componentSpacing,
-		padding: DEFAULT_SPACING.padding,
-		groupMultiplier: DEFAULT_SPACING.groupMultiplier,
-	};
-	
-	// Apply group multiplier if in group context
-	if (isGroup) {
-		effectiveConfig.nodeSpacing = Math.max(
-			effectiveConfig.nodeSpacing * effectiveConfig.groupMultiplier,
-			30  // Minimum 30px spacing within groups
-		);
-		effectiveConfig.layerSpacing = Math.max(
-			effectiveConfig.layerSpacing * effectiveConfig.groupMultiplier,
-			35  // Minimum 35px layer spacing within groups
-		);
-		effectiveConfig.componentSpacing = Math.max(
-			effectiveConfig.componentSpacing * effectiveConfig.groupMultiplier,
-			25  // Minimum 25px component spacing within groups
-		);
-		effectiveConfig.padding = Math.max(
-			effectiveConfig.padding * effectiveConfig.groupMultiplier,
-			15  // Minimum 15px padding within groups
-		);
-	}
-	
-	return effectiveConfig;
-}
-
-// Simplified ELK layout options builder
-function getELKOptions(
-	spacing: SpacingConfig,
-	userOptions: LayoutOptions
-): Record<string, string> {
-	const {
-		direction = 'DOWN',
-		compactLayout = false
-	} = userOptions;
-	
-	const baseOptions: Record<string, string> = {
-		'elk.algorithm': 'layered', // Back to layered for better orthogonal routing
-		'elk.direction': direction,
-		'elk.spacing.nodeNode': spacing.nodeSpacing.toString(),
-		'elk.spacing.componentComponent': spacing.componentSpacing.toString(),
-		'elk.padding': `[top=${spacing.padding},left=${spacing.padding},bottom=${spacing.padding},right=${spacing.padding}]`,
-		
-		// Layer spacing for compact layout
-		'elk.layered.spacing.nodeNodeBetweenLayers': spacing.layerSpacing.toString(),
-		'elk.layered.spacing.edgeNodeBetweenLayers': '10', // Minimal spacing around nodes
-		'elk.layered.spacing.edgeEdgeBetweenLayers': '10',  // Minimal space between edges
-		
-		// ORTHOGONAL edge routing for cleaner layout
-		'elk.edgeRouting': 'POLYLINE',
-		'elk.layered.unnecessaryBendpoints': 'false',
-		
-		// Minimal edge routing - straight lines where possible
-		'elk.layered.edgeRouting.orthogonal.mode': 'DIRECTION_BASED',
-		'elk.layered.edgeRouting.orthogonal.spacing': '5', // Minimal edge spacing
-		'elk.layered.edgeRouting.orthogonal.nodeOverlapRatio': '0.1',
-		
-		// Compaction options
-		'elk.layered.compaction.connectedComponents': 'true',
-		'elk.layered.compaction.postCompaction.strategy': 'LEFT_RIGHT',
-		
-		// Separate components to reduce complexity
-		'elk.separateConnectedComponents': 'true',
-		
-		// Node placement strategy for consistent vertical spacing
-		'elk.layered.nodePlacement.strategy': 'NETWORK_SIMPLEX',
-		'elk.layered.nodePlacement.favorStraightEdges': 'true',
-		
-		// Crossing minimization - respect model order for consistent layout
-		'elk.layered.crossingMinimization.strategy': 'LAYER_SWEEP',
-		'elk.layered.crossingMinimization.semiInteractive': 'true',
-		
-		// Flatten hierarchy for better edge routing
-		'elk.hierarchyHandling': 'SEPARATE_CHILDREN',
-		'elk.layered.considerModelOrder.strategy': 'NONE', // Ignore model ordering constraints
-		
-		// Edge label handling - minimal space, labels positioned above edges
-		'elk.edgeLabels.placement': 'CENTER',
-		'elk.edgeLabels.inline': 'true',
-		'elk.spacing.edgeLabel': '5', // Minimal spacing for labels
-		'elk.edgeLabels.avoidOverlap': 'false', // Disable collision avoidance
-		'elk.edgeLabels.considerModelOrder': 'false',
-		'elk.layered.edgeLabels.sideSelection': 'ALWAYS_UP', // Labels above edges
-	};
-	
-	// Additional compact layout options if requested
-	if (compactLayout) {
-		baseOptions['elk.spacing.nodeNode'] = Math.max(spacing.nodeSpacing * 0.7, 30).toString();
-		baseOptions['elk.layered.spacing.nodeNodeBetweenLayers'] = Math.max(spacing.layerSpacing * 0.7, 30).toString();
-	}
-	
-	return baseOptions;
-}
-
-export async function autoLayout(graph: GraphData, options: LayoutOptions = {}): Promise<{
-	nodes: Array<{id: string, x: number, y: number}>,
-	edges: Array<{id: string, vertices: Array<{x: number, y: number}>, label?: {x: number, y: number}}>
-}> {
-	// Dynamically import ELK only when auto-layout is used
-	const ELK = await import('elkjs/lib/elk.bundled.js').then(module => module.default);
-	const elk = new ELK();
-	// Get systematic spacing configuration
-	const rootSpacing = getEffectiveSpacing(options, false);
-	
-	// Build ELK graph structure
-	const elkGraph = {
-		id: "root",
-		layoutOptions: getELKOptions(rootSpacing, options),
-		children: [] as any[],
-		edges: [] as any[]
-	};
-
-	// Build actual ELK nodes first. Groups below take ownership of their direct
-	// members so ELK reserves non-overlapping space for every boundary.
-	const nodeMap = new Map<string, Node>();
-	const elkNodes = new Map<string, any>();
-	graph.nodesMap.forEach(node => {
-		if (!node.id) return; // Skip nodes without IDs
-		
-		nodeMap.set(node.id, node);
-		
-		// Ensure minimum dimensions and validate node size data
-		// Use larger height to account for shapes like Robot that extend above the center
-		const nodeWidth = Math.max(node.width || 200, 150); // Min width 150px
-		const nodeHeight = Math.max(node.height || 100, 250); // Min height 250px to account for robot shape
-		
-		// Add padding to node dimensions for ELK to account for arrow size
-		// This makes ELK route edges to a slightly larger boundary so arrow tips stay outside
-		const arrowPadding = 25; // Padding for arrow clearance
-		
-		elkNodes.set(node.id, {
-			id: node.id,
-			// Provide current position as hint to ELK
-			x: node.x,
-			y: node.y,
-			width: nodeWidth + (arrowPadding * 2),
-			height: nodeHeight + (arrowPadding * 2),
-			layoutOptions: {
-				// Allow ELK to move nodes but consider current positions
-				'elk.position': '',
-				// Force ELK to use our exact dimensions
-				'elk.nodeSize.constraints': '[FIXED_SIZE]'
-			}
-		});
+/**
+ * autoLayout measures, lays out, and validates a graph. It does not catch
+ * errors because callers must not save a diagram after any failed step.
+ */
+export async function autoLayout(
+	graph: GraphData,
+	options: LayoutOptions = {},
+): Promise<GraphLayout> {
+	await document.fonts.ready;
+	const measured = measureGraph(graph);
+	const spacing = options.compactLayout ? 56 : 80;
+	const resolved = await resolveAutomatic(measured, {
+		direction: options.direction ?? graph.layoutDirection ?? "DOWN",
+		nodeSpacing: options.nodeSpacing ?? spacing,
+		layerSpacing: options.layerSpacing ?? spacing,
 	});
-
-	const nodeParentGroup = new Map<string, string>();
-	const groupParent = new Map<string, string>();
-	const childGroupIDs = new Set<string>();
-
-	graph.groupsMap.forEach(group => {
-		group.nodes.forEach(member => {
-			if (isGroup(member)) {
-				if (!groupParent.has(member.id)) {
-					groupParent.set(member.id, group.id);
-				}
-				childGroupIDs.add(member.id);
-				return;
+	const validated = validateResolvedLayout(measured, resolved);
+	const measuredNodes = new Map(measured.nodes.map(node => [node.id, node]));
+	return {
+		validated,
+		nodes: validated.nodes.map(node => {
+			const measuredNode = measuredNodes.get(node.id);
+			if (!measuredNode) {
+				throw new Error(`validated layout contains unknown node ${node.id}`);
 			}
-			if (!nodeParentGroup.has(member.id)) {
-				nodeParentGroup.set(member.id, group.id);
-			}
-		});
-	});
-
-	const elkGroups = new Map<string, any>();
-	const buildELKGroup = (group: Group): any => {
-		const existing = elkGroups.get(group.id);
-		if (existing) return existing;
-
-		const children = group.nodes.flatMap(member => {
-			if (isGroup(member)) {
-				return groupParent.get(member.id) === group.id ? [buildELKGroup(member)] : [];
-			}
-			const node = elkNodes.get(member.id);
-			return node && nodeParentGroup.get(member.id) === group.id ? [node] : [];
-		});
-		const elkGroup = {
+			return {
+				id: node.id,
+				x: node.bounds.x + measuredNode.centerOffset.x,
+				y: node.bounds.y + measuredNode.centerOffset.y,
+			};
+		}),
+		groups: validated.groups.map(group => ({
 			id: group.id,
-			children,
-			edges: [] as any[],
-			layoutOptions: getELKOptions(getEffectiveSpacing(options, true), options),
-		};
-		elkGroups.set(group.id, elkGroup);
-		return elkGroup;
-	};
-
-	graph.groupsMap.forEach(group => {
-		if (!childGroupIDs.has(group.id)) {
-			const elkGroup = buildELKGroup(group);
-			if (elkGroup.children.length > 0) {
-				elkGraph.children.push(elkGroup);
-			}
-		}
-	});
-	elkNodes.forEach((node, id) => {
-		if (!nodeParentGroup.has(id)) {
-			elkGraph.children.push(node);
-		}
-	});
-
-	const groupAncestors = (groupID?: string) => {
-		const ancestors: string[] = [];
-		let current = groupID;
-		while (current) {
-			ancestors.push(current);
-			current = groupParent.get(current);
-		}
-		return ancestors;
-	};
-	const lowestCommonGroup = (sourceID: string, destinationID: string) => {
-		const sourceAncestors = groupAncestors(nodeParentGroup.get(sourceID));
-		const destinationAncestors = new Set(groupAncestors(nodeParentGroup.get(destinationID)));
-		return sourceAncestors.find(groupID => destinationAncestors.has(groupID));
-	};
-
-	graph.edges.forEach(edge => {
-		// Skip edges without proper IDs
-		if (!edge.id || !edge.from?.id || !edge.to?.id) return;
-		
-		// Verify source and target nodes exist in our node map
-		if (!nodeMap.has(edge.from.id) || !nodeMap.has(edge.to.id)) {
-			console.warn(`Skipping edge ${edge.id}: source ${edge.from.id} or target ${edge.to.id} not found in nodes`);
-			return;
-		}
-		
-		// Calculate more accurate label dimensions for ELK
-		const labelWidth = edge.label && edge.label.trim() ? 
-			Math.min(edge.label.length * 7, 200) : 0; // More realistic width estimate
-		
-		
-		const elkEdge = {
+			bounds: group.bounds,
+			titleBounds: group.titleBounds,
+		})),
+		edges: validated.edges.map(edge => ({
 			id: edge.id,
-			sources: [edge.from.id],
-			targets: [edge.to.id],
-			// Include label information with much smaller dimensions
-			labels: edge.label && edge.label.trim() ? [{
-				id: `${edge.id}-label`,
-				text: edge.label,
-				// Much more conservative label size estimates
-				width: labelWidth,
-				height: 20, // More realistic label height
-				layoutOptions: {
-					'elk.edgeLabels.placement': 'CENTER',
-					'elk.edgeLabels.inline': 'true'
-					// Remove the FIXED_SIZE constraint that might be forcing detours
-				}
-			}] : []
-		};
-
-		const groupID = lowestCommonGroup(edge.from.id, edge.to.id);
-		const edgeContainer = groupID ? elkGroups.get(groupID) : elkGraph;
-		edgeContainer.edges.push(elkEdge);
-	});
-
-	// Enhanced validation - ensure ELK gets complete data
-	if (!elkGraph.id || !elkGraph.children) {
-		throw new Error('Invalid ELK graph structure');
-	}
-	
-
-	try {
-		const layoutedGraph = await elk.layout(elkGraph);
-		
-		// Extract results
-		const nodes: Array<{id: string, x: number, y: number}> = [];
-		const edges: Array<{id: string, vertices: Array<{x: number, y: number}>, label?: {x: number, y: number}}> = [];
-
-
-		// Extract nodes from layout result
-		const extractNodes = (container: any, offsetX = 0, offsetY = 0) => {
-			container.children?.forEach((child: any) => {
-				if (child.children) {
-					// This is a group, recurse
-					extractNodes(child, offsetX + (child.x || 0), offsetY + (child.y || 0));
-				} else {
-					// This is a node
-					// Adjust for the padding we added - ELK positioned based on padded size
-					// So we need to shift by the padding amount to get the real center
-					nodes.push({
-						id: child.id,
-						x: offsetX + (child.x || 0) + (child.width || 0) / 2,
-						y: offsetY + (child.y || 0) + (child.height || 0) / 2
-					});
-				}
-			});
-		};
-
-		// Process edges from ELK layout result to get routing information
-		const processEdgesFromELK = (container: any, offsetX = 0, offsetY = 0) => {
-			container.edges?.forEach((elkEdge: any) => {
-				const vertices: Array<{x: number, y: number}> = [];
-				let label: {x: number, y: number} | undefined;
-
-				// Process edge sections to get bend points
-				if (elkEdge.sections && elkEdge.sections.length > 0) {
-					elkEdge.sections.forEach((section: any) => {
-						// Add start point if it exists
-						if (section.startPoint) {
-							vertices.push({
-								x: offsetX + section.startPoint.x, 
-								y: offsetY + section.startPoint.y
-							});
-						}
-						
-						// Add bend points (this is where ELK puts the routing vertices!)
-						if (section.bendPoints && section.bendPoints.length > 0) {
-							section.bendPoints.forEach((bp: any) => {
-								vertices.push({
-									x: offsetX + bp.x, 
-									y: offsetY + bp.y
-								});
-							});
-						}
-						
-						// Add end point if it exists
-						if (section.endPoint) {
-							vertices.push({
-								x: offsetX + section.endPoint.x, 
-								y: offsetY + section.endPoint.y
-							});
-						}
-					});
-				}
-
-				// Extract ELK's calculated label positions (respect collision avoidance!)
-				const originalEdge = graph.edges.find(e => e.id === elkEdge.id);
-				if (originalEdge?.label && originalEdge.label.trim()) {
-					if (elkEdge.labels && elkEdge.labels.length > 0) {
-						const elkLabel = elkEdge.labels[0]; // Get first label
-						if (elkLabel.x !== undefined && elkLabel.y !== undefined) {
-							label = {
-								x: offsetX + elkLabel.x + (elkLabel.width || 0) / 2, // Center of label
-								y: offsetY + elkLabel.y + (elkLabel.height || 0) / 2
-							};
-						}
-					} else if (vertices.length >= 2) {
-						// Fallback: use middle of edge if ELK didn't provide label position
-						const midIndex = Math.floor(vertices.length / 2);
-						if (vertices.length % 2 === 0) {
-							const v1 = vertices[midIndex - 1];
-							const v2 = vertices[midIndex];
-							label = { x: (v1.x + v2.x) / 2, y: (v1.y + v2.y) / 2 };
-						} else {
-							label = vertices[midIndex];
-						}
-					}
-				}
-
-
-				edges.push({
-					id: elkEdge.id,
-					vertices,
-					label
-				});
-			});
-			
-			// Also process edges in child containers (groups)
-			container.children?.forEach((child: any) => {
-				if (child.edges && child.edges.length > 0) {
-					processEdgesFromELK(child, offsetX + (child.x || 0), offsetY + (child.y || 0));
-				}
-			});
-		};
-
-
-		extractNodes(layoutedGraph);
-		processEdgesFromELK(layoutedGraph);
-
-		// Normalize coordinates to start near (0,0) to prevent huge canvas sizes
-		// while preserving relative positioning between elements
-		if (nodes.length > 0) {
-			// Find the minimum coordinates across all elements
-			const minX = Math.min(...nodes.map(n => n.x));
-			const minY = Math.min(...nodes.map(n => n.y));
-			
-			// Add some padding so content doesn't start at exact (0,0)
-			const padding = 50;
-			const offsetX = -minX + padding;
-			const offsetY = -minY + padding;
-			
-			// Normalize all node positions
-			nodes.forEach(node => {
-				node.x += offsetX;
-				node.y += offsetY;
-			});
-			
-			// Normalize all edge positions
-			edges.forEach(edge => {
-				edge.vertices.forEach(vertex => {
-					vertex.x += offsetX;
-					vertex.y += offsetY;
-				});
-				if (edge.label) {
-					edge.label.x += offsetX;
-					edge.label.y += offsetY;
-				}
-			});
-		}
-
-		return { nodes, edges };
-
-	} catch (error) {
-		console.warn('ELK layout failed, using fallback layout. Error:', error);
-		return createFallbackLayout(graph);
-	}
+			sections: edge.sections,
+			labelBounds: edge.labelBounds,
+		})),
+	};
 }
 
-// Simplified fallback layout
-function createFallbackLayout(graph: GraphData): {
-	nodes: Array<{id: string, x: number, y: number}>,
-	edges: Array<{id: string, vertices: Array<{x: number, y: number}>}>
-} {
-	const nodes: Array<{id: string, x: number, y: number}> = [];
-	const edges: Array<{id: string, vertices: Array<{x: number, y: number}>}> = [];
-
-	// Simple grid layout for nodes
-	let x = 0, y = 0;
-	const spacing = 300;
-	const maxCols = Math.ceil(Math.sqrt(graph.nodesMap.size));
-
-	let col = 0;
-	graph.nodesMap.forEach(node => {
-		nodes.push({
+/**
+ * validateCurrentLayout adapts the fully drawn editor state into the manual
+ * layout contract. It never reads automatic positions to fill missing data.
+ */
+export function validateCurrentLayout(graph: GraphData): ValidatedLayout {
+	const measured = measureGraph(graph);
+	const measuredNodes = new Map(measured.nodes.map(node => [node.id, node]));
+	const nodes = graph.nodes().map(node => {
+		const measuredNode = measuredNodes.get(node.id);
+		if (!measuredNode) {
+			throw new Error(`measured diagram omitted node ${node.id}`);
+		}
+		return {
 			id: node.id,
-			x: x,
-			y: y
-		});
-
-		col++;
-		if (col >= maxCols) {
-			col = 0;
-			x = 0;
-			y += spacing;
-		} else {
-			x += spacing;
+			parentId: measuredNode.parentId,
+			bounds: {
+				x: node.x - measuredNode.centerOffset.x,
+				y: node.y - measuredNode.centerOffset.y,
+				...measuredNode.size,
+			},
+		};
+	});
+	const groups = Array.from(graph.groupsMap.values()).map(group => {
+		if (!group.ref?.isConnected) {
+			throw new Error(`group ${group.id} must be drawn before saving`);
 		}
+		const boundary = group.ref.querySelector("rect");
+		const title = group.ref.querySelector("text");
+		if (!(boundary instanceof SVGGraphicsElement) || !(title instanceof SVGGraphicsElement)) {
+			throw new Error(`group ${group.id} is missing its boundary or title`);
+		}
+		return {
+			id: group.id,
+			parentId: measured.groups.find(candidate => candidate.id === group.id)?.parentId,
+			bounds: copyBox(boundary.getBBox()),
+			titleBounds: copyBox(title.getBBox()),
+		};
 	});
-
-	// Simple straight line edges
-	graph.edges.forEach(edge => {
-		edges.push({
+	const edges = graph.edges.map(edge => {
+		const sections = edge.layoutSections ?? [calculateEdgeVertices(edge)];
+		const labelBounds = edge.layoutLabelBounds ?? edge.labelBounds;
+		if (edge.label.trim().length > 0 && !labelBounds) {
+			throw new Error(`edge ${edge.id} is missing its label position`);
+		}
+		return {
 			id: edge.id,
-			vertices: []
-		});
+			sourceId: edge.from.id,
+			targetId: edge.to.id,
+			sections,
+			labelBounds: labelBounds ? {...labelBounds} : undefined,
+		};
 	});
-
-	return { nodes, edges };
+	const snapshot: ResolvedLayout = {
+		diagramId: graph.id,
+		bounds: contentBounds(nodes.map(node => node.bounds), groups, edges),
+		nodes,
+		groups,
+		edges,
+	};
+	return resolveManual(measured, snapshot);
 }
 
+/**
+ * measureGraph reads the exact node and label boxes already drawn by the
+ * browser. Parent IDs come only from the model's declared groups.
+ */
+function measureGraph(graph: GraphData): MeasuredDiagram {
+	const {nodeParents, groupParents} = declaredParents(graph);
+	return {
+		id: graph.id,
+		nodes: graph.nodes().map(node => measureNode(node, nodeParents.get(node.id))),
+		groups: Array.from(graph.groupsMap.values()).map(group =>
+			measureGroup(group, groupParents.get(group.id)),
+		),
+		edges: graph.edges.map(measureEdge),
+	};
+}
+
+/** measureNode returns the complete box drawn for one node and its center. */
+function measureNode(node: Node, parentId: string | undefined): MeasuredNode {
+	if (!node.ref?.isConnected) {
+		throw new Error(`node ${node.id} must be drawn before layout`);
+	}
+	const bounds = node.ref.getBBox();
+	checkMeasuredBox(node.id, bounds);
+	return {
+		id: node.id,
+		parentId,
+		size: {width: bounds.width, height: bounds.height},
+		contentSize: {width: bounds.width, height: bounds.height},
+		centerOffset: {x: -bounds.x, y: -bounds.y},
+		shape: node.style.shape ?? "Box",
+	};
+}
+
+/** measureGroup reads the title box already drawn by the browser. */
+function measureGroup(group: Group, parentId: string | undefined): MeasuredGroup {
+	if (!group.ref?.isConnected) {
+		throw new Error(`group ${group.id} must be drawn before layout`);
+	}
+	const title = group.ref.querySelector("text");
+	if (!(title instanceof SVGGraphicsElement)) {
+		throw new Error(`group ${group.id} is missing its drawn title`);
+	}
+	const bounds = title.getBBox();
+	checkMeasuredBox(group.id, bounds);
+	return {
+		id: group.id,
+		parentId,
+		titleSize: {width: bounds.width, height: bounds.height},
+	};
+}
+
+/** measureEdge uses the label background that the current SVG already drew. */
+function measureEdge(edge: Edge): MeasuredEdge {
+	const hasLabel = edge.label.trim().length > 0;
+	if (hasLabel && !edge.labelBounds) {
+		throw new Error(`edge ${edge.id} must be drawn before layout`);
+	}
+	return {
+		id: edge.id,
+		sourceId: edge.from.id,
+		targetId: edge.to.id,
+		labelSize: hasLabel ? {
+			width: edge.labelBounds?.width ?? 0,
+			height: edge.labelBounds?.height ?? 0,
+		} : undefined,
+	};
+}
+
+/**
+ * declaredParents records model ownership and rejects elements that appear in
+ * more than one group. Visual position never decides ownership.
+ */
+function declaredParents(graph: GraphData): {
+	nodeParents: Map<string, string>;
+	groupParents: Map<string, string>;
+} {
+	const nodeParents = new Map<string, string>();
+	const groupParents = new Map<string, string>();
+	for (const group of graph.groupsMap.values()) {
+		for (const member of group.nodes) {
+			const parents = isGroup(member) ? groupParents : nodeParents;
+			const existing = parents.get(member.id);
+			if (existing && existing !== group.id) {
+				throw new Error(
+					`${isGroup(member) ? "group" : "node"} ${member.id} belongs to both ` +
+					`${existing} and ${group.id}`,
+				);
+			}
+			parents.set(member.id, group.id);
+		}
+	}
+	return {nodeParents, groupParents};
+}
+
+/** checkMeasuredBox rejects missing or invalid browser measurements. */
+function checkMeasuredBox(id: string, box: Rect): void {
+	if (
+		!Number.isFinite(box.x) ||
+		!Number.isFinite(box.y) ||
+		!Number.isFinite(box.width) ||
+		!Number.isFinite(box.height) ||
+		box.width <= 0 ||
+		box.height <= 0
+	) {
+		throw new Error(`browser returned invalid measured box for ${id}`);
+	}
+}
+
+/** contentBounds returns the smallest box that contains all drawn geometry. */
+function contentBounds(
+	nodes: Rect[],
+	groups: Array<{bounds: Rect; titleBounds: Rect}>,
+	edges: Array<{sections: Array<Array<{x: number; y: number}>>; labelBounds?: Rect}>,
+): Rect {
+	const boxes = [
+		...nodes,
+		...groups.flatMap(group => [group.bounds, group.titleBounds]),
+		...edges.flatMap(edge => edge.labelBounds ? [edge.labelBounds] : []),
+	];
+	const points = edges.flatMap(edge => edge.sections.flat());
+	if (boxes.length === 0 && points.length === 0) {
+		return {x: 0, y: 0, width: 0, height: 0};
+	}
+	const left = Math.min(
+		...boxes.map(box => box.x),
+		...points.map(point => point.x),
+	);
+	const top = Math.min(
+		...boxes.map(box => box.y),
+		...points.map(point => point.y),
+	);
+	const right = Math.max(
+		...boxes.map(box => box.x + box.width),
+		...points.map(point => point.x),
+	);
+	const bottom = Math.max(
+		...boxes.map(box => box.y + box.height),
+		...points.map(point => point.y),
+	);
+	return {x: left, y: top, width: right - left, height: bottom - top};
+}
+
+/** copyBox copies the browser's read-only SVG box into the layout contract. */
+function copyBox(box: DOMRect): Rect {
+	return {x: box.x, y: box.y, width: box.width, height: box.height};
+}
+
+/** isGroup tells group boundaries from nodes without using display names. */
 function isGroup(member: Node | Group): member is Group {
 	return "nodes" in member;
 }

@@ -57,7 +57,30 @@ func TestServerHandlers(t *testing.T) {
 		t.Fatalf("save status: %d", w.Code)
 	}
 	// file created
-	if _, err := os.Stat(filepath.Join(dir, "view1.svg")); err != nil {
-		t.Fatalf("expected svg written: %v", err)
+	saved := filepath.Join(dir, "view1.svg")
+	content, err := os.ReadFile(saved)
+	if err != nil {
+		t.Fatalf("read saved SVG: %v", err)
+	}
+	if string(content) != "<svg><!--test--></svg>" {
+		t.Fatalf("unexpected SVG content %q", content)
+	}
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		t.Fatalf("read output directory: %v", err)
+	}
+	if len(entries) != 1 || entries[0].Name() != "view1.svg" {
+		t.Fatalf("expected only atomic target file, got %v", entries)
+	}
+
+	w = httptest.NewRecorder()
+	r = httptest.NewRequest(
+		http.MethodPost,
+		"/data/save?id=..%2Foutside",
+		bytes.NewBufferString("<svg/>"),
+	)
+	mux.ServeHTTP(w, r)
+	if w.Code != http.StatusInternalServerError {
+		t.Fatalf("unsafe save status: %d", w.Code)
 	}
 }

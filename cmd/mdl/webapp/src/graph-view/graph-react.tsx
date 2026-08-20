@@ -4,11 +4,10 @@ import {buildGraph, GraphData, Node, addCursorInteraction, restoreViewState, sav
 interface Props {
 	data: GraphData;
 	onSelect: (nodeName: string | null) => void;
-	onReady: () => void;
 	dragMode: 'pan' | 'select';
 }
 
-export const Graph: FC<Props> = ({data, onSelect, onReady, dragMode}) => {
+export const Graph: FC<Props> = ({data, onSelect, dragMode}) => {
 	const [graphState, setGraphState] = useState<any>(null);
 	const ref = useRef<HTMLDivElement>(null);
 
@@ -29,8 +28,6 @@ export const Graph: FC<Props> = ({data, onSelect, onReady, dragMode}) => {
 		if (!restoreViewState(data.id) && !data.shouldSkipAutoFit()) {
 			data.fitToView();
 		}
-		onReady();
-
 		// Save view state before page unload
 		const handleBeforeUnload = () => {
 			if (data?.id) {
@@ -52,7 +49,7 @@ export const Graph: FC<Props> = ({data, onSelect, onReady, dragMode}) => {
 				ref.current.innerHTML = '';
 			}
 		};
-	}, [data, onSelect, onReady]);
+	}, [data, onSelect]);
 
 	// Effect for updating drag mode on existing graph
 	useEffect(() => {

@@ -12,7 +12,7 @@ import {
 	Segment,
 	uncenterBox
 } from "./intersect";
-import {autoLayout, LayoutOptions} from "./layout";
+import {autoLayout, LayoutOptions, validateCurrentLayout} from "./layout";
 import {Undo} from "./undo";
 import {
 	ADD_LABEL_VERTEX,
@@ -38,13 +38,12 @@ import {
 	SVG_STYLES,
 	SVG_PADDING,
 	DEFAULT_GRID_SIZE,
-	applyStyle,
-	calculateDistance
+	applyStyle
 } from "./constants";
 import {
 	calculateEdgeVertices,
 	calculateLabelPlacement,
-	createEdgeSegments,
+	createEdgePath,
 	EdgeLabelPlacement
 } from "./edge-utils";
 import {
@@ -52,6 +51,7 @@ import {
 	layoutNodeContent,
 	NodeContentLayout
 } from "./node-content";
+import {ValidatedLayout} from "./geometry";
 
 
 // Point and BBox interfaces are now imported from constants
@@ -62,6 +62,8 @@ export interface Group extends BBox {
 	nodes: (Node | Group)[];
 	ref?: SVGGElement;
 	style: NodeStyle;
+	layoutBounds?: BBox;
+	layoutTitleBounds?: BBox;
 }
 
 export interface NodeLink {
@@ -97,7 +99,7 @@ const defaultNodeStyle = DEFAULT_NODE_STYLE;
 
 // Edge and EdgeVertex interfaces are now defined in edge-utils.ts
 // Using local interfaces for compatibility with existing code
-interface Edge {
+export interface Edge {
 	id: string;
 	label: string;
 	from: Node;
@@ -109,6 +111,8 @@ interface Edge {
 	userDeletedVertices?: boolean; // Track if user explicitly deleted vertices
 	labelVertex?: EdgeVertex; // ELK-calculated label position (separate from routing vertices)
 	labelBounds?: BBox;
+	layoutSections?: Point[][];
+	layoutLabelBounds?: BBox;
 }
 
 interface EdgeVertex extends Point {
@@ -120,8 +124,13 @@ interface EdgeVertex extends Point {
 	auto?: boolean
 }
 
+interface SavedEdgePoint extends Point {
+	label?: boolean;
+	auto?: boolean;
+}
+
 interface Layout {
-	[k: string]: Point | (Point & { label: boolean })[] | boolean
+	[k: string]: Point | SavedEdgePoint[] | boolean
 }
 
 export class GraphData {
@@ -133,6 +142,7 @@ export class GraphData {
 	groupsMap: Map<string, Group>;
 	metadata: any;
 	layoutDirection?: LayoutDirection;
+	validatedLayout?: ValidatedLayout;
 	colorToVarMap: Map<string, string> = new Map(); // For CSS custom properties theming
 	private _undo: Undo<Layout>;
 	private _gridVisible: boolean = false;
@@ -302,6 +312,19 @@ export class GraphData {
 		})
 	}
 
+	/** clearResolvedLayout returns drawing to manual mode after any user edit. */
+	private clearResolvedLayout() {
+		this.validatedLayout = undefined
+		this.edges.forEach(edge => {
+			edge.layoutSections = undefined
+			edge.layoutLabelBounds = undefined
+		})
+		this.groupsMap.forEach(group => {
+			group.layoutBounds = undefined
+			group.layoutTitleBounds = undefined
+		})
+	}
+
 	moveNode(n: Node, x: number, y: number, disableSnap: boolean = false, skipUndo: boolean = false) {
 		if (!n) return
 		
@@ -317,6 +340,7 @@ export class GraphData {
 		if (!skipUndo) {
 			this._undo.beforeChange()
 		}
+		this.clearResolvedLayout()
 		n.x = x;
 		n.y = y;
 		setPosition(n.ref, x, y)
@@ -340,6 +364,7 @@ export class GraphData {
 		if (!skipUndo) {
 			this._undo.beforeChange()
 		}
+		this.clearResolvedLayout()
 		v.x = x;
 		v.y = y;
 		this.redrawEdge(v.edge)
@@ -355,6 +380,7 @@ export class GraphData {
 
 	insertEdgeVertex(edge: Edge, p: Point, pos: number, isLabel: boolean) {
 		this._undo.beforeChange()
+		this.clearResolvedLayout()
 		const v = edge.initVertex(p)
 		v.selected = true
 		if (isLabel) { // when shift down, make it label position
@@ -368,6 +394,7 @@ export class GraphData {
 
 	deleteEdgeVertex(v: EdgeVertex) {
 		this._undo.beforeChange()
+		this.clearResolvedLayout()
 		
 		const index = v.edge.vertices.indexOf(v)
 		if (index >= 0) {
@@ -464,7 +491,7 @@ export class GraphData {
 	redrawEdge(e: Edge) {
 		const p = e.ref.parentElement;
 		p.removeChild(e.ref)
-		e.ref = buildEdge(this, e)
+		e.ref = buildEdge(e)
 		p.append(e.ref)
 	}
 
@@ -479,6 +506,9 @@ export class GraphData {
 	}
 
 	exportSVG() {
+		if (!this.validatedLayout) {
+			this.validatedLayout = validateCurrentLayout(this)
+		}
 		// Get the original SVG
 		const originalSvg: SVGSVGElement = document.querySelector('svg#graph')
 		const elastic = originalSvg.querySelector('rect.elastic')
@@ -682,78 +712,49 @@ export class GraphData {
 		this._undo.setSaved()
 	}
 
-	importLayout(layout: { [key: string]: any }, rerender = false) {
-		// First pass: collect all coordinate values to find bounds
-		const coordinates: Array<{x: number, y: number}> = [];
-		
-		Object.entries(layout).forEach(([k, v]) => {
-			if (!k.startsWith('e-') && v.x !== undefined && v.y !== undefined) {
-				// Node coordinates
-				coordinates.push({x: v.x, y: v.y});
-			} else if (k.startsWith('e-') && Array.isArray(v)) {
-				// Edge vertex coordinates
-				v.forEach((vertex: any) => {
-					if (vertex.x !== undefined && vertex.y !== undefined) {
-						coordinates.push({x: vertex.x, y: vertex.y});
-					}
-				});
-			}
-		});
-		
-		// Calculate normalization offset if we have coordinates
-		let offsetX = 0;
-		let offsetY = 0;
-		
-		if (coordinates.length > 0) {
-			const minX = Math.min(...coordinates.map(c => c.x));
-			const minY = Math.min(...coordinates.map(c => c.y));
-			
-			// Only normalize if coordinates are problematic (negative or very large)
-			if (minX < -100 || minY < -100 || Math.max(...coordinates.map(c => c.x)) > 3000 || Math.max(...coordinates.map(c => c.y)) > 2000) {
-				const padding = 50;
-				offsetX = -minX + padding;
-				offsetY = -minY + padding;
-			}
-		}
-		
-		// Second pass: apply coordinates with normalization
-		Object.entries(layout).forEach(([k, v]) => {
-			// nodes
+	importLayout(layout: Layout, rerender = false) {
+		this.clearResolvedLayout()
+		for (const [k, v] of Object.entries(layout)) {
 			const n = this.nodesMap.get(k)
 			if (n) {
-				n.x = v.x + offsetX
-				n.y = v.y + offsetY
-			} else
-				// edge vertices
-			if (k.startsWith('e-') && !k.endsWith('-deleted')) {
-				const edge = this.edges.find(e => e.id == k.slice(2))
-				if (!edge) return;
-				edge.vertices && edge.vertices.forEach(v => this.edgeVertices.delete(v.id))
-				edge.vertices = v.map((p: Point) => {
-					const normalizedPoint = { 
-						x: p.x + offsetX, 
-						y: p.y + offsetY 
-					} as Point;
-					// Preserve any additional properties like 'label' and 'auto'
-					Object.assign(normalizedPoint, p, { x: p.x + offsetX, y: p.y + offsetY });
-					const vertex = edge.initVertex(normalizedPoint);
-					// Ensure auto flag is preserved after initVertex
-					if ((p as any).auto) {
-						vertex.auto = true;
-					}
-					return vertex;
-				})
-				return;
+				const point = requiredSavedPoint(k, v)
+				n.x = point.x
+				n.y = point.y
+				continue
 			}
 			if (k.endsWith('-deleted')) {
 				const edgeId = k.slice(2, -8); // Remove 'e-' prefix and '-deleted' suffix
-				const edge = this.edges.find(e => e.id == edgeId)
-				if (edge && v === true) {
-					edge.userDeletedVertices = true
+				const edge = this.edges.find(candidate => candidate.id === edgeId)
+				if (!edge || v !== true) {
+					throw new Error(`invalid deleted-edge layout entry ${k}`)
 				}
-				return;
+				edge.userDeletedVertices = true
+				continue
 			}
-		})
+			if (k.startsWith('e-')) {
+				const edge = this.edges.find(candidate => candidate.id === k.slice(2))
+				if (!edge || !Array.isArray(v)) {
+					throw new Error(`invalid edge layout entry ${k}`)
+				}
+				for (const vertex of edge.vertices ?? []) {
+					this.edgeVertices.delete(vertex.id)
+				}
+				edge.vertices = v.map((saved, index) => {
+					const point = requiredSavedPoint(`${k}[${index}]`, saved)
+					const vertex = edge.initVertex(point)
+					vertex.label = saved.label
+					vertex.auto = saved.auto
+					return vertex
+				})
+				continue
+			}
+			throw new Error(`layout contains unknown element ${k}`)
+		}
+		for (const node of this.nodes()) {
+			if (!(node.id in layout)) {
+				throw new Error(`layout is missing node ${node.id}`)
+			}
+		}
 		if (rerender) {
 			this.nodes().forEach(n => setPosition(n.ref, n.x, n.y))
 			this.edges.forEach(e => this.redrawEdge(e))
@@ -763,90 +764,55 @@ export class GraphData {
 	}
 
 	async autoLayout(options?: LayoutOptions) {
-		try {
-			const auto = await autoLayout(this, options)
-			
-			this._undo.beforeChange()
-			
-			// Apply node positions
-			auto.nodes.forEach(an => {
-				const n = this.nodesMap.get(an.id)
-				if (n) {
-					this.moveNode(n, an.x, an.y, false, true) // Skip undo for individual moves
-				}
-			})
-			
-			// Apply edge routing from ELK layout
-			auto.edges.forEach(ae => {
-				const edge = this.edges.find(e => e.id == ae.id)
-				if (edge) {
-					// Clear existing vertices for this edge only
-					if (edge.vertices) {
-						edge.vertices.forEach(v => {
-							if (v.id) {
-								this.edgeVertices.delete(v.id)
-							}
-						})
-					}
-					edge.vertices = []
-					edge.userDeletedVertices = false
-					
-					// Add routing vertices from ELK (these are proper bend points, not nodes)
-					if (ae.vertices && ae.vertices.length > 0) {
-						edge.vertices = ae.vertices.map(p => {
-							const vertex = edge.initVertex(p)
-							vertex.auto = true // Mark as auto-generated
-							return vertex
-						})
-					}
-					
-					// Handle edge label positioning - create proper interactive label vertices
-					if (ae.label) {
-						
-						// Remove any existing label vertices (ELK or user-created)
-						if (edge.vertices) {
-							edge.vertices.forEach(v => {
-								if (v.label) {
-									this.edgeVertices.delete(v.id)
-								}
-							})
-							edge.vertices = edge.vertices.filter(v => !v.label)
-						}
-						
-						// Create a proper label vertex that behaves like a user-created vertex
-						const labelVertex = edge.initVertex(ae.label)
-						labelVertex.label = true
-						labelVertex.auto = true // Mark as auto-generated so it can be cleaned up
-						
-						// Insert label vertex at the optimal position in the routing path
-						// Find the best position to insert it and project it onto that line segment
-						edge.vertices = edge.vertices || []
-						const insertPos = findOptimalLabelPosition(edge.vertices, ae.label, edge.from, edge.to)
-						
-						// Project the label position onto the line segment where it will be inserted
-						const projectedPos = projectLabelOntoSegment(edge.vertices, ae.label, insertPos, edge.from, edge.to)
-						labelVertex.x = projectedPos.x
-						labelVertex.y = projectedPos.y
-						
-						edge.vertices.splice(insertPos, 0, labelVertex)
-						this.edgeVertices.set(labelVertex.id, labelVertex)
-						
-					}
-					
-					// Redraw the edge with new routing
-					this.redrawEdge(edge)
-				}
-			})
-			
-			// Fit the layout to the viewport with optimal positioning
-			this.fitToView()
-			
-			this._undo.change()
-			
-		} catch (error) {
-			console.error('Auto layout failed:', error)
-			// Could show user notification here
+		const auto = await autoLayout(this, options)
+		this._undo.beforeChange()
+
+		for (const placedNode of auto.nodes) {
+			const node = this.nodesMap.get(placedNode.id)
+			if (!node) {
+				throw new Error(`layout contains unknown node ${placedNode.id}`)
+			}
+			node.x = placedNode.x
+			node.y = placedNode.y
+			setPosition(node.ref, node.x, node.y)
 		}
+
+		for (const placedGroup of auto.groups) {
+			const group = this.groupsMap.get(placedGroup.id)
+			if (!group) {
+				throw new Error(`layout contains unknown group ${placedGroup.id}`)
+			}
+			group.layoutBounds = placedGroup.bounds
+			group.layoutTitleBounds = placedGroup.titleBounds
+			group.x = placedGroup.bounds.x + placedGroup.bounds.width / 2
+			group.y = placedGroup.bounds.y + placedGroup.bounds.height / 2
+			group.width = placedGroup.bounds.width
+			group.height = placedGroup.bounds.height
+		}
+
+		for (const placedEdge of auto.edges) {
+			const edge = this.edges.find(candidate => candidate.id === placedEdge.id)
+			if (!edge) {
+				throw new Error(`layout contains unknown edge ${placedEdge.id}`)
+			}
+			for (const vertex of edge.vertices ?? []) {
+				this.edgeVertices.delete(vertex.id)
+			}
+			edge.layoutSections = placedEdge.sections
+			edge.layoutLabelBounds = placedEdge.labelBounds
+			edge.vertices = interiorRoutePoints(placedEdge.sections).map(point => {
+				const vertex = edge.initVertex(point)
+				vertex.auto = true
+				return vertex
+			})
+			edge.userDeletedVertices = false
+		}
+
+		this.validatedLayout = auto.validated
+		this.edges.forEach(edge => this.redrawEdge(edge))
+		this.redrawGroups(null)
+		this.fitToView()
+		this._undo.change()
 	}
 
 	alignSelectionV() {
@@ -1101,6 +1067,36 @@ export class GraphData {
 	}
 }
 
+/** interiorRoutePoints returns only the editable points between edge endpoints. */
+function interiorRoutePoints(sections: Point[][]): Point[] {
+	const route: Point[] = []
+	for (const section of sections) {
+		for (const point of section) {
+			const previous = route[route.length - 1]
+			if (!previous || previous.x !== point.x || previous.y !== point.y) {
+				route.push(point)
+			}
+		}
+	}
+	return route.slice(1, -1)
+}
+
+/** requiredSavedPoint checks coordinates when reading saved editor layout data. */
+function requiredSavedPoint(
+	id: string,
+	value: Point | SavedEdgePoint | SavedEdgePoint[] | boolean,
+): SavedEdgePoint {
+	if (
+		typeof value !== 'object' ||
+		Array.isArray(value) ||
+		!Number.isFinite(value.x) ||
+		!Number.isFinite(value.y)
+	) {
+		throw new Error(`layout entry ${id} must contain valid x and y coordinates`)
+	}
+	return value
+}
+
 function escapeCdata(code: string) {
 	return code.replace(/]]>/g, ']]]>]><![CDATA[')
 }
@@ -1180,7 +1176,7 @@ const _buildGraph = (data: GraphData) => {
 		edge.labelBounds = undefined
 	})
 	data.edges.forEach(e => {
-		buildEdge(data, e)
+		buildEdge(e)
 		edgesG.append(e.ref)
 	})
 
@@ -1192,8 +1188,8 @@ const _buildGraph = (data: GraphData) => {
 	svg.append(zoomG)
 }
 
-function buildEdge(data: GraphData, edge: Edge) {
-	const n1 = edge.from, n2 = edge.to;
+function buildEdge(edge: Edge) {
+	const n1 = edge.from;
 
 	const g = create.element('g', {}, 'edge') as SVGGElement
 	g.setAttribute('id', edge.id)
@@ -1202,16 +1198,15 @@ function buildEdge(data: GraphData, edge: Edge) {
 
 	const position = (edge.style.position || 50) / 100
 
-	// Calculate edge vertices using utility function
-	const vertices = calculateEdgeVertices(edge, data)
-
-	const labelPlacement = calculateLabelPlacement(vertices, position, n1)
-
-	const {bg, txt, bbox} = buildEdgeLabel(labelPlacement, edge, data)
+	const vertices = edge.layoutSections
+		? completeRoutePoints(edge.layoutSections)
+		: calculateEdgeVertices(edge)
+	const {bg, txt} = edge.layoutLabelBounds
+		? buildPlacedEdgeLabel(edge.layoutLabelBounds, edge)
+		: buildEdgeLabel(calculateLabelPlacement(vertices, position, n1), edge)
 	g.append(bg, txt)
 
-	// Create edge segments and path using utility function
-	const {segments, path} = createEdgeSegments(vertices, bbox, n1, n2)
+	const path = createEdgePath(vertices)
 
 	const p = create.path(path, {'marker-end': 'url(#arrow)'}, 'edge')
 	p.setAttribute('fill', 'none')
@@ -1224,88 +1219,80 @@ function buildEdge(data: GraphData, edge: Edge) {
 	// Debug visualization removed - arrow issue fixed
 
 	// drag handlers
-	edge.vertices = vertices.slice(1, -1).map(p => {
-		// Preserve existing EdgeVertex objects to maintain IDs and selection state
-		if ('id' in p && 'edge' in p) {
-			// This is already an EdgeVertex, preserve it
-			const v = p as EdgeVertex;
-			v.edge = edge; // Ensure edge reference is correct
-			return v;
-		} else {
-			// This is a new Point, convert to EdgeVertex
-			return edge.initVertex(p);
-		}
-	})
-	edge.vertices.forEach((p, i) => {
+	for (const p of edge.vertices ?? []) {
 		const v = p as EdgeVertex
 		v.ref = create.element('circle', {id: v.id, cx: p.x, cy: p.y, r: 7, fill: 'none'}, 'v-dot')
 		v.selected && v.ref.classList.add('selected')
 		v.auto && v.ref.classList.add('auto')
 		g.append(v.ref)
-	})
+	}
 
 	edge.ref = g
 	return g
 }
 
-function buildEdgeLabel(placement: EdgeLabelPlacement, edge: Edge, data: GraphData) {
+/** completeRoutePoints joins connected layout sections without duplicate points. */
+function completeRoutePoints(sections: Point[][]): Point[] {
+	const route: Point[] = []
+	for (const section of sections) {
+		for (const point of section) {
+			const previous = route[route.length - 1]
+			if (!previous || previous.x !== point.x || previous.y !== point.y) {
+				route.push(point)
+			}
+		}
+	}
+	return route
+}
+
+/** buildPlacedEdgeLabel draws one label in the box chosen by layout. */
+function buildPlacedEdgeLabel(bounds: BBox, edge: Edge) {
+	const centerX = bounds.x + bounds.width / 2
+	const centerY = bounds.y + bounds.height / 2
+	const {txt} = create.textArea(
+		edge.label,
+		200,
+		edge.style.fontSize,
+		false,
+		centerX,
+		bounds.y,
+		'middle',
+	)
+	applyStyle(txt, styles.edgeText)
+	txt.setAttribute('stroke', 'none')
+	txt.setAttribute('font-size', String(edge.style.fontSize))
+	txt.setAttribute('fill', edge.style.color)
+	txt.setAttribute('data-field', 'label')
+	const bg = create.rect(bounds.width, bounds.height, bounds.x, bounds.y)
+	applyStyle(bg, styles.edgeRect)
+	return {
+		bg,
+		txt,
+	}
+}
+
+/**
+ * buildEdgeLabel adapts an older saved label anchor into a complete label box.
+ * It uses one fixed side and lets validation reject any resulting collision.
+ */
+function buildEdgeLabel(placement: EdgeLabelPlacement, edge: Edge) {
 	const labelGap = 12;
-	const collisionPadding = 8;
 	const fontSize = edge.style.fontSize
 	let {txt, dy, maxW} = create.textArea(edge.label, 200, fontSize, false, placement.x, placement.y, 'middle')
 	dy -= fontSize / 2
 	maxW += fontSize
-
-	const anchors: Point[] = [{x: placement.x, y: placement.y}]
-	if (placement.movable && placement.segment) {
-		for (const fraction of [0.5, 0.35, 0.65, 0.2, 0.8]) {
-			const anchor = {
-				x: placement.segment.p.x +
-					(placement.segment.q.x - placement.segment.p.x) * fraction,
-				y: placement.segment.p.y +
-					(placement.segment.q.y - placement.segment.p.y) * fraction,
-			}
-			if (!anchors.some(existing =>
-				Math.abs(existing.x - anchor.x) < 0.1 &&
-				Math.abs(existing.y - anchor.y) < 0.1
-			)) {
-				anchors.push(anchor)
-			}
-		}
+	const centerX = placement.orientation === 'vertical'
+		? placement.x + maxW / 2 + labelGap
+		: placement.x
+	const centerY = placement.orientation === 'vertical'
+		? placement.y
+		: placement.y - dy / 2 - labelGap
+	const bounds = {
+		x: centerX - maxW / 2,
+		y: centerY - dy / 2,
+		width: maxW,
+		height: dy,
 	}
-
-	const occupied = [
-		...data.nodes().map(node => expandBox(uncenterBox(node), collisionPadding)),
-		...data.edges
-			.filter(other => other !== edge && other.labelBounds)
-			.map(other => expandBox(other.labelBounds, collisionPadding)),
-	]
-	const candidates = anchors.flatMap(anchor => {
-		if (placement.orientation === 'vertical') {
-			return [1, -1].map(side => edgeLabelCandidate(
-				anchor.x + side * (maxW / 2 + labelGap),
-				anchor.y,
-				maxW,
-				dy,
-				anchor,
-				placement,
-				occupied,
-			))
-		}
-		return [-1, 1].map(side => edgeLabelCandidate(
-			anchor.x,
-			anchor.y + side * (dy / 2 + labelGap),
-			maxW,
-			dy,
-			anchor,
-			placement,
-			occupied,
-		))
-	})
-	const selected = candidates.reduce((best, candidate) =>
-		candidate.score < best.score ? candidate : best
-	)
-	const {centerX, centerY, bounds} = selected
 	txt.querySelectorAll('tspan').forEach((span: SVGTSpanElement) => {
 		span.setAttribute('x', String(centerX))
 	})
@@ -1316,65 +1303,11 @@ function buildEdgeLabel(placement: EdgeLabelPlacement, edge: Edge, data: GraphDa
 	txt.setAttribute('font-size', String(edge.style.fontSize))
 	txt.setAttribute('fill', edge.style.color)
 
-	const bbox = {...bounds}
-	const bg = create.rect(bbox.width, bbox.height, bbox.x, bbox.y)
+	const bg = create.rect(bounds.width, bounds.height, bounds.x, bounds.y)
 	applyStyle(bg, styles.edgeRect)
 	txt.setAttribute('data-field', 'label')
 	edge.labelBounds = bounds
-
-	bbox.x += bbox.width / 2
-	bbox.y += bbox.height / 2
-	return {bg, txt, bbox}
-}
-
-function edgeLabelCandidate(
-	centerX: number,
-	centerY: number,
-	width: number,
-	height: number,
-	anchor: Point,
-	placement: EdgeLabelPlacement,
-	occupied: BBox[],
-) {
-	const bounds = {
-		x: centerX - width / 2,
-		y: centerY - height / 2,
-		width,
-		height,
-	}
-	const overlap = occupied.reduce(
-		(total, box) => total + boxOverlapArea(bounds, box),
-		0,
-	)
-	return {
-		centerX,
-		centerY,
-		bounds,
-		score: overlap * 1000 + calculateDistance(anchor, placement),
-	}
-}
-
-function expandBox(box: BBox, padding: number): BBox {
-	return {
-		x: box.x - padding,
-		y: box.y - padding,
-		width: box.width + padding * 2,
-		height: box.height + padding * 2,
-	}
-}
-
-function boxOverlapArea(first: BBox, second: BBox): number {
-	const width = Math.max(
-		0,
-		Math.min(first.x + first.width, second.x + second.width) -
-			Math.max(first.x, second.x),
-	)
-	const height = Math.max(
-		0,
-		Math.min(first.y + first.height, second.y + second.height) -
-			Math.max(first.y, second.y),
-	)
-	return width * height
+	return {bg, txt}
 }
 
 
@@ -1434,6 +1367,24 @@ function buildGroup(group: Group) {
 		return
 	}
 	const g = create.element('g', {}, 'group') as SVGGElement
+	if (group.layoutBounds && group.layoutTitleBounds) {
+		const bounds = group.layoutBounds
+		const title = group.layoutTitleBounds
+		const rect = create.rect(bounds.width, bounds.height, bounds.x, bounds.y)
+		applyStyle(rect, styles.groupRect)
+		group.style.stroke && rect.setAttribute('stroke', group.style.stroke)
+		group.style.background && rect.setAttribute('fill', group.style.background)
+		const text = create.text(group.name, {
+			x: title.x,
+			y: title.y,
+			'dominant-baseline': 'hanging',
+		})
+		applyStyle(text, styles.groupText)
+		group.style.color && text.setAttribute('fill', group.style.color)
+		g.append(rect, text)
+		group.ref = g
+		return
+	}
 
 	let p0: Point = {x: 1e100, y: 1e100}, p1: Point = {x: 0, y: 0}
 	group.nodes.forEach(n => {
@@ -2369,121 +2320,4 @@ export function restoreViewState(graphId: string): boolean {
 // Clear view state for a graph
 export function clearViewState(graphId: string) {
 	viewStateCache.delete(graphId);
-}
-
-/**
- * Find the optimal position to insert a label vertex into the routing path
- * to minimize disruption to the existing route
- */
-function findOptimalLabelPosition(vertices: Point[], labelPos: Point, fromNode: Point, toNode: Point): number {
-	// If no existing vertices, insert at the beginning
-	if (vertices.length === 0) {
-		return 0;
-	}
-	
-	// Build the full routing path including start/end nodes
-	const fullPath = [fromNode, ...vertices, toNode];
-	
-	// Find the closest point on the path to the label position
-	let minDistance = Infinity;
-	let bestSegmentIndex = 0;
-	
-	for (let i = 0; i < fullPath.length - 1; i++) {
-		const segmentStart = fullPath[i];
-		const segmentEnd = fullPath[i + 1];
-		
-		// Calculate distance from label position to this segment
-		const distance = distanceToSegment(labelPos, segmentStart, segmentEnd);
-		
-		if (distance < minDistance) {
-			minDistance = distance;
-			bestSegmentIndex = i;
-		}
-	}
-	
-	// Convert full path index to vertices array index
-	// bestSegmentIndex 0 means between fromNode and vertices[0] -> insert at 0
-	// bestSegmentIndex 1 means between vertices[0] and vertices[1] -> insert at 1
-	// etc.
-	return bestSegmentIndex;
-}
-
-/**
- * Calculate distance from a point to a line segment
- */
-function distanceToSegment(point: Point, segmentStart: Point, segmentEnd: Point): number {
-	const A = point.x - segmentStart.x;
-	const B = point.y - segmentStart.y;
-	const C = segmentEnd.x - segmentStart.x;
-	const D = segmentEnd.y - segmentStart.y;
-	
-	const dot = A * C + B * D;
-	const lenSq = C * C + D * D;
-	
-	if (lenSq === 0) {
-		// Segment is actually a point
-		return Math.sqrt(A * A + B * B);
-	}
-	
-	let param = dot / lenSq;
-	
-	let xx, yy;
-	
-	if (param < 0) {
-		xx = segmentStart.x;
-		yy = segmentStart.y;
-	} else if (param > 1) {
-		xx = segmentEnd.x;
-		yy = segmentEnd.y;
-	} else {
-		xx = segmentStart.x + param * C;
-		yy = segmentStart.y + param * D;
-	}
-	
-	const dx = point.x - xx;
-	const dy = point.y - yy;
-	return Math.sqrt(dx * dx + dy * dy);
-}
-
-/**
- * Project a label position onto the line segment where it will be inserted
- */
-function projectLabelOntoSegment(vertices: Point[], labelPos: Point, insertPos: number, fromNode: Point, toNode: Point): Point {
-	// Build the full routing path including start/end nodes
-	const fullPath = [fromNode, ...vertices, toNode];
-	
-	// The segment where we're inserting is between fullPath[insertPos] and fullPath[insertPos + 1]
-	const segmentStart = fullPath[insertPos];
-	const segmentEnd = fullPath[insertPos + 1];
-	
-	// Project the label position onto this line segment
-	return projectPointOntoSegment(labelPos, segmentStart, segmentEnd);
-}
-
-/**
- * Project a point onto a line segment (closest point on the segment)
- */
-function projectPointOntoSegment(point: Point, segmentStart: Point, segmentEnd: Point): Point {
-	const A = point.x - segmentStart.x;
-	const B = point.y - segmentStart.y;
-	const C = segmentEnd.x - segmentStart.x;
-	const D = segmentEnd.y - segmentStart.y;
-	
-	const dot = A * C + B * D;
-	const lenSq = C * C + D * D;
-	
-	if (lenSq === 0) {
-		// Segment is actually a point, return that point
-		return { x: segmentStart.x, y: segmentStart.y };
-	}
-	
-	let param = dot / lenSq;
-	
-	// Clamp to segment (don't extend beyond endpoints)
-	param = Math.max(0, Math.min(1, param));
-	
-	return {
-		x: segmentStart.x + param * C,
-		y: segmentStart.y + param * D
-	};
 }

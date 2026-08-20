@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"path/filepath"
-	"strings"
 	"testing"
 	"time"
 
@@ -87,32 +85,40 @@ func TestNormalizeLayoutDirection(t *testing.T) {
 	}
 }
 
-func TestChromedpExecReportsBrowserAutomationError(t *testing.T) {
+func TestHeadlessRenderURL(t *testing.T) {
+	actual := headlessRenderURL(
+		"http://127.0.0.1:1234",
+		"digest",
+		"AURA Services & Runtime",
+		"RIGHT",
+		true,
+	)
+	expected := "http://127.0.0.1:1234/headless.html?" +
+		"compact=true&digest=digest&direction=RIGHT&view=AURA+Services+%26+Runtime"
+	if actual != expected {
+		t.Fatalf("expected %q, got %q", expected, actual)
+	}
+}
+
+func TestChromedpExecNavigatesDirectPage(t *testing.T) {
 	if !hasChrome() {
 		t.Skip("skipping: Chrome/Chromium not available in PATH")
 	}
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "text/html")
-		_, err := fmt.Fprint(w, `<!doctype html>
-<html data-mdl-automation-status="error" data-mdl-automation-error="layout exploded">
-<body></body>
-</html>`)
+		_, err := fmt.Fprint(w, "<!doctype html><html><body>ready</body></html>")
 		if err != nil {
-			t.Errorf("write automation page: %v", err)
+			t.Errorf("write direct page: %v", err)
 		}
 	}))
 	defer server.Close()
 
-	output := filepath.Join(t.TempDir(), "missing.svg")
 	timeout := 30 * time.Second
 	err := withChromedp(timeout, false, func(exec navigateExec) error {
-		return exec(server.URL, output, timeout)
+		return exec(server.URL, timeout)
 	})
-	if err == nil {
-		t.Fatal("expected browser automation error")
-	}
-	if !strings.Contains(err.Error(), "browser automation failed: layout exploded") {
-		t.Fatalf("expected browser error detail, got %v", err)
+	if err != nil {
+		t.Fatalf("navigate direct page: %v", err)
 	}
 }
