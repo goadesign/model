@@ -1,13 +1,26 @@
 package main
 
 import (
+	"context"
 	"encoding/xml"
 	"io"
+	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"testing"
+	"time"
+
+	"github.com/chromedp/chromedp"
 )
+
+type nodeOverflow struct {
+	Name   string  `json:"name"`
+	Top    float64 `json:"top"`
+	Right  float64 `json:"right"`
+	Bottom float64 `json:"bottom"`
+	Left   float64 `json:"left"`
+}
 
 func hasChrome() bool {
 	if os.Getenv("CHROME_BIN") != "" {
@@ -59,6 +72,124 @@ func TestSVGEndToEnd(t *testing.T) {
 			t.Fatalf("cleanup %s: %v", path, err)
 		}
 	}
+}
+
+func TestSVGNodeTextFits(t *testing.T) {
+	if !hasChrome() {
+		t.Skip("skipping: Chrome/Chromium not available in PATH")
+	}
+
+	outDir := t.TempDir()
+	cfg := config{
+		dir:       outDir,
+		port:      0,
+		direction: "DOWN",
+		timeout:   30 * time.Second,
+		all:       true,
+	}
+	if err := runSVG("goa.design/model/examples/text_fit/model", cfg); err != nil {
+		t.Fatalf("runSVG failed: %v", err)
+	}
+
+	path := filepath.Join(outDir, "Text Fit.svg")
+	overflows, height, boundaryIntersections, groupCount := inspectNodeTextFit(t, path)
+	if len(overflows) > 0 {
+		t.Fatalf("node text exceeds its border: %+v", overflows)
+	}
+	if height <= 180 {
+		t.Fatalf("expected long-content node to grow beyond 180px, got %.1f", height)
+	}
+	if groupCount < 2 {
+		t.Fatalf("expected at least two system boundaries, got %d", groupCount)
+	}
+	if len(boundaryIntersections) > 0 {
+		t.Fatalf("system boundaries intersect: %v", boundaryIntersections)
+	}
+}
+
+func inspectNodeTextFit(t *testing.T, path string) ([]nodeOverflow, float64, []string, int) {
+	t.Helper()
+
+	options := append(chromedp.DefaultExecAllocatorOptions[:],
+		chromedp.DisableGPU,
+		chromedp.Flag("no-sandbox", true),
+		chromedp.Flag("disable-setuid-sandbox", true),
+	)
+	if chromeBin := os.Getenv("CHROME_BIN"); chromeBin != "" {
+		options = append(options, chromedp.ExecPath(chromeBin))
+	}
+	allocatorContext, cancelAllocator := chromedp.NewExecAllocator(context.Background(), options...)
+	defer cancelAllocator()
+
+	browserContext, cancelBrowser := chromedp.NewContext(allocatorContext)
+	defer cancelBrowser()
+	testContext, cancelTest := context.WithTimeout(browserContext, 30*time.Second)
+	defer cancelTest()
+
+	var overflows []nodeOverflow
+	var height float64
+	var boundaryIntersections []string
+	var groupCount int
+	fileURL := (&url.URL{Scheme: "file", Path: path}).String()
+	const overflowScript = `(() => {
+		const tolerance = 0.5;
+		return [...document.querySelectorAll("g.node")].flatMap((node) => {
+			const border = node.querySelector(".nodeBorder");
+			const texts = [...node.querySelectorAll("text")];
+			if (!border || texts.length === 0) return [];
+			const rect = border.getBoundingClientRect();
+			const boxes = texts.map((text) => text.getBoundingClientRect());
+			const left = Math.min(...boxes.map((box) => box.left));
+			const top = Math.min(...boxes.map((box) => box.top));
+			const right = Math.max(...boxes.map((box) => box.right));
+			const bottom = Math.max(...boxes.map((box) => box.bottom));
+			const overflow = {
+				name: texts[0].textContent.trim(),
+				top: Math.max(0, rect.top - top),
+				right: Math.max(0, right - rect.right),
+				bottom: Math.max(0, bottom - rect.bottom),
+				left: Math.max(0, rect.left - left),
+			};
+			return overflow.top > tolerance || overflow.right > tolerance ||
+				overflow.bottom > tolerance || overflow.left > tolerance
+				? [overflow]
+				: [];
+		});
+	})()`
+	const boundaryScript = `(() => {
+		const groups = [...document.querySelectorAll("g.group")].map((group) => ({
+			name: group.querySelector("text")?.textContent.trim() || group.id || "group",
+			rect: group.querySelector("rect").getBoundingClientRect(),
+		}));
+		const intersections = [];
+		for (let i = 0; i < groups.length; i++) {
+			for (let j = i + 1; j < groups.length; j++) {
+				const width = Math.max(0,
+					Math.min(groups[i].rect.right, groups[j].rect.right) -
+					Math.max(groups[i].rect.left, groups[j].rect.left));
+				const height = Math.max(0,
+					Math.min(groups[i].rect.bottom, groups[j].rect.bottom) -
+					Math.max(groups[i].rect.top, groups[j].rect.top));
+				if (width > 0.5 && height > 0.5) {
+					intersections.push(groups[i].name + " / " + groups[j].name);
+				}
+			}
+		}
+		return intersections;
+	})()`
+
+	if err := chromedp.Run(testContext,
+		chromedp.Navigate(fileURL),
+		chromedp.WaitVisible("g.node", chromedp.ByQuery),
+		chromedp.Evaluate(overflowScript, &overflows),
+		chromedp.Evaluate(`document.querySelector("g.node .nodeBorder").getBBox().height`, &height),
+		chromedp.Evaluate(boundaryScript, &boundaryIntersections),
+		chromedp.Evaluate(`document.querySelectorAll("g.group").length`, &groupCount),
+	); err != nil {
+		t.Fatalf("inspect generated SVG: %v", err)
+	}
+
+	return overflows, height, boundaryIntersections, groupCount
 }
 
 func svgLinks(t *testing.T, path string) []string {

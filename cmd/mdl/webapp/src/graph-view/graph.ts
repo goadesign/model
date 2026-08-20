@@ -1,7 +1,7 @@
 import {defs} from "./defs";
 import {create, setPosition} from "./svg-create";
 import {cursorInteraction} from "svg-editor-tools/lib/cursor-interaction";
-import {shapes} from "./shapes";
+import {shapeLabelOffsetY, shapes} from "./shapes";
 import {
 	boxesOverlap,
 	cabDistance,
@@ -46,6 +46,11 @@ import {
 	calculateLabelPosition,
 	createEdgeSegments
 } from "./edge-utils";
+import {
+	buildNodeContent,
+	layoutNodeContent,
+	NodeContentLayout
+} from "./node-content";
 
 
 // Point and BBox interfaces are now imported from constants
@@ -76,6 +81,7 @@ export interface Node extends BBox {
 
 	style: NodeStyle
 	link?: NodeLink
+	contentLayout: NodeContentLayout
 }
 
 // NodeStyle interface is now imported from constants
@@ -167,38 +173,29 @@ export class GraphData {
 
 	addNode(id: string, label: string, sub: string, description: string, style: NodeStyle, link?: NodeLink) {
 		if (this.nodesMap.has(id)) throw Error('duplicate node: ' + id)
-		
-		// ALWAYS use fixed dimensions - ignore any width/height from incoming styles
-		// This ensures visual consistency regardless of model data
-		const shape = style.shape || 'Box';
-		const isPersonShape = shape.toLowerCase() === 'person';
-		const isCylinderShape = shape.toLowerCase() === 'cylinder';
-		
-		// Fixed dimensions based only on shape type - completely ignore style.width/height
-		let width: number;
-		let height: number;
-		
-		if (isPersonShape) {
-			width = 280;
-			height = 240;
-		} else if (isCylinderShape) {
-			// Make cylinders wider to better accommodate text content
-			width = 280; // Same width as boxes for consistency
-			height = 180; // Same height as boxes for consistency
-		} else {
-			// Standard rectangular shapes
-			width = 280;
-			height = 180;
+		const nodeStyle = {...defaultNodeStyle, ...style};
+		const shape = (nodeStyle.shape || 'Box').toLowerCase();
+		const minimumWidth = 280;
+		const minimumHeight = shape === 'person' ? 240 : 180;
+		const width = Math.max(minimumWidth, nodeStyle.width || 0);
+		const fontSize = nodeStyle.fontSize || 22;
+		const contentLayout = layoutNodeContent(label, sub, description, width, fontSize);
+		let height = Math.max(minimumHeight, nodeStyle.height || 0, contentLayout.minimumHeight);
+
+		// Some shapes shift labels down to reserve visual space for an icon,
+		// header, or curved edge. Grow until the shifted content also fits.
+		for (let i = 0; i < 20; i++) {
+			const requiredHeight = contentLayout.minimumHeight +
+				Math.abs(shapeLabelOffsetY(shape, width, height));
+			if (requiredHeight <= height + 0.1) {
+				break;
+			}
+			height = requiredHeight;
 		}
-		
-		// Remove any width/height from style to prevent conflicts
-		const cleanStyle = {...style};
-		delete cleanStyle.width;
-		delete cleanStyle.height;
-		
+
 		const n: Node = {
-			id, title: label, sub, description, style: {...defaultNodeStyle, ...cleanStyle},
-			x: 0, y: 0, width, height, intersect: null, link
+			id, title: label, sub, description, style: nodeStyle,
+			x: 0, y: 0, width, height, intersect: null, link, contentLayout
 		}
 		this.nodesMap.set(n.id, n)
 	}
@@ -1277,10 +1274,6 @@ function buildNode(n: Node, data: GraphData) {
 	// @ts-ignore
 	window.gdata = data
 
-	// Use the pre-calculated dimensions from addNode
-	const w = n.width;
-	const h = n.height;
-
 	const g = create.element('g', {}, 'node') as SVGGElement
 	g.setAttribute('id', n.id)
 	n.selected && g.classList.add('selected')
@@ -1315,46 +1308,9 @@ function buildNode(n: Node, data: GraphData) {
 	shape.setAttribute('opacity', String(n.style.opacity))
 	setBorderStyle(shape, n.style.border)
 
-	const tg = create.element('g') as SVGGElement
-	let cy = Number(content.getAttribute('label-offset-y')) || 0
-	
-	// Consistent text width calculation for all shapes
-	const textPadding = 12; // Standard padding
-	const maxTextWidth = Math.max(w - (textPadding * 2), 80); // Ensure reasonable minimum width
-	
-	{
-		const fontSize = n.style.fontSize
-		// Use 95% of available width for titles - much more aggressive
-		const {txt, dy} = create.textArea(n.title, maxTextWidth * 0.95, fontSize, true, 0, cy, 'middle')
-		applyStyle(txt, styles.nodeText)
-		txt.setAttribute('fill', n.style.color)
-		txt.setAttribute('data-field', 'name')
-
-		tg.append(txt)
-		cy += dy + 6 // Reduced spacing after title
-	}
-	{
-		const txt = create.text(`[${n.sub}]`, {x: 0, y: cy, 'text-anchor': 'middle'})
-		applyStyle(txt, styles.nodeText)
-		txt.setAttribute('fill', n.style.color)
-		txt.setAttribute('font-size', String(0.75 * n.style.fontSize))
-		tg.append(txt)
-		cy += 12 // Reduced spacing
-	}
-	{
-		cy += 6 // Reduced spacing before description
-		const fontSize = Math.min(n.style.fontSize * 0.8, 16) // Keep smaller description text
-		// Use 95% of available width for descriptions too - much more aggressive
-		const {txt, dy} = create.textArea(n.description, maxTextWidth * 0.95, fontSize, false, 0, cy, 'middle')
-		applyStyle(txt, styles.nodeText)
-		txt.setAttribute('fill', n.style.color)
-		txt.setAttribute('data-field', 'description')
-		tg.append(txt)
-		cy += dy
-	}
-
-	// Better vertical centering with improved padding
-	setPosition(tg, 0, -cy / 2)
+	const tg = buildNodeContent(n.contentLayout, n.style.color)
+	const labelOffsetY = Number(content.getAttribute('label-offset-y')) || 0
+	setPosition(tg, 0, labelOffsetY / 2)
 	content.append(tg)
 
 	// @ts-ignore
