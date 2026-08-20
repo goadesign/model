@@ -528,8 +528,9 @@ export class GraphData {
 			exportElastic.remove()
 		}
 		
-		// Calculate actual content bounds including all elements
-		const contentBounds = this.calculateContentBounds()
+		// Export the exact bounds that passed geometry validation. Recomputing
+		// them here can omit routed relationship labels from the SVG canvas.
+		const contentBounds = this.validatedLayout.bounds
 		
 		// Add padding around content
 		const padding = 50

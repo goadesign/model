@@ -20,21 +20,30 @@ import (
 	"github.com/jaschaephraim/lrserver"
 )
 
-type nodeOverflow struct {
-	Name   string  `json:"name"`
-	Top    float64 `json:"top"`
-	Right  float64 `json:"right"`
-	Bottom float64 `json:"bottom"`
-	Left   float64 `json:"left"`
-}
+type (
+	nodeOverflow struct {
+		Name   string  `json:"name"`
+		Top    float64 `json:"top"`
+		Right  float64 `json:"right"`
+		Bottom float64 `json:"bottom"`
+		Left   float64 `json:"left"`
+	}
 
-type verticalEdgeLabelOverlap struct {
-	Source      string  `json:"source"`
-	Destination string  `json:"destination"`
-	LineX       float64 `json:"lineX"`
-	LabelLeft   float64 `json:"labelLeft"`
-	LabelRight  float64 `json:"labelRight"`
-}
+	verticalEdgeLabelOverlap struct {
+		Source      string  `json:"source"`
+		Destination string  `json:"destination"`
+		LineX       float64 `json:"lineX"`
+		LabelLeft   float64 `json:"labelLeft"`
+		LabelRight  float64 `json:"labelRight"`
+	}
+
+	exportDimensions struct {
+		Width          float64 `json:"width"`
+		Height         float64 `json:"height"`
+		ExpectedWidth  float64 `json:"expectedWidth"`
+		ExpectedHeight float64 `json:"expectedHeight"`
+	}
+)
 
 func hasChrome() bool {
 	if os.Getenv("CHROME_BIN") != "" {
@@ -158,9 +167,16 @@ func TestManualEditAfterAutoLayout(t *testing.T) {
 		await graph.autoLayout();
 		const node = graph.nodes()[0];
 		graph.moveNode(node, node.x + 20, node.y, true);
-		return graph.exportSVG().length;
+		const markup = graph.exportSVG();
+		const exported = new DOMParser().parseFromString(markup, "image/svg+xml").documentElement;
+		return {
+			width: Number(exported.getAttribute("width")),
+			height: Number(exported.getAttribute("height")),
+			expectedWidth: graph.validatedLayout.bounds.width + 100,
+			expectedHeight: graph.validatedLayout.bounds.height + 100,
+		};
 	})()`
-	var svgLength int
+	var dimensions exportDimensions
 	if err := chromedp.Run(
 		testContext,
 		chromedp.Navigate(pageURL),
@@ -170,7 +186,7 @@ func TestManualEditAfterAutoLayout(t *testing.T) {
 		),
 		chromedp.Evaluate(
 			script,
-			&svgLength,
+			&dimensions,
 			func(params *cdruntime.EvaluateParams) *cdruntime.EvaluateParams {
 				return params.WithAwaitPromise(true)
 			},
@@ -178,8 +194,14 @@ func TestManualEditAfterAutoLayout(t *testing.T) {
 	); err != nil {
 		t.Fatalf("auto layout, edit, and export: %v", err)
 	}
-	if svgLength == 0 {
-		t.Fatal("manual export is empty")
+	if dimensions.Width != dimensions.ExpectedWidth || dimensions.Height != dimensions.ExpectedHeight {
+		t.Fatalf(
+			"exported dimensions %.1fx%.1f do not match validated dimensions %.1fx%.1f",
+			dimensions.Width,
+			dimensions.Height,
+			dimensions.ExpectedWidth,
+			dimensions.ExpectedHeight,
+		)
 	}
 }
 
@@ -300,6 +322,9 @@ func TestSVGEdgeLabelsAvoidElements(t *testing.T) {
 	if collisions := inspectEdgeLabelCollisions(t, path); len(collisions) > 0 {
 		t.Fatalf("relationship labels overlap diagram elements: %v", collisions)
 	}
+	if overflows := inspectEdgeLabelCanvasOverflows(t, path); len(overflows) > 0 {
+		t.Fatalf("relationship labels exceed the exported SVG canvas: %v", overflows)
+	}
 }
 
 func inspectNodeTextFit(t *testing.T, path string) ([]nodeOverflow, float64, []string, int) {
@@ -414,6 +439,40 @@ func inspectEdgeLabelCollisions(t *testing.T, path string) []string {
 		t.Fatalf("inspect relationship label collisions: %v", err)
 	}
 	return collisions
+}
+
+// inspectEdgeLabelCanvasOverflows returns labels clipped by the exported SVG.
+func inspectEdgeLabelCanvasOverflows(t *testing.T, path string) []string {
+	t.Helper()
+	testContext, cleanup := newChromeContext(t)
+	defer cleanup()
+
+	var overflows []string
+	fileURL := (&url.URL{Scheme: "file", Path: path}).String()
+	const overflowScript = `(() => {
+		const tolerance = 0.5;
+		const canvas = document.querySelector("svg#graph").getBoundingClientRect();
+		return [...document.querySelectorAll("g.edge")].flatMap((edge) => {
+			const label = edge.querySelector(":scope > rect");
+			if (!label) return [];
+			const rect = label.getBoundingClientRect();
+			if (rect.left >= canvas.left - tolerance &&
+				rect.top >= canvas.top - tolerance &&
+				rect.right <= canvas.right + tolerance &&
+				rect.bottom <= canvas.bottom + tolerance) {
+				return [];
+			}
+			return [edge.querySelector(":scope > text")?.textContent.trim() || edge.id];
+		});
+	})()`
+	if err := chromedp.Run(testContext,
+		chromedp.Navigate(fileURL),
+		chromedp.WaitVisible("g.edge", chromedp.ByQuery),
+		chromedp.Evaluate(overflowScript, &overflows),
+	); err != nil {
+		t.Fatalf("inspect relationship label canvas bounds: %v", err)
+	}
+	return overflows
 }
 
 func inspectNodeOrientation(t *testing.T, path string) string {
