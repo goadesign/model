@@ -1,6 +1,5 @@
-import React, { FC, useState, useCallback, useEffect, useRef, Suspense, lazy } from "react";
-import { GraphData, LayoutDirection } from "./graph-view/graph";
-import { LayoutOptions } from "./graph-view/layout";
+import React, { FC, useState, useCallback, useEffect, Suspense, lazy } from "react";
+import { GraphData } from "./graph-view/graph";
 import { BrowserRouter as Router, Routes, Route, useSearchParams } from 'react-router-dom';
 import { listViews } from "./parseModel";
 import { useGraph, useAutoLayout, useSave, useKeyboardShortcuts, clearGraphCache } from "./hooks";
@@ -15,26 +14,6 @@ interface ModelData {
   model: any;
   layout: any;
 }
-
-type AutomationStatus = 'running' | 'complete' | 'error';
-
-const setAutomationStatus = (status: AutomationStatus | null, error?: string) => {
-  const root = document.documentElement;
-  if (!status) {
-    delete root.dataset.mdlAutomationStatus;
-    delete root.dataset.mdlAutomationError;
-    return;
-  }
-  root.dataset.mdlAutomationStatus = status;
-  if (error) {
-    root.dataset.mdlAutomationError = error;
-  } else {
-    delete root.dataset.mdlAutomationError;
-  }
-};
-
-const errorMessage = (error: unknown): string =>
-  error instanceof Error ? error.message : String(error);
 
 const reportInteractiveError = (action: string, error: unknown) => {
   console.error(`${action} failed:`, error);
@@ -61,9 +40,6 @@ const ModelPane: FC<{ model: any; layouts: any }> = ({ model, layouts }) => {
   // UI State
   const [helpVisible, setHelpVisible] = useState(false);
   const [dragMode, setDragMode] = useState<'pan' | 'select'>('pan');
-  const [readyGraphID, setReadyGraphID] = useState<string | null>(null);
-  const automationKey = useRef<string | null>(null);
-  const automationRun = useRef(0);
   
   // Get or create graph for current view
   const graph = useGraph(model, layouts, currentID);
@@ -80,10 +56,6 @@ const ModelPane: FC<{ model: any; layouts: any }> = ({ model, layouts }) => {
     setHelpVisible(!helpVisible);
   }, [helpVisible]);
 
-  const handleGraphReady = useCallback(() => {
-    setReadyGraphID(currentID);
-  }, [currentID]);
-
   const handleInteractiveAutoLayout = useCallback(() => {
     void handleAutoLayout().catch(error => reportInteractiveError('Layout', error));
   }, [handleAutoLayout]);
@@ -98,62 +70,6 @@ const ModelPane: FC<{ model: any; layouts: any }> = ({ model, layouts }) => {
       document.title = `${graph.name} - Model`;
     }
   }, [graph]);
-
-  // Headless automation: support query params to auto-layout and save
-  useEffect(() => {
-    const params = Object.fromEntries(searchParams.entries());
-    const auto = params['auto'] === '1' || params['auto'] === 'true';
-    const save = params['save'] === '1' || params['save'] === 'true';
-    if (!auto && !save) {
-      automationKey.current = null;
-      automationRun.current++;
-      setAutomationStatus(null);
-      return;
-    }
-    if (readyGraphID !== currentID) {
-      return;
-    }
-
-    const key = `${currentID}:${searchParams.toString()}`;
-    if (automationKey.current === key) {
-      return;
-    }
-    automationKey.current = key;
-    const run = ++automationRun.current;
-    setAutomationStatus('running');
-
-    const direction = (params['direction'] || '').toUpperCase();
-    const compact = params['compact'] === '1' || params['compact'] === 'true';
-
-    const validDirections: LayoutDirection[] = ['UP', 'DOWN', 'LEFT', 'RIGHT'];
-    const layoutOpts: LayoutOptions = {};
-    if (validDirections.includes(direction as LayoutDirection)) {
-      layoutOpts.direction = direction as LayoutDirection;
-    }
-    if (compact) {
-      layoutOpts.compactLayout = true;
-    }
-
-    (async () => {
-      try {
-        if (auto) {
-          await handleAutoLayout(layoutOpts);
-        }
-        if (save) {
-          await handleSave();
-        }
-        if (automationRun.current === run) {
-          setAutomationStatus('complete');
-        }
-      } catch (error) {
-        const message = errorMessage(error);
-        console.error('Automation failed:', error);
-        if (automationRun.current === run) {
-          setAutomationStatus('error', message);
-        }
-      }
-    })();
-  }, [currentID, graph, handleAutoLayout, handleSave, readyGraphID, searchParams]);
 
   // Setup keyboard shortcuts
   useKeyboardShortcuts(
@@ -196,7 +112,6 @@ const ModelPane: FC<{ model: any; layouts: any }> = ({ model, layouts }) => {
 					key={currentID}
 					data={graph}
 					onSelect={handleSelect}
-					onReady={handleGraphReady}
 					dragMode={dragMode}
 				/>
 			</Suspense>

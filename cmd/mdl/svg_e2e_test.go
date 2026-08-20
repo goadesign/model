@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"net/http"
 	"net/url"
 	"os"
 	"os/exec"
@@ -14,6 +15,7 @@ import (
 	"testing"
 	"time"
 
+	cdruntime "github.com/chromedp/cdproto/runtime"
 	"github.com/chromedp/chromedp"
 	"github.com/jaschaephraim/lrserver"
 )
@@ -105,6 +107,79 @@ func TestSVGEndToEnd(t *testing.T) {
 		if err := os.Remove(path); err != nil {
 			t.Fatalf("cleanup %s: %v", path, err)
 		}
+	}
+}
+
+// TestManualEditAfterAutoLayout proves editor changes enter the complete manual
+// contract instead of mixing changed nodes with stale automatic geometry.
+func TestManualEditAfterAutoLayout(t *testing.T) {
+	if !hasChrome() {
+		t.Skip("skipping: Chrome/Chromium not available in PATH")
+	}
+	design, err := loadDesign("goa.design/model/examples/basic/model", false)
+	if err != nil {
+		t.Fatalf("load design: %v", err)
+	}
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatalf("listen: %v", err)
+	}
+	server := NewServer(design)
+	httpServer := &http.Server{ReadHeaderTimeout: 3 * time.Second}
+	outDir := t.TempDir()
+	serverDone := make(chan error, 1)
+	go func() {
+		serverDone <- server.ServeOnListener(
+			outDir,
+			"",
+			httpServer,
+			http.NewServeMux(),
+			listener,
+		)
+	}()
+	t.Cleanup(func() {
+		if err := httpServer.Close(); err != nil {
+			t.Errorf("close editor server: %v", err)
+		}
+		if err := <-serverDone; err != nil && err != http.ErrServerClosed {
+			t.Errorf("editor server: %v", err)
+		}
+	})
+
+	testContext, cleanup := newChromeContext(t)
+	defer cleanup()
+	pageURL := fmt.Sprintf(
+		"http://%s/?id=%s",
+		listener.Addr().String(),
+		url.QueryEscape("SystemContext"),
+	)
+	const script = `(async () => {
+		const graph = window.gdata;
+		await graph.autoLayout();
+		const node = graph.nodes()[0];
+		graph.moveNode(node, node.x + 20, node.y, true);
+		return graph.exportSVG().length;
+	})()`
+	var svgLength int
+	if err := chromedp.Run(
+		testContext,
+		chromedp.Navigate(pageURL),
+		chromedp.Poll(
+			`window.gdata && window.gdata.nodes().every(node => node.ref?.isConnected)`,
+			nil,
+		),
+		chromedp.Evaluate(
+			script,
+			&svgLength,
+			func(params *cdruntime.EvaluateParams) *cdruntime.EvaluateParams {
+				return params.WithAwaitPromise(true)
+			},
+		),
+	); err != nil {
+		t.Fatalf("auto layout, edit, and export: %v", err)
+	}
+	if svgLength == 0 {
+		t.Fatal("manual export is empty")
 	}
 }
 

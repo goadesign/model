@@ -7,9 +7,11 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
+	"net"
 	"net/http"
 	"os"
 	"path"
+	"path/filepath"
 	"strings"
 	"sync"
 	"time"
@@ -91,6 +93,22 @@ func (s *Server) ServeOnMux(outDir, devDistPath string, srv *http.Server, mux *h
 	return srv.ListenAndServe()
 }
 
+// ServeOnListener serves the editor on a listener the caller has already bound.
+func (s *Server) ServeOnListener(
+	outDir string,
+	devDistPath string,
+	srv *http.Server,
+	mux *http.ServeMux,
+	listener net.Listener,
+) error {
+	s.outDir = outDir
+	s.setupRoutesToMux(mux, devDistPath)
+	if srv.Handler == nil {
+		srv.Handler = mux
+	}
+	return srv.Serve(listener)
+}
+
 // handleModelData serves the JSON representation of the architecture model
 func (s *Server) handleModelData(w http.ResponseWriter, _ *http.Request) {
 	s.lock.RLock()
@@ -132,10 +150,7 @@ func (s *Server) handleSave(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.lock.Lock()
-	defer s.lock.Unlock()
-
-	if err := s.saveSVG(id, r.Body); err != nil {
+	if err := s.storeSVG(id, r.Body); err != nil {
 		s.handleError(w, fmt.Errorf("failed to save SVG: %w", err))
 		return
 	}
@@ -143,21 +158,59 @@ func (s *Server) handleSave(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusAccepted)
 }
 
-// saveSVG saves the SVG content to a file
+// storeSVG allows one writer at a time and delegates the atomic file replacement.
+func (s *Server) storeSVG(id string, body io.Reader) error {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+	return s.saveSVG(id, body)
+}
+
+// saveSVG writes a complete SVG beside the target, then replaces the target.
+// Readers therefore see either the old complete file or the new complete file.
 func (s *Server) saveSVG(id string, body io.Reader) error {
-	svgFile := path.Join(s.outDir, id+".svg")
-	f, err := os.Create(svgFile)
+	if id == "" || filepath.Base(id) != id {
+		return fmt.Errorf("invalid view id %q", id)
+	}
+	svgFile := filepath.Join(s.outDir, id+".svg")
+	f, err := os.CreateTemp(s.outDir, "."+id+".svg.tmp-*")
 	if err != nil {
 		return err
 	}
+	tempName := f.Name()
+	committed := false
 	defer func() {
-		if err := f.Close(); err != nil {
-			fmt.Fprintf(os.Stderr, "failed to close file: %v\n", err)
+		if !committed {
+			if err := os.Remove(tempName); err != nil && !os.IsNotExist(err) {
+				fmt.Fprintf(os.Stderr, "failed to remove temporary SVG: %v\n", err)
+			}
 		}
 	}()
 
-	_, err = io.Copy(f, body)
-	return err
+	if _, err := io.Copy(f, body); err != nil {
+		return closeTemporarySVG(f, "write SVG", err)
+	}
+	if err := f.Sync(); err != nil {
+		return closeTemporarySVG(f, "sync SVG", err)
+	}
+	if err := f.Chmod(0644); err != nil {
+		return closeTemporarySVG(f, "set SVG permissions", err)
+	}
+	if err := f.Close(); err != nil {
+		return fmt.Errorf("close temporary SVG: %w", err)
+	}
+	if err := os.Rename(tempName, svgFile); err != nil {
+		return fmt.Errorf("replace SVG: %w", err)
+	}
+	committed = true
+	return nil
+}
+
+// closeTemporarySVG keeps the first write failure and also reports a close failure.
+func closeTemporarySVG(file *os.File, action string, cause error) error {
+	if err := file.Close(); err != nil {
+		return fmt.Errorf("%s: %w; close temporary SVG: %v", action, cause, err)
+	}
+	return fmt.Errorf("%s: %w", action, cause)
 }
 
 // SetDesign updates the design served by the server

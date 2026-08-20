@@ -207,13 +207,20 @@ overview view:
   them.
 - Do not weaken or shorten canonical element metadata merely to make a crowded
   diagram fit. Prefer a smaller view or a layout/rendering correction.
-- Treat `AutoLayout` only as an initial placement. It will rarely produce the
-  desired final hierarchy, spacing, and edge routing.
+- Use `AutoLayout` as the default complete placement. It measures rendered
+  content, places nodes, boundaries, routes, and labels together, and rejects
+  invalid geometry instead of saving a partial result.
+- Treat an `mdl svg` geometry failure as a real model, view-scope, saved-layout,
+  or MDL defect. Do not work around it by unlinking relationships, shortening
+  truthful text, retrying with guessed spacing, or accepting a partly rendered
+  file.
 - Always inspect every rendered view visually. Compilation, successful
   rendering, and non-overlapping geometry are not evidence that the view
   communicates well.
-- Use saved coordinates from the MDL visual editor for intentional final
-  arrangement.
+- Use saved coordinates from the MDL visual editor only for intentional
+  refinement. A manual layout must contain every current element, complete
+  relationship routes, and placed labels; stale or partial saved geometry is
+  invalid.
 
 ## Regenerate and inspect
 
@@ -234,9 +241,9 @@ mdl serve <model-package> -dir <output-directory>
 ### Arrange with the MDL visual editor
 
 Start with `AutoLayout`, then visually review every view in the generated set.
-Assume the automatic result needs deliberate refinement unless inspection shows
-that its hierarchy, spacing, labels, and edge routing already communicate the
-view's question clearly. When a rendered view has overlaps, excessive
+Keep the automatic result when its hierarchy, spacing, labels, and edge routing
+communicate the view's question clearly. Use the editor only when deliberate
+placement would improve that communication. When a rendered view has excessive
 whitespace, weak visual hierarchy, or avoidable edge crossings:
 
 1. Confirm the view contains only relationships that answer its architectural
@@ -256,10 +263,10 @@ whitespace, weak visual hierarchy, or avoidable edge crossings:
    may sit inside it, and sibling or external elements must remain outside.
 6. Reset or reposition stale edge bend points and labels after moving nodes or
    changing membership. Saved routes from an earlier layout must not leave
-   lines outside boundaries, unnecessary detours, or detached labels.
-   When newly added nodes overlap at the origin or MDL reports missing saved
-   geometry, delete only that affected generated SVG and regenerate it; do not
-   discard working layouts for unrelated views.
+   lines outside boundaries, unnecessary detours, or detached labels. If MDL
+   rejects a stale or incomplete saved layout, regenerate that whole affected
+   view or deliberately migrate every element and route together. Never mix
+   old manual positions with newly guessed automatic values.
 7. Save through the MDL editor so it records supported layout coordinates. Do
    not hand-edit generated SVG or JSON layout data.
 8. Confirm the expected SVG's timestamp or content changed, wait for the write
@@ -267,6 +274,11 @@ whitespace, weak visual hierarchy, or avoidable edge crossings:
    vertices survived before accepting the layout.
 9. Reopen the persisted SVG at fitted viewport scale and verify the saved
    nodes, labels, arrows, and boundary titles.
+
+For MDL renderer or layout changes, render the full repository view set at
+least three times and compare the SVG files byte for byte. Also run independent
+model packages concurrently. Any changed bytes between identical runs, port
+collision, timeout, partial file, or cross-view result is a tool defect.
 
 Always review the main view in the editor and arrange it deliberately whenever
 that improves the whole-system summary. Review every secondary view at fitted
@@ -291,7 +303,9 @@ After rendering, verify:
 - Relationship direction and labels are readable.
 - Nodes, labels, arrows, and boundary titles do not overlap.
 - Text stays inside its node or boundary.
-- The complete diagram is visible at common viewport sizes.
+- The complete structure is visible at common viewport sizes. Labels in an
+  honestly dense overview may require zoom, but focused secondary views must
+  make its major flows readable without hiding real relationships.
 - Generated files match the DSL and are included when the repository publishes
   rendered artifacts.
 

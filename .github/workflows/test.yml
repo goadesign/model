@@ -19,15 +19,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v7
         with:
-          go-version: '1.26'
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v6
-        with:
-          version: 10.33.0
-
-      - name: Build UI
-        run: make build-ui
+          go-version-file: go.mod
 
       - name: Install lint dependencies
         run: make depend
@@ -37,21 +29,16 @@ jobs:
 
   test:
     name: Test
-    strategy:
-      fail-fast: true
-      matrix:
-        go: ['1.26']
-        os: ['ubuntu-latest']
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
 
     steps:
       - name: Check out code
         uses: actions/checkout@v7
 
-      - name: Set up Go ${{ matrix.go }}
+      - name: Set up Go
         uses: actions/setup-go@v7
         with:
-          go-version: ${{ matrix.go }}
+          go-version-file: go.mod
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v6
@@ -61,18 +48,18 @@ jobs:
       - name: Install Chrome
         uses: browser-actions/setup-chrome@v2
 
-      - name: Install dependencies
-        run: go mod download
-
       - name: Build UI
         run: make build-ui
 
-      - name: Build
-        run: |
-          cd cmd/mdl && go build
-          cd ../stz && go build
+      - name: Test UI
+        working-directory: cmd/mdl/webapp
+        run: pnpm test
 
-      - name: Run tests
+      - name: Type check UI
+        working-directory: cmd/mdl/webapp
+        run: pnpm exec tsc --noEmit
+
+      - name: Test Go and browser behavior
         env:
           CHROME_BIN: google-chrome
         run: make test
