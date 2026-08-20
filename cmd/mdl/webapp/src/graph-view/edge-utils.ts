@@ -62,6 +62,10 @@ interface GraphData {
 	metadata: any;
 }
 
+export interface EdgeLabelPlacement extends Point {
+	orientation: 'horizontal' | 'vertical';
+}
+
 /**
  * Calculate edge vertices, handling multi-edge scenarios and auto-vertices
  */
@@ -259,33 +263,66 @@ export function calculateEdgeVertices(edge: Edge, data: GraphData): Point[] {
 }
 
 /**
- * Calculate the position for edge label along the edge path
+ * Calculate the label anchor and the orientation of the path segment that owns
+ * it. Renderers use the orientation to place text beside the relationship line
+ * instead of centering text over vertical segments.
  */
-export function calculateLabelPosition(vertices: Point[], position: number, fallback: Point, edge?: any): Point {
-	// where along the edge is the label?
-	// position of label
-	let pLabel: Point = vertices.find(v => (v as any).label)
-	if (!pLabel) {
-		let sum = 0 // total length of the edge, sum of segments
-		for (let i = 1; i < vertices.length; i++) {
-			sum += calculateDistance(vertices[i - 1], vertices[i])
+export function calculateLabelPlacement(
+	vertices: Point[],
+	position: number,
+	fallback: Point,
+): EdgeLabelPlacement {
+	let point = {x: fallback.x, y: fallback.y};
+	let segment: Segment | undefined;
+	const labelIndex = vertices.findIndex(vertex => (vertex as EdgeVertex).label);
+
+	if (labelIndex >= 0) {
+		point = vertices[labelIndex];
+		const adjacentSegments: Segment[] = [];
+		if (labelIndex > 0) {
+			adjacentSegments.push({p: vertices[labelIndex - 1], q: point});
 		}
-		pLabel = {x: fallback.x, y: fallback.y} // fallback for corner cases
-		let acc = 0
-		for (let i = 1; i < vertices.length; i++) {
-			const d = calculateDistance(vertices[i - 1], vertices[i])
-			if (acc + d > sum * position) {
-				const pos = (sum * position - acc) / d
-				pLabel = {
-					x: vertices[i - 1].x + (vertices[i].x - vertices[i - 1].x) * pos,
-					y: vertices[i - 1].y + (vertices[i].y - vertices[i - 1].y) * pos
-				}
-				break
+		if (labelIndex < vertices.length - 1) {
+			adjacentSegments.push({p: point, q: vertices[labelIndex + 1]});
+		}
+		segment = adjacentSegments.reduce<Segment | undefined>((longest, candidate) => {
+			if (!longest) {
+				return candidate;
 			}
-			acc += d
+			return calculateDistance(candidate.p, candidate.q) >
+				calculateDistance(longest.p, longest.q)
+				? candidate
+				: longest;
+		}, undefined);
+	} else {
+		const totalLength = vertices.slice(1).reduce(
+			(sum, vertex, index) => sum + calculateDistance(vertices[index], vertex),
+			0,
+		);
+		const targetLength = totalLength * position;
+		let traversed = 0;
+		for (let index = 1; index < vertices.length; index++) {
+			const candidate = {p: vertices[index - 1], q: vertices[index]};
+			const length = calculateDistance(candidate.p, candidate.q);
+			if (length > 0 && traversed + length >= targetLength) {
+				const segmentPosition = (targetLength - traversed) / length;
+				point = {
+					x: candidate.p.x + (candidate.q.x - candidate.p.x) * segmentPosition,
+					y: candidate.p.y + (candidate.q.y - candidate.p.y) * segmentPosition,
+				};
+				segment = candidate;
+				break;
+			}
+			traversed += length;
 		}
 	}
-	return pLabel;
+
+	const horizontalDistance = segment ? Math.abs(segment.q.x - segment.p.x) : 0;
+	const verticalDistance = segment ? Math.abs(segment.q.y - segment.p.y) : 0;
+	return {
+		...point,
+		orientation: verticalDistance > horizontalDistance ? 'vertical' : 'horizontal',
+	};
 }
 
 /**
