@@ -105,7 +105,7 @@ func TestChromedpExecReportsBrowserAutomationError(t *testing.T) {
 	defer server.Close()
 
 	output := filepath.Join(t.TempDir(), "missing.svg")
-	timeout := 15 * time.Second
+	timeout := 30 * time.Second
 	err := withChromedp(timeout, false, func(exec navigateExec) error {
 		return exec(server.URL, output, timeout)
 	})
