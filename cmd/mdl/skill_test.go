@@ -24,13 +24,13 @@ func TestDetectAgentSkillLocations(t *testing.T) {
 		{
 			name:        "detects Cursor executable",
 			executables: []string{"cursor-agent"},
-			wantPaths:   []string{cursorDiagramSkillPath},
+			wantPaths:   []string{agentsDiagramSkillPath},
 			wantFound:   true,
 		},
 		{
 			name:        "detects Codex project directory",
 			projectDirs: []string{".agents"},
-			wantPaths:   []string{codexDiagramSkillPath},
+			wantPaths:   []string{agentsDiagramSkillPath},
 			wantFound:   true,
 		},
 		{
@@ -40,19 +40,18 @@ func TestDetectAgentSkillLocations(t *testing.T) {
 			wantFound:   true,
 		},
 		{
-			name:        "installs for every detected agent",
+			name:        "shares one copy between Cursor and Codex",
 			projectDirs: []string{".cursor"},
 			executables: []string{"codex", "claude"},
 			wantPaths: []string{
-				cursorDiagramSkillPath,
-				codexDiagramSkillPath,
+				agentsDiagramSkillPath,
 				claudeDiagramSkillPath,
 			},
 			wantFound: true,
 		},
 		{
-			name:      "falls back to Cursor",
-			wantPaths: []string{cursorDiagramSkillPath},
+			name:      "uses portable fallback",
+			wantPaths: []string{agentsDiagramSkillPath},
 		},
 	}
 
@@ -75,15 +74,16 @@ func TestDetectAgentSkillLocations(t *testing.T) {
 func TestInstallSkills(t *testing.T) {
 	locations := []agentSkillLocation{
 		agentSkillLocations[0],
-		agentSkillLocations[2],
+		agentSkillLocations[1],
 	}
 
 	t.Run("creates every canonical skill", func(t *testing.T) {
 		root := t.TempDir()
 
-		results, err := installSkills(root, locations, false)
+		results, removedLegacy, err := installSkills(root, locations, false)
 
 		require.NoError(t, err)
+		assert.Empty(t, removedLegacy)
 		require.Len(t, results, 2)
 		for _, result := range results {
 			assert.True(t, result.changed)
@@ -95,12 +95,13 @@ func TestInstallSkills(t *testing.T) {
 
 	t.Run("is idempotent", func(t *testing.T) {
 		root := t.TempDir()
-		_, err := installSkills(root, locations, false)
+		_, _, err := installSkills(root, locations, false)
 		require.NoError(t, err)
 
-		results, err := installSkills(root, locations, false)
+		results, removedLegacy, err := installSkills(root, locations, false)
 
 		require.NoError(t, err)
+		assert.Empty(t, removedLegacy)
 		require.Len(t, results, 2)
 		assert.False(t, results[0].changed)
 		assert.False(t, results[1].changed)
@@ -108,16 +109,17 @@ func TestInstallSkills(t *testing.T) {
 
 	t.Run("preserves all targets when one contains local changes", func(t *testing.T) {
 		root := t.TempDir()
-		cursorTarget := filepath.Join(root, filepath.FromSlash(cursorDiagramSkillPath))
+		agentsTarget := filepath.Join(root, filepath.FromSlash(agentsDiagramSkillPath))
 		claudeTarget := filepath.Join(root, filepath.FromSlash(claudeDiagramSkillPath))
 		require.NoError(t, os.MkdirAll(filepath.Dir(claudeTarget), 0o755))
 		require.NoError(t, os.WriteFile(claudeTarget, []byte("local"), 0o644))
 
-		results, err := installSkills(root, locations, false)
+		results, removedLegacy, err := installSkills(root, locations, false)
 
 		assert.ErrorContains(t, err, "contains local changes")
 		assert.Empty(t, results)
-		_, statErr := os.Stat(cursorTarget)
+		assert.Empty(t, removedLegacy)
+		_, statErr := os.Stat(agentsTarget)
 		assert.ErrorIs(t, statErr, os.ErrNotExist)
 		content, readErr := os.ReadFile(claudeTarget)
 		require.NoError(t, readErr)
@@ -126,19 +128,57 @@ func TestInstallSkills(t *testing.T) {
 
 	t.Run("force replaces local changes", func(t *testing.T) {
 		root := t.TempDir()
-		target := filepath.Join(root, filepath.FromSlash(cursorDiagramSkillPath))
+		target := filepath.Join(root, filepath.FromSlash(agentsDiagramSkillPath))
 		require.NoError(t, os.MkdirAll(filepath.Dir(target), 0o755))
 		require.NoError(t, os.WriteFile(target, []byte("local"), 0o644))
 
-		results, err := installSkills(root, agentSkillLocations[:1], true)
+		results, removedLegacy, err := installSkills(root, agentSkillLocations[:1], true)
 
 		require.NoError(t, err)
+		assert.Empty(t, removedLegacy)
 		require.Len(t, results, 1)
 		assert.True(t, results[0].changed)
 		assert.Equal(t, target, results[0].path)
 		content, err := os.ReadFile(target)
 		require.NoError(t, err)
 		assert.Equal(t, diagramSkill, content)
+	})
+
+	t.Run("migrates canonical legacy Cursor copy", func(t *testing.T) {
+		root := t.TempDir()
+		legacyTarget := filepath.Join(root, filepath.FromSlash(legacyCursorDiagramSkillPath))
+		require.NoError(t, os.MkdirAll(filepath.Dir(legacyTarget), 0o755))
+		require.NoError(t, os.WriteFile(legacyTarget, diagramSkill, 0o644))
+
+		results, removedLegacy, err := installSkills(root, agentSkillLocations[:1], false)
+
+		require.NoError(t, err)
+		require.Len(t, results, 1)
+		assert.Equal(t, legacyTarget, removedLegacy)
+		_, statErr := os.Stat(legacyTarget)
+		assert.ErrorIs(t, statErr, os.ErrNotExist)
+		content, readErr := os.ReadFile(results[0].path)
+		require.NoError(t, readErr)
+		assert.Equal(t, diagramSkill, content)
+	})
+
+	t.Run("preserves modified legacy Cursor copy", func(t *testing.T) {
+		root := t.TempDir()
+		legacyTarget := filepath.Join(root, filepath.FromSlash(legacyCursorDiagramSkillPath))
+		agentsTarget := filepath.Join(root, filepath.FromSlash(agentsDiagramSkillPath))
+		require.NoError(t, os.MkdirAll(filepath.Dir(legacyTarget), 0o755))
+		require.NoError(t, os.WriteFile(legacyTarget, []byte("local"), 0o644))
+
+		results, removedLegacy, err := installSkills(root, agentSkillLocations[:1], false)
+
+		assert.ErrorContains(t, err, "contains local changes")
+		assert.Empty(t, results)
+		assert.Empty(t, removedLegacy)
+		_, statErr := os.Stat(agentsTarget)
+		assert.ErrorIs(t, statErr, os.ErrNotExist)
+		content, readErr := os.ReadFile(legacyTarget)
+		require.NoError(t, readErr)
+		assert.Equal(t, []byte("local"), content)
 	})
 }
 
