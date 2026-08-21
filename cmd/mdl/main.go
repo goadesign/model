@@ -592,7 +592,7 @@ func printUsage() {
 	fmt.Fprintf(os.Stderr, "  %s svg PACKAGE [FLAGS]\n", os.Args[0])
 	fmt.Fprintf(os.Stderr, "    Auto-layout and export SVG diagram(s) for the design described in PACKAGE.\n")
 	fmt.Fprintf(os.Stderr, "  %s skill install [-force]\n", os.Args[0])
-	fmt.Fprintf(os.Stderr, "    Install the MDL diagram-editing skill in the current repository.\n")
+	fmt.Fprintf(os.Stderr, "    Install the MDL diagram-editing skill for detected coding agents.\n")
 	fmt.Fprintf(os.Stderr, "\nPACKAGE must be the import path to a Go package containing Model DSL.\n")
 	fmt.Fprintf(os.Stderr, "PACKAGE is required by serve, gen, and svg.\n\n")
 	fmt.Fprintf(os.Stderr, "FLAGS:\n")

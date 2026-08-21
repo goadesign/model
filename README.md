@@ -191,10 +191,19 @@ DSL:
 mdl skill install
 ```
 
-The command writes
-`.cursor/skills/editing-model-diagrams/SKILL.md`. Re-running it is safe when
-the installed skill is unchanged. If the repository has modified the installed
-copy, `mdl` preserves it unless `-force` is provided explicitly.
+The command detects supported coding-agent executables and existing project
+configuration directories, then installs the skill for each detected agent:
+
+- Cursor: `.cursor/skills/editing-model-diagrams/SKILL.md`
+- Codex: `.agents/skills/editing-model-diagrams/SKILL.md`
+- Claude Code: `.claude/skills/editing-model-diagrams/SKILL.md`
+
+When more than one agent is available, `mdl` installs every required copy. If
+none can be detected, it uses the Cursor location for compatibility with
+earlier releases. Re-running the command is safe when installed copies are
+unchanged. If any copy contains local changes, `mdl` preserves every location
+without writing and reports the conflict; use `-force` only to replace those
+local changes explicitly.
 
 ### Using `stz`
 

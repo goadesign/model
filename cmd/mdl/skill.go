@@ -1,6 +1,6 @@
 // The skill installer publishes MDL's canonical diagram-editing instructions
-// into the current repository. It preserves locally edited skill files unless
-// the caller explicitly authorizes replacement.
+// to the project locations discovered by supported coding agents. It preserves
+// locally edited skill files unless the caller explicitly authorizes replacement.
 package main
 
 import (
@@ -9,52 +9,173 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 )
 
-const diagramSkillPath = ".cursor/skills/editing-model-diagrams/SKILL.md"
+type (
+	agentSkillLocation struct {
+		name        string
+		projectDir  string
+		path        string
+		executables []string
+	}
+
+	skillInstallResult struct {
+		agent   string
+		path    string
+		changed bool
+	}
+
+	skillTargetState struct {
+		location agentSkillLocation
+		path     string
+		changed  bool
+	}
+
+	executableLookup func(string) (string, error)
+)
+
+const (
+	cursorDiagramSkillPath = ".cursor/skills/editing-model-diagrams/SKILL.md"
+	codexDiagramSkillPath  = ".agents/skills/editing-model-diagrams/SKILL.md"
+	claudeDiagramSkillPath = ".claude/skills/editing-model-diagrams/SKILL.md"
+)
+
+var agentSkillLocations = []agentSkillLocation{
+	{
+		name:        "Cursor",
+		projectDir:  ".cursor",
+		path:        cursorDiagramSkillPath,
+		executables: []string{"cursor", "cursor-agent"},
+	},
+	{
+		name:        "Codex",
+		projectDir:  ".agents",
+		path:        codexDiagramSkillPath,
+		executables: []string{"codex"},
+	},
+	{
+		name:        "Claude Code",
+		projectDir:  ".claude",
+		path:        claudeDiagramSkillPath,
+		executables: []string{"claude"},
+	},
+}
 
 //go:embed skills/editing-model-diagrams/SKILL.md
 var diagramSkill []byte
 
+// runSkillInstall discovers the coding agents available to the current project
+// and installs the canonical skill in every location those agents read.
 func runSkillInstall(force bool) error {
 	root, err := os.Getwd()
 	if err != nil {
 		return fmt.Errorf("determine current repository: %w", err)
 	}
 
-	path, changed, err := installSkill(root, force)
+	locations, detected, err := detectAgentSkillLocations(root, exec.LookPath)
 	if err != nil {
 		return err
 	}
-	if changed {
-		fmt.Printf("Installed MDL diagram skill at %s\n", path)
-	} else {
-		fmt.Printf("MDL diagram skill is already current at %s\n", path)
+	results, err := installSkills(root, locations, force)
+	if err != nil {
+		return err
+	}
+	if !detected {
+		fmt.Println("No supported coding agent detected; using the Cursor-compatible fallback.")
+	}
+	for _, result := range results {
+		if result.changed {
+			fmt.Printf("Installed MDL diagram skill for %s at %s\n", result.agent, result.path)
+		} else {
+			fmt.Printf("MDL diagram skill for %s is already current at %s\n", result.agent, result.path)
+		}
 	}
 	return nil
 }
 
-func installSkill(root string, force bool) (string, bool, error) {
-	target := filepath.Join(root, filepath.FromSlash(diagramSkillPath))
-	existing, err := os.ReadFile(target)
-	switch {
-	case err == nil && bytes.Equal(existing, diagramSkill):
-		return target, false, nil
-	case err == nil && !force:
-		return "", false, fmt.Errorf(
-			"%s contains local changes; rerun with -force to replace it",
-			target,
-		)
-	case err != nil && !errors.Is(err, os.ErrNotExist):
-		return "", false, fmt.Errorf("read existing diagram skill: %w", err)
+// detectAgentSkillLocations returns every supported project location whose
+// agent executable or project configuration directory is present. It retains
+// the historical Cursor location as a fallback when no agent can be detected.
+func detectAgentSkillLocations(root string, lookPath executableLookup) ([]agentSkillLocation, bool, error) {
+	var locations []agentSkillLocation
+	for _, location := range agentSkillLocations {
+		detected, err := agentSkillLocationDetected(root, location, lookPath)
+		if err != nil {
+			return nil, false, err
+		}
+		if detected {
+			locations = append(locations, location)
+		}
+	}
+	if len(locations) > 0 {
+		return locations, true, nil
+	}
+	return agentSkillLocations[:1], false, nil
+}
+
+// agentSkillLocationDetected reports whether the repository is configured for
+// an agent or one of the agent's command-line executables is available.
+func agentSkillLocationDetected(root string, location agentSkillLocation, lookPath executableLookup) (bool, error) {
+	projectDir := filepath.Join(root, location.projectDir)
+	info, err := os.Stat(projectDir)
+	if err == nil && info.IsDir() {
+		return true, nil
+	}
+	if err != nil && !errors.Is(err, os.ErrNotExist) {
+		return false, fmt.Errorf("inspect %s project configuration: %w", location.name, err)
 	}
 
-	if err := os.MkdirAll(filepath.Dir(target), 0o755); err != nil {
-		return "", false, fmt.Errorf("create diagram skill directory: %w", err)
+	for _, executable := range location.executables {
+		if _, err := lookPath(executable); err == nil {
+			return true, nil
+		}
 	}
-	if err := os.WriteFile(target, diagramSkill, 0o644); err != nil {
-		return "", false, fmt.Errorf("write diagram skill: %w", err)
+	return false, nil
+}
+
+// installSkills validates every destination before writing any copy, then
+// installs the same embedded skill content into all detected agent locations.
+func installSkills(root string, locations []agentSkillLocation, force bool) ([]skillInstallResult, error) {
+	states := make([]skillTargetState, 0, len(locations))
+	for _, location := range locations {
+		target := filepath.Join(root, filepath.FromSlash(location.path))
+		existing, err := os.ReadFile(target)
+		switch {
+		case err == nil && bytes.Equal(existing, diagramSkill):
+			states = append(states, skillTargetState{location: location, path: target})
+		case err == nil && !force:
+			return nil, fmt.Errorf(
+				"%s contains local changes; rerun with -force to replace it",
+				target,
+			)
+		case err != nil && !errors.Is(err, os.ErrNotExist):
+			return nil, fmt.Errorf("read existing %s diagram skill: %w", location.name, err)
+		default:
+			states = append(states, skillTargetState{
+				location: location,
+				path:     target,
+				changed:  true,
+			})
+		}
 	}
-	return target, true, nil
+
+	results := make([]skillInstallResult, 0, len(states))
+	for _, state := range states {
+		if state.changed {
+			if err := os.MkdirAll(filepath.Dir(state.path), 0o755); err != nil {
+				return nil, fmt.Errorf("create %s diagram skill directory: %w", state.location.name, err)
+			}
+			if err := os.WriteFile(state.path, diagramSkill, 0o644); err != nil {
+				return nil, fmt.Errorf("write %s diagram skill: %w", state.location.name, err)
+			}
+		}
+		results = append(results, skillInstallResult{
+			agent:   state.location.name,
+			path:    state.path,
+			changed: state.changed,
+		})
+	}
+	return results, nil
 }
