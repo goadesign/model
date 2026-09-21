@@ -9,14 +9,14 @@ require (
 	github.com/jaschaephraim/lrserver v0.0.0-20240306232639-afed386b3640
 	github.com/kylelemons/godebug v1.1.0
 	github.com/stretchr/testify v1.12.1
-	goa.design/goa/v3 v3.30.0
+	goa.design/goa/v3 v3.31.1
 	golang.org/x/tools v0.50.0
 )
 
 require (
 	github.com/chromedp/sysutil v1.1.0 // indirect
 	github.com/dimfeld/httppath v0.0.0-20170720192232-ee938bf73598 // indirect
-	github.com/go-chi/chi/v5 v5.3.1 // indirect
+	github.com/go-chi/chi/v5 v5.3.2 // indirect
 	github.com/go-json-experiment/json v0.0.0-20260623181947-01eb4420fa68 // indirect
 	github.com/gobwas/httphead v0.1.0 // indirect
 	github.com/gobwas/pool v0.2.1 // indirect
