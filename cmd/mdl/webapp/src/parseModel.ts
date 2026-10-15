@@ -80,7 +80,9 @@ interface View {
 		vertices: { x: number; y: number }[];
 		routing: string; // takes priority over style
 	}[];
-	softwareSystemId: string;
+	softwareSystemId?: string;
+	containerId?: string;
+	externalContainersBoundariesVisible?: boolean;
 }
 
 const layoutDirections: Record<RankDirection, LayoutDirection> = {
@@ -199,6 +201,19 @@ export const parseView = (model: Model, layouts: Layouts, viewKey: string) => {
 				groupingIDs[el.parent.id] = true
 			}
 		})
+	} else if (section === 'componentViews') {
+		// Selected components belong to the view's container. Other containers
+		// receive boundaries only when the view requests them.
+		view.elements.forEach(ref => {
+			const parent = elements.get(ref.id)?.parent;
+			if (!parent?.components) return;
+			if (parent.id !== view.containerId && !view.externalContainersBoundariesVisible) return;
+			// A container listed as a node keeps its own relationships; it cannot
+			// also be replaced by a group with the same identifier.
+			if (!view.elements.some(candidate => candidate.id === parent.id)) {
+				groupingIDs[parent.id] = true;
+			}
+		});
 	} else if (view.softwareSystemId) {
 		//don't show grouping if the element is listed in the view
 		if (!view.elements.find(ref => ref.id == view.softwareSystemId))
