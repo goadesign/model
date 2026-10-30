@@ -3,6 +3,7 @@ package plugin_test
 import (
 	"bytes"
 	"encoding/json"
+	"path/filepath"
 	"testing"
 
 	"goa.design/goa/v3/codegen"
@@ -25,7 +26,7 @@ func TestGenerateDescribesTheEvaluatedDesignOnce(t *testing.T) {
 	if len(files) != 1 {
 		t.Fatalf("got %d files, want 1", len(files))
 	}
-	if want := codegen.Gendir + "/structurizr/model.json"; files[0].Path != want {
+	if want := filepath.Join(codegen.Gendir, "structurizr", "model.json"); files[0].Path != want {
 		t.Errorf("got path %q, want %q", files[0].Path, want)
 	}
 	var buf bytes.Buffer
