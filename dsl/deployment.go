@@ -21,7 +21,7 @@ import (
 //	var _ = Design(func() {
 //	     DeploymentEnvironment("production", func() {
 //	         DeploymentNode("AppServer", "Application server", "Go and Goa v3")
-//	         InfrastructureNote("Router", "External traffic router", "AWS Route 53")
+//	         InfrastructureNode("Router", "External traffic router", "AWS Route 53")
 //	         ContainerInstance(Container)
 //	     })
 //	 })
