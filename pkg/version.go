@@ -10,7 +10,7 @@ const (
 	// Minor version number
 	Minor = 16
 	// Build number
-	Build = 10
+	Build = 11
 	// Suffix - set to empty string in release tag commits.
 	Suffix = ""
 )
