@@ -2,12 +2,6 @@ import {afterEach, beforeEach, describe, expect, it, vi} from "vitest";
 
 import {parseView} from "./parseModel";
 
-vi.hoisted(() => {
-	vi.stubGlobal("document", {
-		querySelector: () => ({setAttribute: () => {}}),
-	});
-});
-
 // Parser tests use fixed text sizes; browser tests verify the rendered geometry.
 vi.mock("./graph-view/svg-text", () => ({
 	measureSVGText: (text: string) => ({width: text.length * 8, height: 16}),
@@ -15,7 +9,8 @@ vi.mock("./graph-view/svg-text", () => ({
 }));
 
 beforeEach(() => {
-	vi.stubGlobal("window", {});
+	// Each parsed GraphData creates its own svg element; parsing never draws into it.
+	vi.stubGlobal("document", {createElementNS: () => ({})});
 	vi.useFakeTimers();
 });
 

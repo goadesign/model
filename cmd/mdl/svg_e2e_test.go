@@ -15,6 +15,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/chromedp/cdproto/input"
 	cdruntime "github.com/chromedp/cdproto/runtime"
 	"github.com/chromedp/chromedp"
 	"github.com/jaschaephraim/lrserver"
@@ -45,6 +46,43 @@ type (
 		ExpectedWidth  float64 `json:"expectedWidth"`
 		ExpectedHeight float64 `json:"expectedHeight"`
 	}
+
+	// pagePoint is a position in page (CSS pixel) coordinates.
+	pagePoint struct {
+		X float64 `json:"x"`
+		Y float64 `json:"y"`
+	}
+
+	// previewDotStyle compares the relationship-point preview dot's computed
+	// colors with the colors the editor style sheet's "circle.prj" rule sets.
+	previewDotStyle struct {
+		Fill       string `json:"fill"`
+		Stroke     string `json:"stroke"`
+		RuleFill   string `json:"ruleFill"`
+		RuleStroke string `json:"ruleStroke"`
+	}
+)
+
+const (
+	// editorNodeSelector matches the nodes the editor page has drawn.
+	editorNodeSelector = "#root > div.graph svg g.nodes > g.node"
+	// autoLayoutButton is the editor toolbar button that lays out the view.
+	autoLayoutButton = "button.auto-arrange"
+	// saveButton is the editor toolbar button that saves the view's SVG file.
+	saveButton = `button[data-tooltip^="Save"]`
+	// editorGraphScript evaluates to the graph object the editor page draws, or
+	// null before it draws one. The page exposes no handle, so this test-only
+	// driver reads the Graph component's data prop from React's fiber.
+	editorGraphScript = `(() => {
+		const host = document.querySelector("#root > div.graph");
+		const key = host && Object.keys(host).find(name => name.startsWith("__reactFiber$"));
+		for (let fiber = key && host[key]; fiber; fiber = fiber.return) {
+			if (fiber.memoizedProps?.data) return fiber.memoizedProps.data;
+		}
+		return null;
+	})()`
+	// editorDrawnScript is true once every node of the editor's graph is in the page.
+	editorDrawnScript = editorGraphScript + `?.nodes().every(node => node.ref?.isConnected)`
 )
 
 func hasChrome() bool {
@@ -168,7 +206,7 @@ func TestManualEditAfterAutoLayout(t *testing.T) {
 		url.QueryEscape("SystemContext"),
 	)
 	const script = `(async () => {
-		const graph = window.gdata;
+		const graph = ` + editorGraphScript + `;
 		await graph.autoLayout();
 		const node = graph.nodes()[0];
 		graph.moveNode(node, node.x + 20, node.y, true);
@@ -185,10 +223,7 @@ func TestManualEditAfterAutoLayout(t *testing.T) {
 	if err := chromedp.Run(
 		testContext,
 		chromedp.Navigate(pageURL),
-		chromedp.Poll(
-			`window.gdata && window.gdata.nodes().every(node => node.ref?.isConnected)`,
-			nil,
-		),
+		chromedp.Poll(editorDrawnScript, nil),
 		chromedp.Evaluate(
 			script,
 			&dimensions,
@@ -207,6 +242,82 @@ func TestManualEditAfterAutoLayout(t *testing.T) {
 			dimensions.ExpectedWidth,
 			dimensions.ExpectedHeight,
 		)
+	}
+}
+
+// TestEdgePointPreviewStyle moves the mouse over a relationship with Alt held,
+// as an editor user does before adding a relationship point, and checks that
+// the preview dot gets the colors of the editor style sheet's preview rule.
+func TestEdgePointPreviewStyle(t *testing.T) {
+	if !hasChrome() {
+		t.Skip("skipping: Chrome/Chromium not available in PATH")
+	}
+	design, err := loadDesign("goa.design/model/examples/basic/model", false)
+	if err != nil {
+		t.Fatalf("load design: %v", err)
+	}
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatalf("listen: %v", err)
+	}
+	server := NewServer(design)
+	httpServer := &http.Server{ReadHeaderTimeout: 3 * time.Second}
+	serverDone := make(chan error, 1)
+	outDir := t.TempDir()
+	go func() {
+		serverDone <- server.ServeOnListener(outDir, "", httpServer, http.NewServeMux(), listener)
+	}()
+	t.Cleanup(func() {
+		if err := httpServer.Close(); err != nil {
+			t.Errorf("close editor server: %v", err)
+		}
+		if err := <-serverDone; err != nil && err != http.ErrServerClosed {
+			t.Errorf("editor server: %v", err)
+		}
+	})
+	testContext, cleanup := newChromeContext(t)
+	defer cleanup()
+
+	const previewDot = "#root > div.graph svg g.edges > circle"
+	// The middle of the drawn relationship line, in page coordinates.
+	const edgeMiddleScript = `(() => {
+		const path = document.querySelector("#root > div.graph svg g.edge > path.edge");
+		const middle = path.getPointAtLength(path.getTotalLength() / 2);
+		const point = new DOMPoint(middle.x, middle.y).matrixTransform(path.getScreenCTM());
+		return {x: point.x, y: point.y};
+	})()`
+	const styleScript = `(() => {
+		const style = getComputedStyle(document.querySelector("` + previewDot + `"));
+		const rule = [...document.styleSheets].flatMap(sheet => [...sheet.cssRules])
+			.find(rule => rule.selectorText === "circle.prj");
+		return {
+			fill: style.fill,
+			stroke: style.stroke,
+			ruleFill: rule?.style.fill ?? "",
+			ruleStroke: rule?.style.stroke ?? "",
+		};
+	})()`
+	var middle pagePoint
+	if err := chromedp.Run(testContext,
+		chromedp.Navigate(fmt.Sprintf("http://%s/?id=SystemContext", listener.Addr().String())),
+		chromedp.WaitVisible(editorNodeSelector, chromedp.ByQuery),
+		clickEditorButton(autoLayoutButton),
+		chromedp.Evaluate(edgeMiddleScript, &middle),
+	); err != nil {
+		t.Fatalf("lay out view and find relationship: %v", err)
+	}
+	var style previewDotStyle
+	if err := chromedp.Run(testContext,
+		chromedp.MouseEvent(input.MouseMoved, middle.X, middle.Y, chromedp.ButtonModifiers(input.ModifierAlt)),
+		chromedp.Poll(`document.querySelector("`+previewDot+`") !== null`, nil,
+			chromedp.WithPollingTimeout(5*time.Second)),
+		chromedp.Evaluate(styleScript, &style),
+	); err != nil {
+		t.Fatalf("show relationship point preview: %v", err)
+	}
+	if style.RuleFill == "" || style.Fill != style.RuleFill || style.Stroke != style.RuleStroke {
+		t.Fatalf("preview dot fill %q stroke %q, want circle.prj rule fill %q stroke %q",
+			style.Fill, style.Stroke, style.RuleFill, style.RuleStroke)
 	}
 }
 
@@ -266,25 +377,16 @@ func TestSVGAuthoredPresentation(t *testing.T) {
 	testContext, cleanup := newChromeContext(t)
 	defer cleanup()
 	pageURL := fmt.Sprintf("http://%s/?id=Authored", listener.Addr().String())
-	const renderScript = `(async () => {
-		const graph = window.gdata;
-		await graph.autoLayout();
-		return graph.exportSVG();
-	})()`
-	var exported string
+	// The editor's toolbar lays out the view and saves its SVG into outDir.
 	if err := chromedp.Run(testContext,
 		chromedp.Navigate(pageURL),
-		chromedp.Poll(`window.gdata && window.gdata.nodes().every(node => node.ref?.isConnected)`, nil),
-		chromedp.Evaluate(renderScript, &exported, func(params *cdruntime.EvaluateParams) *cdruntime.EvaluateParams {
-			return params.WithAwaitPromise(true)
-		}),
+		chromedp.WaitVisible(editorNodeSelector, chromedp.ByQuery),
+		clickEditorButton(autoLayoutButton),
+		clickEditorButton(saveButton),
 	); err != nil {
 		t.Fatalf("draw authored styles: %v", err)
 	}
-	file := filepath.Join(t.TempDir(), "authored.svg")
-	if err := os.WriteFile(file, []byte(exported), 0600); err != nil {
-		t.Fatalf("save authored SVG: %v", err)
-	}
+	file := filepath.Join(outDir, "Authored.svg")
 	// Another browser proves the exported file carries its own font faces.
 	exportContext, cleanupExport := newChromeContext(t)
 	defer cleanupExport()
@@ -754,6 +856,38 @@ func newChromeContext(t *testing.T) (context.Context, func()) {
 		cancelAllocator()
 	}
 	return testContext, cleanup
+}
+
+// clickEditorButton clicks one editor toolbar button and waits until the editor
+// enables it again, which happens once the layout or save it started finishes.
+// It fails, naming the selector, when the button is missing or stays disabled
+// for 15 seconds.
+func clickEditorButton(selector string) chromedp.Action {
+	var finished bool
+	script := fmt.Sprintf(`new Promise((resolve, reject) => {
+		const selector = %q;
+		const button = document.querySelector(selector);
+		if (!button) {
+			reject(new Error("no editor button matches " + selector));
+			return;
+		}
+		const observer = new MutationObserver(records => {
+			if (records.some(record => record.oldValue !== null)) {
+				observer.disconnect();
+				clearTimeout(timer);
+				resolve(true);
+			}
+		});
+		const timer = setTimeout(() => {
+			observer.disconnect();
+			reject(new Error("editor button " + selector + " was not enabled again within 15 seconds"));
+		}, 15000);
+		observer.observe(button, {attributeFilter: ["disabled"], attributeOldValue: true});
+		button.click();
+	})`, selector)
+	return chromedp.Evaluate(script, &finished, func(params *cdruntime.EvaluateParams) *cdruntime.EvaluateParams {
+		return params.WithAwaitPromise(true)
+	})
 }
 
 func svgLinks(t *testing.T, path string) []string {

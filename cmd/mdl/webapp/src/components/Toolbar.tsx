@@ -240,12 +240,12 @@ const GridControls: FC<{ graph: GraphData }> = ({ graph }) => {
   );
 };
 
-const ZoomDisplay: FC = () => {
+const ZoomDisplay: FC<{ graph: GraphData }> = ({ graph }) => {
   const [zoom, setZoomState] = useState(100);
 
   useEffect(() => {
     const updateZoom = () => {
-      const currentZoom = Math.round(getZoom() * 100);
+      const currentZoom = Math.round(getZoom(graph) * 100);
       setZoomState(currentZoom);
     };
 
@@ -256,11 +256,11 @@ const ZoomDisplay: FC = () => {
     const interval = setInterval(updateZoom, 100);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [graph]);
 
   return (
     <button 
-      onClick={() => setZoomCentered(1)} 
+      onClick={() => setZoomCentered(graph, 1)} 
       className="zoom-display"
       data-tooltip="Click to reset zoom to 100%"
     >
@@ -274,13 +274,13 @@ const ZoomControls: FC<{ graph: GraphData }> = ({ graph }) => {
   return (
     <>
       <button onClick={() => {
-        setZoomCentered(Math.max(0.1, getZoom() / 1.2));
+        setZoomCentered(graph, Math.max(0.1, getZoom(graph) / 1.2));
       }} data-tooltip={`Zoom out to see more of the diagram (${modKey}+-)`}>
         <i className="fas fa-search-minus"></i>
       </button>
-      <ZoomDisplay />
+      <ZoomDisplay graph={graph} />
       <button onClick={() => {
-        setZoomCentered(Math.min(5, getZoom() * 1.2));
+        setZoomCentered(graph, Math.min(5, getZoom(graph) * 1.2));
       }} data-tooltip={`Zoom in to see details more clearly (${modKey}+=)`}>
         <i className="fas fa-search-plus"></i>
       </button>

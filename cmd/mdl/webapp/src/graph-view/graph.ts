@@ -133,6 +133,9 @@ interface Layout {
 	[k: string]: Point | SavedEdgePoint[] | boolean
 }
 
+/** graphCount numbers the graphs created in this page; each GraphData uses it once for its idPrefix. */
+let graphCount = 0
+
 export class GraphData {
 	id: string;
 	name: string;
@@ -144,6 +147,20 @@ export class GraphData {
 	layoutDirection?: LayoutDirection;
 	validatedLayout?: ValidatedLayout;
 	colorToVarMap: Map<string, string> = new Map(); // For CSS custom properties theming
+	/**
+	 * svg is the element this graph draws into. Each graph has its own element,
+	 * so several graphs on one page never change each other's drawing, zoom, or
+	 * export. It carries no document-wide id; exportSVG adds id "graph" to the copy.
+	 */
+	readonly svg: SVGSVGElement;
+	/**
+	 * idPrefix starts every id this graph writes into its live svg, for example
+	 * "g2-arrow" or "g2-" plus a model element id, so two graphs in one page never
+	 * share an id. exportSVG removes it, so saved files keep the plain ids.
+	 */
+	readonly idPrefix: string;
+	/** selectListener receives the selected node in the editor; buildGraph sets it. */
+	selectListener: (n: Node) => void;
 	private _undo: Undo<Layout>;
 	private _gridVisible: boolean = false;
 	private _snapToGrid: boolean = true;
@@ -158,15 +175,14 @@ export class GraphData {
 		this.edgeVertices = new Map;
 		this.nodesMap = new Map;
 		this.groupsMap = new Map;
+		this.svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+		this.idPrefix = `g${++graphCount}-`;
 
 		this._undo = new Undo<Layout>(
 			this.id,
 			() => this.exportLayout(true),
 			(lo) => this.importLayout(lo, true)
 		)
-
-		// @ts-ignore
-		window.graph = this
 	}
 
 	// after the graph model is build using addNode, addEdge etc, initialize
@@ -450,15 +466,15 @@ export class GraphData {
 	
 	// Reset pan transform to (0,0) while preserving zoom
 	resetPanTransform() {
-		const currentZoom = getZoom()
-		const zoomGroup = svg.querySelector('g.zoom') as SVGGElement
+		const currentZoom = getZoom(this)
+		const zoomGroup = this.svg.querySelector('g.zoom') as SVGGElement
 		if (zoomGroup) {
 			zoomGroup.setAttribute('transform', `scale(${currentZoom}) translate(0, 0)`)
 			updatePanningOptimized(this)
 		}
 		
 		// Clear view state so this reset is not overridden
-		clearViewState(this.id)
+		clearViewState(this)
 		
 		// Reset the skip auto fit flag after reset is complete
 		this._skipAutoFit = false
@@ -471,15 +487,15 @@ export class GraphData {
 
 	// Reset view to default state: 100% zoom, centered at origin
 	resetView() {
-		const zoomGroup = svg.querySelector('g.zoom') as SVGGElement
+		const zoomGroup = this.svg.querySelector('g.zoom') as SVGGElement
 		if (zoomGroup) {
 			// Reset to 100% zoom, centered at origin
 			zoomGroup.setAttribute('transform', 'scale(1) translate(0, 0)')
-			updatePanning()
+			updatePanning(this)
 		}
 		
 		// Clear any saved view state so this reset position is not overridden
-		clearViewState(this.id)
+		clearViewState(this)
 	}
 
 	//redraw connected edges
@@ -491,7 +507,7 @@ export class GraphData {
 	redrawEdge(e: Edge) {
 		const p = e.ref.parentElement;
 		p.removeChild(e.ref)
-		e.ref = buildEdge(e)
+		e.ref = buildEdge(e, this)
 		p.append(e.ref)
 	}
 
@@ -510,11 +526,19 @@ export class GraphData {
 			this.validatedLayout = validateCurrentLayout(this)
 		}
 		// Get the original SVG
-		const originalSvg: SVGSVGElement = document.querySelector('svg#graph')
+		const originalSvg = this.svg
 		const elastic = originalSvg.querySelector('rect.elastic')
 		
 		// Clone the SVG for export (completely separate from the live one)
 		const exportSvg = originalSvg.cloneNode(true) as SVGSVGElement
+		// Standalone files keep the ids saved files have always used: the root id
+		// "graph", written before the other root attributes as in earlier files,
+		// and this graph's own ids without the live idPrefix.
+		const rootAttributes = Array.from(exportSvg.attributes)
+		rootAttributes.forEach(attr => exportSvg.removeAttributeNode(attr))
+		exportSvg.setAttribute('id', 'graph')
+		rootAttributes.forEach(attr => exportSvg.setAttributeNode(attr))
+		this.removeIdPrefix(exportSvg)
 
 		// Standalone SVGs navigate to sibling view files instead of editor routes.
 		exportSvg.querySelectorAll('a.nodeLink[data-export-href]').forEach(link => {
@@ -573,6 +597,28 @@ export class GraphData {
 		
 		// No restoration needed since we never touched the original SVG!
 		return src
+	}
+
+	/**
+	 * removeIdPrefix rewrites the export copy's ids and url(#…) references that
+	 * name this graph's own elements back to their saved names, for example
+	 * "g2-arrow" to "arrow" and "url(#g2-arrow)" to "url(#arrow)". The renderer
+	 * writes no #… links, so href values (image URLs) are never rewritten, and
+	 * user-authored node links (a.nodeLink) are left exactly as written.
+	 */
+	private removeIdPrefix(svg: SVGSVGElement) {
+		const prefix = this.idPrefix
+		const reference = `url(#${prefix}`
+		svg.querySelectorAll('*').forEach(el => {
+			if (el.matches('a.nodeLink')) return
+			for (const attr of Array.from(el.attributes)) {
+				if (attr.name === 'id' && attr.value.startsWith(prefix)) {
+					attr.value = attr.value.slice(prefix.length)
+				} else if (attr.localName !== 'href' && attr.value.startsWith(reference)) {
+					attr.value = 'url(#' + attr.value.slice(reference.length)
+				}
+			}
+		})
 	}
 
 	// Convert inline fill/stroke attributes to CSS custom properties with fallbacks.
@@ -915,8 +961,8 @@ export class GraphData {
 		}
 		
 		// Get viewport dimensions
-		const viewportWidth = svg.parentElement?.clientWidth || 800
-		const viewportHeight = svg.parentElement?.clientHeight || 600
+		const viewportWidth = this.svg.parentElement?.clientWidth || 800
+		const viewportHeight = this.svg.parentElement?.clientHeight || 600
 		
 		// Add padding around content
 		const padding = 40
@@ -943,16 +989,16 @@ export class GraphData {
 		const translateY = viewportCenterY - (contentCenterY * finalZoom)
 		
 		// Apply zoom and translation transform
-		const zoomGroup = svg.querySelector('g.zoom') as SVGGElement
+		const zoomGroup = this.svg.querySelector('g.zoom') as SVGGElement
 		if (zoomGroup) {
 			zoomGroup.setAttribute('transform', `translate(${translateX}, ${translateY}) scale(${finalZoom})`)
 		}
 		
 		// Update panning
-		updatePanning()
+		updatePanning(this)
 		
 		// Save view state so this fit position is preserved after reload
-		saveViewState(this.id)
+		saveViewState(this)
 	}
 
 	// Save current layout state for restoration
@@ -1012,15 +1058,15 @@ export class GraphData {
 	}
 
 	updateGridDisplay() {
-		if (!svg) return;
+		const svg = this.svg;
 
 		// Remove existing grid pattern and background
-		const existingGrid = svg.querySelector('#grid-pattern');
+		const existingGrid = svg.querySelector(`#${this.idPrefix}grid-pattern`);
 		if (existingGrid) {
 			existingGrid.remove();
 		}
 
-		const existingGridRect = svg.querySelector('#grid-background');
+		const existingGridRect = svg.querySelector(`#${this.idPrefix}grid-background`);
 		if (existingGridRect) {
 			existingGridRect.remove();
 		}
@@ -1035,7 +1081,7 @@ export class GraphData {
 		}
 
 		const pattern = document.createElementNS('http://www.w3.org/2000/svg', 'pattern');
-		pattern.id = 'grid-pattern';
+		pattern.id = `${this.idPrefix}grid-pattern`;
 		pattern.setAttribute('width', this._gridSize.toString());
 		pattern.setAttribute('height', this._gridSize.toString());
 		pattern.setAttribute('patternUnits', 'userSpaceOnUse');
@@ -1052,12 +1098,12 @@ export class GraphData {
 
 		// Create grid background rectangle
 		const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-		rect.id = 'grid-background';
+		rect.id = `${this.idPrefix}grid-background`;
 		rect.setAttribute('x', '-10000');
 		rect.setAttribute('y', '-10000');
 		rect.setAttribute('width', '20000');
 		rect.setAttribute('height', '20000');
-		rect.setAttribute('fill', 'url(#grid-pattern)');
+		rect.setAttribute('fill', `url(#${this.idPrefix}grid-pattern)`);
 		rect.setAttribute('pointer-events', 'none');
 
 		// Insert grid as first child of zoom group so it transforms with content
@@ -1104,35 +1150,19 @@ function escapeCdata(code: string) {
 
 
 
-let svg: SVGSVGElement = document.querySelector('svg#graph')
-if (!svg) {
-	svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-	svg.setAttribute('id', 'graph')
-	svg.addEventListener('click', e => clickListener(e))
-	// addCursorInteraction(svg) // Call will be updated in buildGraph
-}
-svg.setAttribute('width', '100%')
-svg.setAttribute('height', '100%')
-
-let clickListener: (e: MouseEvent) => void
-let dragging = false;
-let selectListener: (n: Node) => void
-
-
+/**
+ * buildGraph draws data into its own svg for the editor and attaches the
+ * editor's mouse, wheel, and keyboard handling to that graph. Calling it again
+ * for the same graph redraws the same svg and replaces the earlier handlers.
+ * onNodeSelect receives the selected node; the caller places the returned svg.
+ */
 export const buildGraph = (data: GraphData, onNodeSelect: (n: Node) => void, dragMode: 'pan' | 'select') => {
+	const svg = data.svg
+	svg.setAttribute('width', '100%')
+	svg.setAttribute('height', '100%')
 	document.body.append(svg) // make sure svg element is connected, we will measure texts sizes
-	// @ts-ignore
-	svg.__data = data
 
-	selectListener = onNodeSelect
-
-	//use event delegation
-	clickListener = e => {
-		if (dragging) {
-			return;
-		}
-		// const el = (e.target as any).closest('.node > .expand');
-	}
+	data.selectListener = onNodeSelect
 
 	_buildGraph(data)
 	const elasticEl = create.rect(300, 300, 50, 50, 0, 'elastic')
@@ -1142,25 +1172,24 @@ export const buildGraph = (data: GraphData, onNodeSelect: (n: Node) => void, dra
 	data.updateGridDisplay()
 
 	// Call addCursorInteraction with dragMode
-	addCursorInteraction(svg, dragMode)
+	addCursorInteraction(data, dragMode)
 
 	return {
 		svg,
-		setZoom,
+		setZoom: (zoom: number) => setZoom(data, zoom),
 	}
 }
 
+/** buildGraphView draws data into its own svg without editor handling and returns that svg. */
 export const buildGraphView = (data: GraphData) => {
-	svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-	svg.setAttribute('id', 'graph')
 	_buildGraph(data)
-	return svg
+	return data.svg
 }
 
 const _buildGraph = (data: GraphData) => {
 	// Every graph owns the reusable SVG definitions referenced by its drawn
 	// elements, including relationship arrowheads, icons, and filters.
-	svg.innerHTML = defs
+	data.svg.innerHTML = defs(data.idPrefix)
 
 	//toplevel groups
 	const zoomG = create.element('g', {}, 'zoom') as SVGGElement
@@ -1179,7 +1208,7 @@ const _buildGraph = (data: GraphData) => {
 		edge.labelBounds = undefined
 	})
 	data.edges.forEach(e => {
-		buildEdge(e)
+		buildEdge(e, data)
 		edgesG.append(e.ref)
 	})
 
@@ -1188,14 +1217,15 @@ const _buildGraph = (data: GraphData) => {
 		groupsG.append(group.ref)
 	})
 
-	svg.append(zoomG)
+	data.svg.append(zoomG)
 }
 
-function buildEdge(edge: Edge) {
+/** buildEdge draws one relationship of data, using data's idPrefix for its ids and arrowhead. */
+function buildEdge(edge: Edge, data: GraphData) {
 	const n1 = edge.from;
 
 	const g = create.element('g', {}, 'edge') as SVGGElement
-	g.setAttribute('id', edge.id)
+	g.setAttribute('id', data.idPrefix + edge.id)
 	g.setAttribute('data-from', edge.from.id)
 	g.setAttribute('data-to', edge.to.id)
 
@@ -1211,7 +1241,7 @@ function buildEdge(edge: Edge) {
 
 	const path = createEdgePath(vertices)
 
-	const p = create.path(path, {'marker-end': 'url(#arrow)'}, 'edge')
+	const p = create.path(path, {'marker-end': `url(#${data.idPrefix}arrow)`}, 'edge')
 	p.setAttribute('fill', 'none')
 	p.setAttribute('stroke', edge.style.color)
 	p.setAttribute('stroke-width', String(edge.style.thickness))
@@ -1224,7 +1254,7 @@ function buildEdge(edge: Edge) {
 	// drag handlers
 	for (const p of edge.vertices ?? []) {
 		const v = p as EdgeVertex
-		v.ref = create.element('circle', {id: v.id, cx: p.x, cy: p.y, r: 7, fill: 'none'}, 'v-dot')
+		v.ref = create.element('circle', {id: data.idPrefix + v.id, cx: p.x, cy: p.y, r: 7, fill: 'none'}, 'v-dot')
 		v.selected && v.ref.classList.add('selected')
 		v.auto && v.ref.classList.add('auto')
 		g.append(v.ref)
@@ -1314,12 +1344,10 @@ function buildEdgeLabel(placement: EdgeLabelPlacement, edge: Edge) {
 }
 
 
+/** buildNode draws one element of data, using data's idPrefix for its id. */
 function buildNode(n: Node, data: GraphData) {
-	// @ts-ignore
-	window.gdata = data
-
 	const g = create.element('g', {}, 'node') as SVGGElement
-	g.setAttribute('id', n.id)
+	g.setAttribute('id', data.idPrefix + n.id)
 	n.selected && g.classList.add('selected')
 	setPosition(g, n.x, n.y)
 	const link = n.link
@@ -1465,13 +1493,14 @@ function findClosestSegment(graph: GraphData, p: Point) {
 	return fnd.edge ? fnd : null
 }
 
-function mouseToDrawing(e: MouseEvent): Point {
+/** mouseToDrawing converts a mouse event over data's svg to drawing coordinates. */
+function mouseToDrawing(data: GraphData, e: MouseEvent): Point {
 	// transform event coords to drawing coords
-	const b = svg.getBoundingClientRect()
-	const z = getZoom()
+	const b = data.svg.getBoundingClientRect()
+	const z = getZoom(data)
 	
 	// Get current pan transform
-	const currentTransform = getCurrentTransform()
+	const currentTransform = getCurrentTransform(data)
 	
 	// Convert screen coordinates to drawing coordinates accounting for zoom and pan
 	// The transform values are in screen coordinates, so we need to divide by zoom and subtract
@@ -1487,11 +1516,10 @@ interface Handle extends Point {
 	ref?: SVGElement
 }
 
-// Custom cursor interaction that prioritizes panning over selection
-function addCustomCursorInteraction(svg: SVGSVGElement, conn: {
+// Custom cursor interaction that prioritizes panning over selection, on data's svg
+function addCustomCursorInteraction(data: GraphData, conn: {
 	nodeFromEvent(e: MouseEvent): Handle | null;
 	setSelection(handles: Handle[]): void;
-	setDragging(dragging: boolean): void;
 	isSelected(handle: Handle): boolean;
 	getSelection(): Handle[];
 	getZoom(): number;
@@ -1499,6 +1527,7 @@ function addCustomCursorInteraction(svg: SVGSVGElement, conn: {
 	boxSelection(box: DOMRect, add: boolean): void;
 	updatePanning(): void;
 }, dragMode: 'pan' | 'select') {
+	const svg = data.svg
 	let ini: { x: number; y: number; n: Handle }[] = []
 	let elastic: any = null
 	let isPanning = false
@@ -1520,7 +1549,7 @@ function addCustomCursorInteraction(svg: SVGSVGElement, conn: {
 		return {
 			ini(e: MouseEvent) {
 				// Use mouseToDrawing to get proper drawing coordinates (accounts for zoom and pan)
-				const pt = mouseToDrawing(e)
+				const pt = mouseToDrawing(data, e)
 				startDrawingX = pt.x
 				startDrawingY = pt.y
 				
@@ -1546,7 +1575,7 @@ function addCustomCursorInteraction(svg: SVGSVGElement, conn: {
 				if (!rect) return
 				
 				// Convert current mouse position to drawing coordinates (accounts for zoom and pan)
-				const currentPt = mouseToDrawing(e)
+				const currentPt = mouseToDrawing(data, e)
 				const currentDrawingX = currentPt.x
 				const currentDrawingY = currentPt.y
 				
@@ -1604,7 +1633,7 @@ function addCustomCursorInteraction(svg: SVGSVGElement, conn: {
 		const zoomGroup = svg.querySelector('g.zoom') as SVGGElement
 		if (!zoomGroup) return
 		
-		const zoom = getZoom()
+		const zoom = getZoom(data)
 		zoomGroup.setAttribute('transform', `translate(${x}, ${y}) scale(${zoom})`)
 	}
 
@@ -1727,16 +1756,13 @@ function addCustomCursorInteraction(svg: SVGSVGElement, conn: {
 				// Add the drawing coordinate delta to get new position
 				conn.moveNode(item.n, item.x + drawingDx, item.y + drawingDy)
 			})
-			conn.setDragging(true)
 		} else if (elastic) {
 			// Update selection box
 			elastic.update(e)
-			conn.setDragging(true)
 		}
 	}
 
 	function onMouseUp(e: MouseEvent) {
-		conn.setDragging(false)
 		const navigation = hasDragged ? null : pendingNavigation
 		if (hasDragged) {
 			suppressLinkClick = true
@@ -1766,10 +1792,7 @@ function addCustomCursorInteraction(svg: SVGSVGElement, conn: {
 		
 		// Save view state if user was panning (user-initiated view change)
 		if (isPanning && hasDragged) {
-			const graphData = (svg as any).__data as GraphData
-			if (graphData && graphData.id) {
-				saveViewState(graphData.id)
-			}
+			saveViewState(data)
 		}
 		
 		// Reset state
@@ -1854,7 +1877,14 @@ function addCustomCursorInteraction(svg: SVGSVGElement, conn: {
 	}
 }
 
-export function addCursorInteraction(svg: SVGSVGElement, dragMode: 'pan' | 'select') {
+/**
+ * addCursorInteraction attaches the editor's mouse, wheel, keyboard, and
+ * unsaved-changes handling for data and its svg, replacing handlers attached by
+ * an earlier call. The cleanup function is stored as the svg's
+ * __cursorInteractionCleanup; the editor calls it when it removes the graph.
+ */
+export function addCursorInteraction(data: GraphData, dragMode: 'pan' | 'select') {
+	const svg = data.svg
 	// Clean up any existing event listeners to prevent conflicts
 	const existingCleanup = (svg as any).__cursorInteractionCleanup
 	if (existingCleanup) {
@@ -1866,13 +1896,11 @@ export function addCursorInteraction(svg: SVGSVGElement, dragMode: 'pan' | 'sele
 		return el.__data
 	}
 
-	const gd = () => (getData(svg) as GraphData)
-	
 	// Store event listeners for cleanup
 	const eventListeners: Array<{ element: Element | Window, event: string, handler: EventListener }> = []
 
 	const beforeUnloadHandler = (e: BeforeUnloadEvent) => {
-		if (!gd().changed()) return
+		if (!data.changed()) return
 		e.preventDefault()
 		e.returnValue = ''
 	}
@@ -1881,20 +1909,20 @@ export function addCursorInteraction(svg: SVGSVGElement, dragMode: 'pan' | 'sele
 
 	function setDotSelected(d: Handle, selected: boolean) {
 		d.selected = selected
-		const dotEl = svg.querySelector('#' + d.id)
+		const dotEl = svg.querySelector('#' + data.idPrefix + d.id)
 		d.selected ? dotEl.classList.add('selected') : dotEl.classList.remove('selected')
 	}
 
 	// show moving dot along edge when ALT is pressed
 	const mouseMoveHandler = (e: MouseEvent) => {
 		if (!e.altKey) return
-		const fnd = findClosestSegment(gd(), mouseToDrawing(e))
+		const fnd = findClosestSegment(data, mouseToDrawing(data, e))
 		if (fnd) {
 			const {prj} = fnd
 			const parent = svg.querySelector('g.edges')
-			let dot = parent.querySelector('#prj')
+			let dot = parent.querySelector(`#${data.idPrefix}prj`)
 			if (!dot) {
-				dot = create.element('circle', {id: 'prj', cx: prj.x, cy: prj.y, r: 7})
+				dot = create.element('circle', {id: `${data.idPrefix}prj`, cx: prj.x, cy: prj.y, r: 7}, 'prj')
 				parent.append(dot)
 			}
 			dot.setAttribute('cx', String(prj.x))
@@ -1915,18 +1943,18 @@ export function addCursorInteraction(svg: SVGSVGElement, dragMode: 'pan' | 'sele
 	eventListeners.push({ element: window, event: 'keyup', handler: keyUpHandler })
 
 	function removePrjDot() {
-		const el = svg.querySelector('g.edges #prj')
+		const el = svg.querySelector(`g.edges #${data.idPrefix}prj`)
 		el && el.parentElement.removeChild(el)
 	}
 
 	const clickHandler = (e: MouseEvent) => {
 		const key = findShortcut(e, true)
 		if (key != ADD_LABEL_VERTEX && key != ADD_VERTEX) return
-		const fnd = findClosestSegment(gd(), mouseToDrawing(e))
+		const fnd = findClosestSegment(data, mouseToDrawing(data, e))
 		if (fnd) {
 			const {edge, pos, prj} = fnd
 			// depending on keyboard modifier, make it label position
-			gd().insertEdgeVertex(edge, prj, pos, key == ADD_LABEL_VERTEX)
+			data.insertEdgeVertex(edge, prj, pos, key == ADD_LABEL_VERTEX)
 			removePrjDot()
 		}
 	}
@@ -1937,7 +1965,7 @@ export function addCursorInteraction(svg: SVGSVGElement, dragMode: 'pan' | 'sele
 		// Handle wheel zoom directly without relying on shortcuts
 		// deltaY > 0 means scrolling down (zoom out), deltaY < 0 means scrolling up (zoom in)
 		const delta = Math.sign(e.deltaY) * 0.1 // Normalize to 0.1 zoom steps
-		const currentZoom = getZoom()
+		const currentZoom = getZoom(data)
 		const newZoom = Math.max(0.1, Math.min(5, currentZoom - delta)) // Clamp zoom between 0.1 and 5
 		
 		if (newZoom !== currentZoom) {
@@ -1945,14 +1973,11 @@ export function addCursorInteraction(svg: SVGSVGElement, dragMode: 'pan' | 'sele
 			const rect = svg.getBoundingClientRect()
 			const svgX = e.clientX - rect.left
 			const svgY = e.clientY - rect.top
-			setZoomCentered(newZoom, svgX, svgY)
+			setZoomCentered(data, newZoom, svgX, svgY)
 			e.preventDefault()
 			
 			// Save view state after user wheel zoom
-			const graphData = (svg as any).__data as GraphData
-			if (graphData && graphData.id) {
-				saveViewState(graphData.id)
-			}
+			saveViewState(data)
 		}
 	}
 	svg.addEventListener('wheel', wheelHandler)
@@ -1968,45 +1993,45 @@ export function addCursorInteraction(svg: SVGSVGElement, dragMode: 'pan' | 'sele
 		
 		switch (shortcut) {
 			case DEL_VERTEX:
-				const selectedVertices = Array.from(gd().edgeVertices.values()).filter(v => v.selected);
+				const selectedVertices = Array.from(data.edgeVertices.values()).filter(v => v.selected);
 				selectedVertices.forEach(v => {
-					gd().deleteEdgeVertex(v)
+					data.deleteEdgeVertex(v)
 				})
 				break
 			case UNDO:
-				gd().undo()
+				data.undo()
 				break
 			case REDO:
-				gd().redo()
+				data.redo()
 				break
 			case ZOOM_IN:
-				const newZoomIn = Math.min(5, getZoom() * 1.2)
+				const newZoomIn = Math.min(5, getZoom(data) * 1.2)
 				// Center zoom on viewport center like mouse wheel
-				setZoomCentered(newZoomIn)
-				saveViewState(gd().id) // Save after user keyboard zoom
+				setZoomCentered(data, newZoomIn)
+				saveViewState(data) // Save after user keyboard zoom
 				break
 			case ZOOM_OUT:
-				const newZoomOut = Math.max(0.1, getZoom() / 1.2)
+				const newZoomOut = Math.max(0.1, getZoom(data) / 1.2)
 				// Center zoom on viewport center like mouse wheel
-				setZoomCentered(newZoomOut)
-				saveViewState(gd().id) // Save after user keyboard zoom
+				setZoomCentered(data, newZoomOut)
+				saveViewState(data) // Save after user keyboard zoom
 				break
 			case ZOOM_100:
 				// Center zoom on viewport center like mouse wheel
-				setZoomCentered(1)
-				saveViewState(gd().id) // Save after user keyboard zoom
+				setZoomCentered(data, 1)
+				saveViewState(data) // Save after user keyboard zoom
 				break
 			case ZOOM_FIT:
-				gd().fitToView()
+				data.fitToView()
 				// Don't save view state here - fitToView should not be persisted
 				break
 			case SELECT_ALL:
-				gd().nodes().forEach(n => gd().setNodeSelected(n, true))
-				gd().edgeVertices.forEach(v => setDotSelected(v, true))
+				data.nodes().forEach(n => data.setNodeSelected(n, true))
+				data.edgeVertices.forEach(v => setDotSelected(v, true))
 				break
 			case DESELECT:
-				gd().nodes().forEach(n => gd().setNodeSelected(n, false))
-				gd().edgeVertices.forEach(v => setDotSelected(v, false))
+				data.nodes().forEach(n => data.setNodeSelected(n, false))
+				data.edgeVertices.forEach(v => setDotSelected(v, false))
 				break
 		}
 	}
@@ -2014,61 +2039,58 @@ export function addCursorInteraction(svg: SVGSVGElement, dragMode: 'pan' | 'sele
 	eventListeners.push({ element: window, event: 'keydown', handler: keyDownHandler })
 
 	// Custom cursor interaction with pan-first behavior
-	const customInteractionCleanup = addCustomCursorInteraction(svg, {
+	const customInteractionCleanup = addCustomCursorInteraction(data, {
 		nodeFromEvent(e: MouseEvent): Handle {
 			e.preventDefault()
 			// node clicked
 			let el = (e.target as SVGElement).closest('g.nodes g.node') as SVGElement
 			if (el) return getData(el)
-			// vertex dot clicked
+			// vertex dot clicked; its id is the vertex id after this graph's idPrefix
 			el = (e.target as SVGElement).closest('g.edges g.edge .v-dot') as SVGElement
 			if (el) {
-				return gd().edgeVertices.get(el.id)
+				return data.edgeVertices.get(el.id.slice(data.idPrefix.length))
 			}
 			return null
 		},
 		setSelection(handles: Handle[]) {
 			// nodes
-			gd().nodes().forEach(n => gd().setNodeSelected(n, handles.some(h => h.id == n.id)))
+			data.nodes().forEach(n => data.setNodeSelected(n, handles.some(h => h.id == n.id)))
 			// dots
-			gd().edgeVertices.forEach(d => setDotSelected(d, handles.some(h => h.id == d.id)))
-			selectListener(gd().nodes().find(n => n.selected))
-		},
-		setDragging(d: boolean) {
-			dragging = d
+			data.edgeVertices.forEach(d => setDotSelected(d, handles.some(h => h.id == d.id)))
+			data.selectListener(data.nodes().find(n => n.selected))
 		},
 		isSelected(handle: Handle): boolean {
 			return handle.selected
 		},
 		getSelection(): Handle[] {
-			const ret: Handle[] = gd().nodes().filter(n => n.selected)
-			gd().edgeVertices.forEach(d => d.selected && ret.push(d))
+			const ret: Handle[] = data.nodes().filter(n => n.selected)
+			data.edgeVertices.forEach(d => d.selected && ret.push(d))
 			return ret
 		},
-		getZoom: getZoom,
+		getZoom: () => getZoom(data),
 		moveNode(h: Handle, x: number, y: number) {
-			if (gd().nodesMap.has(h.id))
-				gd().moveNode(h as Node, x, y)
+			if (data.nodesMap.has(h.id))
+				data.moveNode(h as Node, x, y)
 			else {
 				(h as EdgeVertex).auto = false
-				gd().moveEdgeVertex(h as EdgeVertex, x, y)
+				data.moveEdgeVertex(h as EdgeVertex, x, y)
 			}
 		},
 		boxSelection(box: DOMRect, add) {
 			// Box is now already in drawing coordinates, no need to scale
 			// nodes
-			gd().nodesMap.forEach(n => {
+			data.nodesMap.forEach(n => {
 				const inBox = boxesOverlap(uncenterBox(n), box)
 				if (inBox) {
 					// Toggle selection for elements in the box
-					gd().setNodeSelected(n, !n.selected)
+					data.setNodeSelected(n, !n.selected)
 				} else if (!add) {
 					// If not holding shift and element is outside box, deselect it
-					gd().setNodeSelected(n, false)
+					data.setNodeSelected(n, false)
 				}
 			})
 			// dots
-			gd().edgeVertices.forEach(d => {
+			data.edgeVertices.forEach(d => {
 				const inBox = insideBox(d, box, false)
 				if (inBox) {
 					// Toggle selection for elements in the box
@@ -2079,9 +2101,9 @@ export function addCursorInteraction(svg: SVGSVGElement, dragMode: 'pan' | 'sele
 				}
 			})
 
-			selectListener(gd().nodes().find(n => n.selected))
+			data.selectListener(data.nodes().find(n => n.selected))
 		},
-		updatePanning: updatePanning,
+		updatePanning: () => updatePanning(data),
 	}, dragMode)
 	
 	// Store cleanup function on the SVG element for later use
@@ -2098,9 +2120,9 @@ export function addCursorInteraction(svg: SVGSVGElement, dragMode: 'pan' | 'sele
 	;(svg as any).__cursorInteractionCleanup = cleanup
 }
 
-export function getZoom() {
-	if (!svg) return 1
-	const el = svg.querySelector('g.zoom') as SVGGElement
+/** getZoom returns data's current zoom, or 1 before data has been drawn. */
+export function getZoom(data: GraphData) {
+	const el = data.svg.querySelector('g.zoom') as SVGGElement
 	if (!el) return 1
 	
 	// Parse zoom from transform attribute to match how we set it
@@ -2114,22 +2136,27 @@ export function getZoom() {
 
 // svgPadding is now imported as SVG_PADDING from constants.ts
 
-export function setZoom(zoom: number) {
-	if (!svg) return
-	const el = svg.querySelector('g.zoom') as SVGGElement
+/** setZoom sets data's zoom and keeps its current pan; it does nothing before data is drawn. */
+export function setZoom(data: GraphData, zoom: number) {
+	const el = data.svg.querySelector('g.zoom') as SVGGElement
 	if (!el) return
 	
 	// Preserve existing translation when setting zoom
-	const currentTransform = getCurrentTransform()
+	const currentTransform = getCurrentTransform(data)
 	el.setAttribute('transform', `translate(${currentTransform.x}, ${currentTransform.y}) scale(${zoom})`)
 	
 	// also set panning size
-	updatePanning()
+	updatePanning(data)
 }
 
-export function setZoomCentered(newZoom: number, centerX?: number, centerY?: number) {
+/**
+ * setZoomCentered sets data's zoom while keeping the drawing point under
+ * (centerX, centerY) in place, by default the center of the svg's container.
+ */
+export function setZoomCentered(data: GraphData, newZoom: number, centerX?: number, centerY?: number) {
+	const svg = data.svg
 	const el = svg.querySelector('g.zoom') as SVGGElement
-	const oldZoom = getZoom()
+	const oldZoom = getZoom(data)
 	
 	// If no center point provided, use viewport center
 	if (centerX === undefined || centerY === undefined) {
@@ -2147,7 +2174,7 @@ export function setZoomCentered(newZoom: number, centerX?: number, centerY?: num
 	}
 	
 	// Get current transform
-	const currentTransform = getCurrentTransform()
+	const currentTransform = getCurrentTransform(data)
 	
 	// Convert screen coordinates to drawing coordinates
 	// For transform order translate(tx, ty) scale(s):
@@ -2166,12 +2193,12 @@ export function setZoomCentered(newZoom: number, centerX?: number, centerY?: num
 	el.setAttribute('transform', `translate(${newTranslateX}, ${newTranslateY}) scale(${newZoom})`)
 	
 	// Update panning
-	updatePanning()
+	updatePanning(data)
 }
 
-function getCurrentTransform() {
-	if (!svg) return { x: 0, y: 0 }
-	const el = svg.querySelector('g.zoom') as SVGGElement
+/** getCurrentTransform returns data's current pan, or (0, 0) before data is drawn. */
+function getCurrentTransform(data: GraphData) {
+	const el = data.svg.querySelector('g.zoom') as SVGGElement
 	if (!el) return { x: 0, y: 0 }
 	
 	const transform = el.getAttribute('transform') || ''
@@ -2185,12 +2212,13 @@ function getCurrentTransform() {
 	return { x: 0, y: 0 }
 }
 
-function updatePanning() {
-	if (!svg) return
+/** updatePanning resizes data's svg to fit its zoomed drawing; it does nothing until the svg is placed. */
+function updatePanning(data: GraphData) {
+	const svg = data.svg
 	const el = svg.querySelector('g.zoom') as SVGGElement
 	if (!el) return
 	const bb = el.getBBox()
-	const zoom = getZoom()
+	const zoom = getZoom(data)
 	if (!svg.parentElement) return
 	const w = Math.max(svg.parentElement.clientWidth / zoom, bb.x + bb.width + SVG_PADDING)
 	const h = Math.max(svg.parentElement.clientHeight / zoom, bb.y + bb.height + SVG_PADDING)
@@ -2203,25 +2231,21 @@ function updatePanning() {
 
 // Optimized version that uses pre-calculated content bounds instead of expensive getBBox()
 function updatePanningOptimized(graphData: GraphData) {
+	const svg = graphData.svg
 	const bb = graphData.calculateContentBounds() // Use already calculated bounds
-	const zoom = getZoom()
+	const zoom = getZoom(graphData)
 	const w = Math.max(svg.parentElement.clientWidth / zoom, bb.x + bb.width + SVG_PADDING)
 	const h = Math.max(svg.parentElement.clientHeight / zoom, bb.y + bb.height + SVG_PADDING)
 	svg.setAttribute('width', String(w * zoom))
 	svg.setAttribute('height', String(h * zoom))
 }
 
-export const getZoomAuto = () => {
-	// Get the graph data to calculate proper content bounds
-	const graphData = (svg as any).__data as GraphData
-	if (!graphData) {
-		return 1 // Default zoom if no graph data
-	}
-	
+/** getZoomAuto returns the zoom that fits graphData's content in its svg's container. */
+export const getZoomAuto = (graphData: GraphData) => {
 	// Use proper content bounds calculation
 	const contentBounds = graphData.calculateContentBounds()
-	const viewportWidth = svg.parentElement?.clientWidth || 800
-	const viewportHeight = svg.parentElement?.clientHeight || 600
+	const viewportWidth = graphData.svg.parentElement?.clientWidth || 800
+	const viewportHeight = graphData.svg.parentElement?.clientHeight || 600
 	
 	// Add padding around content
 	const padding = 40
@@ -2243,43 +2267,41 @@ const setBorderStyle = (el: SVGElement, style: string) => {
 // View state persistence - similar to undo cache but for zoom/pan
 const viewStateCache = new Map<string, { zoom: number; transform: { x: number; y: number } }>();
 
-// Save current view state (zoom and pan)
-export function saveViewState(graphId: string) {
-	if (!svg) return;
-	
-	const zoom = getZoom();
-	const transform = getCurrentTransform();
+// Save data's current view state (zoom and pan) under its view id
+export function saveViewState(data: GraphData) {
+	const zoom = getZoom(data);
+	const transform = getCurrentTransform(data);
 	
 	const state = {
 		zoom,
 		transform: { x: transform.x, y: transform.y }
 	};
 	
-	viewStateCache.set(graphId, state);
+	viewStateCache.set(data.id, state);
 }
 
-// Restore view state if it exists
-export function restoreViewState(graphId: string): boolean {
-	if (!svg || !viewStateCache.has(graphId)) {
+// Restore the view state saved for data's view id, if it exists
+export function restoreViewState(data: GraphData): boolean {
+	if (!viewStateCache.has(data.id)) {
 		return false;
 	}
 	
-	const state = viewStateCache.get(graphId);
+	const state = viewStateCache.get(data.id);
 	if (!state) {
 		return false;
 	}
 	
 	// Restore zoom and transform
-	const zoomGroup = svg.querySelector('g.zoom') as SVGGElement;
+	const zoomGroup = data.svg.querySelector('g.zoom') as SVGGElement;
 	if (zoomGroup) {
 		zoomGroup.setAttribute('transform', `scale(${state.zoom}) translate(${state.transform.x}, ${state.transform.y})`);
-		updatePanning();
+		updatePanning(data);
 	}
 	
 	return true;
 }
 
-// Clear view state for a graph
-export function clearViewState(graphId: string) {
-	viewStateCache.delete(graphId);
+// Clear the view state saved for data's view id
+export function clearViewState(data: GraphData) {
+	viewStateCache.delete(data.id);
 }
