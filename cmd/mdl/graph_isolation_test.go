@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math"
 	"net"
 	"net/http"
 	"os"
@@ -33,10 +34,21 @@ type (
 		OwnNodes bool `json:"ownNodes"`
 		// Zoom is the transform that fitting the layout set on this svg.
 		Zoom string `json:"zoom"`
+		// Container is the width and height of the element that holds this svg.
+		Container [2]float64 `json:"container"`
+		// FittedContent is this graph's content box (left, top, right, bottom)
+		// after Zoom, in the container's coordinates; empty when Zoom is not a
+		// translate-then-scale transform.
+		FittedContent []float64 `json:"fittedContent"`
 		// Grid is true when this svg shows its own grid.
 		Grid bool `json:"grid"`
-		// Unresolved lists url(#…) and #… references with no target in this svg.
+		// Unresolved lists url(#…) and #… references with no target in this svg;
+		// node links are user-authored targets, not references, and are skipped.
 		Unresolved []string `json:"unresolved"`
+		// IDPrefix is the prefix of this graph's live ids.
+		IDPrefix string `json:"idPrefix"`
+		// ExportLinks lists the exported node link targets.
+		ExportLinks []string `json:"exportLinks"`
 		// Export is the graph's exported SVG file.
 		Export string `json:"export"`
 		// ExportRootID is the id of the exported root element.
@@ -97,20 +109,34 @@ func TestTwoGraphsInOneDocument(t *testing.T) {
 	})()`
 	const layoutScript = `(async () => {
 		const graphs = [window.firstGraph, ` + editorGraphScript + `];
+		// A fixed-size holder keeps the first graph's container size unchanged by layout.
 		const holder = document.createElement("div");
+		holder.style.cssText = "width: 640px; height: 480px; overflow: hidden";
 		document.body.append(holder);
 		holder.append(graphs[0].svg);
 		graphs.forEach(graph => graph.toggleGrid());
+		const containers = graphs.map(graph =>
+			[graph.svg.parentElement.clientWidth, graph.svg.parentElement.clientHeight]);
 		await Promise.all(graphs.map(graph => graph.autoLayout()));
 		const ids = [...document.querySelectorAll("[id]")].map(el => el.id);
 		return {
 			duplicates: ids.filter((id, index) => ids.indexOf(id) !== index),
-			graphs: graphs.map(graph => {
+			graphs: graphs.map((graph, index) => {
 				const svg = graph.svg;
 				const refs = graph.nodes().map(node => node.ref);
 				const drawn = [...svg.querySelectorAll("g.nodes > g.node")];
+				const zoom = svg.querySelector("g.zoom").getAttribute("transform") || "";
+				const fit = zoom.match(/^translate\(([^,]+), ([^)]+)\) scale\(([^)]+)\)$/);
+				const fitted = [];
+				if (fit) {
+					const [x, y, scale] = fit.slice(1).map(Number);
+					const content = graph.calculateContentBounds();
+					fitted.push(x + content.x * scale, y + content.y * scale,
+						x + (content.x + content.width) * scale, y + (content.y + content.height) * scale);
+				}
 				const unresolved = [];
 				for (const el of svg.querySelectorAll("*")) {
+					if (el.matches("a.nodeLink")) continue;
 					for (const attr of el.attributes) {
 						const target = attr.value.match(/^url\(#(.+)\)$/)?.[1] ??
 							(attr.localName === "href" && attr.value.startsWith("#") ? attr.value.slice(1) : null);
@@ -119,16 +145,21 @@ func TestTwoGraphsInOneDocument(t *testing.T) {
 				}
 				const markup = graph.exportSVG();
 				const exported = new DOMParser().parseFromString(markup, "image/svg+xml").documentElement;
-				const leaks = [...exported.querySelectorAll("*")].flatMap(el => [...el.attributes]
-					.filter(attr => (attr.name === "id" && attr.value.startsWith(graph.idPrefix)) ||
-						attr.value.includes("#" + graph.idPrefix))
-					.map(attr => attr.value));
+				const leaks = [...exported.querySelectorAll("*")].filter(el => !el.matches("a.nodeLink"))
+					.flatMap(el => [...el.attributes]
+						.filter(attr => (attr.name === "id" && attr.value.startsWith(graph.idPrefix)) ||
+							attr.value.includes("#" + graph.idPrefix))
+						.map(attr => attr.value));
 				return {
 					nodes: graph.nodes().map(node => node.id).sort(),
 					ownNodes: drawn.length === refs.length && drawn.every(el => refs.includes(el)),
-					zoom: svg.querySelector("g.zoom").getAttribute("transform") || "",
+					zoom,
+					container: containers[index],
+					fittedContent: fitted,
 					grid: svg.querySelector("pattern") !== null,
 					unresolved,
+					idPrefix: graph.idPrefix,
+					exportLinks: [...exported.querySelectorAll("a.nodeLink")].map(link => link.getAttribute("href")).sort(),
 					export: markup,
 					exportRootId: exported.id,
 					exportNodes: [...exported.querySelectorAll("g.node")].map(node => node.id).sort(),
@@ -161,20 +192,41 @@ func TestTwoGraphsInOneDocument(t *testing.T) {
 	if len(result.Graphs) != 2 {
 		t.Fatalf("expected two graphs, got %d", len(result.Graphs))
 	}
+	if result.Graphs[0].Zoom == result.Graphs[1].Zoom {
+		t.Errorf("both graphs have the same fit transform %q", result.Graphs[0].Zoom)
+	}
+	// The person's model URL starts with the first graph's live id prefix; the
+	// export must keep this user-authored link exactly as written.
+	if result.Graphs[0].IDPrefix != "g1-" {
+		t.Fatalf("first graph id prefix %q, want g1- for the link check", result.Graphs[0].IDPrefix)
+	}
 	for i, want := range []struct {
 		view        string
 		nodes       []string
+		links       []string
 		orientation string
 	}{
-		{"Context", []string{"shop", "user"}, "horizontal"},
-		{"Containers", []string{"db", "user", "web"}, "vertical"},
+		{"Context", []string{"shop", "user"}, []string{"#g1-guide", "Containers.svg"}, "horizontal"},
+		{"Containers", []string{"db", "user", "web"}, []string{"#g1-guide"}, "vertical"},
 	} {
 		got := result.Graphs[i]
 		if !reflect.DeepEqual(got.Nodes, want.nodes) || !got.OwnNodes {
 			t.Errorf("%s: svg nodes %v (only its own: %t), want %v", want.view, got.Nodes, got.OwnNodes, want.nodes)
 		}
-		if got.Zoom == "" {
-			t.Errorf("%s: layout fit was not applied to this graph's svg", want.view)
+		// Fitting centers a graph's own content in its own container.
+		width, height := got.Container[0], got.Container[1]
+		if len(got.FittedContent) != 4 {
+			t.Errorf("%s: transform %q is not this graph's fit", want.view, got.Zoom)
+		} else if left, top, right, bottom := got.FittedContent[0], got.FittedContent[1],
+			got.FittedContent[2], got.FittedContent[3]; math.Abs((left+right)/2-width/2) > 0.5 ||
+			math.Abs((top+bottom)/2-height/2) > 0.5 ||
+			left < -0.5 || top < -0.5 || right > width+0.5 || bottom > height+0.5 {
+			t.Errorf("%s: fitted content %v is not centered inside its %vx%v container",
+				want.view, got.FittedContent, width, height)
+		}
+		if !reflect.DeepEqual(got.ExportLinks, want.links) {
+			t.Errorf("%s: exported node links %v, want %v with the user's #g1-guide unchanged",
+				want.view, got.ExportLinks, want.links)
 		}
 		if !got.Grid {
 			t.Errorf("%s: svg has no grid", want.view)
@@ -203,13 +255,14 @@ func TestTwoGraphsInOneDocument(t *testing.T) {
 }
 
 // twoViewDesign returns one model with two views that share the element
-// "user" and differ in shapes, colors, and layout direction.
+// "user" and differ in shapes, colors, and layout direction. The user's URL
+// starts with the first graph's live id prefix text, "g1-".
 func twoViewDesign() *mdl.Design {
 	return &mdl.Design{
 		Name: "Two views",
 		Model: &mdl.Model{
 			People: []*mdl.Person{{
-				ID: "user", Name: "Customer", Tags: "Element,Person,person",
+				ID: "user", Name: "Customer", Tags: "Element,Person,person", URL: "#g1-guide",
 				Relationships: []*mdl.Relationship{
 					{ID: "browse", SourceID: "user", DestinationID: "shop", Description: "Browses", Tags: "Relationship"},
 					{ID: "order", SourceID: "user", DestinationID: "web", Description: "Orders through", Tags: "Relationship"},

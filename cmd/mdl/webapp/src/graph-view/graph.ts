@@ -161,8 +161,6 @@ export class GraphData {
 	readonly idPrefix: string;
 	/** selectListener receives the selected node in the editor; buildGraph sets it. */
 	selectListener: (n: Node) => void;
-	/** dragging is true while the editor user drags this graph's nodes or selection box. */
-	dragging = false;
 	private _undo: Undo<Layout>;
 	private _gridVisible: boolean = false;
 	private _snapToGrid: boolean = true;
@@ -602,22 +600,22 @@ export class GraphData {
 	}
 
 	/**
-	 * removeIdPrefix rewrites the export copy's ids, url(#…) references, and #…
-	 * links that name this graph's own elements back to their saved names, for
-	 * example "g2-arrow" to "arrow" and "url(#g2-arrow)" to "url(#arrow)". Values
-	 * that do not start with this graph's idPrefix, such as node links and image
-	 * URLs, stay unchanged.
+	 * removeIdPrefix rewrites the export copy's ids and url(#…) references that
+	 * name this graph's own elements back to their saved names, for example
+	 * "g2-arrow" to "arrow" and "url(#g2-arrow)" to "url(#arrow)". The renderer
+	 * writes no #… links, so href values (image URLs) are never rewritten, and
+	 * user-authored node links (a.nodeLink) are left exactly as written.
 	 */
 	private removeIdPrefix(svg: SVGSVGElement) {
 		const prefix = this.idPrefix
+		const reference = `url(#${prefix}`
 		svg.querySelectorAll('*').forEach(el => {
+			if (el.matches('a.nodeLink')) return
 			for (const attr of Array.from(el.attributes)) {
 				if (attr.name === 'id' && attr.value.startsWith(prefix)) {
 					attr.value = attr.value.slice(prefix.length)
-				} else if (attr.value.includes(`url(#${prefix}`)) {
-					attr.value = attr.value.split(`url(#${prefix}`).join('url(#')
-				} else if (attr.localName === 'href' && attr.value.startsWith(`#${prefix}`)) {
-					attr.value = '#' + attr.value.slice(prefix.length + 1)
+				} else if (attr.localName !== 'href' && attr.value.startsWith(reference)) {
+					attr.value = 'url(#' + attr.value.slice(reference.length)
 				}
 			}
 		})
@@ -1522,7 +1520,6 @@ interface Handle extends Point {
 function addCustomCursorInteraction(data: GraphData, conn: {
 	nodeFromEvent(e: MouseEvent): Handle | null;
 	setSelection(handles: Handle[]): void;
-	setDragging(dragging: boolean): void;
 	isSelected(handle: Handle): boolean;
 	getSelection(): Handle[];
 	getZoom(): number;
@@ -1759,16 +1756,13 @@ function addCustomCursorInteraction(data: GraphData, conn: {
 				// Add the drawing coordinate delta to get new position
 				conn.moveNode(item.n, item.x + drawingDx, item.y + drawingDy)
 			})
-			conn.setDragging(true)
 		} else if (elastic) {
 			// Update selection box
 			elastic.update(e)
-			conn.setDragging(true)
 		}
 	}
 
 	function onMouseUp(e: MouseEvent) {
-		conn.setDragging(false)
 		const navigation = hasDragged ? null : pendingNavigation
 		if (hasDragged) {
 			suppressLinkClick = true
@@ -1928,7 +1922,7 @@ export function addCursorInteraction(data: GraphData, dragMode: 'pan' | 'select'
 			const parent = svg.querySelector('g.edges')
 			let dot = parent.querySelector(`#${data.idPrefix}prj`)
 			if (!dot) {
-				dot = create.element('circle', {id: `${data.idPrefix}prj`, cx: prj.x, cy: prj.y, r: 7})
+				dot = create.element('circle', {id: `${data.idPrefix}prj`, cx: prj.x, cy: prj.y, r: 7}, 'prj')
 				parent.append(dot)
 			}
 			dot.setAttribute('cx', String(prj.x))
@@ -2064,9 +2058,6 @@ export function addCursorInteraction(data: GraphData, dragMode: 'pan' | 'select'
 			// dots
 			data.edgeVertices.forEach(d => setDotSelected(d, handles.some(h => h.id == d.id)))
 			data.selectListener(data.nodes().find(n => n.selected))
-		},
-		setDragging(d: boolean) {
-			data.dragging = d
 		},
 		isSelected(handle: Handle): boolean {
 			return handle.selected

@@ -260,7 +260,7 @@ button:disabled {
     stroke: #777;
     fill: rgba(119, 119, 119, 0.2);
 }
-circle#prj {
+circle.prj {
     fill: none;
     stroke: #777;
 }
@@ -287,9 +287,6 @@ g.node text {
 .icon {
     fill: #aaa;
     stroke: #fff;
-}
-#icon-cube {
-    fill: #aaa;
 }
 
 /* Ensure all button icons are uncolored */
