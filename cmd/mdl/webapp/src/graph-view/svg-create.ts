@@ -1,4 +1,5 @@
 import {svgTextWrap} from "./svg-text";
+import {SVG_STYLES} from "./constants";
 
 export const create = {
 	element(type: string, attrs: Record<string, string | number> = {}, className?: string) {
@@ -27,6 +28,7 @@ export const create = {
 
 	textArea(text: string, width: number, fontSize: number, bold: boolean, x = 0, y = 0, anchor = '') {
 		const attrs: Record<string, string> = {
+			'font-family': SVG_STYLES.edgeText['font-family'],
 			'font-size': `${fontSize}px`,
 			'font-weight': bold ? 'bold' : 'normal'
 		};

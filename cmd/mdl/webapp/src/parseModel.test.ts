@@ -63,6 +63,40 @@ describe("component view boundaries", () => {
 	});
 });
 
+describe("authored visual styles", () => {
+	it("preserves shapes, colors and dimensions while honoring visible content", () => {
+		const model = componentModel();
+		model.views.styles.elements = [{
+			tag: "Component", shape: "Cylinder", background: "#123456", stroke: "#abcdef",
+			color: "#ffffff", width: 420, height: 300, fontSize: 24,
+			metadata: false, description: false,
+			icon: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/l9sAAAAASUVORK5CYII=",
+		}];
+		const graph = parseView(model, {}, "components");
+		const node = graph.nodesMap.get("handler");
+		expect(node.style).toMatchObject(model.views.styles.elements[0]);
+		expect([node.width, node.height]).toEqual([420, 300]);
+		expect(node.contentLayout.blocks.map(block => block.field)).toEqual(["name"]);
+		expect(node.contentLayout.icon).toBe(model.views.styles.elements[0].icon);
+	});
+
+	it("keeps ordinary metadata and descriptions and carries relationship technology", () => {
+		const model = componentModel();
+		const handler = model.model.softwareSystems[0].containers[0].components[0];
+		handler.description = "Receives requests";
+		handler.relationships[0].technology = "HTTPS";
+		model.views.styles.relationships = [{tag: "Relationship", width: 320, color: "#123456", thickness: 4}];
+		const graph = parseView(model, {}, "components");
+		const node = graph.nodesMap.get("handler");
+		expect(node.contentLayout.blocks.map(block => block.lines.join(" "))).toEqual([
+			"Handler", "[Component]", "Receives requests",
+		]);
+		expect(graph.edges[0].label).toBe("save\n[HTTPS]");
+		expect(graph.edges[0].style).toMatchObject({width: 320, color: "#123456", thickness: 4});
+		expect(graph.groupsMap.get("owner").nodes.map(node => node.id)).toEqual(["handler", "store"]);
+	});
+});
+
 // componentModel includes two components in one container, an external component,
 // and a standalone container so grouping cannot mistake a system for a container.
 function componentModel(): Parameters<typeof parseView>[0] {

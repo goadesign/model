@@ -5,6 +5,7 @@ import "./fonts.css";
 import './style.css';
 import '@fortawesome/fontawesome-free/css/all.css';
 import { RefreshConnector } from "./websocket";
+import {loadDiagramFonts} from "./graph-view/svg-text";
 
 const Root = lazy(() => import('./Root').then(module => ({ default: module.Root })));
 
@@ -47,6 +48,7 @@ const App: React.FC = () => {
 				modelResponse.json(),
 				layoutResponse.json()
 			]);
+			await loadDiagramFonts();
 
 			setState({
 				data: { model, layout },

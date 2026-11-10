@@ -23,8 +23,14 @@ module.exports = {
 			},
 			{
 				test: /\.css$/i,
-				use: ['style-loader', 'css-loader']
+				oneOf: [
+					{resourceQuery: /inline/, use: [{loader: 'css-loader', options: {exportType: 'string'}}]},
+					{use: ['style-loader', 'css-loader']},
+				],
 			},
+			// Standalone SVGs carry the same local Inter faces used to measure text.
+			{test: /\.woff2$/, include: /@fontsource[\\/]inter/, type: 'asset/inline'},
+			{test: /LICENSE$/, resourceQuery: /raw/, type: 'asset/source'},
 			{
 				test: /\.html$/,
 				use: [
