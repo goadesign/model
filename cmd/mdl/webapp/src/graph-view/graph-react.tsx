@@ -25,13 +25,13 @@ export const Graph: FC<Props> = ({data, onSelect, dragMode}) => {
 		
 		// Try to restore previous view state, otherwise use auto fit
 		// Skip auto fit if we're in the middle of a reset operation to prevent infinite loop
-		if (!restoreViewState(data.id) && !data.shouldSkipAutoFit()) {
+		if (!restoreViewState(data) && !data.shouldSkipAutoFit()) {
 			data.fitToView();
 		}
 		// Save view state before page unload
 		const handleBeforeUnload = () => {
 			if (data?.id) {
-				saveViewState(data.id);
+				saveViewState(data);
 			}
 		};
 		
@@ -40,10 +40,13 @@ export const Graph: FC<Props> = ({data, onSelect, dragMode}) => {
 		return () => {
 			// Save view state before cleanup
 			if (data?.id) {
-				saveViewState(data.id);
+				saveViewState(data);
 			}
 			
 			window.removeEventListener('beforeunload', handleBeforeUnload);
+			// Each graph has its own svg, so the next graph's buildGraph no longer
+			// replaces this graph's window keyboard and unload handlers; remove them here.
+			(g.svg as any).__cursorInteractionCleanup();
 			
 			if (ref.current) {
 				ref.current.innerHTML = '';
@@ -62,7 +65,7 @@ export const Graph: FC<Props> = ({data, onSelect, dragMode}) => {
 			}
 			
 			// Set up cursor interaction with current drag mode
-			addCursorInteraction(svg, dragMode);
+			addCursorInteraction(data, dragMode);
 		}
 	}, [dragMode, graphState]);
 

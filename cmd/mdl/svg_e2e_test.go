@@ -47,6 +47,28 @@ type (
 	}
 )
 
+const (
+	// editorNodeSelector matches the nodes the editor page has drawn.
+	editorNodeSelector = "#root > div.graph svg g.nodes > g.node"
+	// autoLayoutButton is the editor toolbar button that lays out the view.
+	autoLayoutButton = "button.auto-arrange"
+	// saveButton is the editor toolbar button that saves the view's SVG file.
+	saveButton = `button[data-tooltip^="Save"]`
+	// editorGraphScript evaluates to the graph object the editor page draws, or
+	// null before it draws one. The page exposes no handle, so this test-only
+	// driver reads the Graph component's data prop from React's fiber.
+	editorGraphScript = `(() => {
+		const host = document.querySelector("#root > div.graph");
+		const key = host && Object.keys(host).find(name => name.startsWith("__reactFiber$"));
+		for (let fiber = key && host[key]; fiber; fiber = fiber.return) {
+			if (fiber.memoizedProps?.data) return fiber.memoizedProps.data;
+		}
+		return null;
+	})()`
+	// editorDrawnScript is true once every node of the editor's graph is in the page.
+	editorDrawnScript = editorGraphScript + `?.nodes().every(node => node.ref?.isConnected)`
+)
+
 func hasChrome() bool {
 	if os.Getenv("CHROME_BIN") != "" {
 		return true
@@ -168,7 +190,7 @@ func TestManualEditAfterAutoLayout(t *testing.T) {
 		url.QueryEscape("SystemContext"),
 	)
 	const script = `(async () => {
-		const graph = window.gdata;
+		const graph = ` + editorGraphScript + `;
 		await graph.autoLayout();
 		const node = graph.nodes()[0];
 		graph.moveNode(node, node.x + 20, node.y, true);
@@ -185,10 +207,7 @@ func TestManualEditAfterAutoLayout(t *testing.T) {
 	if err := chromedp.Run(
 		testContext,
 		chromedp.Navigate(pageURL),
-		chromedp.Poll(
-			`window.gdata && window.gdata.nodes().every(node => node.ref?.isConnected)`,
-			nil,
-		),
+		chromedp.Poll(editorDrawnScript, nil),
 		chromedp.Evaluate(
 			script,
 			&dimensions,
@@ -266,25 +285,16 @@ func TestSVGAuthoredPresentation(t *testing.T) {
 	testContext, cleanup := newChromeContext(t)
 	defer cleanup()
 	pageURL := fmt.Sprintf("http://%s/?id=Authored", listener.Addr().String())
-	const renderScript = `(async () => {
-		const graph = window.gdata;
-		await graph.autoLayout();
-		return graph.exportSVG();
-	})()`
-	var exported string
+	// The editor's toolbar lays out the view and saves its SVG into outDir.
 	if err := chromedp.Run(testContext,
 		chromedp.Navigate(pageURL),
-		chromedp.Poll(`window.gdata && window.gdata.nodes().every(node => node.ref?.isConnected)`, nil),
-		chromedp.Evaluate(renderScript, &exported, func(params *cdruntime.EvaluateParams) *cdruntime.EvaluateParams {
-			return params.WithAwaitPromise(true)
-		}),
+		chromedp.WaitVisible(editorNodeSelector, chromedp.ByQuery),
+		clickEditorButton(autoLayoutButton),
+		clickEditorButton(saveButton),
 	); err != nil {
 		t.Fatalf("draw authored styles: %v", err)
 	}
-	file := filepath.Join(t.TempDir(), "authored.svg")
-	if err := os.WriteFile(file, []byte(exported), 0600); err != nil {
-		t.Fatalf("save authored SVG: %v", err)
-	}
+	file := filepath.Join(outDir, "Authored.svg")
 	// Another browser proves the exported file carries its own font faces.
 	exportContext, cleanupExport := newChromeContext(t)
 	defer cleanupExport()
@@ -754,6 +764,25 @@ func newChromeContext(t *testing.T) (context.Context, func()) {
 		cancelAllocator()
 	}
 	return testContext, cleanup
+}
+
+// clickEditorButton clicks one editor toolbar button and waits until the editor
+// enables it again, which happens once the layout or save it started finishes.
+func clickEditorButton(selector string) chromedp.Action {
+	var finished bool
+	script := fmt.Sprintf(`new Promise(resolve => {
+		const button = document.querySelector(%q);
+		new MutationObserver((records, observer) => {
+			if (records.some(record => record.oldValue !== null)) {
+				observer.disconnect();
+				resolve(true);
+			}
+		}).observe(button, {attributeFilter: ["disabled"], attributeOldValue: true});
+		button.click();
+	})`, selector)
+	return chromedp.Evaluate(script, &finished, func(params *cdruntime.EvaluateParams) *cdruntime.EvaluateParams {
+		return params.WithAwaitPromise(true)
+	})
 }
 
 func svgLinks(t *testing.T, path string) []string {

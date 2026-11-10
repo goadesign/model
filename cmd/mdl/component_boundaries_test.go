@@ -11,7 +11,6 @@ import (
 	"testing"
 	"time"
 
-	cdruntime "github.com/chromedp/cdproto/runtime"
 	"github.com/chromedp/chromedp"
 )
 
@@ -44,9 +43,11 @@ func TestComponentBoundariesRendered(t *testing.T) {
 	httpServer := &http.Server{ReadHeaderTimeout: 3 * time.Second}
 	mux := http.NewServeMux()
 	mux.Handle("/exports/", http.StripPrefix("/exports/", http.FileServer(http.Dir(outDir))))
+	// The editor saves into its own directory so it keeps the CLI files intact.
+	editorDir := t.TempDir()
 	serverDone := make(chan error, 1)
 	go func() {
-		serverDone <- server.ServeOnListener(outDir, "", httpServer, mux, listener)
+		serverDone <- server.ServeOnListener(editorDir, "", httpServer, mux, listener)
 	}()
 	t.Cleanup(func() {
 		if err := httpServer.Close(); err != nil {
@@ -76,22 +77,21 @@ func TestComponentBoundariesRendered(t *testing.T) {
 			ctx, cleanup := newChromeContext(t)
 			defer cleanup()
 			pageURL := fmt.Sprintf("http://%s/?id=%s", listener.Addr().String(), url.QueryEscape(test.view))
-			var exported string
-			const exportScript = `(async () => {
-				await window.gdata.autoLayout();
-				return window.gdata.exportSVG();
-			})()`
+			// The editor's toolbar lays out the view and saves its SVG into editorDir.
 			if err := chromedp.Run(ctx,
 				chromedp.Navigate(pageURL),
-				chromedp.Poll(`window.gdata && window.gdata.nodes().every(node => node.ref?.isConnected)`, nil),
-				chromedp.Evaluate(exportScript, &exported, func(params *cdruntime.EvaluateParams) *cdruntime.EvaluateParams {
-					return params.WithAwaitPromise(true)
-				}),
+				chromedp.WaitVisible(editorNodeSelector, chromedp.ByQuery),
+				clickEditorButton(autoLayoutButton),
+				clickEditorButton(saveButton),
 			); err != nil {
 				t.Fatalf("render editor component view: %v", err)
 			}
+			exported, err := os.ReadFile(filepath.Join(editorDir, test.view+".svg"))
+			if err != nil {
+				t.Fatalf("read editor export: %v", err)
+			}
 			editorPath := filepath.Join(outDir, "editor-"+test.view+".svg")
-			if err := os.WriteFile(editorPath, []byte(exported), 0600); err != nil {
+			if err := os.WriteFile(editorPath, exported, 0600); err != nil {
 				t.Fatalf("save editor export: %v", err)
 			}
 			// Inspect real SVG rectangles after export. A missing boundary or a
