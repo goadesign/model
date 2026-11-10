@@ -408,6 +408,12 @@ selected by either dragging over the selection or by using SHIFT + CLICK.
 Selecting multiple elements automatically selects the relationships between
 these elements as well.
 
+The editor, static diagrams, and SVG exports use the same renderer. Diagram
+text uses bundled Inter fonts, which SVG exports include with their license for
+consistent display without a network connection. Element styles preserve authored shapes,
+colors, and image icons. Relationship labels include their technology when
+specified, and relationship `Width` controls the label's wrapping width in pixels.
+
 New vertices can be created on relationship lines using ALT + CLICK (Option + Click on Mac), existing
 vertices can be deleted with BACKSPACE or DELETE. See the table below for a
 complete list of editor shortcuts.

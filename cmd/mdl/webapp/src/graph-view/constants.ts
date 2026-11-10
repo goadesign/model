@@ -58,30 +58,31 @@ export interface EdgeStyle {
 
 // Default styles
 export const DEFAULT_EDGE_STYLE: EdgeStyle = {
-	thickness: 3,
-	color: '#999',
+	thickness: 2,
+	color: '#64748b',
 	opacity: 1,
-	fontSize: 22,
+	fontSize: 18,
+	width: 200,
 	dashed: true,
 };
 
 export const DEFAULT_NODE_STYLE: NodeStyle = {
 	width: 280,
 	height: 180,
-	background: 'rgba(255, 255, 255, .9)',
-	color: '#666',
-	opacity: .9,
-	stroke: '#999',
+	background: '#ffffff',
+	color: '#334155',
+	opacity: 1,
+	stroke: '#8492a6',
 	fontSize: 22,
-	shape: 'Box'
+	shape: 'Box',
+	metadata: true,
+	description: true,
 };
 
 // SVG styles
 export const SVG_STYLES = {
 	nodeBorder: {
-		fill: "rgba(255, 255, 255, 0.86)",
-		stroke: "#aaa",
-		filter: 'url(#shadow)',
+		'stroke-width': 1.5,
 	},
 	nodeText: {
 		'font-family': 'Inter, -apple-system, BlinkMacSystemFont, sans-serif',
@@ -96,15 +97,15 @@ export const SVG_STYLES = {
 		stroke: "none",
 	},
 	groupRect: {
-		fill: "rgba(0, 0, 0, 0.02)",
-		stroke: "#666",
-		'stroke-width': 3,
-		"stroke-dasharray": 4,
+		fill: "none",
+		stroke: "#8492a6",
+		'stroke-width': 1.5,
+		"stroke-dasharray": "6 4",
 	},
 	groupText: {
-		fill: "#666",
-		"font-size": 22,
-		"font-weight": "500",
+		fill: "#475569",
+		"font-size": 20,
+		"font-weight": "600",
 		'font-family': 'Inter, -apple-system, BlinkMacSystemFont, sans-serif',
 		cursor: "default"
 	}
@@ -116,15 +117,10 @@ export const DEFAULT_GRID_SIZE = 25;
 export const EDGE_SPREAD_DISTANCE = 70;
 export const EDGE_SPREAD_DISTANCE_X = 200;
 
-// Utility function to apply styles to SVG elements
+// Set presentation attributes so an author's later attributes override defaults.
 export const applyStyle = (el: SVGElement, style: { [key: string]: string | number }) => {
-	Object.keys(style).forEach(key => {
-		const value = style[key];
-		if (typeof value === 'number') {
-			el.style.setProperty(key, value.toString());
-		} else {
-			el.style.setProperty(key, value);
-		}
+	Object.entries(style).forEach(([key, value]) => {
+		el.setAttribute(key, String(value));
 	});
 };
 

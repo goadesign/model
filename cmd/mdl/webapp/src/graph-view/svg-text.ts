@@ -14,6 +14,12 @@ export interface WrappedText {
 const measuredText = new Map<string, TextSize>();
 let measurementSVG: SVGSVGElement | undefined;
 
+/** loadDiagramFonts completes local font loading before text is wrapped or measured. */
+export async function loadDiagramFonts(): Promise<void> {
+	await Promise.all([400, 600, 700].map(weight => document.fonts.load(`${weight} 22px Inter`)));
+	await document.fonts.ready;
+}
+
 /**
  * measureSVGText returns the browser's rendered text size. Results are cached
  * because node and edge layout often measures the same words many times.

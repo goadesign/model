@@ -8,6 +8,7 @@ import "./style.css";
 import {buildGraphView, LayoutDirection} from "./graph-view/graph";
 import {LayoutOptions} from "./graph-view/layout";
 import {parseView} from "./parseModel";
+import {loadDiagramFonts} from "./graph-view/svg-text";
 
 interface RenderRequest {
 	viewId: string;
@@ -44,6 +45,7 @@ async function run(): Promise<void> {
 			throw new Error(`load model: HTTP ${response.status}`);
 		}
 		const model = await response.json();
+		await loadDiagramFonts();
 		const graph = parseView(model, {}, request.viewId);
 		if (!graph) {
 			throw new Error(`model does not contain view ${request.viewId}`);

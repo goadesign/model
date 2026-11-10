@@ -194,7 +194,7 @@ export class GraphData {
 		const minimumHeight = shape === 'person' ? 240 : 180;
 		const width = Math.max(minimumWidth, nodeStyle.width || 0);
 		const fontSize = nodeStyle.fontSize || 22;
-		const contentLayout = layoutNodeContent(label, sub, description, width, fontSize);
+		const contentLayout = layoutNodeContent(label, sub, description, width, fontSize, nodeStyle);
 		let height = Math.max(minimumHeight, nodeStyle.height || 0, contentLayout.minimumHeight);
 
 		// Some shapes shift labels down to reserve visual space for an icon,
@@ -1254,20 +1254,20 @@ function buildPlacedEdgeLabel(bounds: BBox, edge: Edge) {
 	const centerY = bounds.y + bounds.height / 2
 	const {txt} = create.textArea(
 		edge.label,
-		200,
+		edge.style.width,
 		edge.style.fontSize,
 		false,
 		centerX,
 		bounds.y,
 		'middle',
 	)
-	applyStyle(txt, styles.edgeText)
+	applyStyle(txt, SVG_STYLES.edgeText)
 	txt.setAttribute('stroke', 'none')
 	txt.setAttribute('font-size', String(edge.style.fontSize))
 	txt.setAttribute('fill', edge.style.color)
 	txt.setAttribute('data-field', 'label')
 	const bg = create.rect(bounds.width, bounds.height, bounds.x, bounds.y)
-	applyStyle(bg, styles.edgeRect)
+	applyStyle(bg, SVG_STYLES.edgeRect)
 	return {
 		bg,
 		txt,
@@ -1281,7 +1281,7 @@ function buildPlacedEdgeLabel(bounds: BBox, edge: Edge) {
 function buildEdgeLabel(placement: EdgeLabelPlacement, edge: Edge) {
 	const labelGap = 12;
 	const fontSize = edge.style.fontSize
-	let {txt, dy, maxW} = create.textArea(edge.label, 200, fontSize, false, placement.x, placement.y, 'middle')
+	let {txt, dy, maxW} = create.textArea(edge.label, edge.style.width, fontSize, false, placement.x, placement.y, 'middle')
 	dy -= fontSize / 2
 	maxW += fontSize
 	const centerX = placement.orientation === 'vertical'
@@ -1301,13 +1301,13 @@ function buildEdgeLabel(placement: EdgeLabelPlacement, edge: Edge) {
 	})
 	txt.setAttribute('y', String(centerY - dy / 2))
 
-	applyStyle(txt, styles.edgeText)
+	applyStyle(txt, SVG_STYLES.edgeText)
 	txt.setAttribute('stroke', 'none')
 	txt.setAttribute('font-size', String(edge.style.fontSize))
 	txt.setAttribute('fill', edge.style.color)
 
 	const bg = create.rect(bounds.width, bounds.height, bounds.x, bounds.y)
-	applyStyle(bg, styles.edgeRect)
+	applyStyle(bg, SVG_STYLES.edgeRect)
 	txt.setAttribute('data-field', 'label')
 	edge.labelBounds = bounds
 	return {bg, txt}
@@ -1343,12 +1343,10 @@ function buildNode(n: Node, data: GraphData) {
 	shape.classList.add('nodeBorder')
 
 	// Apply generic styles first
-	applyStyle(shape, styles.nodeBorder)
+	applyStyle(shape, SVG_STYLES.nodeBorder)
 	// Then apply tag-specific styles to override generic ones
 	shape.setAttribute('fill', n.style.background)
 	shape.setAttribute('stroke', n.style.stroke)
-	// Consistent border width for all elements
-	shape.setAttribute('stroke-width', '3')
 	shape.setAttribute('opacity', String(n.style.opacity))
 	setBorderStyle(shape, n.style.border)
 
@@ -1374,7 +1372,7 @@ function buildGroup(group: Group) {
 		const bounds = group.layoutBounds
 		const title = group.layoutTitleBounds
 		const rect = create.rect(bounds.width, bounds.height, bounds.x, bounds.y)
-		applyStyle(rect, styles.groupRect)
+		applyStyle(rect, SVG_STYLES.groupRect)
 		group.style.stroke && rect.setAttribute('stroke', group.style.stroke)
 		group.style.background && rect.setAttribute('fill', group.style.background)
 		const text = create.text(group.name, {
@@ -1382,7 +1380,7 @@ function buildGroup(group: Group) {
 			y: title.y,
 			'dominant-baseline': 'hanging',
 		})
-		applyStyle(text, styles.groupText)
+		applyStyle(text, SVG_STYLES.groupText)
 		group.style.color && text.setAttribute('fill', group.style.color)
 		g.append(rect, text)
 		group.ref = g
@@ -1437,12 +1435,12 @@ function buildGroup(group: Group) {
 	group.y = bb.y + bb.height / 2
 	group.width = bb.width
 	group.height = bb.height
-	applyStyle(r, styles.groupRect)
+	applyStyle(r, SVG_STYLES.groupRect)
 	group.style.stroke && r.setAttribute('stroke', group.style.stroke)
 	group.style.background && r.setAttribute('fill', group.style.background)
 
-	const txt = create.text(group.name, {x: p0.x, y: bb.y + bb.height - styles.groupText["font-size"]})
-	applyStyle(txt, styles.groupText)
+	const txt = create.text(group.name, {x: p0.x, y: bb.y + bb.height - SVG_STYLES.groupText["font-size"]})
+	applyStyle(txt, SVG_STYLES.groupText)
 	group.style.color && txt.setAttribute('fill', group.style.color)
 
 	g.append(r, txt)
@@ -2240,45 +2238,6 @@ export const getZoomAuto = () => {
 const setBorderStyle = (el: SVGElement, style: string) => {
 	if (style == 'Dashed') el.setAttribute('stroke-dasharray', '4')
 	else if (style == 'Dotted') el.setAttribute('stroke-dasharray', '2')
-}
-
-const styles = {
-	//node styles
-	nodeBorder: {
-		// Don't set fill and stroke here - let tag-specific styles handle colors
-		filter: 'url(#shadow)',
-	},
-	nodeText: {
-		'font-family': 'Arial, sans-serif',
-		stroke: "none"
-	},
-
-	//edge styles
-	edgeText: {
-		'font-family': 'Arial, sans-serif',
-		stroke: "none"
-	},
-
-	edgeRect: {
-		fill: "none",
-		stroke: "none",
-	},
-
-	//group styles
-	groupRect: {
-		//fill: "none",
-		fill: "rgba(0, 0, 0, 0.02)",
-		stroke: "#666",
-		'stroke-width': 3,
-		"stroke-dasharray": 4,
-	},
-	groupText: {
-		'font-family': 'Arial, sans-serif',
-		fill: "#666",
-		"font-size": 22,
-		"font-weight": "bold",
-		cursor: "default"
-	}
 }
 
 // View state persistence - similar to undo cache but for zoom/pan

@@ -18,6 +18,8 @@ import (
 	cdruntime "github.com/chromedp/cdproto/runtime"
 	"github.com/chromedp/chromedp"
 	"github.com/jaschaephraim/lrserver"
+
+	"goa.design/model/mdl"
 )
 
 type (
@@ -205,6 +207,132 @@ func TestManualEditAfterAutoLayout(t *testing.T) {
 			dimensions.ExpectedWidth,
 			dimensions.ExpectedHeight,
 		)
+	}
+}
+
+// TestSVGAuthoredPresentation checks the shared renderer and its standalone
+// export with explicit shapes, an image icon, content choices, and boundary colors.
+func TestSVGAuthoredPresentation(t *testing.T) {
+	if !hasChrome() {
+		t.Skip("skipping: Chrome/Chromium not available in PATH")
+	}
+	width, height, labelWidth, hidden := 420, 300, 120, false
+	design := &mdl.Design{
+		Name: "Authored presentation",
+		Model: &mdl.Model{DeploymentNodes: []*mdl.DeploymentNode{{
+			ID: "service", Name: "Orders", Tags: "Deployment Node",
+			InfrastructureNodes: []*mdl.InfrastructureNode{
+				{ID: "store", Name: "Order store", Tags: "Infrastructure Node,store", Technology: "PostgreSQL", Description: "Private order records"},
+				{ID: "worker", Name: "Worker", Tags: "Infrastructure Node,worker", Description: "Hidden description", Relationships: []*mdl.Relationship{{
+					ID: "save", SourceID: "worker", DestinationID: "store", Description: "Saves orders through authenticated service", Technology: "HTTPS", Tags: "Relationship",
+				}}},
+			},
+		}}},
+		Views: &mdl.Views{
+			DeploymentViews: []*mdl.DeploymentView{{ViewProps: &mdl.ViewProps{
+				Key: "Authored", ElementViews: []*mdl.ElementView{{ID: "store"}, {ID: "worker"}},
+				RelationshipViews: []*mdl.RelationshipView{{ID: "save"}},
+			}}},
+			Styles: &mdl.Styles{
+				Elements: []*mdl.ElementStyle{
+					{Tag: "store", Shape: mdl.ShapeCylinder, Width: &width, Height: &height, Background: "#f0f7ff", Color: "#123456", Stroke: "#456789"},
+					{Tag: "worker", Shape: mdl.ShapeBox, Metadata: &hidden, Description: &hidden,
+						Icon: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/l9sAAAAASUVORK5CYII="},
+					{Tag: "Deployment Node", Background: "#fefce8", Stroke: "#a16207", Color: "#713f12"},
+				},
+				Relationships: []*mdl.RelationshipStyle{{Tag: "Relationship", Width: &labelWidth}},
+			},
+		},
+	}
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatalf("listen: %v", err)
+	}
+	server := NewServer(design)
+	httpServer := &http.Server{ReadHeaderTimeout: 3 * time.Second}
+	serverDone := make(chan error, 1)
+	outDir := t.TempDir()
+	go func() {
+		serverDone <- server.ServeOnListener(outDir, "", httpServer, http.NewServeMux(), listener)
+	}()
+	t.Cleanup(func() {
+		if err := httpServer.Close(); err != nil {
+			t.Errorf("close editor server: %v", err)
+		}
+		if err := <-serverDone; err != nil && err != http.ErrServerClosed {
+			t.Errorf("editor server: %v", err)
+		}
+	})
+	testContext, cleanup := newChromeContext(t)
+	defer cleanup()
+	pageURL := fmt.Sprintf("http://%s/?id=Authored", listener.Addr().String())
+	const renderScript = `(async () => {
+		const graph = window.gdata;
+		await graph.autoLayout();
+		return graph.exportSVG();
+	})()`
+	var exported string
+	if err := chromedp.Run(testContext,
+		chromedp.Navigate(pageURL),
+		chromedp.Poll(`window.gdata && window.gdata.nodes().every(node => node.ref?.isConnected)`, nil),
+		chromedp.Evaluate(renderScript, &exported, func(params *cdruntime.EvaluateParams) *cdruntime.EvaluateParams {
+			return params.WithAwaitPromise(true)
+		}),
+	); err != nil {
+		t.Fatalf("draw authored styles: %v", err)
+	}
+	file := filepath.Join(t.TempDir(), "authored.svg")
+	if err := os.WriteFile(file, []byte(exported), 0600); err != nil {
+		t.Fatalf("save authored SVG: %v", err)
+	}
+	// Another browser proves the exported file carries its own font faces.
+	exportContext, cleanupExport := newChromeContext(t)
+	defer cleanupExport()
+	const inspectScript = `(async () => {
+		await document.fonts.ready;
+		const issues = [];
+		const check = (condition, issue) => {if (!condition) issues.push(issue);};
+		const store = document.getElementById("store");
+		const worker = document.getElementById("worker");
+		const border = store.querySelector(".nodeBorder");
+		check(border.tagName === "path", "explicit Cylinder shape was replaced");
+		check(border.getBBox().width === 420 && border.getBBox().height === 300, "explicit dimensions changed");
+		check(getComputedStyle(border).fill === "rgb(240, 247, 255)", "explicit fill changed");
+		check(getComputedStyle(border).stroke === "rgb(69, 103, 137)", "explicit stroke changed");
+		check(getComputedStyle(store.querySelector("text")).fill === "rgb(18, 52, 86)", "explicit text color changed");
+		check(getComputedStyle(border).filter === "none", "default shadow remains");
+		check(worker.querySelectorAll("text").length === 1, "hidden content remains");
+		const icon = worker.querySelector("image.nodeIcon");
+		check(icon?.getAttribute("href").startsWith("data:image/png;base64,"), "authored image icon missing");
+		check(icon?.getBBox().width === 32 && icon?.getBBox().height === 32, "icon has no content space");
+		const decodedIcon = new Image();
+		decodedIcon.src = icon.getAttribute("href");
+		await decodedIcon.decode();
+		const boundary = document.querySelector("g.group rect");
+		check(getComputedStyle(boundary).fill === "rgb(254, 252, 232)", "authored boundary fill overridden");
+		check(getComputedStyle(boundary).stroke === "rgb(161, 98, 7)", "authored boundary stroke overridden");
+		check(getComputedStyle(document.querySelector("g.group text")).fill === "rgb(113, 63, 18)", "authored boundary text overridden");
+		check([...document.fonts].some(font => font.family === "Inter" && font.status === "loaded"), "standalone Inter font not loaded");
+		check(document.getElementById("inter-font-license")?.textContent.includes("SIL OPEN FONT LICENSE Version 1.1"), "embedded font license missing");
+		for (const text of document.querySelectorAll("text")) {
+			check(getComputedStyle(text).fontFamily.startsWith("Inter"), "mixed diagram font");
+		}
+		check(document.querySelector("g.edge text").textContent.includes("[HTTPS]"), "relationship technology missing");
+		const labelLines = [...document.querySelectorAll("g.edge text tspan")];
+		check(labelLines.length > 2 && labelLines.every(line => line.getComputedTextLength() <= 120), "authored relationship Width ignored");
+		return issues;
+	})()`
+	var issues []string
+	if err := chromedp.Run(exportContext,
+		chromedp.Navigate((&url.URL{Scheme: "file", Path: file}).String()),
+		chromedp.Evaluate(inspectScript, &issues, func(params *cdruntime.EvaluateParams) *cdruntime.EvaluateParams {
+			return params.WithAwaitPromise(true)
+		}),
+	); err != nil {
+		t.Fatalf("inspect authored SVG: %v", err)
+	}
+	if len(issues) > 0 {
+		t.Fatalf("authored presentation changed: %v", issues)
 	}
 }
 

@@ -1,4 +1,5 @@
 import {GraphData, LayoutDirection, NodeLink} from "./graph-view/graph";
+import {EdgeStyle, NodeStyle} from "./graph-view/constants";
 
 
 interface Model {
@@ -20,12 +21,8 @@ interface Model {
 		dynamicViews: View[]
 		deploymentViews: View[]
 		styles: {
-			elements: {
-				[key: string]: string
-			}[];
-			relationships: {
-				[key: string]: string
-			}[]
+			elements: (NodeStyle & {tag: string})[];
+			relationships: (EdgeStyle & {tag: string})[];
 		}
 	}
 }
@@ -323,7 +320,8 @@ export const parseView = (model: Model, layouts: Layouts, viewKey: string) => {
 			})
 			if (ref.routing) style.routing = ref.routing
 
-			graph.addEdge(rel.id, rel.sourceId, rel.destinationId, rel.description, ref.vertices, style)
+			const label = rel.technology ? `${rel.description}\n[${rel.technology}]` : rel.description
+			graph.addEdge(rel.id, rel.sourceId, rel.destinationId, label, ref.vertices, style)
 		})
 	}
 

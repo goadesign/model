@@ -1,4 +1,4 @@
-import {applyStyle, SVG_STYLES} from "./constants";
+import {applyStyle, NodeStyle, SVG_STYLES} from "./constants";
 import {create} from "./svg-create";
 import {svgTextWrap} from "./svg-text";
 
@@ -15,12 +15,16 @@ export interface NodeContentLayout {
 	blocks: TextBlockLayout[];
 	textHeight: number;
 	minimumHeight: number;
+	// The icon shares the content stack so text never draws over it.
+	icon?: string;
 }
 
 const HORIZONTAL_PADDING = 18;
 const VERTICAL_PADDING = 18;
 const TITLE_GAP = 6;
 const METADATA_GAP = 10;
+const ICON_SIZE = 32;
+const ICON_GAP = 12;
 
 function textBlock(
 	text: string,
@@ -54,13 +58,17 @@ export function layoutNodeContent(
 	description: string,
 	nodeWidth: number,
 	fontSize: number,
+	style: NodeStyle,
 ): NodeContentLayout {
 	const textWidth = Math.max(nodeWidth - HORIZONTAL_PADDING * 2, 80);
-	const blocks = [
-		textBlock(title, textWidth, fontSize, true, TITLE_GAP, "name"),
-		textBlock(`[${subtitle}]`, textWidth, fontSize * 0.75, false, METADATA_GAP),
-		textBlock(description, textWidth, Math.min(fontSize * 0.8, 16), false, 0, "description"),
-	];
+	const blocks = [textBlock(title, textWidth, fontSize, true, TITLE_GAP, "name")];
+	if (style.metadata !== false && subtitle) {
+		blocks.push(textBlock(`[${subtitle}]`, textWidth, fontSize * 0.7, false, METADATA_GAP));
+	}
+	if (style.description !== false && description) {
+		blocks.push(textBlock(description, textWidth, Math.min(fontSize * 0.8, 16), false, 0, "description"));
+	}
+	blocks[blocks.length - 1].gapAfter = 0;
 	const textHeight = blocks.reduce(
 		(height, block) => height + block.lines.length * block.lineHeight + block.gapAfter,
 		0,
@@ -69,13 +77,26 @@ export function layoutNodeContent(
 	return {
 		blocks,
 		textHeight,
-		minimumHeight: textHeight + VERTICAL_PADDING * 2,
+		minimumHeight: textHeight + VERTICAL_PADDING * 2 + (style.icon ? ICON_SIZE + ICON_GAP : 0),
+		icon: style.icon,
 	};
 }
 
 export function buildNodeContent(layout: NodeContentLayout, color?: string): SVGGElement {
 	const group = create.element("g") as SVGGElement;
-	let top = -layout.textHeight / 2;
+	const iconHeight = layout.icon ? ICON_SIZE + ICON_GAP : 0;
+	let top = -(layout.textHeight + iconHeight) / 2;
+	if (layout.icon) {
+		group.append(create.element("image", {
+			href: layout.icon,
+			x: -ICON_SIZE / 2,
+			y: top,
+			width: ICON_SIZE,
+			height: ICON_SIZE,
+			preserveAspectRatio: "xMidYMid meet",
+		}, "nodeIcon"));
+		top += iconHeight;
+	}
 
 	layout.blocks.forEach((block) => {
 		const text = create.text("", {"text-anchor": "middle"});
