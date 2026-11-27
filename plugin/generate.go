@@ -2,7 +2,6 @@ package plugin
 
 import (
 	"encoding/json"
-	"os"
 	"path/filepath"
 	"text/template"
 
@@ -17,21 +16,12 @@ func init() {
 	codegen.RegisterPlugin("model", "gen", nil, Generate)
 }
 
-// Generate produces the design JSON representation inside the top level gen
-// directory.
+// Generate adds the design's Structurizr JSON representation, gen/structurizr/
+// model.json, to files. Goa evaluates the design before it calls plugins, so
+// Generate reads the evaluated model and neither runs the DSL again nor touches
+// the file system: rendering the returned file replaces any previous one.
 func Generate(_ string, _ []eval.Root, files []*codegen.File) ([]*codegen.File, error) {
-	err := eval.RunDSL()
-	if err != nil {
-		return nil, err
-	}
-
-	// Generate structurizr JSON
 	path := filepath.Join(codegen.Gendir, "structurizr", "model.json")
-	if _, err := os.Stat(path); !os.IsNotExist(err) {
-		if err := os.Remove(path); err != nil {
-			return nil, err
-		}
-	}
 	section := &codegen.SectionTemplate{
 		Name:    "model",
 		FuncMap: template.FuncMap{"toJSON": toJSON},
